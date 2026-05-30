@@ -8199,9 +8199,14 @@ function _buildGnomADId(variant) {
 }
 
 async function fetchGnomADFrequency(variant) {
-    // gnomAD v4 GraphQL API — requires HGVS variant_id format: chr-pos-ref-alt
+    // gnomAD v4 GraphQL API — requires chr-pos-ref-alt format OR rsID
+    // Do NOT call if we only have a legacy name like 'F508del' — will return 400
     const gnomadId = _buildGnomADId(variant);
     if (!gnomadId) return null;
+    // Validate format: must be chr-pos-ref-alt or rs number
+    const isCoordFormat = /^\d+[-_]\d+[-_][ACGT]+-[ACGT]+$/i.test(gnomadId);
+    const isRsId = /^rs\d+$/i.test(gnomadId);
+    if (!isCoordFormat && !isRsId) return null; // legacy name → skip to avoid 400
 
     try {
         const query = `{
@@ -8311,6 +8316,10 @@ const GNOMAD_POPULATIONS = Object.freeze([
 async function fetchGnomADPopulationFrequencies(variant) {
     const gnomadId = _buildGnomADId(variant);
     if (!gnomadId) return null;
+    // Only proceed with valid genomic coordinate or rsID format
+    const isCoordFormat = /^\d+[-_]\d+[-_][ACGT]+-[ACGT]+$/i.test(gnomadId);
+    const isRsId = /^rs\d+$/i.test(gnomadId);
+    if (!isCoordFormat && !isRsId) return null;
 
     const query = `{
         variant(variant_id: "${gnomadId}", dataset: gnomad_r4) {
@@ -12565,8 +12574,7 @@ async function fetchLocationOnce() {
                 accuracy_metres: Math.round(pos.coords.accuracy),
                 ip_address:      null  // GPS path — no IP needed
             };
-            console.log('[NeumuacFQ Geo] GPS location:', si.locationCache.city, si.locationCache.country,
-                        '(±' + si.locationCache.accuracy_metres + 'm)');
+            console.log(`[NeumuacFQ Geo] GPS location acquired: ${si.locationCache.city || '(city unknown)'}, ${si.locationCache.country || '(country unknown)'} ±${si.locationCache.accuracy_metres}m`);
             // Back-fill verified coordinates into the institution record if we have one
             const instId = STATE.searchIntelligence?.hospitalId;
             if (instId) {
@@ -14255,7 +14263,7 @@ async function persistSearchEvent(query, isHit, matchedField, matchedVariantId) 
                 is_hit:            isHit,
                 matched_field:     matchedField || null,
                 matched_variant_id:matchedVariantId || null,
-                session_id:        STATE.searchIntelligence.sessionId,
+                session_id:        STATE.searchIntelligence.sessionSearchId || STATE.searchIntelligence.sessionId || null,
                 searched_at:       new Date().toISOString(),
                 country:           loc.country        || null,
                 region:            loc.region         || null,
@@ -18513,7 +18521,7 @@ function renderACMGPanel(variant) {
 
 // Newborn screening panels — publicly available variant lists
 const NBS_PANELS = {
-    'UK CLAPA': ['F508del','G542X','G551D','R117H','N1303K','W1282X','R553X','621+1G>T','1717-1G>A','R1162X','G85E','R347P','A455E','3849+10kbC>T','1078delT','2789+5G>A','R560T','Y1092X','711+1G>T','1898+1G>A','2183AA>G','2184delA','3659delC','3905insT','S4X','Q493X','I507del'],
+    'UK CLAPA': ['F508del','G542X','G551D','R117H','N1303K','W1282X','R553X','621+1G>T','1717-1G>A','R1162X','G85E','R347P','A455E','3849+10kbC>T','1078delT','2789+5G>A','R560T','Y1092X','711+1G>T','1898+1G>A','2183AA>G','2184delA','3659delC','3905insT','S4X','Q493X','I507del','CFTRdele2,3'],
     'ACMG 23+4': ['F508del','G542X','G551D','R117H','N1303K','W1282X','R553X','621+1G>T','1717-1G>A','R1162X','G85E','R347P','A455E','3849+10kbC>T','1078delT','2789+5G>A','R560T','Y1092X','711+1G>T','1898+1G>A','2183AA>G','2184delA','3659delC'],
     'EU Consensus': ['F508del','G542X','G551D','R117H','N1303K','W1282X','R553X','621+1G>T','1717-1G>A','R1162X','G85E','R347P','3849+10kbC>T','2789+5G>A','711+1G>T','1898+1G>A','2183AA>G'],
     // Spain national programme (Programa de Cribado Neonatal, SEQC/AECOC consensus)
@@ -18525,8 +18533,18 @@ const NBS_PANELS = {
 };
 
 // Class-specific clinical reference data
+const CLASS_I_ACTIVE_TRIALS = {
+    'W1282X': 'ELX-02 (readthrough, NCT04135495) · QR-010 (antisense, NCT03557059)',
+    'G542X': 'Ataluren (PTC124) — completed trials; ELX-02 in development',
+    'R553X': 'Ataluren — completed trials; gene therapy approaches',
+    '621+1G>T': 'ASO splicing correction in preclinical development',
+    '711+1G>T': 'ASO splicing correction in preclinical development',
+    '1717-1G>A': 'No active trials identified — gene therapy pipeline',
+    'CFTRdele2,3': 'Gene therapy only — no readthrough applicable',
+};
+
 const CLASS_CLINICAL_DATA = {
-    'I':   { sweat_cl: '≥80 mmol/L (classic CF range)', residual_fn: '<1%',  panc_suff: '<5%',  onset: 'Neonatal / early infancy', cftr_rd: 'Rare — classic CF predominant', ivacaftor: 'Not indicated', eti: 'ETI indicated if ≥1 responsive allele', alyftrek: 'Ineligible if homozygous Class I · Eligible if other allele is Class II–VI (EU/AEMPS)' },
+    'I':   { sweat_cl: '≥80 mmol/L (classic CF range) — some Class I compound heterozygotes may show lower SwCl; context dependent on second allele', residual_fn: '<1%',  panc_suff: '<5%',  onset: 'Neonatal / early infancy', cftr_rd: 'Rare — classic CF predominant', ivacaftor: 'Not indicated', eti: 'This allele is ETI non-responsive — no protein substrate for modulators · Compound eligibility driven by second allele only', alyftrek: 'Ineligible if homozygous Class I · Eligible if other allele is Class II–VI (EU/AEMPS)' },
     'II':  { sweat_cl: '≥80 mmol/L', residual_fn: '0–3%', panc_suff: '<10%', onset: 'Neonatal / infancy', cftr_rd: 'Rare', ivacaftor: 'Not indicated (poor gating)', eti: 'ETI strongly indicated (F508del class)', alyftrek: 'Eligible (EU/AEMPS label) · Once daily' },
     'III': { sweat_cl: '60–100 mmol/L', residual_fn: '1–5%', panc_suff: '10–25%', onset: 'Infancy to childhood', cftr_rd: 'Possible with mild allele', ivacaftor: 'Ivacaftor monotherapy indicated for specific variants (G551D, G1244E, G1349D, G178R, G551S, S1251N, S1255P, S549N, S549R)', eti: 'ETI indicated', alyftrek: 'Eligible (EU/AEMPS label) · Once daily' },
     'IV':  { sweat_cl: '30–60 mmol/L (variable — check specific variant)', residual_fn: '5–30%', panc_suff: '30–70%', onset: 'Childhood to adulthood', cftr_rd: 'Common — CBAVD, pancreatitis', ivacaftor: 'Ivacaftor may benefit (R117H context-dependent on poly-T)', eti: 'ETI may benefit — check specific variant', alyftrek: 'Eligible (EU/AEMPS label) · Once daily' },
@@ -18629,6 +18647,22 @@ function renderClinicalReferencePanel(variant) {
             <div style="font-size:11px;color:var(--text-tertiary);margin-top:2px;">${clsData.eti}</div>
         </div>` : '';
 
+    // Class I subtype-specific note based on mutation nomenclature
+    const classISubtypeNote = cls === 'I' ? (() => {
+        const name = (variant.legacy_name || '').toLowerCase();
+        if (/^x$|del[exon]|del.*[ex]|duple|large.del|dele\d|^cftr/i.test(name) || name.includes('dele')) {
+            return 'Large deletion/duplication — readthrough not applicable. MLPA/CGH required for full characterisation. Gene therapy approaches in development.';
+        }
+        if (/^\d+[+-]\d+.*>[a-z]/i.test(variant.legacy_name || '')) {
+            return 'Splice site mutation — antisense oligonucleotide (ASO) correction under investigation. Check for splicing correction trials.';
+        }
+        if (/del|ins|dup|\d+del|\d+ins/i.test(name) && !/^f508|p\.phe/i.test(name)) {
+            return 'Frameshift mutation — complete loss of function. Readthrough agents ineffective. Gene therapy or mRNA replacement required.';
+        }
+        // Default: likely nonsense
+        return 'Likely nonsense (stop) mutation — readthrough agents (ataluren, ELX-02) may be applicable. Check ClinicalTrials.gov for active readthrough trials matching this variant.';
+    })() : null;
+
     const nbsPanel = nbsHits.length ? `
         <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
             <div style="font-size:10px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">
@@ -18642,13 +18676,20 @@ function renderClinicalReferencePanel(variant) {
                 `).join('')}
             </div>
             <div style="font-size:10.5px;color:var(--text-tertiary);margin-top:4px;">
-                This variant is included in ${nbsHits.length} national NBS panel${nbsHits.length!==1?'s':''} — would be detected at birth in these programmes.
+                This variant is included in ${nbsHits.length} national NBS panel${nbsHits.length!==1?'s':''} — detected at birth in these programmes.${cls==='I'?' Class I diagnosis requires immediate CF centre referral — highest severity group, start supportive care (PERT, physiotherapy) while awaiting genetics.':''}
             </div>
         </div>` :
         (cls ? `<div style="margin-top:8px;font-size:11px;color:var(--text-tertiary);">
             <i class="fas fa-info-circle" style="margin-right:4px;"></i>
             Not included in standard UK/ACMG/EU newborn screening panels
         </div>` : '');
+
+    const classISubtypeHTML = classISubtypeNote ? `
+        <div style="margin-top:8px;padding:8px 10px;border-radius:6px;
+             background:rgba(248,113,113,0.06);border:1px solid rgba(248,113,113,0.2);
+             font-size:10px;color:#f87171;line-height:1.5;">
+            <span style="font-weight:700;">Class I subtype note:</span> ${escapeHTML(classISubtypeNote)}
+        </div>` : '';
 
     return `${liveStatsBadge}
     <div class="detail-section" style="margin-top:0;border-left:3px solid rgba(41,121,255,0.3);">
@@ -19056,7 +19097,8 @@ function renderVariantDetail(variant, fromSearch) {
             <!-- DB clinical_alert banner — shows pre-computed alert from DB -->
             ${(variant.clinical_alert && variant.clinical_alert.trim()) ? `
             <div style="margin-bottom:10px;padding:8px 12px;border-radius:7px;
-                 background:rgba(41,121,255,0.05);border:1px solid rgba(41,121,255,0.15);
+                 background:${variant.class_subtype==='exceptional'?'rgba(251,191,36,0.06)':variant.clinical_alert?.includes('🚫')?'rgba(248,113,113,0.06)':'rgba(41,121,255,0.05)'};
+                 border:1px solid ${variant.class_subtype==='exceptional'?'rgba(251,191,36,0.25)':variant.clinical_alert?.includes('🚫')?'rgba(248,113,113,0.2)':'rgba(41,121,255,0.15)'};
                  font-size:11px;color:var(--text-secondary);line-height:1.5;">
                 ${escapeHTML(variant.clinical_alert)}
                 ${variant.class_confidence === 'NEEDS_REVIEW' ? `<span style="margin-left:8px;padding:1px 7px;border-radius:3px;background:rgba(251,191,36,0.15);color:#fbbf24;font-size:10px;font-weight:700;">⚠ NEEDS REVIEW</span>` : ''}
@@ -35272,7 +35314,46 @@ function runCompoundGenotypeCalculation() {
         : 'Mild CF or CFTR-RD — atypical presentation possible';
     const severityColor = avgSeverity >= 5 ? '#f87171' : avgSeverity >= 4 ? '#fb923c' : '#60a5fa';
 
-    const modHTML = verdict.eligibleModulators.length
+    // Homozygous Class I specific block — more informative than generic red box
+    const bothClassI = v1.cftr_class === 'I' && v2.cftr_class === 'I';
+    const homozygousClassIHTML = bothClassI ? `
+        <div style="padding:12px 14px;border-radius:8px;margin-bottom:12px;
+             background:rgba(248,113,113,0.07);border:2px solid rgba(248,113,113,0.3);">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                <span style="font-size:16px;">🚫</span>
+                <div style="font-size:13px;font-weight:700;color:#f87171;">
+                    Homozygous Class I — no approved modulator
+                </div>
+            </div>
+            <div style="font-size:11px;color:var(--text-secondary);line-height:1.7;margin-bottom:10px;">
+                Both alleles produce <strong>no functional CFTR protein</strong>. 
+                ETI modulators require protein substrate — neither allele provides one.
+                Alyftrek is also ineligible (homozygous Class I exclusion per EU label).
+            </div>
+            <div style="font-size:10px;font-weight:700;color:#4a6a8a;text-transform:uppercase;
+                 letter-spacing:.08em;margin-bottom:6px;">Alternative pathways — active investigation</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                ${[
+                    ['🔬 Readthrough (nonsense only)', 'Ataluren (PTC124) · ELX-02 · NCT02139306 · Active for W1282X, G542X, R553X — frameshift and splice variants do NOT benefit'],
+                    ['🧬 Antisense oligonucleotides', 'QR-010 (W1282X) · Splicing correction for 621+1G>T, 711+1G>T — early phase trials, not approved'],
+                    ['🔮 mRNA / gene therapy', 'CRISPR (Vertex/Editas), mRNA replacement (Translate Bio) — preclinical to phase I/II'],
+                    ['💊 Supportive care (current standard)', 'Chest physiotherapy · PERT (pancreatic enzymes) · Nutritional support · Annual sweat chloride · Lung function monitoring · Annual review CF centre']
+                ].map(([title, desc]) => `
+                    <div style="padding:7px 9px;border-radius:6px;
+                         background:rgba(255,255,255,0.03);border:1px solid rgba(99,140,210,0.12);">
+                        <div style="font-size:10px;font-weight:600;color:var(--text-primary);margin-bottom:2px;">${title}</div>
+                        <div style="font-size:9px;color:var(--text-tertiary);line-height:1.5;">${desc}</div>
+                    </div>`).join('')}
+            </div>
+            <div style="margin-top:8px;font-size:9px;color:#3a5a7a;">
+                <a href="https://clinicaltrials.gov/search?cond=Cystic+Fibrosis&term=Class+I" 
+                   target="_blank" style="color:#60a5fa;text-decoration:none;">
+                    Search ClinicalTrials.gov for active Class I CF trials →
+                </a>
+            </div>
+        </div>` : '';
+
+    modHTML = verdict.eligibleModulators.length
         ? verdict.eligibleModulators.map(m => `
             <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;
                  background:${m.color}10;border:1px solid ${m.color}30;margin-bottom:4px;">
@@ -35292,7 +35373,7 @@ function runCompoundGenotypeCalculation() {
             </div>`).join('')
         : `<div style="padding:8px 10px;border-radius:6px;background:rgba(248,113,113,0.08);
                border:1px solid rgba(248,113,113,0.2);font-size:12px;color:#f87171;">
-               No approved modulators for this combination. Consider clinical trial eligibility.${(v1.eti_recommendation || v2.eti_recommendation) ? ` Recommendation: ${escapeHTML(v1.eti_recommendation || v2.eti_recommendation)}` : ''}
+               ${bothClassI ? 'See Homozygous Class I pathway above.' : 'No approved modulators for this combination. Consider clinical trial eligibility.'}${(v1.eti_recommendation || v2.eti_recommendation) ? ` Recommendation: ${escapeHTML(v1.eti_recommendation || v2.eti_recommendation)}` : ''}
            </div>`;
 
     // Item 12: Individual allele ETI evidence tiers
@@ -35602,6 +35683,7 @@ function runCompoundGenotypeCalculation() {
         <!-- Modulator eligibility -->
         <div style="margin-bottom:10px;">
             <div style="font-size:10px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Modulator eligibility</div>
+            ${homozygousClassIHTML}
             ${modHTML}
         </div>
 
@@ -37924,8 +38006,9 @@ const WIZARD_STEPS = [
 const WIZARD_RESULTS = {
     result_I:   { class: 'I',   eti: 'non_responsive', confidence: 'High',
         title: 'Class I — No functional protein',
-        desc: 'Nonsense, frameshift, or aberrant splicing. Minimal protein produced. Not currently responsive to ETI modulator therapy.',
-        badge: '#f87171', note: 'May benefit from nonsense suppression (e.g. ataluren) or future gene therapy approaches.' },
+        desc: 'Nonsense, frameshift, or aberrant splicing. Minimal protein produced. No approved CFTR modulator can act without protein substrate.',
+        badge: '#f87171',
+        note: 'Mechanism-specific options under investigation: (1) Nonsense mutations (W1282X, G542X, R553X) — readthrough agents (ataluren, ELX-02) in trials; (2) Splice site mutations (621+1G>T, 711+1G>T) — antisense oligonucleotides in early trials; (3) Large deletions (CFTRdele2,3) — readthrough not applicable; requires gene therapy or mRNA approaches. Check ClinicalTrials.gov for active studies.' },
     result_II:  { class: 'II',  eti: 'responsive', confidence: 'High',
         title: 'Class II — Protein processing defect',
         desc: 'Misfolded protein, degraded before reaching cell surface. ETI (elexacaftor/tezacaftor/ivacaftor) is indicated — highest clinical evidence for F508del.',
