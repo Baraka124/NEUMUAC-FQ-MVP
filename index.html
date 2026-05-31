@@ -15933,6 +15933,13 @@ function cfsmBuild() {
     // Double-click to zoom into a region
     svg.on('dblclick.zoom', null); // handled by node click
 
+    // Redraw nodes when zoom ends (for label visibility changes)
+    zoom.on('end', () => {
+        if (!st._g) return;
+        st._g.selectAll('.cfsm-nodes').remove();
+        cfsmDrawNodes(st._g, st, W, H);  // arcs don't need to redraw on zoom
+    });
+
     // Store zoom reference for external control
     st._zoom = zoom;
     st._svg = svg;
@@ -16188,58 +16195,68 @@ function cfsmDrawArcs(g, st) {
 }
 
 function cfsmDrawNodes(g, st, W, H) {
-    const maxVol = d3.max(st.points, p => p.hits + p.misses) || 1;
+    if (!window.d3 || !st?.points?.length) return;
 
-    // Sqrt scale — small centres still visible, dominant centre doesn't overwhelm
-    const rScale = d3.scaleSqrt().domain([0, maxVol]).range([4, 18]);
-
+    const maxVol = d3.max(st.points.filter(p => p.hits + p.misses > 0), p => p.hits + p.misses) || 1;
+    const rScale = d3.scaleSqrt().domain([0, maxVol]).range([7, 24]);
     const now = Date.now();
-    const nodeG = g.append('g').attr('class', 'cfsm-nodes');
-    const filterText = (st.filter || '').toLowerCase();
+    const currentZoom = st._currentZoom || 1;
 
-    // Helper: hexagon path centred at 0,0
-    function hexPath(r) {
-        const pts = d3.range(6).map(i => {
-            const a = Math.PI / 180 * (60 * i - 30);
-            return [r * Math.cos(a), r * Math.sin(a)];
-        });
-        return 'M' + pts.map(p => p.join(',')).join('L') + 'Z';
+    // Hex path generator — flat-top hexagon
+    function hexPath(r, flat = true) {
+        const pts = [];
+        for (let i = 0; i < 6; i++) {
+            const a = Math.PI / 3 * i + (flat ? 0 : Math.PI / 6);
+            pts.push([r * Math.cos(a), r * Math.sin(a)]);
+        }
+        return 'M' + pts.map(p => p[0].toFixed(2) + ',' + p[1].toFixed(2)).join('L') + 'Z';
     }
 
-    st.points.forEach(pt => {
-        // Apply filters
-        if (st.etiOnly) {
-            const etT = pt.etiCounts.responsive + pt.etiCounts.non_responsive + pt.etiCounts.unknown || 1;
-            if (pt.etiCounts.responsive / etT < 0.3) return;
-        }
-        if (st.alyftrekOnly) {
-            const hasAly = Object.keys(pt.queries || {}).some(q => {
-                const v = STATE.variantsByLegacyName?.get(q) || STATE.variants?.find(x => x.legacy_name?.toLowerCase() === q.toLowerCase());
-                return v?.alyftrek_prediction === 'responsive';
-            });
-            if (!hasAly) return;
-        }
+    // Sort by volume so large nodes render on top
+    const sorted = [...st.points].sort((a, b) => (a.hits+a.misses) - (b.hits+b.misses));
 
-        const matchesFilter = !filterText || pt.name.toLowerCase().includes(filterText)
-            || Object.keys(pt.queries).some(q => q.toLowerCase().includes(filterText));
+    const nodeG = g.append('g').attr('class', 'cfsm-nodes');
+
+    sorted.forEach(pt => {
+        const vol = pt.hits + pt.misses;
+
+        // Skip zero-volume nodes unless selected or verified with name
+        if (vol === 0 && pt.key !== st.selectedKey) return;
 
         const pos = st.proj([pt.lon, pt.lat]);
-        if (!pos) return;
+        if (!pos || isNaN(pos[0]) || isNaN(pos[1])) return;
         const [x, y] = pos;
 
-        const vol = pt.hits + pt.misses;
-        const r = rScale(vol);
+        // Apply filters
+        const filterText = (st.filter || '').toLowerCase();
+        const matchesFilter = !filterText
+            || pt.name.toLowerCase().includes(filterText)
+            || Object.keys(pt.queries || {}).some(q => q.toLowerCase().includes(filterText));
+
+        const r = vol > 0 ? rScale(vol) : 6;
+        const isSelected = st.selectedKey === pt.key;
+        const daysAgo = pt.lastSeen > 0 ? (now - pt.lastSeen) / 86400000 : 999;
+        const isRecent = daysAgo < 7;
+        const isVeryRecent = daysAgo < 1;
+
+        // Clinical burden colour — based on hit rate (unmet need indicator)
+        const hitRate = vol > 0 ? pt.hits / vol : 0;
+        const missRate = 1 - hitRate;
+        // High miss rate = RED (unmet need), balanced = AMBER, good = GREEN
+        const burdenColor = missRate > 0.6 ? '#f87171'  // >60% misses — high unmet need
+                          : missRate > 0.3 ? '#fbbf24'  // 30-60% misses — mixed
+                          : '#34d399';                   // <30% misses — well-served
+
+        // ETI composition colour for inner fill
         const etT = pt.etiCounts.responsive + pt.etiCounts.non_responsive + pt.etiCounts.unknown || 1;
         const etiPct = pt.etiCounts.responsive / etT;
         const nonPct = pt.etiCounts.non_responsive / etT;
+        const etiColor = etiPct > 0.5 ? '#34d399' : nonPct > 0.3 ? '#f87171' : '#60a5fa';
 
-        // Colour: green dominant ETI+, red dominant non-resp, amber mixed/unknown
-        const nodeColor = etiPct > 0.5 ? '#34d399' : nonPct > 0.3 ? '#f87171' : '#60a5fa';
-        const hitRate = vol > 0 ? Math.round(pt.hits / vol * 100) : 0;
-        const daysAgo = pt.lastSeen > 0 ? (now - pt.lastSeen) / 86400000 : 999;
-        const isRecent = daysAgo < 7;
-        const isSelected = st.selectedKey === pt.key;
-        const opacity = matchesFilter ? (daysAgo < 30 ? 0.95 : 0.55) : 0.15;
+        const opacity = !matchesFilter ? 0.1
+                      : vol === 0      ? 0.3
+                      : isSelected     ? 1.0
+                      :                  0.82;
 
         const ng = nodeG.append('g')
             .attr('class', 'cfsm-node')
@@ -16247,135 +16264,238 @@ function cfsmDrawNodes(g, st, W, H) {
             .attr('data-key', pt.key)
             .style('cursor', 'pointer')
             .style('opacity', opacity)
-            .on('click', function(event) {
-                event.stopPropagation();
-                cfsmSelectPoint(pt);
-                if (event.detail === 2 && st._svg && st._zoom) {
-                    const transform = d3.zoomIdentity.translate(W/2, H/2).scale(5).translate(-x, -y);
-                    st._svg.transition().duration(500).call(st._zoom.transform, transform);
-                }
-            })
+            .on('click', function(e) { e.stopPropagation(); cfsmSelectPoint(pt); })
             .on('mouseenter', () => cfsmShowTooltip(pt, x, y, W, H))
             .on('mouseleave', cfsmHideTooltip);
 
-        // ── Glow ring for recent activity ──────────────────────────
-        if (isRecent) {
+        // ── Layer 1: Activity pulse ring (very recent only) ─────────
+        if (isVeryRecent) {
+            ng.append('circle')
+                .attr('class', 'cfsm-pulse-ring')
+                .attr('r', r + 8)
+                .attr('fill', 'none')
+                .attr('stroke', burdenColor)
+                .attr('stroke-width', 0.8)
+                .attr('opacity', 0.2);
+        } else if (isRecent) {
             ng.append('circle')
                 .attr('r', r + 5)
                 .attr('fill', 'none')
-                .attr('stroke', nodeColor)
-                .attr('stroke-width', 1)
-                .attr('opacity', 0.2);
+                .attr('stroke', burdenColor)
+                .attr('stroke-width', 0.6)
+                .attr('opacity', 0.15);
         }
 
-        // ── Background circle (always visible, even unverified) ────
-        ng.append('circle')
-            .attr('r', r)
-            .attr('fill', isSelected ? nodeColor : `rgba(${nodeColor === '#34d399' ? '52,211,153' : nodeColor === '#f87171' ? '248,113,113' : '96,165,250'},.15)`)
-            .attr('stroke', nodeColor)
-            .attr('stroke-width', isSelected ? 2.5 : 1.5);
-
-        // ── Hit rate arc (donut segment inside circle) ─────────────
-        if (hitRate > 0 && hitRate < 100 && r > 6) {
-            const arcGen = d3.arc()
-                .innerRadius(r * 0.55)
-                .outerRadius(r - 1)
-                .startAngle(0)
-                .endAngle(hitRate / 100 * Math.PI * 2);
-            ng.append('path')
-                .attr('d', arcGen())
-                .attr('fill', nodeColor)
-                .attr('opacity', 0.7);
-        } else if (hitRate === 100) {
+        // ── Layer 2: Selection halo ──────────────────────────────────
+        if (isSelected) {
             ng.append('circle')
-                .attr('r', r - 2)
-                .attr('fill', nodeColor)
-                .attr('opacity', 0.7);
+                .attr('r', r + 4)
+                .attr('fill', 'none')
+                .attr('stroke', burdenColor)
+                .attr('stroke-width', 1.5)
+                .attr('stroke-dasharray', '3,2')
+                .attr('opacity', 0.5);
         }
 
-        // ── Verified badge — small diamond ─────────────────────────
-        if (pt.verified && r > 6) {
+        // ── Layer 3: Hexagonal body ──────────────────────────────────
+        if (vol > 0) {
+            // Outer hex — burden colour (clinical need signal)
+            ng.append('path')
+                .attr('d', hexPath(r))
+                .attr('fill', `rgba(${burdenColor === '#f87171' ? '248,113,113'
+                                    : burdenColor === '#fbbf24' ? '251,191,36' : '52,211,153'
+                                   },.${isSelected ? '18' : '10'})`)
+                .attr('stroke', burdenColor)
+                .attr('stroke-width', isSelected ? 2 : 1.2);
+
+            // Inner hex — ETI composition (responsive = filled more)
+            const innerR = r * 0.55;
+            const innerFill = etiPct > 0 ? innerR * (0.3 + etiPct * 0.7) : innerR * 0.2;
+            ng.append('path')
+                .attr('d', hexPath(innerFill))
+                .attr('fill', etiColor)
+                .attr('opacity', 0.5);
+
+        } else {
+            // Zero-volume: minimal dashed outline only
+            ng.append('path')
+                .attr('d', hexPath(r * 0.7))
+                .attr('fill', 'none')
+                .attr('stroke', 'rgba(255,255,255,.2)')
+                .attr('stroke-width', 0.8)
+                .attr('stroke-dasharray', '2,2');
+        }
+
+        // ── Layer 4: Hit-rate arc (quarter-circle indicators) ────────
+        if (vol > 0 && r > 9) {
+            // Four quadrant arcs showing miss/hit balance clockwise from top
+            const arcR = r + 2;
+            // Hit arc (clockwise from top, proportional)
+            const hitAngle = hitRate * Math.PI * 2;
+            if (hitAngle > 0.1) {
+                const arcPath = d3.arc()
+                    .innerRadius(arcR - 1).outerRadius(arcR + 0.5)
+                    .startAngle(-Math.PI / 2).endAngle(-Math.PI / 2 + hitAngle);
+                ng.append('path')
+                    .attr('d', arcPath())
+                    .attr('fill', '#34d399')
+                    .attr('opacity', 0.7);
+            }
+        }
+
+        // ── Layer 5: Verified diamond ────────────────────────────────
+        if (pt.verified) {
             ng.append('rect')
-                .attr('width', 5).attr('height', 5)
-                .attr('x', r - 3).attr('y', -2.5)
-                .attr('transform', 'rotate(45)')
+                .attr('width', 4.5).attr('height', 4.5)
+                .attr('x', r * 0.55).attr('y', -r * 0.85)
+                .attr('transform', `translate(${r * 0.55 - 2.25},${-r * 0.85 - 2.25}) rotate(45,2.25,2.25)`)
                 .attr('fill', '#fff')
                 .attr('opacity', 0.9);
         }
 
-        // ── Label — always visible, size scales with node ──────────
-        const labelSize = Math.max(8, Math.min(11, 7 + r * 0.25));
-        const shortName = pt.name.length > 28 ? pt.name.slice(0, 27) + '…' : pt.name;
-        ng.append('text')
-            .attr('class', 'cfsm-node-label')
-            .attr('y', r + labelSize + 2)
-            .attr('text-anchor', 'middle')
-            .attr('font-size', labelSize)
-            .attr('font-family', 'var(--font-body)')
-            .attr('font-weight', '500')
-            .attr('fill', 'rgba(255,255,255,.75)')
-            .attr('pointer-events', 'none')
-            .style('text-shadow', '0 1px 3px rgba(0,0,0,.9)')
-            .text(shortName);
+        // ── Layer 6: Labels — smart visibility ───────────────────────
+        // Top N institutions by volume always get labels
+        const topN = currentZoom > 3 ? Infinity : currentZoom > 2 ? 5 : 2;
+        const rank = sorted.filter(p => p.hits+p.misses > 0)
+                           .reverse()
+                           .findIndex(p => p.key === pt.key);
+        const showLabel = isSelected || (vol > 0 && rank < topN);
 
-        // ── Search volume counter below label ──────────────────────
-        if (vol > 0) {
+        if (showLabel) {
+            const maxChars = currentZoom > 3 ? 30 : isSelected ? 24 : 16;
+            const displayName = pt.name.length > maxChars
+                ? pt.name.slice(0, maxChars-1) + '…'
+                : pt.name;
+            const lSize = Math.max(7.5, Math.min(9.5, 6.5 + r * 0.12));
+            const labelY = r + 5 + lSize;
+            const approxW = Math.min(displayName.length * lSize * 0.52 + 8, 160);
+
+            // Background pill
+            ng.append('rect')
+                .attr('x', -approxW/2).attr('y', labelY - lSize - 1)
+                .attr('width', approxW).attr('height', lSize + 4)
+                .attr('rx', 3)
+                .attr('fill', 'rgba(8,14,28,.82)')
+                .attr('pointer-events', 'none');
+
+            // Institution name
             ng.append('text')
-                .attr('y', r + labelSize * 2 + 4)
+                .attr('y', labelY)
                 .attr('text-anchor', 'middle')
-                .attr('font-size', labelSize - 2)
-                .attr('font-family', 'var(--font-mono)')
-                .attr('fill', nodeColor)
-                .attr('opacity', 0.7)
+                .attr('font-size', lSize)
+                .attr('font-family', 'var(--font-body)')
+                .attr('font-weight', isSelected ? '700' : '500')
+                .attr('fill', isSelected ? '#fff' : 'rgba(255,255,255,.7)')
                 .attr('pointer-events', 'none')
-                .text(`${vol} · ${hitRate}%`);
+                .text(displayName);
+
+            // Volume + hit rate stats (selected or high zoom only)
+            if (vol > 0 && (isSelected || currentZoom > 2.5)) {
+                const statsY = labelY + lSize + 2;
+                ng.append('text')
+                    .attr('y', statsY)
+                    .attr('text-anchor', 'middle')
+                    .attr('font-size', lSize - 1.5)
+                    .attr('font-family', 'var(--font-mono)')
+                    .attr('fill', burdenColor)
+                    .attr('opacity', 0.7)
+                    .attr('pointer-events', 'none')
+                    .text(`${vol} · ${Math.round(hitRate*100)}%`);
+            }
+        } else if (vol > 0 && !isSelected) {
+            // Volume badge only — tiny number inside the hex
+            ng.append('text')
+                .attr('y', '0.35em')
+                .attr('text-anchor', 'middle')
+                .attr('font-size', Math.max(6, r * 0.4))
+                .attr('font-family', 'var(--font-mono)')
+                .attr('fill', 'rgba(255,255,255,.5)')
+                .attr('pointer-events', 'none')
+                .text(vol > 999 ? (vol/1000).toFixed(1)+'k' : vol);
         }
     });
 }
 
 
 function cfsmShowTooltip(pt, x, y, W, H) {
-    W = W || 700; H = H || 480;
-    // Remove existing tooltip
-    d3.select('#cfsmSvg').select('.cfsm-tooltip').remove();
-    const svg = d3.select('#cfsmSvg');
-    // Get current zoom transform to position tooltip in screen coords
-    const transform = d3.zoomTransform(svg.node());
-    const [sx, sy] = transform.apply([x, y]);
+    if (!pt || (pt.hits + pt.misses === 0 && pt.key !== window._cfsm?.selectedKey)) return;
+    cfsmHideTooltip();
+
     const vol = pt.hits + pt.misses;
     const hitRate = vol > 0 ? Math.round(pt.hits / vol * 100) : 0;
-    const topQ = Object.entries(pt.queries).sort((a,b)=>b[1]-a[1])[0];
+    const missRate = 100 - hitRate;
+    const etT = pt.etiCounts.responsive + pt.etiCounts.non_responsive + pt.etiCounts.unknown || 1;
+    const etiPct = Math.round(pt.etiCounts.responsive / etT * 100);
+    const topQ = Object.entries(pt.queries || {})
+        .sort((a,b) => b[1]-a[1]).slice(0,4)
+        .map(([q,c]) => {
+            const v = STATE.variantsByLegacyName?.get(q);
+            const cls = v?.cftr_class ? ` · Clase ${v.cftr_class}` : '';
+            const eti = v?.eti_prediction === 'responsive' ? ' ✓' : v?.eti_prediction === 'non_responsive' ? ' ✗' : '';
+            return `<div style="display:flex;justify-content:space-between;gap:10px;padding:2px 0;">
+                <span style="font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,.6);">${q}${cls}${eti}</span>
+                <span style="font-size:9px;color:rgba(255,255,255,.35);">${c}×</span>
+            </div>`;
+        }).join('');
 
-    const tx = sx > W * 0.6 ? sx - 155 : sx + 14;
-    const ty = Math.max(8, sy - 24);
+    const daysAgo = pt.lastSeen > 0 ? Math.round((Date.now() - pt.lastSeen) / 86400000) : null;
+    const lastSeenStr = daysAgo === null ? 'Nunca' : daysAgo === 0 ? 'Hoy' : `Hace ${daysAgo}d`;
 
-    const g = svg.append('g').attr('class', 'cfsm-tooltip').attr('pointer-events', 'none');
-    g.append('rect')
-        .attr('x', tx).attr('y', ty)
-        .attr('width', 148).attr('height', topQ ? 62 : 48)
-        .attr('rx', 6)
-        .attr('fill', '#0c1422')
-        .attr('stroke', 'rgba(255,255,255,.12)')
-        .attr('stroke-width', .5);
-    g.append('text')
-        .attr('x', tx + 8).attr('y', ty + 16)
-        .attr('font-size', '10').attr('font-weight', '600')
-        .attr('font-family', 'var(--font-body)')
-        .attr('fill', 'rgba(255,255,255,.85)')
-        .text(pt.name.length > 20 ? pt.name.slice(0,19)+'…' : pt.name);
-    g.append('text')
-        .attr('x', tx + 8).attr('y', ty + 30)
-        .attr('font-size', '9').attr('font-family', 'var(--font-mono)')
-        .attr('fill', 'rgba(255,255,255,.35)')
-        .text(`${vol} searches · ${hitRate}% hit rate`);
-    if (topQ) {
-        g.append('text')
-            .attr('x', tx + 8).attr('y', ty + 46)
-            .attr('font-size', '9').attr('font-family', 'var(--font-mono)')
-            .attr('fill', '#60a5fa')
-            .text(`Top: ${topQ[0]} (${topQ[1]}×)`);
-    }
+    const tip = document.createElement('div');
+    tip.id = 'cfsmTooltip';
+    tip.style.cssText = `position:absolute;pointer-events:none;z-index:20;
+        background:rgba(8,14,28,.96);border:1px solid rgba(255,255,255,.1);
+        border-radius:9px;padding:12px 14px;min-width:200px;max-width:240px;
+        box-shadow:0 8px 32px rgba(0,0,0,.6);font-family:var(--font-body);`;
+
+    // Position: avoid edges
+    const tipX = x > W * 0.65 ? x - 250 : x + 20;
+    const tipY = y > H * 0.7 ? y - 160 : y - 10;
+    tip.style.left = `${tipX}px`;
+    tip.style.top = `${tipY}px`;
+
+    const burdenColor = missRate > 60 ? '#f87171' : missRate > 30 ? '#fbbf24' : '#34d399';
+    const burdenLabel = missRate > 60 ? 'Alta necesidad no cubierta' : missRate > 30 ? 'Cobertura parcial' : 'Bien cubierto';
+
+    tip.innerHTML = `
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">
+            <div>
+                <div style="font-size:11px;font-weight:700;color:#fff;line-height:1.3;margin-bottom:2px;">
+                    ${pt.name.length > 30 ? pt.name.slice(0,29)+'…' : pt.name}
+                </div>
+                <div style="font-size:9px;color:rgba(255,255,255,.35);">
+                    ${pt.city || ''}${pt.country ? (pt.city ? ', ' : '') + pt.country : ''}
+                    ${pt.verified ? ' · <span style="color:#34d399;">✓ Verificado</span>' : ''}
+                </div>
+            </div>
+            <div style="text-align:right;flex-shrink:0;margin-left:8px;">
+                <div style="font-size:14px;font-weight:700;color:${burdenColor};font-family:var(--font-mono);">${vol}</div>
+                <div style="font-size:8px;color:rgba(255,255,255,.25);">búsquedas</div>
+            </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:8px;">
+            <div style="padding:4px 6px;border-radius:4px;background:rgba(255,255,255,.04);text-align:center;">
+                <div style="font-size:11px;font-weight:700;color:#34d399;font-family:var(--font-mono);">${hitRate}%</div>
+                <div style="font-size:7.5px;color:rgba(255,255,255,.3);">aciertos</div>
+            </div>
+            <div style="padding:4px 6px;border-radius:4px;background:rgba(255,255,255,.04);text-align:center;">
+                <div style="font-size:11px;font-weight:700;color:#60a5fa;font-family:var(--font-mono);">${etiPct}%</div>
+                <div style="font-size:7.5px;color:rgba(255,255,255,.3);">ETI+</div>
+            </div>
+            <div style="padding:4px 6px;border-radius:4px;background:rgba(255,255,255,.04);text-align:center;">
+                <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.5);font-family:var(--font-mono);">${lastSeenStr}</div>
+                <div style="font-size:7.5px;color:rgba(255,255,255,.3);">última</div>
+            </div>
+        </div>
+        ${topQ ? `
+        <div style="font-size:8px;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;">Variantes top</div>
+        ${topQ}` : ''}
+        <div style="margin-top:8px;padding-top:6px;border-top:1px solid rgba(255,255,255,.06);
+             font-size:8.5px;color:${burdenColor};">● ${burdenLabel}</div>`;
+
+    document.getElementById('cfsmMapWrap')?.appendChild(tip);
 }
+
 
 function cfsmHideTooltip() {
     d3.select('#cfsmSvg').select('.cfsm-tooltip').remove();
@@ -16383,109 +16503,176 @@ function cfsmHideTooltip() {
 
 function cfsmSelectPoint(pt) {
     const st = window._cfsm;
+    if (!pt || !st) return;
     st.selectedKey = pt.key;
 
-    // Redraw to show selection state
-    cfsmBuild();
+    // Update visual selection state without rebuilding the entire map
+    // (cfsmBuild is expensive and causes stack overflow via recursive click handlers)
+    if (st._g) {
+        st._g.selectAll('.cfsm-node').each(function() {
+            const g = window.d3?.select(this);
+            if (!g) return;
+            const key = g.attr('data-key');
+            const isSelected = key === pt.key;
+            // Update outer ring stroke width to show selection
+            g.select('circle').attr('stroke-width', isSelected ? 3 : 1.5);
+            // Restore opacity for all nodes (clear any previous highlight dimming)
+            g.style('opacity', null);
+        });
+    }
 
     // Update right panel
     cfsmUpdatePanel(pt);
 }
 
 function cfsmUpdatePanel(pt) {
+    const bodyEl   = document.getElementById('cfsmPanelBody');
+    const titleEl  = document.getElementById('cfsmPanelTitle');
+    const metaEl   = document.getElementById('cfsmPanelMeta');
+    const actionEl = document.getElementById('cfsmPanelAction');
+
+    if (titleEl) titleEl.textContent = pt.name.length > 35 ? pt.name.slice(0,34)+'…' : pt.name;
+
     const vol = pt.hits + pt.misses;
     const hitRate = vol > 0 ? Math.round(pt.hits / vol * 100) : 0;
+    const missRate = 100 - hitRate;
     const etTotal = pt.etiCounts.responsive + pt.etiCounts.non_responsive + pt.etiCounts.unknown || 1;
-    const etiPct = Math.round(pt.etiCounts.responsive / etTotal * 100);
+    const etiPct  = Math.round(pt.etiCounts.responsive / etTotal * 100);
+    const nonPct  = Math.round(pt.etiCounts.non_responsive / etTotal * 100);
+    const unkPct  = 100 - etiPct - nonPct;
 
-    const color = pt.etiCounts.responsive / etTotal > 0.5 ? '#34d399'
-                : pt.etiCounts.non_responsive / etTotal > 0.3 ? '#f87171'
-                : '#fbbf24';
+    const burdenColor = missRate > 60 ? '#f87171' : missRate > 30 ? '#fbbf24' : '#34d399';
+    const burdenLabel = missRate > 60 ? 'Alta necesidad no cubierta'
+                      : missRate > 30 ? 'Cobertura parcial'
+                      : vol === 0     ? 'Sin actividad registrada'
+                      : 'Bien cubierto';
 
-    // Header
-    const titleEl = document.getElementById('cfsmPanelTitle');
-    const metaEl  = document.getElementById('cfsmPanelMeta');
-    const subEl   = document.getElementById('cfsmPanelSub');
-    if (titleEl) titleEl.textContent = pt.name;
-    if (subEl) {
-        if (pt.isAnonymous) {
-            subEl.textContent = '~ IP-estimated · ' + (pt.country || '') + ' · Not a registered institution';
-        } else {
-            subEl.textContent = (pt.city ? pt.city + ' · ' : '') + (pt.country || '') + (pt.tier <= 2 ? ' · ✓ Verified' : '');
-        }
+    if (metaEl) {
+        metaEl.textContent = vol > 0
+            ? `${vol} búsquedas · ${hitRate}% aciertos`
+            : '0 búsquedas · sin actividad';
+        metaEl.style.color = vol > 0 ? burdenColor : 'rgba(255,255,255,.25)';
     }
-    if (metaEl)  metaEl.textContent = `${vol.toLocaleString()} searches · ${hitRate}% hit rate`;
 
-    // Sort top variants
-    const topVariants = Object.entries(pt.queries)
-        .sort((a,b) => b[1] - a[1])
-        .slice(0, 8);
-    const maxQ = topVariants[0]?.[1] || 1;
+    if (actionEl) actionEl.style.display = vol > 0 ? '' : 'none';
 
-    const body = document.getElementById('cfsmPanelBody');
-    if (!body) return;
+    if (!bodyEl) return;
 
-    body.innerHTML = `
-        <div style="padding:10px 14px 8px;border-bottom:1px solid rgba(255,255,255,.05);">
-            <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:6px;">
-                <span style="font-size:22px;font-weight:800;color:${color};font-family:var(--font-mono);line-height:1;">${vol.toLocaleString()}</span>
-                <span style="font-size:9px;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.08em;">searches</span>
+    // ── Top variant queries ──────────────────────────────────────
+    const topVariants = Object.entries(pt.queries || {})
+        .sort((a,b) => b[1]-a[1]).slice(0,8);
+
+    const variantRows = topVariants.map(([q,c]) => {
+        const v = STATE.variantsByLegacyName?.get(q);
+        const cls = v?.cftr_class ? `<span style="font-size:8px;padding:0 4px;border-radius:2px;background:rgba(255,255,255,.07);">Clase ${v.cftr_class}</span>` : '';
+        const etiIcon = v?.eti_prediction === 'responsive'    ? '<span style="color:#34d399;font-size:9px;">✓</span>'
+                       : v?.eti_prediction === 'non_responsive' ? '<span style="color:#f87171;font-size:9px;">✗</span>'
+                       : '<span style="color:#fbbf24;font-size:9px;">?</span>';
+        const isHit = v !== undefined;
+        return `<div onclick="selectVariant('${q}',true)" style="display:flex;align-items:center;gap:6px;
+                     padding:5px 8px;border-radius:5px;cursor:pointer;
+                     background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);margin-bottom:3px;
+                     transition:background .1s;"
+                     onmouseenter="this.style.background='rgba(41,121,255,.08)'"
+                     onmouseleave="this.style.background='rgba(255,255,255,.02)'">
+            ${etiIcon}
+            <div style="flex:1;min-width:0;">
+                <div style="font-family:var(--font-mono);font-size:10px;color:${isHit?'rgba(255,255,255,.75)':'rgba(255,255,255,.35)'};
+                     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${q}</div>
+                ${cls ? `<div style="margin-top:1px;">${cls}</div>` : ''}
             </div>
-            <div class="cfsm-mini-bar">
-                <div class="cfsm-mini-fill" style="width:${hitRate}%;background:${color};"></div>
-            </div>
-            <div style="display:flex;justify-content:space-between;margin-top:4px;">
-                <span style="font-size:9px;color:rgba(255,255,255,.25);font-family:var(--font-mono);">${pt.hits} hits · ${pt.misses} misses</span>
-                <span style="font-size:9px;color:${color};font-family:var(--font-mono);">${etiPct}% ETI+</span>
-            </div>
-        </div>
+            <div style="font-size:9px;color:rgba(255,255,255,.3);font-family:var(--font-mono);flex-shrink:0;">${c}×</div>
+        </div>`;
+    }).join('');
 
-        <!-- ETI composition bars -->
+    // ── 8-week sparkline ─────────────────────────────────────────
+    const weeks = Array(8).fill(0);
+    const msPerWeek = 7 * 86400000;
+    (pt.rows || []).forEach(r => {
+        const age = (Date.now() - new Date(r.searched_at).getTime()) / msPerWeek;
+        const wk  = Math.floor(age);
+        if (wk >= 0 && wk < 8) weeks[7 - wk]++;
+    });
+    const maxW = Math.max(...weeks, 1);
+    const sparkBars = weeks.map((v, i) => {
+        const h = Math.max(2, Math.round(v / maxW * 20));
+        const isThis = i === 7;
+        const col = v > 0 ? (isThis ? '#2979ff' : 'rgba(41,121,255,.4)') : 'rgba(255,255,255,.06)';
+        return `<div style="width:9px;height:${h}px;background:${col};border-radius:1px;align-self:flex-end;"></div>`;
+    }).join('');
+    const trend = weeks[7] > weeks[6] ? '↑' : weeks[7] < weeks[6] ? '↓' : '→';
+    const trendCol = trend === '↑' ? '#34d399' : trend === '↓' ? '#f87171' : '#fbbf24';
+
+    bodyEl.innerHTML = `
+        <!-- Clinical burden indicator -->
         <div style="padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.05);">
-            <div style="font-size:8.5px;color:rgba(255,255,255,.2);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px;">ETI composition</div>
-            <div style="display:flex;gap:2px;height:6px;border-radius:3px;overflow:hidden;margin-bottom:6px;">
-                <div style="width:${pt.etiCounts.responsive/etTotal*100}%;background:#34d399;transition:width .4s;"></div>
-                <div style="width:${pt.etiCounts.unknown/etTotal*100}%;background:#fbbf24;"></div>
-                <div style="width:${pt.etiCounts.non_responsive/etTotal*100}%;background:#f87171;"></div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+                <div style="width:8px;height:8px;border-radius:1px;background:${burdenColor};
+                     transform:rotate(45deg);flex-shrink:0;"></div>
+                <span style="font-size:10px;color:${burdenColor};">${burdenLabel}</span>
             </div>
-            <div style="display:flex;justify-content:space-between;font-size:9px;font-family:var(--font-mono);">
-                <span style="color:#34d399;">${Math.round(pt.etiCounts.responsive/etTotal*100)}% responsive</span>
-                <span style="color:#fbbf24;">${Math.round(pt.etiCounts.unknown/etTotal*100)}% unknown</span>
-                <span style="color:#f87171;">${Math.round(pt.etiCounts.non_responsive/etTotal*100)}% non-resp</span>
+            <!-- KPI row -->
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;">
+                <div style="text-align:center;padding:5px;border-radius:5px;background:rgba(255,255,255,.03);">
+                    <div style="font-size:14px;font-weight:700;color:rgba(255,255,255,.8);font-family:var(--font-mono);">${vol}</div>
+                    <div style="font-size:8px;color:rgba(255,255,255,.3);margin-top:1px;">búsquedas</div>
+                </div>
+                <div style="text-align:center;padding:5px;border-radius:5px;background:rgba(255,255,255,.03);">
+                    <div style="font-size:14px;font-weight:700;color:${burdenColor};font-family:var(--font-mono);">${hitRate}%</div>
+                    <div style="font-size:8px;color:rgba(255,255,255,.3);margin-top:1px;">aciertos</div>
+                </div>
+                <div style="text-align:center;padding:5px;border-radius:5px;background:rgba(255,255,255,.03);">
+                    <div style="font-size:14px;font-weight:700;color:#60a5fa;font-family:var(--font-mono);">${etiPct}%</div>
+                    <div style="font-size:8px;color:rgba(255,255,255,.3);margin-top:1px;">ETI+</div>
+                </div>
             </div>
         </div>
 
-        <!-- Top variants -->
-        <div style="padding:8px 0 0;">
-            <div style="padding:0 14px 6px;font-size:8.5px;color:rgba(255,255,255,.2);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.1em;">Top variants searched</div>
-            ${topVariants.map(([q, count]) => {
-                const v = STATE.variantsByLegacyName?.get(q);
-                const vc = v?.eti_prediction === 'responsive' ? '#34d399'
-                         : v?.eti_prediction === 'non_responsive' ? '#f87171' : '#fbbf24';
-                const _vResolved = STATE.variantsByLegacyName?.get(q)?.legacy_name || 
-                    STATE.variants?.find(x => x.legacy_name?.toLowerCase() === q.toLowerCase())?.legacy_name || q;
-                return `<div class="cfsm-variant-row" onclick="selectVariant('${escapeAttr(_vResolved)}',true)">
-                    <span class="cfsm-vname" title="${escapeHTML(q)}">${escapeHTML(_vResolved)}</span>
-                    <div class="cfsm-vbar"><div class="cfsm-vbar-fill" style="width:${Math.round(count/maxQ*100)}%;background:${vc};"></div></div>
-                    <span class="cfsm-vcount">${count}</span>
-                </div>`;
-            }).join('')}
+        <!-- ETI composition bar -->
+        <div style="padding:8px 14px;border-bottom:1px solid rgba(255,255,255,.05);">
+            <div style="font-size:8px;color:rgba(255,255,255,.2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;">Composición ETI</div>
+            <div style="display:flex;height:5px;border-radius:3px;overflow:hidden;gap:1px;">
+                ${etiPct > 0 ? `<div style="width:${etiPct}%;background:#34d399;border-radius:3px 0 0 3px;"></div>` : ''}
+                ${nonPct > 0 ? `<div style="width:${nonPct}%;background:#f87171;"></div>` : ''}
+                ${unkPct > 0 ? `<div style="flex:1;background:rgba(255,255,255,.12);border-radius:0 3px 3px 0;"></div>` : ''}
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:8px;font-family:var(--font-mono);">
+                <span style="color:#34d399;">${etiPct}% resp.</span>
+                <span style="color:rgba(255,255,255,.25);">${unkPct}% desconocido</span>
+                <span style="color:#f87171;">${nonPct}% no-resp.</span>
+            </div>
         </div>
 
-        <!-- Tier badge -->
-        <div style="padding:10px 14px;border-top:1px solid rgba(255,255,255,.05);margin-top:8px;">
-            <div style="font-size:9px;font-family:var(--font-mono);color:${pt.tier===1?'#34d399':pt.tier===2?'#60a5fa':'#fbbf24'};">
-                ${pt.tier===1?'📍 GPS verified coordinates':pt.tier===2?'✓ Verified institution':'~ IP-estimated location'}
+        <!-- 8-week sparkline -->
+        ${vol > 0 ? `
+        <div style="padding:8px 14px;border-bottom:1px solid rgba(255,255,255,.05);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+                <div style="font-size:8px;color:rgba(255,255,255,.2);letter-spacing:.1em;text-transform:uppercase;">Actividad 8 semanas</div>
+                <div style="font-size:10px;color:${trendCol};">${trend}</div>
+            </div>
+            <div style="display:flex;gap:2px;align-items:flex-end;height:24px;">${sparkBars}</div>
+        </div>` : ''}
+
+        <!-- Top searched variants -->
+        ${topVariants.length > 0 ? `
+        <div style="padding:8px 14px 4px;">
+            <div style="font-size:8px;color:rgba(255,255,255,.2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;">
+                Variantes más buscadas — pulsar para abrir
+            </div>
+            ${variantRows}
+        </div>` : `
+        <div style="padding:20px 14px;font-size:11px;color:rgba(255,255,255,.2);text-align:center;line-height:1.5;">
+            No hay búsquedas registradas para este centro en el período seleccionado.
+        </div>`}
+
+        <!-- Tier / verification badge -->
+        <div style="padding:8px 14px;border-top:1px solid rgba(255,255,255,.05);margin-top:4px;">
+            <div style="font-size:8.5px;font-family:var(--font-mono);color:${pt.tier<=2?'#34d399':'rgba(255,255,255,.25)'};">
+                ${pt.tier===1?'📍 Coordenadas GPS verificadas':pt.tier===2?'✓ Centro verificado':'~ Estimado por IP'}
             </div>
         </div>`;
-
-    // Show filter button
-    const actionEl = document.getElementById('cfsmPanelAction');
-    if (actionEl) {
-        actionEl.style.display = 'block';
-        window._cfsmSelectedPt = pt;
-    }
 }
+
 
 function cfsmAutoSelectHome() {
     const st = window._cfsm;
@@ -19520,7 +19707,7 @@ function renderVariantDetail(variant, fromSearch) {
         try {
             const r = await fetch(
                 `${CONFIG.SUPABASE.URL}/rest/v1/contradictions?variant_id=eq.${variant.id}&resolved=eq.false&select=field,severity,details,detected_at&order=severity.desc`,
-                { headers: { apikey: CONFIG.SUPABASE.ANON_KEY, Authorization: `Bearer ${CONFIG.SUPABASE.ANON_KEY}` } }
+                { headers: { apikey: CONFIG.SUPABASE.KEY, Authorization: `Bearer ${CONFIG.SUPABASE.KEY}` } }
             );
             if (!r.ok) return; // 401 = table not yet created, 404 = missing — both handled silently
             const rows = await r.json();
@@ -34805,14 +34992,15 @@ async function helixSaveSnapshot() {
         const snapshot = {
             snapshot_date:    new Date().toISOString().slice(0, 10),
             total_variants:   s.total,
-            classified:       s.classI + s.classII + s.classIII + s.classIV + s.classV,
-            validated:        STATE.variants.filter(v => (v.validation_count || 0) > 0).length,
-            responsive:       s.responsive,
-            non_responsive:   s.nonResponsive,
-            complete:         s.complete,
-            search_hit_rate:  hitRate,
-            pending_helios:   HELIOS.pendingItems.filter(i => i.status === 'pending').length,
-            class_breakdown:  { I: s.classI, II: s.classII, III: s.classIII, IV: s.classIV, V: s.classV }
+            // DB column names: validated_count, complete_variants, hit_rate_pct, total_searches
+            validated_count:  STATE.variants.filter(v => (v.validation_count || 0) > 0).length,
+            complete_variants: s.complete,
+            hit_rate_pct:     hitRate,
+            total_searches:   (STATE.searchIntelligence?.totalSearches || 0),
+            notes:            JSON.stringify({ responsive: s.responsive, non_responsive: s.nonResponsive,
+                                classified: s.classI + s.classII + s.classIII + s.classIV + s.classV,
+                                pending_helios: (window.HELIOS?.pendingItems?.filter(i=>i.status==='pending').length||0),
+                                class_breakdown: { I: s.classI, II: s.classII, III: s.classIII, IV: s.classIV, V: s.classV } })
         };
         await hFetch('platform_snapshots', {
             method: 'POST',
@@ -34845,7 +35033,7 @@ async function helixLoadTrends() {
     if (!container) return;
     try {
         const r = await hFetch(
-            'platform_snapshots?select=snapshot_date,total_variants,search_hit_rate,validated,complete,responsive,pending_helios&order=snapshot_date.asc&limit=120'
+            'platform_snapshots?select=snapshot_date,total_variants,hit_rate_pct,validated_count,complete_variants,total_searches&order=snapshot_date.asc&limit=120'
         );
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const snaps = await r.json();
@@ -34875,6 +35063,20 @@ async function helixLoadTrends() {
                 }
             });
         };
+        // Map DB column names → display names
+        const snapsNorm = snaps.map(s => {
+            // Parse notes JSON (extra fields stored there)
+            let extra = {};
+            try { extra = typeof s.notes === 'string' ? JSON.parse(s.notes) : (s.notes || {}); } catch {}
+            return {
+                snapshot_date:   s.snapshot_date,
+                validated:       s.validated_count,
+                complete:        s.complete_variants,
+                search_hit_rate: s.hit_rate_pct,
+                responsive:      extra.responsive || null,
+                total_searches:  s.total_searches,
+            };
+        });
         const num = (v) => (v !== null && v !== undefined && !Number.isNaN(+v)) ? +v : null;
         drawSparkline('trendValidated',  snapsNorm.map(s => num(s.validated)),       'rgb(52,211,153)');
         drawSparkline('trendHitRate',    snapsNorm.map(s => num(s.search_hit_rate)), 'rgb(96,165,250)');
@@ -34883,14 +35085,12 @@ async function helixLoadTrends() {
 
         const first = snapsNorm[0], last2 = snapsNorm[snapsNorm.length - 1];
 
-        // Current value labels
         const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = (v !== null && v !== undefined && !Number.isNaN(v)) ? v : '—'; };
         setVal('trendValidatedVal',  last2.validated);
         setVal('trendHitRateVal',    last2.search_hit_rate != null ? Math.round(last2.search_hit_rate * 10) / 10 + '%' : '—');
         setVal('trendCompleteVal',   last2.complete);
         setVal('trendResponsiveVal', last2.responsive);
 
-        // Delta labels (vs. 90 days ago)
         const setDelta = (id, a, b, suffix='') => {
             const el = document.getElementById(id); if (!el) return;
             const d = b - a;
@@ -37261,16 +37461,16 @@ async function renderCurationVelocity(container) {
         const weekAgo = new Date(now - 7 * 86400000);
         const monthAgo = new Date(now - 30 * 86400000);
 
-        const thisWeek = rows.filter(r => new Date(r.validated_at) > weekAgo).length;
-        const thisMonth = rows.filter(r => new Date(r.validated_at) > monthAgo).length;
+        const thisWeek = rows.filter(r => new Date(r.validated_count_at) > weekAgo).length;
+        const thisMonth = rows.filter(r => new Date(r.validated_count_at) > monthAgo).length;
 
         // Build 30-day sparkline
         const days = Array.from({length:30}, (_, i) => {
             const d = new Date(now - (29-i) * 86400000);
             return { date: d, count: 0 };
         });
-        rows.filter(r => new Date(r.validated_at) > monthAgo).forEach(r => {
-            const d = new Date(r.validated_at);
+        rows.filter(r => new Date(r.validated_count_at) > monthAgo).forEach(r => {
+            const d = new Date(r.validated_count_at);
             const idx = Math.floor((d - monthAgo) / 86400000);
             if (idx >= 0 && idx < 30) days[idx].count++;
         });
@@ -37574,8 +37774,11 @@ async function loadDrugReferenceData() {
             hFetch('drug_safety_alerts?select=*&is_active=eq.true&order=severity.asc'),
             hFetch('drug_jurisdiction_rules?select=*&is_active=eq.true&order=approval_date.asc')
         ]);
-        STATE.drugSafetyAlerts    = Array.isArray(safetyRes)  ? safetyRes  : [];
-        STATE.jurisdictionRules   = Array.isArray(jurisdRes)  ? jurisdRes  : [];
+        // hFetch returns parsed JSON directly (array) not a Response object
+        STATE.drugSafetyAlerts  = Array.isArray(safetyRes)  ? safetyRes
+                                : (safetyRes?.ok ? await safetyRes.json() : []);
+        STATE.jurisdictionRules = Array.isArray(jurisdRes)  ? jurisdRes
+                                : (jurisdRes?.ok ? await jurisdRes.json() : []);
 
         // Build quick-lookup maps
         STATE.drugSafetyByDrug = {};
