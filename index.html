@@ -7400,19 +7400,40 @@
             </div>
 
             <!-- Right panel — always populated -->
-            <div id="cfsmPanel" style="width:260px;flex-shrink:0;border-left:1px solid rgba(255,255,255,.06);background:#0c1422;display:flex;flex-direction:column;overflow:hidden;">
+            <div id="cfsmPanel" style="width:280px;flex-shrink:0;border-left:1px solid rgba(255,255,255,.06);background:#0c1422;display:flex;flex-direction:column;overflow:hidden;">
                 <!-- Panel header -->
-                <div id="cfsmPanelHead" style="padding:12px 14px 10px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;">
-                    <div style="font-size:8.5px;color:rgba(255,255,255,.25);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px;" id="cfsmPanelSub">Visión general de la red</div>
+                <div id="cfsmPanelHead" style="padding:10px 14px 0;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;">
+                    <div style="font-size:8.5px;color:rgba(255,255,255,.25);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.12em;margin-bottom:4px;" id="cfsmPanelSub">Visión general de la red</div>
                     <div style="font-size:14px;font-weight:700;color:rgba(255,255,255,.85);line-height:1.2;" id="cfsmPanelTitle">CF Signal Map</div>
-                    <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;" id="cfsmPanelMeta">Seleccione un centro para explorar</div>
+                    <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:2px;" id="cfsmPanelMeta">Seleccione un centro para explorar</div>
+                    <!-- Panel tabs -->
+                    <div style="display:flex;gap:0;margin-top:8px;">
+                        <button id="cfsmPTab-overview" onclick="cfsmSetPanelTab('overview',this)"
+                            style="flex:1;font-size:9px;padding:5px 4px;background:none;border:none;border-bottom:2px solid #2979ff;color:#60a5fa;cursor:pointer;font-family:var(--font-mono);">Centro</button>
+                        <button id="cfsmPTab-insights" onclick="cfsmSetPanelTab('insights',this)"
+                            style="flex:1;font-size:9px;padding:5px 4px;background:none;border:none;border-bottom:2px solid transparent;color:rgba(255,255,255,.3);cursor:pointer;font-family:var(--font-mono);">Alertas</button>
+                        <button id="cfsmPTab-network" onclick="cfsmSetPanelTab('network',this)"
+                            style="flex:1;font-size:9px;padding:5px 4px;background:none;border:none;border-bottom:2px solid transparent;color:rgba(255,255,255,.3);cursor:pointer;font-family:var(--font-mono);">Red</button>
+                    </div>
                 </div>
                 <!-- Panel body — scrollable -->
                 <div id="cfsmPanelBody" style="flex:1;overflow-y:auto;overflow-x:hidden;"></div>
+                <!-- Insight panel (hidden by default) -->
+                <div id="cfsmInsightPanel" style="flex:1;overflow-y:auto;display:none;"></div>
+                <!-- Network panel -->
+                <div id="cfsmNetworkPanel" style="flex:1;overflow-y:auto;display:none;padding:10px 14px;">
+                    <div style="font-size:8.5px;color:rgba(255,255,255,.2);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;">Red de centros</div>
+                    <div id="cfsmNetworkList"></div>
+                </div>
                 <!-- Panel action -->
                 <div id="cfsmPanelAction" style="padding:10px 14px;border-top:1px solid rgba(255,255,255,.06);flex-shrink:0;display:none;">
                     <button id="cfsmFilterBtn" onclick="cfsmFilterToInstitution()" style="width:100%;font-size:10.5px;padding:7px 12px;border-radius:7px;background:rgba(41,121,255,.1);border:1px solid rgba(41,121,255,.25);color:#60a5fa;cursor:pointer;font-family:var(--font-body);transition:all .15s;">
                         <i class="fas fa-filter" style="font-size:9px;margin-right:5px;" aria-hidden="true"></i>Filtrar variantes de este centro
+                    </button>
+                    <button onclick="cfsmStartLivePulse()" id="cfsmLiveBtn"
+                        style="width:100%;margin-top:5px;font-size:10px;padding:6px 12px;border-radius:7px;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);color:#34d399;cursor:pointer;font-family:var(--font-body);">
+                        <span id="cfsmLiveDot" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#34d399;margin-right:5px;animation:cfsmPulseAnim 1.5s infinite;"></span>
+                        Activar actualizaciones en vivo
                     </button>
                 </div>
             </div>
@@ -14832,6 +14853,360 @@ async function cfsmEnsureD3() {
     });
 }
 
+// ═══════════════════════════════════════════════════════════════════════
+// CLINICAL INSIGHT ENGINE
+// Analyses cross-institutional search patterns to surface:
+// 1. Persistent gaps: high-demand variants with no classification
+// 2. Coordination signals: same rare variant at multiple centres simultaneously
+// 3. ETI miss patterns: variants searched as ETI but not on label
+// 4. Institution-specific burden: what % of a centre's searches are hitting walls
+// ═══════════════════════════════════════════════════════════════════════
+
+function cfsmComputeInsights() {
+    const st = window._cfsm;
+    if (!st?.points?.length) return [];
+
+    const insights = [];
+    const allQueries = {};  // query → {centres: Set, count, hits, variant}
+
+    // Aggregate across all institutions
+    st.points.forEach(pt => {
+        Object.entries(pt.queries || {}).forEach(([q, count]) => {
+            if (!allQueries[q]) {
+                const v = STATE.variantsByLegacyName?.get(q) ||
+                          STATE.variants?.find(x => x.legacy_name?.toLowerCase() === q.toLowerCase());
+                allQueries[q] = { centres: new Set(), count: 0, misses: 0, variant: v };
+            }
+            allQueries[q].centres.add(pt.key);
+            allQueries[q].count += count;
+            // Misses: if this centre's hit rate for this query is low
+            try {
+                const ptHits  = (pt.rows || []).filter(r => r.query === q && r.is_hit).length;
+                const ptTotal = (pt.rows || []).filter(r => r.query === q).length || 1;
+                if (ptHits / ptTotal < 0.2) allQueries[q].misses += count;
+            } catch(e) { /* non-fatal */ }
+        });
+    });
+
+    // INSIGHT TYPE 1: Persistent multi-centre gap
+    // Same query searched at 2+ centres, mostly misses, no classification
+    Object.entries(allQueries).forEach(([q, data]) => {
+        if (data.centres.size >= 2 && !data.variant?.cftr_class &&
+            data.misses / data.count > 0.6) {
+            insights.push({
+                type: 'coordination',
+                severity: data.centres.size >= 3 ? 'critical' : 'warning',
+                icon: '🔗',
+                title: `Variante compartida sin clasificar: ${q}`,
+                body: `${data.centres.size} centros han buscado "${q}" (${data.count} búsquedas) — sin clase CFTR. Oportunidad de colaboración multicéntrica.`,
+                action: q,
+                actionLabel: 'Ver variante',
+                centres: [...data.centres],
+            });
+        }
+    });
+
+    // INSIGHT TYPE 2: High-demand unclassified variants (single centre)
+    Object.entries(allQueries).forEach(([q, data]) => {
+        if (data.centres.size === 1 && data.count >= 10 && !data.variant?.cftr_class) {
+            const centre = [...data.centres][0];
+            insights.push({
+                type: 'gap',
+                severity: data.count >= 30 ? 'critical' : 'warning',
+                icon: '⚠',
+                title: `Brecha clínica: ${q}`,
+                body: `${centre.split('_')[0]} ha buscado "${q}" ${data.count} veces sin respuesta. Prioridad de curación alta.`,
+                action: q,
+                actionLabel: 'Curar ahora',
+            });
+        }
+    });
+
+    // INSIGHT TYPE 3: Institution with very low hit rate
+    st.points.forEach(pt => {
+        const vol = pt.hits + pt.misses;
+        if (vol >= 10) {
+            const hitRate = pt.hits / vol;
+            if (hitRate < 0.4) {
+                insights.push({
+                    type: 'institution',
+                    severity: hitRate < 0.2 ? 'critical' : 'warning',
+                    icon: '📉',
+                    title: `Tasa de acierto baja: ${pt.name.split('—')[0].trim()}`,
+                    body: `Solo ${Math.round(hitRate*100)}% de las búsquedas encuentran variantes registradas (${vol} búsquedas totales). La base de datos puede carecer de variantes locales frecuentes.`,
+                    centre: pt.key,
+                });
+            }
+        }
+    });
+
+    // INSIGHT TYPE 4: Recent surge in searches for a specific variant
+    const recentCutoff = Date.now() - 7 * 86400000;
+    const recentByQuery = {};
+    st.rows?.filter(r => new Date(r.searched_at).getTime() > recentCutoff)
+        .forEach(r => {
+            if (!r.query) return;
+            recentByQuery[r.query] = (recentByQuery[r.query] || 0) + 1;
+        });
+    Object.entries(recentByQuery).forEach(([q, count]) => {
+        const total = allQueries[q]?.count || count;
+        if (count >= 3 && count / total > 0.5) {  // >50% of all searches in last 7d
+            insights.push({
+                type: 'surge',
+                severity: 'info',
+                icon: '📈',
+                title: `Búsqueda reciente intensa: ${q}`,
+                body: `${count} búsquedas de "${q}" en los últimos 7 días (${Math.round(count/total*100)}% de todas las búsquedas de esta variante).`,
+                action: q,
+                actionLabel: 'Ver variante',
+            });
+        }
+    });
+
+    // Sort: critical first, then warning, then info
+    const order = { critical: 0, warning: 1, info: 2 };
+    return insights.sort((a, b) => (order[a.severity]||3) - (order[b.severity]||3)).slice(0, 8);
+}
+
+function cfsmRenderInsights() {
+    const el = document.getElementById('cfsmInsightPanel');
+    if (!el) return;
+
+    const insights = cfsmComputeInsights();
+
+    if (!insights.length) {
+        el.innerHTML = `<div style="font-size:10px;color:rgba(255,255,255,.25);padding:12px 14px;line-height:1.5;">
+            No hay alertas clínicas activas en el período seleccionado.</div>`;
+        return;
+    }
+
+    const severityColor = { critical:'#f87171', warning:'#fbbf24', info:'#60a5fa' };
+
+    el.innerHTML = insights.map(ins => {
+        const col = severityColor[ins.severity] || '#60a5fa';
+        return `<div style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.04);
+                     border-left:2px solid ${col};margin-left:0;">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                <span style="font-size:12px;">${ins.icon}</span>
+                <span style="font-size:10px;font-weight:700;color:${col};line-height:1.3;">${ins.title}</span>
+            </div>
+            <div style="font-size:9.5px;color:rgba(255,255,255,.4);line-height:1.5;margin-bottom:6px;">
+                ${ins.body}
+            </div>
+            ${ins.action ? `<button onclick="selectVariant('${ins.action}',true)"
+                style="font-size:9px;padding:2px 8px;border-radius:4px;
+                border:1px solid ${col}40;background:${col}12;color:${col};
+                cursor:pointer;font-family:var(--font-body);">${ins.actionLabel}</button>` : ''}
+        </div>`;
+    }).join('');
+}
+
+Object.assign(window, { cfsmComputeInsights, cfsmRenderInsights });
+
+
+// ═══════════════════════════════════════════════════════════════════════
+// LIVE PULSE — Real-time search arrival via Supabase Realtime
+// When a new search_log INSERT fires, we:
+// 1. Find the institution on the map by name/city
+// 2. Animate a ripple pulse at their coordinates
+// 3. Flash the right panel if they're selected
+// 4. Show a floating toast with the query + institution name
+// ═══════════════════════════════════════════════════════════════════════
+
+let _cfsmRealtimeChannel = null;
+
+function cfsmStartLivePulse() {
+    try {
+    if (_cfsmRealtimeChannel || window._cfsmPollTimer) return;
+    if (window.supabase?.channel) {
+        _cfsmRealtimeChannel = window.supabase
+            .channel('signal-map-live')
+            .on('postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'search_logs' },
+                (payload) => cfsmHandleLiveSearch(payload.new)
+            )
+            .subscribe();
+        console.log('[NeumuacFQ Signal Map] Live pulse active via Supabase Realtime');
+    } else {
+        cfsmStartPollingFallback();
+    }
+    } catch(e) { console.warn('[NeumuacFQ] Live pulse init error:', e.message); }
+}
+
+function cfsmStopLivePulse() {
+    if (_cfsmRealtimeChannel) {
+        _cfsmRealtimeChannel.unsubscribe?.();
+        _cfsmRealtimeChannel = null;
+    }
+    if (window._cfsmPollTimer) {
+        clearInterval(window._cfsmPollTimer);
+        window._cfsmPollTimer = null;
+    }
+}
+
+function cfsmStartPollingFallback() {
+    if (!CONFIG?.SUPABASE?.URL) return;  // no DB configured
+    let lastId = 0;
+    window._cfsmPollTimer = setInterval(function() {
+        // Use explicit Promise chain to avoid async keyword compatibility issues
+        const url = CONFIG.SUPABASE.URL + '/rest/v1/search_logs?select=id,query,is_hit,institution_name,city,country,latitude,longitude&order=id.desc&limit=3' + (lastId ? '&id=gt.' + lastId : '');
+        fetch(url, { headers: { apikey: CONFIG.SUPABASE.KEY, Authorization: 'Bearer ' + CONFIG.SUPABASE.KEY } })
+            .then(function(res) { return res.ok ? res.json() : []; })
+            .then(function(rows) {
+                if (rows.length > 0) {
+                    lastId = rows[0].id;
+                    rows.slice().reverse().forEach(function(r) { cfsmHandleLiveSearch(r); });
+                }
+            })
+            .catch(function() {});
+    }, 30000);
+}
+
+function cfsmHandleLiveSearch(row) {
+    const st = window._cfsm;
+    if (!st?.proj || !st._g || !window.d3) return;
+
+    const instName = row.institution_name || row.city;
+    if (!instName) return;
+
+    // Find matching point
+    const pt = st.points.find(p =>
+        p.name === instName ||
+        p.name?.toLowerCase().includes(instName.toLowerCase())
+    );
+
+    const lat = parseFloat(row.latitude || pt?.lat);
+    const lon = parseFloat(row.longitude || pt?.lon);
+    if (isNaN(lat) || isNaN(lon)) return;
+
+    const pos = st.proj([lon, lat]);
+    if (!pos) return;
+    const [x, y] = pos;
+
+    // Animate ripple pulse at the institution's location
+    const col = row.is_hit ? '#34d399' : '#f87171';
+    const ripple = st._g.append('circle')
+        .attr('cx', x).attr('cy', y)
+        .attr('r', 4)
+        .attr('fill', 'none')
+        .attr('stroke', col)
+        .attr('stroke-width', 1.5)
+        .attr('opacity', 0.9)
+        .attr('pointer-events', 'none');
+
+    ripple.transition().duration(1200).ease(d3.easeOut)
+        .attr('r', 28)
+        .attr('stroke-width', 0.3)
+        .attr('opacity', 0)
+        .remove();
+
+    // Secondary smaller pulse
+    const ripple2 = st._g.append('circle')
+        .attr('cx', x).attr('cy', y)
+        .attr('r', 2)
+        .attr('fill', col)
+        .attr('opacity', 0.8)
+        .attr('pointer-events', 'none');
+    ripple2.transition().duration(600).attr('r', 10).attr('opacity', 0).remove();
+
+    // Flash the panel if this institution is selected
+    if (st.selectedKey && pt && st.selectedKey === pt.key) {
+        const panel = document.getElementById('cfsmPanel');
+        if (panel) {
+            panel.style.transition = 'background .1s';
+            panel.style.background = `rgba(${row.is_hit ? '52,211,153' : '248,113,113'},.05)`;
+            setTimeout(() => { panel.style.background = ''; panel.style.transition = ''; }, 400);
+        }
+    }
+
+    // Floating toast (subtle, non-intrusive)
+    cfsmShowLiveToast(row.query, instName, row.is_hit, col);
+}
+
+function cfsmShowLiveToast(query, inst, isHit, col) {
+    const existing = document.getElementById('cfsmLiveToast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.id = 'cfsmLiveToast';
+    toast.style.cssText = `position:absolute;bottom:52px;right:12px;
+        background:rgba(12,20,34,.95);border:1px solid ${col}40;
+        border-left:2px solid ${col};border-radius:6px;padding:6px 10px;
+        font-size:9px;color:rgba(255,255,255,.6);line-height:1.4;
+        font-family:var(--font-mono);pointer-events:none;z-index:10;
+        animation:cfsmToastIn .2s ease;max-width:180px;`;
+    toast.innerHTML = `
+        <div style="color:${col};font-weight:700;margin-bottom:2px;">
+            ${isHit ? '✓' : '○'} ${inst.split('—')[0].trim().split('(')[0].trim().slice(0,22)}
+        </div>
+        <div style="opacity:.7;">${query.length > 20 ? query.slice(0,18)+'…' : query}</div>`;
+
+    const wrap = document.getElementById('cfsmMapWrap');
+    if (wrap) {
+        wrap.appendChild(toast);
+        setTimeout(() => toast.remove(), 3500);
+    }
+}
+
+// Add toast animation CSS once
+if (!document.getElementById('cfsmToastStyle')) {
+    const s = document.createElement('style');
+    s.id = 'cfsmToastStyle';
+    s.textContent = `
+        @keyframes cfsmToastIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+    `;
+    document.head.appendChild(s);
+}
+
+Object.assign(window, { cfsmStartLivePulse, cfsmStopLivePulse, cfsmHandleLiveSearch });
+
+
+function cfsmSetPanelTab(tab, btn) {
+    // Tab buttons
+    ['overview','insights','network'].forEach(t => {
+        const b = document.getElementById(`cfsmPTab-${t}`);
+        if (b) {
+            b.style.borderBottomColor = t === tab ? '#2979ff' : 'transparent';
+            b.style.color = t === tab ? '#60a5fa' : 'rgba(255,255,255,.3)';
+        }
+    });
+    // Panels
+    document.getElementById('cfsmPanelBody').style.display      = tab === 'overview'  ? 'block' : 'none';
+    document.getElementById('cfsmInsightPanel').style.display   = tab === 'insights'  ? 'block' : 'none';
+    document.getElementById('cfsmNetworkPanel').style.display   = tab === 'network'   ? 'block' : 'none';
+
+    if (tab === 'insights') cfsmRenderInsights();
+    if (tab === 'network')  cfsmRenderNetworkList();
+}
+
+function cfsmRenderNetworkList() {
+    const el = document.getElementById('cfsmNetworkList');
+    if (!el || !window._cfsm?.points) return;
+    const pts = [...window._cfsm.points]
+        .sort((a,b) => (b.hits+b.misses) - (a.hits+a.misses));
+    el.innerHTML = pts.map(pt => {
+        const vol = pt.hits + pt.misses;
+        const hr  = vol > 0 ? Math.round(pt.hits/vol*100) : 0;
+        const col = hr > 70 ? '#34d399' : hr > 40 ? '#fbbf24' : '#f87171';
+        const safeKey = encodeURIComponent(pt.key);
+        return `<div onclick="(function(){const st=window._cfsm;const p=st.points.find(x=>x.key===decodeURIComponent('${safeKey}'));if(p)cfsmSelectPoint(p);})()"
+                    style="padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;
+                           display:flex;align-items:center;gap:8px;">
+            <div style="width:6px;height:6px;border-radius:50%;background:${col};flex-shrink:0;"></div>
+            <div style="flex:1;min-width:0;">
+                <div style="font-size:10px;color:rgba(255,255,255,.7);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                    ${pt.name.split('—')[0].trim().slice(0,30)}
+                </div>
+                <div style="font-size:8.5px;color:rgba(255,255,255,.25);font-family:var(--font-mono);">
+                    ${vol} búsquedas · ${hr}% aciertos
+                </div>
+            </div>
+            ${pt.verified ? '<span style="font-size:8px;color:#34d399;">✓</span>' : ''}
+        </div>`;
+    }).join('');
+}
+Object.assign(window, { cfsmSetPanelTab, cfsmRenderNetworkList });
+
 async function cfsmFetchData() {
     const st = window._cfsm;
     const headers = { 'apikey': CONFIG.SUPABASE.KEY, 'Authorization': `Bearer ${CONFIG.SUPABASE.KEY}` };
@@ -14952,9 +15327,9 @@ function cfsmBuildPoints() {
         Object.keys(pt.queries).forEach(q => {
             const v = STATE.variantsByLegacyName?.get(q);
             if (v?.eti_prediction) {
-                const k = v.eti_prediction === 'responsive' ? 'responsive'
-                        : v.eti_prediction === 'non_responsive' ? 'non_responsive'
-                        : 'unknown';
+                const k = (v.eti_prediction === 'responsive')   ? 'responsive'
+                    : (v.eti_prediction === 'non_responsive') ? 'non_responsive'
+                    : 'unknown';  // null, 'unknown', or anything else
                 pt.etiCounts[k] += pt.queries[q];
             } else {
                 pt.etiCounts.unknown += pt.queries[q] || 1;
@@ -14966,7 +15341,17 @@ function cfsmBuildPoints() {
 
     // Update row count display
     const countEl = document.getElementById('cfsmRowCount');
-    if (countEl) countEl.textContent = `${st.rows.length.toLocaleString()} searches`;
+    if (countEl) countEl.textContent = `${st.rows.length.toLocaleString()} búsquedas`;
+
+    // Compute insights after data loads
+    setTimeout(() => {
+        if (typeof cfsmRenderInsights === 'function') {
+            cfsmRenderInsights();
+        }
+        if (typeof cfsmRenderNetworkList === 'function') {
+            cfsmRenderNetworkList();
+        }
+    }, 200);
 }
 
 
