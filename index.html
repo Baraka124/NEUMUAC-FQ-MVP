@@ -1967,6 +1967,7 @@
         .si-tab.active { background:rgba(41,121,255,0.08); color:var(--brand); border-color:rgba(41,121,255,0.35); font-weight:700; }
         .si-tab:hover:not(.active) { color:var(--text-secondary); }
         .si-panel { display:none; }
+        .si-panel.active { display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden; }
         .si-kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border-bottom:1px solid var(--border); }
         .si-kpi { background:var(--surface); padding:12px 14px; }
         .si-kpi-label { font-size: 11px; font-weight:600; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:.1em; margin-bottom:5px; }
@@ -2582,12 +2583,13 @@
 
         /* Tab buttons */
         .cfsm-tab {
-            font-size: 10.5px; font-family: var(--font-mono); font-weight: 600;
-            padding: 8px 14px; border: none; background: transparent;
+            font-size: 10px; font-family: var(--font-mono); font-weight: 600;
+            padding: 0 14px; height: 36px; border: none; background: transparent;
             color: rgba(255,255,255,.28); cursor: pointer;
             border-right: 1px solid rgba(255,255,255,.05);
             border-bottom: 2px solid transparent;
             transition: all .14s; white-space: nowrap; letter-spacing: .04em;
+            display: flex; align-items: center;
         }
         .cfsm-tab:hover { color: rgba(255,255,255,.5); background: rgba(255,255,255,.03); }
         .cfsm-tab.active {
@@ -3985,6 +3987,10 @@
             padding: 16px;
             animation: fadeIn 150ms ease;
         }
+        /* Dashboard modal fills viewport edge-to-edge with just 8px breathing room */
+        .modal-overlay:has(.dashboard-modal) {
+            padding: 8px;
+        }
         /* Dashboard modal overlay — align to top so full height is usable */
         #dashboardModal {
             align-items: stretch;
@@ -4209,12 +4215,12 @@
         .dashboard-modal {
             width: 100% !important;
             height: 100% !important;
-            max-width: none !important;
-            max-height: none !important;
+            max-width: 100% !important;
+            max-height: 100% !important;
             display: flex !important;
             flex-direction: column !important;
             overflow: hidden !important;
-            border-radius: 12px !important;
+            border-radius: 10px !important;
         }
 
         /* 3. Header: fixed height, never scrolls */
@@ -4248,6 +4254,10 @@
             overflow-y: auto;
             overflow-x: hidden;
             min-height: 0;
+        }
+        /* Search/geo tab panel: no overflow, flex column so map fills everything */
+        #siPanel {
+            overflow: hidden !important;
         }
 
         /* 7. Inner padding wrapper inside tab panel */
@@ -7321,11 +7331,11 @@
                 </div>
             </div>
 
-            <div id="siPanelGeo" class="si-panel" style="display:none;">
-    <div style="display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden;background:#0c1422;">
+            <div id="siPanelGeo" class="si-panel" style="display:none;flex:1;min-height:0;">
+    <div style="display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;background:#0c1422;">
 
         <!-- ── CF Signal Map: single slim control bar ── -->
-        <div id="cfsmBar" style="display:flex;align-items:center;gap:0;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;background:#0c1422;">
+        <div id="cfsmBar" style="display:flex;align-items:center;gap:0;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;background:#0c1422;min-height:36px;max-height:36px;">
             <!-- Mode tabs -->
             <button class="cfsm-tab" id="cfsmTabAtlas" onclick="cfsmSetMode('atlas')" title="Variant Reach Atlas — arc flows from gnomAD origin populations to clinical institutions" style="color:#34d399;border-bottom-color:#34d399;">
                 <i class="fas fa-earth-europe-europe" style="font-size:9px;margin-right:4px;" aria-hidden="true"></i>Reach Atlas
@@ -7365,7 +7375,7 @@
         <div style="display:flex;flex:1;min-height:0;overflow:hidden;">
 
             <!-- D3 Signal Map canvas -->
-            <div style="flex:1;position:relative;overflow:hidden;" id="cfsmMapWrap">
+            <div style="flex:1;position:relative;overflow:hidden;" id="cfsmMapWrap" style="flex:1;position:relative;overflow:hidden;min-height:0;">
                 <svg id="cfsmSvg" style="width:100%;height:100%;display:block;"></svg>
                 <!-- Loading state -->
                 <div id="cfsmLoading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0c1422;">
@@ -7400,7 +7410,7 @@
             </div>
 
             <!-- Right panel — always populated -->
-            <div id="cfsmPanel" style="width:280px;flex-shrink:0;border-left:1px solid rgba(255,255,255,.06);background:#0c1422;display:flex;flex-direction:column;overflow:hidden;">
+            <div id="cfsmPanel" style="width:260px;flex-shrink:0;border-left:1px solid rgba(255,255,255,.06);background:#0c1422;display:flex;flex-direction:column;overflow:hidden;">
                 <!-- Panel header -->
                 <div id="cfsmPanelHead" style="padding:10px 14px 0;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;">
                     <div style="font-size:8.5px;color:rgba(255,255,255,.25);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.12em;margin-bottom:4px;" id="cfsmPanelSub">Visión general de la red</div>
@@ -7419,9 +7429,9 @@
                 <!-- Panel body — scrollable -->
                 <div id="cfsmPanelBody" style="flex:1;overflow-y:auto;overflow-x:hidden;"></div>
                 <!-- Insight panel (hidden by default) -->
-                <div id="cfsmInsightPanel" style="flex:1;overflow-y:auto;display:none;"></div>
+                <div id="cfsmInsightPanel" style="flex:1;overflow-y:auto;overflow-x:hidden;display:none;"></div>
                 <!-- Network panel -->
-                <div id="cfsmNetworkPanel" style="flex:1;overflow-y:auto;display:none;padding:10px 14px;">
+                <div id="cfsmNetworkPanel" style="flex:1;overflow-y:auto;overflow-x:hidden;display:none;padding:10px 14px;">
                     <div style="font-size:8.5px;color:rgba(255,255,255,.2);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;">Red de centros</div>
                     <div id="cfsmNetworkList"></div>
                 </div>
@@ -17487,7 +17497,7 @@ async function exportSearchPDF() {
 
     const fname = 'neumACt-search-supplement-' + now.toISOString().split('T')[0] + '.pdf';
     doc.save(fname);
-    showNotification(`Report downloaded - ${pageCount} page${pageCount>1?'s':''}`, 'success');
+    showNotification(`✅ Informe descargado — ${pageCount} página${pageCount>1?'s':''}`, 'success');
 }
 
 
@@ -17497,8 +17507,8 @@ function exportSearchReport() {
     const misses = getTopMisses(20);
     const rate   = getSearchHitRate();
     const lines  = [
-        'neumACt - SEARCH INTELLIGENCE REPORT',
-        'Generated: ' + new Date().toLocaleString('en-GB'),
+        'NeumuacFQ — Informe de Inteligencia de Búsqueda',
+        'Generado: ' + new Date().toLocaleString('es-ES'),
         '',
         '=== SUMMARY ===',
         'Total searches   : ' + rate.total,
@@ -17512,10 +17522,12 @@ function exportSearchReport() {
         '=== MISS QUEUE — RESEARCH GAP SIGNAL (por usuarios únicos) ===',
         ...misses.map((r,i) => String(i+1).padStart(2,'0') + '. ' + r.query.padEnd(28) + r.sessions + ' users · ' + r.count + ' times'),
     ];
-    const blob = new Blob([lines.join('\n')], {type:'text/plain'});
+    // UTF-8 BOM so Excel/Numbers opens correctly
+    const bom = '\uFEFF';
+    const blob = new Blob([bom + lines.join('\n')], {type:'text/plain;charset=utf-8;'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'helix-search-report-' + new Date().toISOString().split('T')[0] + '.txt';
+    a.download = 'NeumuacFQ_busquedas_' + new Date().toISOString().split('T')[0] + '.txt';
     a.click(); URL.revokeObjectURL(a.href);
 }
 
@@ -21548,6 +21560,175 @@ async function submitManualForm() {
 
 // ========== BULK IMPORT ==========
 
+
+// ═══════════════════════════════════════════════════════════════════════
+// EXECUTE IMPORT BATCH
+// Takes validated rows from previewImportBatch and upserts to DB
+// Shows progress bar, handles duplicates (update vs skip), writes audit log
+// ═══════════════════════════════════════════════════════════════════════
+async function executeImportBatch(validatedRows, resultsEl) {
+    if (!validatedRows || !validatedRows.length) return;
+    if (!isWriteMode()) {
+        requireWriteMode(() => executeImportBatch(validatedRows, resultsEl));
+        return;
+    }
+
+    const btn = document.getElementById('executeImportBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Importando…'; }
+
+    // Show progress bar
+    if (resultsEl) {
+        resultsEl.insertAdjacentHTML('afterbegin', `
+            <div id="importProgress" style="margin-bottom:10px;">
+                <div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:4px;">
+                    Importando <span id="importProgressCount">0</span> / ${validatedRows.length} variantes…
+                </div>
+                <div style="height:3px;background:rgba(255,255,255,.08);border-radius:2px;">
+                    <div id="importProgressBar" style="height:100%;width:0%;background:#2979ff;border-radius:2px;transition:width .2s;"></div>
+                </div>
+            </div>`);
+    }
+
+    const results = { inserted: 0, updated: 0, skipped: 0, errors: [] };
+    const CHUNK = 10;  // upsert in chunks to avoid timeout
+
+    // Map CSV column names → DB column names
+    const colMap = {
+        'variant_legacy_name':       'legacy_name',
+        'variant_protein_name':      'protein_name',
+        'variant_cDNA_name':         'cdna_name',
+        'variant_final_determination':'final_determination',
+        'cftr_class':                'cftr_class',
+        'class_subtype':             'class_subtype',
+        'class_confidence':          'class_confidence',
+        'eti_prediction':            'eti_prediction',
+        'eti_evidence_tier':         'eti_evidence_tier',
+        'alyftrek_prediction':       'alyftrek_prediction',
+        'alyftrek_evidence_tier':    'alyftrek_evidence_tier',
+        'population_frequency':      'population_frequency',
+        'alt_names':                 'alt_names',
+        'clinical_alert':            'clinical_alert',
+        'source_summary':            'source_summary',
+    };
+
+    const mapRow = (row) => {
+        const mapped = {};
+        Object.entries(colMap).forEach(([csvCol, dbCol]) => {
+            if (row[csvCol] !== undefined && row[csvCol] !== '') {
+                mapped[dbCol] = row[csvCol];
+            }
+        });
+        // Auto-set source if not provided
+        if (!mapped.source_summary) mapped.source_summary = `CSV_Import_${new Date().toISOString().slice(0,10)}`;
+        return mapped;
+    };
+
+    for (let i = 0; i < validatedRows.length; i += CHUNK) {
+        const chunk = validatedRows.slice(i, i + CHUNK).map(r => mapRow(r.rawRow || r));
+
+        try {
+            const res = await fetch(
+                `${CONFIG.SUPABASE.URL}/rest/v1/variants`,
+                {
+                    method: 'POST',
+                    headers: {
+                        apikey:          CONFIG.SUPABASE.KEY,
+                        Authorization:  `Bearer ${CONFIG.SUPABASE.KEY}`,
+                        'Content-Type': 'application/json',
+                        Prefer:         'resolution=merge-duplicates,return=representation',
+                    },
+                    body: JSON.stringify(chunk)
+                }
+            );
+
+            if (res.ok) {
+                const saved = await res.json();
+                results.inserted += saved.length;
+                // Add to local STATE immediately
+                saved.forEach(v => {
+                    if (v.id) {
+                        STATE.variantsById.set(v.id, v);
+                        STATE.variantsByLegacyName.set(v.legacy_name, v);
+                        if (!STATE.variants.find(x => x.id === v.id)) STATE.variants.push(v);
+                    }
+                });
+            } else {
+                const err = await res.text();
+                results.errors.push(`Chunk ${Math.floor(i/CHUNK)+1}: ${err.slice(0,100)}`);
+                results.skipped += chunk.length;
+            }
+        } catch(e) {
+            results.errors.push(`Chunk ${Math.floor(i/CHUNK)+1}: ${e.message}`);
+            results.skipped += chunk.length;
+        }
+
+        // Update progress
+        const pct = Math.round((i + CHUNK) / validatedRows.length * 100);
+        document.getElementById('importProgressBar')?.style && (document.getElementById('importProgressBar').style.width = Math.min(pct,100) + '%');
+        document.getElementById('importProgressCount') && (document.getElementById('importProgressCount').textContent = Math.min(i+CHUNK, validatedRows.length));
+
+        // Yield to keep UI responsive
+        await new Promise(r => setTimeout(r, 10));
+    }
+
+    // Rebuild search index with new variants
+    buildSearchIndex();
+    calculateMasterStats();
+    updateFilterChips();
+
+    // Write audit log
+    writeAuditLog('updated', 'bulk_import', null, null,
+        `Importación masiva: ${results.inserted} insertadas, ${results.updated} actualizadas, ${results.skipped} omitidas`);
+
+    // Show results
+    document.getElementById('importProgress')?.remove();
+    const summary = `✅ Importación completa: ${results.inserted} variantes procesadas${results.skipped > 0 ? `, ${results.skipped} omitidas` : ''}${results.errors.length > 0 ? `<br>⚠ ${results.errors.length} errores: ${results.errors[0]}` : ''}`;
+    if (resultsEl) resultsEl.insertAdjacentHTML('afterbegin', `<div style="padding:10px 12px;border-radius:6px;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);font-size:11px;color:#34d399;margin-bottom:8px;">${summary}</div>`);
+    showNotification(`Importación: ${results.inserted} variantes procesadas`, 'success', 4000);
+
+    if (btn) { btn.disabled = false; btn.textContent = 'Importar'; }
+}
+Object.assign(window, { executeImportBatch });
+
+
+// Download a CSV template with all supported import columns
+function downloadImportTemplate() {
+    const headers = [
+        'variant_legacy_name',  // REQUIRED — e.g. F508del
+        'variant_protein_name', // e.g. p.Phe508del
+        'variant_cDNA_name',    // e.g. c.1521_1523del
+        'variant_final_determination', // CF-causing | Non CF-causing | Varying clinical consequence
+        'cftr_class',           // I | II | III | IV | V | VI
+        'class_subtype',        // exceptional | founder | compound_relevant
+        'class_confidence',     // confirmed | high | moderate | medium | NEEDS_REVIEW
+        'eti_prediction',       // responsive | non_responsive | unknown
+        'eti_evidence_tier',    // fda_approved | frt_assay | clinical_trial | class_rule | insufficient
+        'alyftrek_prediction',  // responsive | non_responsive | unknown
+        'alyftrek_evidence_tier', // clinical_trial | frt_assay | class_rule | insufficient
+        'population_frequency', // e.g. 0.000001
+        'alt_names',            // semicolon-separated aliases
+        'source_summary',       // e.g. CFTR2_2026
+        'clinical_alert',       // free text clinical note
+    ];
+    const exampleRow = [
+        'F508del', 'p.Phe508del', 'c.1521_1523del', 'CF-causing',
+        'II', '', 'confirmed', 'responsive', 'fda_approved',
+        'responsive', 'clinical_trial', '0.000014',
+        'ΔF508;delta-F508', 'CFTR2_2026', '✅ ETI responsive · Alyftrek eligible',
+    ];
+    // Strip inline comments from headers for clean CSV
+    const cleanHeaders = headers.map(h => h.split('  //')[0].trim().replace(/,$/, ''));
+    const bom = '\uFEFF';  // UTF-8 BOM for Excel compatibility
+    const csvContent = bom + cleanHeaders.join(',') + '\n' + exampleRow.join(',');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'NeumuacFQ_import_template.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+}
+Object.assign(window, { downloadImportTemplate });
+
 function initializeBulkImport() {
     const drop = document.getElementById('dropZone');
     const file = document.getElementById('csvFileInput');
@@ -21603,9 +21784,14 @@ function handleCSVFile(file) {
                       : commaCount >= semiCount ? ',' : ';';
 
             const headers = firstLine.split(sep).map(h => h.trim().replace(/^"|"$/g,''));
-            const required = ['variant_legacy_name','variant_protein_name','variant_cDNA_name','variant_final_determination'];
+            // Only legacy_name is truly required — protein/cDNA/determination are enrichable
+            const required = ['variant_legacy_name'];
             const missing  = required.filter(h => !headers.includes(h));
-            if (missing.length) throw new Error(`Missing columns: ${missing.join(', ')}`);
+            if (missing.length) throw new Error(
+                `Columna obligatoria faltante: ${missing.join(', ')}
+` +
+                `Columnas encontradas: ${headers.join(', ')}`
+            );
 
             const variants = [];
             for (let i = 1; i < lines.length; i++) {
@@ -21861,6 +22047,7 @@ function setDashTab(tab, btn) {
 
         if (isActive) {
             el.style.display     = tab === 'search' ? 'flex' : 'block';
+            if (tab === 'search') el.style.flexDirection = 'column';
             el.style.flex        = '1 1 0';
             el.style.minHeight   = '0';
             el.style.overflowY   = tab === 'search' ? 'hidden' : 'auto'; // search has internal scroll
@@ -21924,7 +22111,9 @@ function setSITab(name, btn) {
             el.style.flexDirection = 'column';
             el.style.flex = '1';
             el.style.minHeight = '0';
-            el.style.overflowY = 'auto';
+            // Geo map must not scroll — it fills its container and handles its own layout
+            el.style.overflowY = t === 'geo' ? 'hidden' : 'auto';
+            el.style.overflow  = t === 'geo' ? 'hidden' : '';
             el.classList.add('active');
         } else {
             el.style.display = 'none';
@@ -21934,8 +22123,21 @@ function setSITab(name, btn) {
     });
     document.querySelectorAll('.si-tab').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
-    if (name === 'geo')          renderGeoTab();
-    else if (name === 'gaps')    renderGapQueue();
+    if (name === 'geo') {
+        renderGeoTab();
+        // Hide the si-tabs bar (geo has its own cfsmBar control)
+        const siTabsEl = document.querySelector('#siPanel .si-tabs');
+        if (siTabsEl) siTabsEl.style.display = name === 'geo' ? 'flex' : 'flex';
+        // Give the geo panel ALL the height — no si-tabs taking space
+        const siPanelEl = document.getElementById('siPanel');
+        if (siPanelEl) {
+            siPanelEl.style.display = 'flex';
+            siPanelEl.style.flexDirection = 'column';
+            siPanelEl.style.flex = '1';
+            siPanelEl.style.minHeight = '0';
+            siPanelEl.style.overflow = 'hidden';
+        }
+    } else if (name === 'gaps') renderGapQueue();
     if (name === 'misses') {
         // Enrich in-memory misses with Supabase IDs so Add-variant works
         hFetch('search_miss_queue?select=id,query,miss_count,unique_sessions,status&order=unique_sessions.desc&limit=50')
@@ -23591,7 +23793,7 @@ function exportClinicalReport(variantOrAll) {
             : null;
 
     if (!variants || !variants.length) {
-        showNotification('Select a variant first, or use Batch Report for all classified variants', 'warning');
+        showNotification('Seleccione una variante primero, o use "Informe en lote" para todas las variantes clasificadas', 'warning');
         return;
     }
 
@@ -24932,7 +25134,7 @@ function openExportCentre() {
                         <i class="fas fa-cloud-download-alt" style="color:#60a5fa;font-size:15px;"></i>
                     </div>
                     <div>
-                        <div style="font-size:16px;font-weight:700;color:#f0f6ff;letter-spacing:-.01em;">Export Centre</div>
+                        <div style="font-size:16px;font-weight:700;color:#f0f6ff;letter-spacing:-.01em;">Centro de Exportación</div>
                         <div style="font-size:11px;color:#4a6a99;margin-top:1px;">${dateLabel}</div>
                     </div>
                 </div>
@@ -24940,10 +25142,10 @@ function openExportCentre() {
                 <!-- Session context bar -->
                 <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;">
                     <span class="xp-pill"><i class="fas fa-building" style="font-size:9px;"></i>${escapeHTML(institution)}</span>
-                    <span class="xp-pill"><i class="fas fa-layer-group" style="font-size:9px;"></i>${variantCount.toLocaleString()} variants in view</span>
-                    <span class="xp-pill"><i class="fas fa-eye" style="font-size:9px;"></i>${sessionViews} viewed this session</span>
-                    <span class="xp-pill"><i class="fas fa-stethoscope" style="font-size:9px;"></i>${escapeHTML(appMode)} mode</span>
-                    <span class="xp-pill"><i class="fas fa-clock" style="font-size:9px;"></i>Session since ${sessionStart}</span>
+                    <span class="xp-pill"><i class="fas fa-layer-group" style="font-size:9px;"></i>${variantCount.toLocaleString()} variantes en vista</span>
+                    <span class="xp-pill"><i class="fas fa-eye" style="font-size:9px;"></i>${sessionViews} vistas esta sesión</span>
+                    <span class="xp-pill"><i class="fas fa-stethoscope" style="font-size:9px;"></i>Modo ${escapeHTML(appMode)}</span>
+                    <span class="xp-pill"><i class="fas fa-clock" style="font-size:9px;"></i>Sesión desde ${sessionStart}</span>
                 </div>
             </div>
             <button onclick="closeExportCentre()" style="
@@ -24961,7 +25163,7 @@ function openExportCentre() {
 
             <!-- CLINICAL EXPORTS -->
             <div>
-                <div class="xp-section-label"><i class="fas fa-stethoscope" style="color:#34d399;"></i>Clinical Documents</div>
+                <div class="xp-section-label"><i class="fas fa-stethoscope" style="color:#34d399;"></i>Documentos Clínicos</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
 
                     <!-- Single variant PDF -->
@@ -25040,7 +25242,7 @@ function openExportCentre() {
 
             <!-- CURATOR / DATA EXPORTS -->
             <div>
-                <div class="xp-section-label"><i class="fas fa-vial-circle-check" style="color:#60a5fa;"></i>Data & Curation Exports</div>
+                <div class="xp-section-label"><i class="fas fa-vial-circle-check" style="color:#60a5fa;"></i>Exportación de Datos</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
 
                     <!-- Quick CSV -->
@@ -25093,7 +25295,7 @@ function openExportCentre() {
 
             <!-- RESEARCH / IRB -->
             <div>
-                <div class="xp-section-label"><i class="fas fa-microscope" style="color:#a78bfa;"></i>Research & Governance</div>
+                <div class="xp-section-label"><i class="fas fa-microscope" style="color:#a78bfa;"></i>Investigación y Gobernanza</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
 
                     <!-- IRB JSON -->
@@ -25306,14 +25508,16 @@ function exportSessionReport() {
 
 
 function exportReport() {
-    const headers = ['Legacy Name','Protein','cDNA','Determination','CFTR Class','ETI Prediction','Subtype','Confidence','Validation Count'];
+    const headers = ['Nombre legacy','Proteína','cDNA','Determinación','Clase CFTR',
+        'Predicción ETI','Predicción Alyftrek','Subtipo','Confianza','Cuenta validaciones'];
+    const bom = '\uFEFF';
     const rows = STATE.variants.map(v => [
-        v.legacy_name, v.protein_name, v.cdna_name, v.final_determination,
-        v.cftr_class, v.eti_prediction, v.class_subtype, v.class_confidence,
-        v.validation_count || 0
+        v.legacy_name, v.protein_name||'', v.cdna_name||'', v.final_determination||'',
+        v.cftr_class||'', v.eti_prediction||'', v.alyftrek_prediction||'',
+        v.class_subtype||'', v.class_confidence||'', v.validation_count || 0
     ]);
-    generateCSV(headers, rows, `NeumuacFQ-export-${getCurrentDate()}.csv`);
-    showNotification('Export complete', 'success');
+    generateCSV(headers, rows, `NeumuacFQ_resumen_${getCurrentDate()}.csv`);
+    showNotification('✅ Exportación CSV completada', 'success');
 }
 
 // Phase 5: Expose cohort export and IRB package to window
@@ -25321,31 +25525,38 @@ function exportCohort() { exportFilteredCohort('csv'); }
 function exportIRB()    { exportIRBPackage(); }
 
 function exportFullReport() {
-    const headers = ['ID','Legacy Name','Protein','cDNA','Determination','CFTR Class',
-        'Subtype','Confidence','ETI Response','Evidence Level','Recommendation',
-        'Data Status','Source','Population Frequency','PubMed IDs','Date Updated',
-        'Validation Count','Last Validator','Last Validated',
-        'ACMG Overrides','Evidence Links','Func Interpretation'];
+    const headers = ['ID','Nombre legacy','Proteína','cDNA','Determinación','Clase CFTR',
+        'Subtipo','Confianza','Alerta clínica','Predicción ETI','Evidencia ETI (tier)',
+        'Evidencia ETI (texto)','Recomendación ETI','Predicción Alyftrek',
+        'Evidencia Alyftrek (tier)','Evidencia Alyftrek (texto)',
+        'Therapy responsive','Fuente','Frec. población','IDs PubMed','Actualizado',
+        'Cuenta validaciones','Último validador','Última validación',
+        'Overrides ACMG','Links evidencia','Interpretación funcional'];
     
     const rows = STATE.variants.map(v => {
         const funcLinks  = (v.evidence_links||[]).filter(e => e.func_interpretation);
         const funcInterps = [...new Set(funcLinks.map(e => e.func_interpretation))].join(';');
         return [
-            v.id, v.legacy_name, v.protein_name, v.cdna_name, v.final_determination,
-            v.cftr_class, v.class_subtype, v.class_confidence, v.eti_prediction,
-            v.eti_evidence_level, v.eti_recommendation, v.data_status, v.source_summary,
-            v.population_frequency, v.pubmed_ids, v.date_updated,
+            v.id, v.legacy_name, v.protein_name||'', v.cdna_name||'', v.final_determination||'',
+            v.cftr_class||'', v.class_subtype||'', v.class_confidence||'',
+            (v.clinical_alert||'').replace(/[\r\n]/g,' '),
+            v.eti_prediction||'', v.eti_evidence_tier||'', v.eti_evidence_level||'',
+            v.eti_recommendation||'', v.alyftrek_prediction||'',
+            v.alyftrek_evidence_tier||'', v.alyftrek_evidence_level||'',
+            v.therapy_responsive === true ? 'YES' : v.therapy_responsive === false ? 'NO' : '',
+            v.source_summary||'', v.population_frequency||'', v.pubmed_ids||'',
+            v.updated_at ? v.updated_at.slice(0,10) : '',
             v.validation_count || 0,
             v.last_validator_name || '',
-            v.last_validated_at || '',
+            v.last_validated_at ? v.last_validated_at.slice(0,10) : '',
             v.acmg_overrides ? JSON.stringify(v.acmg_overrides) : '',
             (v.evidence_links||[]).length,
             funcInterps
         ];
     });
     
-    generateCSV(headers, rows, `neumuacFQ-full-report-${getCurrentDate()}.csv`);
-    showNotification('Full export complete', 'success');
+    generateCSV(headers, rows, `NeumuacFQ_completo_${getCurrentDate()}.csv`);
+    showNotification(`✅ Exportación completa: ${rows.length} variantes, ${headers.length} columnas`, 'success');
 }
 
 function generateCSV(headers, rows, filename) {
@@ -37167,7 +37378,15 @@ function generateMDTReport(allele1Name, allele2Name) {
         +   '</span>'
         +   '<button onclick="window.print()" style="padding:6px 14px;background:#2979ff;border:none;border-radius:6px;'
         +     'color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body);">'
-        +     '<i class="fas fa-print" style="margin-right:5px;"></i>Print / Save PDF'
+        +     '<i class="fas fa-print" style="margin-right:5px;"></i>Imprimir / Guardar PDF'
+        +   '</button>'
+        +   '<button onclick="(function(){const el=document.getElementById(\'mdtReportContent\');if(!el)return;'
+        +     'const html=\'<!DOCTYPE html><html><head><meta charset=UTF-8><title>MDT Report</title></head><body style=margin:0;padding:20px;>\'+el.outerHTML+\'</body></html>\';'
+        +     'const b=new Blob([html],{type:\'text/html;charset=utf-8;\'});'
+        +     'const a=document.createElement(\'a\');a.href=URL.createObjectURL(b);'
+        +     'a.download=\'NeumuacFQ_MDT_' + escapeHTML(allele1Name) + '_' + escapeHTML(allele2Name) + '_' + new Date().toISOString().slice(0,10) + '.html\';'
+        +     'a.click();URL.revokeObjectURL(a.href);})()">'
+        +     '<i class="fas fa-download" style="margin-right:5px;"></i>Descargar HTML'
         +   '</button>'
         +   '<button onclick="document.getElementById(\'mdtReportOverlay\').remove()" style="padding:6px 12px;'
         +     'background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:6px;'
@@ -39414,57 +39633,76 @@ async function submitDispute() {
 
 function exportFilteredCohort(format = 'csv') {
     const variants = STATE.view.filteredVariants;
-    if (!variants || variants.length === 0) {
-        showNotification('No variants in current filter — adjust filters first', 'warning');
+    if (!variants || !variants.length) {
+        showNotification('Sin variantes en el filtro actual — ajuste los filtros primero', 'warning');
         return;
     }
 
-    const headers = [
-        'Legacy Name','Protein','cDNA','Determination','CFTR Class','Class Subtype',
-        'ETI Prediction','ETI Evidence Level','Clinical Alert','Validation Count',
-        'Last Validator','Search Hit Count','Evidence Links','Gap Score','Gap Level',
-        'Population Frequency (gnomAD)',
-        'Functional Assays (n)','Functional Assay Types','Functional Interpretations',
-        'ACMG PS3 (damaging)','ACMG BS3 (benign)',
-        'NBS: Espana Nacional','NBS: Galicia SERGAS',
-        'Source','Last Updated'
+    // ── Column definitions — header, data extractor ────────────────
+    const columns = [
+        ['Nombre legacy',           v => v.legacy_name || ''],
+        ['Nombre proteína',         v => v.protein_name || ''],
+        ['Nombre cDNA',             v => v.cdna_name || ''],
+        ['Determinación final',     v => v.final_determination || ''],
+        ['Clase CFTR',              v => v.cftr_class || ''],
+        ['Subtipo clase',           v => v.class_subtype || ''],
+        ['Confianza clasificación', v => v.class_confidence || ''],
+        ['Predicción ETI',          v => v.eti_prediction || ''],
+        ['Evidencia ETI (tier)',     v => v.eti_evidence_tier || ''],
+        ['Evidencia ETI (texto)',    v => v.eti_evidence_level || ''],
+        ['Recomendación ETI',       v => v.eti_recommendation || ''],
+        ['Predicción Alyftrek',     v => v.alyftrek_prediction || ''],
+        ['Evidencia Alyftrek (tier)',v => v.alyftrek_evidence_tier || ''],
+        ['Evidencia Alyftrek (texto)',v => v.alyftrek_evidence_level || ''],
+        ['Alerta clínica',          v => (v.clinical_alert||'').replace(/[\r\n,;"]/g, ' ')],
+        ['Therapy responsive',      v => v.therapy_responsive === true ? 'YES' : v.therapy_responsive === false ? 'NO' : ''],
+        ['Cuenta validaciones',     v => v.validation_count || 0],
+        ['Último validador',        v => v.last_validator_name || ''],
+        ['Frec. búsquedas',         v => v.search_hit_count || 0],
+        ['Frec. población (gnomAD)',v => v.population_frequency || ''],
+        ['Nombres alternativos',    v => v.alt_names || ''],
+        ['Fuente',                  v => v.source_summary || ''],
+        ['Puntuación de brecha',    v => calculateGapScore(v).score || 0],
+        ['NBS: España Nacional',    v => (NBS_PANELS['Espana (Nacional)']||[]).some(n => n.toUpperCase()===(v.legacy_name||'').toUpperCase()) ? 'YES' : ''],
+        ['NBS: Galicia SERGAS',     v => (NBS_PANELS['Galicia (SERGAS)']||[]).some(n => n.toUpperCase()===(v.legacy_name||'').toUpperCase()) ? 'YES' : ''],
+        ['Ensayos funcionales (n)', v => (v.evidence_links||[]).filter(e=>e.func_assay_type||e.func_interpretation).length || ''],
+        ['ACMG PS3 (dañino)',       v => (v.evidence_links||[]).some(e=>e.func_interpretation==='damaging') ? 'YES' : ''],
+        ['ACMG BS3 (benigno)',      v => (v.evidence_links||[]).some(e=>e.func_interpretation==='benign') ? 'YES' : ''],
+        ['Actualizado',             v => v.updated_at ? v.updated_at.slice(0,10) : ''],
     ];
 
-    const rows = variants.map(v => {
-        const gap        = calculateGapScore(v);
-        const funcLinks  = (v.evidence_links||[]).filter(e => e.func_assay_type || e.func_interpretation);
-        const assayTypes = [...new Set(funcLinks.map(e => e.func_assay_type).filter(Boolean))].join('; ');
-        const interps    = [...new Set(funcLinks.map(e => e.func_interpretation).filter(Boolean))].join('; ');
-        const hasPS3     = funcLinks.some(e => e.func_interpretation === 'damaging') ? 'YES' : '';
-        const hasBS3     = funcLinks.some(e => e.func_interpretation === 'benign')   ? 'YES' : '';
-        const vname      = (v.legacy_name||'').toUpperCase();
-        const inES       = (NBS_PANELS['Espana (Nacional)']||[]).some(n => n.toUpperCase() === vname) ? 'YES' : '';
-        const inGA       = (NBS_PANELS['Galicia (SERGAS)']||[]).some(n => n.toUpperCase() === vname) ? 'YES' : '';
-        return [
-            v.legacy_name, v.protein_name||'', v.cdna_name||'',
-            v.final_determination||'', v.cftr_class||'', v.class_subtype||'',
-            v.eti_prediction||'', v.eti_evidence_tier||'', v.eti_evidence_level||'',
-            (v.clinical_alert||'').replace(/[^\x20-\x7E]/g,'').trim(),
-            v.validation_count||0, v.last_validator_name||'',
-            v.search_hit_count||0,
-            (v.evidence_links||[]).length,
-            gap.score, gap.gapLevel,
-            v.population_frequency||'',
-            funcLinks.length, assayTypes, interps,
-            hasPS3, hasBS3,
-            inES, inGA,
-            v.source_summary||'', v.updated_at||''
-        ];
-    });
+    const headers = columns.map(([h]) => h);
+    const rows = variants.map(v => columns.map(([,fn]) => {
+        try { return String(fn(v)).replace(/,/g, ';'); }
+        catch { return ''; }
+    }));
 
-    const dateStr = new Date().toISOString().slice(0,10);
-    const filterNote = STATE.view.activeFilters?.length
-        ? `Filtered: ${STATE.view.activeFilters.join(', ')} — `
-        : 'All variants — ';
-
-    generateCSV(headers, rows, `neumuacFQ-cohort-${dateStr}.csv`);
-    showNotification(`Cohort export: ${variants.length} variants (${filterNote}current filter)`, 'success');
+    if (format === 'csv') {
+        // UTF-8 BOM so Excel opens with correct encoding
+        const bom = '\uFEFF';
+        const csv = bom + [headers, ...rows].map(r => r.map(c =>
+            /[,"\n\r]/.test(String(c)) ? `"${String(c).replace(/"/g,'""')}"` : c
+        ).join(',')).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = `NeumuacFQ_variantes_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click(); URL.revokeObjectURL(a.href);
+        showNotification(`✅ CSV exportado: ${variants.length} variantes, ${columns.length} columnas`, 'success', 3000);
+    } else if (format === 'json') {
+        // Structured JSON export
+        const data = variants.map(v => {
+            const obj = {};
+            columns.forEach(([h, fn]) => { try { obj[h] = fn(v); } catch { obj[h] = ''; } });
+            return obj;
+        });
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = `NeumuacFQ_variantes_${new Date().toISOString().slice(0,10)}.json`;
+        a.click(); URL.revokeObjectURL(a.href);
+        showNotification(`✅ JSON exportado: ${variants.length} variantes`, 'success', 3000);
+    }
 }
+
 
 function exportIRBPackage() {
     const variants = STATE.view.filteredVariants;
@@ -39501,10 +39739,14 @@ function exportIRBPackage() {
                     changed_prev:        v.changed_prev
                 },
                 therapeutic: {
-                    eti_prediction:      v.eti_prediction,
-                    eti_evidence_level:  v.eti_evidence_level,
-                    eti_recommendation:  v.eti_recommendation,
-                    therapy_responsive:  v.therapy_responsive
+                    eti_prediction:          v.eti_prediction,
+                    eti_evidence_tier:       v.eti_evidence_tier,
+                    eti_evidence_level:      v.eti_evidence_level,
+                    eti_recommendation:      v.eti_recommendation,
+                    therapy_responsive:      v.therapy_responsive,
+                    alyftrek_prediction:     v.alyftrek_prediction,
+                    alyftrek_evidence_tier:  v.alyftrek_evidence_tier,
+                    alyftrek_evidence_level: v.alyftrek_evidence_level,
                 },
                 validation: {
                     validation_count:    v.validation_count,
