@@ -194,7 +194,7 @@
          ================================================================ -->
     <style>
         /* ============================================================
-           NeumuacFQ v4 — CFTR PRECISION MEDICINE PLATFORM
+           `NeumuacFQ ${CONFIG.VERSION || 'v4'}` — CFTR PRECISION MEDICINE PLATFORM
            Architecture: Collapsible sidebar + full-width detail
            Features: Full CRUD, Validation, Evidence, Import/Export, Analytics
            ============================================================ */
@@ -2633,8 +2633,8 @@
         .cfsm-stat-num { font-size: 14px; font-weight: 700; display: block; line-height: 1.2; }
 
         /* SVG elements */
-        .cfsm-country { fill: rgba(255,255,255,.025); stroke: rgba(255,255,255,.09); stroke-width: .4; }
-        .cfsm-arc { fill: none; stroke-width: .8; opacity: .22; }
+        .cfsm-country { fill: rgba(30,50,80,.6); stroke: rgba(255,255,255,.15); stroke-width: .5; }
+        .cfsm-arc { fill: none; stroke-width: 1.2; opacity: .35; }
         .cfsm-node { cursor: pointer; }
         .cfsm-node:hover .cfsm-circle { filter: brightness(1.3); }
         .cfsm-ring { fill: none; stroke-width: 1; }
@@ -6407,7 +6407,7 @@
                         <span style="color:#f87171;">Miss</span>
                         <span class="chip-divider"></span><span class="chip-count" id="chipMissQueue" style="color:#f87171;">—</span>
                     </button>
-                    <button class="filter-chip" id="chip-gaps" onclick="showGapQueuePanel()" title="Research gap queue" style="display:none;">
+                    <button class="filter-chip" id="chip-gaps" onclick="showGapQueuePanel()" title="Cola de brechas de investigación" style="display:none;">
                         <i class="fas fa-triangle-exclamation" style="font-size: 10px;color:#fbbf24;"></i>
                         <span style="color:#fbbf24;">Gaps</span>
                         <span class="chip-divider"></span><span class="chip-count" id="chipGaps" style="color:#fbbf24;">—</span>
@@ -7133,15 +7133,15 @@
         <div id="commandPanel" class="dash-tab-panel" style="display:none;">
             <div class="cc-panel">
                 <div class="cc-card">
-                    <div class="cc-card-head"><span class="cc-card-title">High priority variants</span><span style="font-size: 11px;color:var(--text-tertiary);">searched · unvalidated</span></div>
+                    <div class="cc-card-head"><span class="cc-card-title">Variantes alta prioridad</span><span style="font-size: 11px;color:var(--text-tertiary);">buscadas · sin validar</span></div>
                     <div class="cc-card-body" id="ccHighPriority"></div>
                 </div>
                 <div class="cc-card">
-                    <div class="cc-card-head"><span class="cc-card-title">Miss queue — top gaps</span><span style="font-size: 11px;color:var(--text-tertiary);">by unique users</span></div>
+                    <div class="cc-card-head"><span class="cc-card-title">Cola de fallos — brechas top</span><span style="font-size: 11px;color:var(--text-tertiary);">por usuarios únicos</span></div>
                     <div class="cc-card-body" id="ccMissQueue"></div>
                 </div>
                 <div class="cc-card cc-card-full">
-                    <div class="cc-card-head"><span class="cc-card-title">System status</span></div>
+                    <div class="cc-card-head"><span class="cc-card-title">Estado del sistema</span></div>
                     <div class="cc-card-body" id="ccHealthPanel"></div>
                 </div>
             </div>
@@ -7150,14 +7150,14 @@
         <!-- Search Intelligence tab content -->
         <div id="siPanel" class="dash-tab-panel" style="display:none; flex-direction:column;">
             <div class="si-tabs">
-                <button class="si-tab active" id="siTab-overview" onclick="setSITab('overview',this)">Overview</button>
-                <button class="si-tab" id="siTab-misses" onclick="setSITab('misses',this)">Research gaps</button>
-                <button class="si-tab" id="siTab-recent" onclick="setSITab('recent',this)">This session</button>
+                <button class="si-tab active" id="siTab-overview" onclick="setSITab('overview',this)">Visión general</button>
+                <button class="si-tab" id="siTab-misses" onclick="setSITab('misses',this)">Brechas de investigación</button>
+                <button class="si-tab" id="siTab-recent" onclick="setSITab('recent',this)">Esta sesión</button>
                 <button class="si-tab" id="siTab-geo" onclick="setSITab('geo',this)" title="Signal Map — institution network, variant reach and search flows"><i class="fas fa-map-location-dot" style="font-size:11px;margin-right:4px;"></i>Signal Map</button>
-                <button class="si-tab" id="siTab-gaps" onclick="setSITab('gaps',this)"><i class="fas fa-exclamation-triangle" style="font-size: 11px;margin-right:4px;color:#fbbf24;"></i>Curation gaps</button>
-                <button class="si-tab" id="siTab-heatmap" onclick="setSITab('heatmap',this)" title="Search heatmap — activity patterns over time"><i class="fas fa-fire" style="font-size:11px;margin-right:4px;color:#fbbf24;"></i>Search heatmap</button>
-                <button class="si-tab" id="siTab-cosearch" onclick="setSITab('cosearch',this)" title="Related searches — variants frequently searched together"><i class="fas fa-arrows-to-dot" style="font-size:11px;margin-right:4px;"></i>Related searches</button>
-                <button class="si-tab" id="siTab-priority" onclick="setSITab('priority',this)" title="Urgent items — critical variants needing immediate attention" style="border-color:rgba(251,191,36,0.3);color:#fbbf24;"><i class="fas fa-triangle-exclamation" style="font-size:11px;margin-right:4px;color:#fbbf24;"></i>Urgent items</button>
+                <button class="si-tab" id="siTab-gaps" onclick="setSITab('gaps',this)"><i class="fas fa-exclamation-triangle" style="font-size: 11px;margin-right:4px;color:#fbbf24;"></i>Brechas de curación</button>
+                <button class="si-tab" id="siTab-heatmap" onclick="setSITab('heatmap',this)" title="Mapa de calor búsquedas — activity patterns over time"><i class="fas fa-fire" style="font-size:11px;margin-right:4px;color:#fbbf24;"></i>Mapa de calor búsquedas</button>
+                <button class="si-tab" id="siTab-cosearch" onclick="setSITab('cosearch',this)" title="Búsquedas relacionadas — variants frequently searched together"><i class="fas fa-arrows-to-dot" style="font-size:11px;margin-right:4px;"></i>Búsquedas relacionadas</button>
+                <button class="si-tab" id="siTab-priority" onclick="setSITab('priority',this)" title="Urgente — critical variants needing immediate attention" style="border-color:rgba(251,191,36,0.3);color:#fbbf24;"><i class="fas fa-triangle-exclamation" style="font-size:11px;margin-right:4px;color:#fbbf24;"></i>Urgente</button>
             </div>
 
             <div id="siPanelOverview" class="si-panel active">
@@ -7263,7 +7263,7 @@
                             <div class="si-card-body" id="siTopHits"><div style="font-size:11px;color:var(--text-tertiary);padding:8px 0;">No searches yet</div></div>
                         </div>
                         <div class="si-card">
-                            <div class="si-card-head"><div class="si-card-title"><span style="width:6px;height:6px;border-radius:50%;background:#f87171;display:inline-block;"></span>Top misses <span class="si-gap-badge">research gap</span></div><div class="si-card-note">by unique users</div></div>
+                            <div class="si-card-head"><div class="si-card-title"><span style="width:6px;height:6px;border-radius:50%;background:#f87171;display:inline-block;"></span>Top misses <span class="si-gap-badge">research gap</span></div><div class="si-card-note">por usuarios únicos</div></div>
                             <div class="si-card-body" id="siTopMisses"><div style="font-size:11px;color:var(--text-tertiary);padding:8px 0;">No misses yet</div></div>
                         </div>
                     </div>
@@ -7336,7 +7336,7 @@
             <!-- Search filter -->
             <div style="flex:1;display:flex;align-items:center;gap:6px;padding:0 12px;border-left:1px solid rgba(255,255,255,.05);">
                 <i class="fas fa-search" style="font-size:9px;color:rgba(255,255,255,.2);" aria-hidden="true"></i>
-                <input id="cfsmSearch" type="text" placeholder="Filter by institution or variant…"
+                <input id="cfsmSearch" type="text" placeholder="Filtrar por centro o variante…"
                     style="background:none;border:none;outline:none;font-size:10.5px;color:rgba(255,255,255,.5);width:100%;font-family:var(--font-body);"
                     oninput="cfsmFilterInput(this.value)">
             </div>
@@ -7371,25 +7371,31 @@
                 <div id="cfsmLoading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0c1422;">
                     <div style="text-align:center;">
                         <div style="width:32px;height:32px;border:2px solid rgba(41,121,255,.2);border-top-color:#2979ff;border-radius:50%;animation:cfsmSpin 1s linear infinite;margin:0 auto 12px;"></div>
-                        <div style="font-size:10.5px;color:rgba(255,255,255,.3);font-family:var(--font-mono);">Loading CF Signal Map…</div>
+                        <div style="font-size:10.5px;color:rgba(255,255,255,.3);font-family:var(--font-mono);">Cargando Signal Map CF…</div>
                     </div>
                 </div>
                 <!-- Mode label overlay -->
-                <div id="cfsmModeLabel" style="position:absolute;top:10px;left:12px;font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,.2);letter-spacing:.12em;text-transform:uppercase;pointer-events:none;">NETWORK MODE</div>
+                <div id="cfsmModeLabel" style="position:absolute;top:10px;left:12px;font-size:9px;font-family:var(--font-mono);color:rgba(255,255,255,.2);letter-spacing:.12em;text-transform:uppercase;pointer-events:none;">MODO RED</div>
                 <!-- Stat overlay -->
                 <div id="cfsmStatOverlay" style="position:absolute;bottom:44px;left:12px;display:flex;gap:10px;pointer-events:none;"></div>
                 <!-- Legend -->
-                <div style="position:absolute;bottom:10px;left:12px;display:flex;align-items:center;gap:10px;">
-                    <span style="font-size:8px;color:rgba(255,255,255,.2);font-family:var(--font-mono);">Size = volume</span>
+                <div style="position:absolute;bottom:10px;left:12px;background:rgba(12,20,34,.88);
+                     border:1px solid rgba(255,255,255,.09);border-radius:7px;padding:6px 12px;
+                     display:flex;align-items:center;gap:10px;pointer-events:none;">
+                    <span style="font-size:8px;color:rgba(255,255,255,.3);font-family:var(--font-mono);">Tamaño=volumen · Interior=aciertos</span>
                     <span style="display:inline-flex;align-items:center;gap:3px;font-size:8px;color:#34d399;font-family:var(--font-mono);">
-                        <span style="width:7px;height:7px;border-radius:50%;border:1px solid #34d399;display:inline-block;background:rgba(52,211,153,.15);"></span>ETI+
+                        <span style="width:8px;height:8px;border-radius:50%;border:1.5px solid #34d399;display:inline-block;"></span>ETI+
                     </span>
-                    <span style="display:inline-flex;align-items:center;gap:3px;font-size:8px;color:#fbbf24;font-family:var(--font-mono);">
-                        <span style="width:7px;height:7px;border-radius:50%;border:1px solid #fbbf24;display:inline-block;background:rgba(251,191,36,.12);"></span>Mixed
+                    <span style="display:inline-flex;align-items:center;gap:3px;font-size:8px;color:#60a5fa;font-family:var(--font-mono);">
+                        <span style="width:8px;height:8px;border-radius:50%;border:1.5px solid #60a5fa;display:inline-block;"></span>Mixto
                     </span>
                     <span style="display:inline-flex;align-items:center;gap:3px;font-size:8px;color:#f87171;font-family:var(--font-mono);">
-                        <span style="width:7px;height:7px;border-radius:50%;border:1px solid #f87171;display:inline-block;background:rgba(248,113,113,.12);"></span>Unresponsive
+                        <span style="width:8px;height:8px;border-radius:50%;border:1.5px solid #f87171;display:inline-block;"></span>No-resp.
                     </span>
+                    <span style="display:inline-flex;align-items:center;gap:3px;font-size:8px;color:rgba(255,255,255,.4);font-family:var(--font-mono);">
+                        <span style="width:5px;height:5px;background:#fff;display:inline-block;transform:rotate(45deg);opacity:.8;"></span>Verificado
+                    </span>
+                    <span style="font-size:8px;color:rgba(255,255,255,.2);font-family:var(--font-mono);">· arcos=variantes compartidas</span>
                 </div>
             </div>
 
@@ -7397,16 +7403,16 @@
             <div id="cfsmPanel" style="width:260px;flex-shrink:0;border-left:1px solid rgba(255,255,255,.06);background:#0c1422;display:flex;flex-direction:column;overflow:hidden;">
                 <!-- Panel header -->
                 <div id="cfsmPanelHead" style="padding:12px 14px 10px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;">
-                    <div style="font-size:8.5px;color:rgba(255,255,255,.25);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px;" id="cfsmPanelSub">Network overview</div>
+                    <div style="font-size:8.5px;color:rgba(255,255,255,.25);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px;" id="cfsmPanelSub">Visión general de la red</div>
                     <div style="font-size:14px;font-weight:700;color:rgba(255,255,255,.85);line-height:1.2;" id="cfsmPanelTitle">CF Signal Map</div>
-                    <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;" id="cfsmPanelMeta">Select an institution to explore</div>
+                    <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:3px;" id="cfsmPanelMeta">Seleccione un centro para explorar</div>
                 </div>
                 <!-- Panel body — scrollable -->
                 <div id="cfsmPanelBody" style="flex:1;overflow-y:auto;overflow-x:hidden;"></div>
                 <!-- Panel action -->
                 <div id="cfsmPanelAction" style="padding:10px 14px;border-top:1px solid rgba(255,255,255,.06);flex-shrink:0;display:none;">
                     <button id="cfsmFilterBtn" onclick="cfsmFilterToInstitution()" style="width:100%;font-size:10.5px;padding:7px 12px;border-radius:7px;background:rgba(41,121,255,.1);border:1px solid rgba(41,121,255,.25);color:#60a5fa;cursor:pointer;font-family:var(--font-body);transition:all .15s;">
-                        <i class="fas fa-filter" style="font-size:9px;margin-right:5px;" aria-hidden="true"></i>Filter variants to this centre
+                        <i class="fas fa-filter" style="font-size:9px;margin-right:5px;" aria-hidden="true"></i>Filtrar variantes de este centro
                     </button>
                 </div>
             </div>
@@ -7431,10 +7437,10 @@
                         <div class="si-card-head">
                             <div class="si-card-title">
                                 <span style="width:6px;height:6px;border-radius:50%;background:#fbbf24;display:inline-block;"></span>
-                                Research gap queue
-                                <span style="font-size: 11px;color:#fbbf24;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:4px;padding:1px 6px;font-weight:600;">scored client-side</span>
+                                Cola de brechas de investigación
+                                <span style="font-size: 11px;color:#fbbf24;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:4px;padding:1px 6px;font-weight:600;">prioridad por demanda clínica</span>
                             </div>
-                            <div class="si-card-note" id="siGapQueueNote">Variants are scored when selected</div>
+                            <div class="si-card-note" id="siGapQueueNote">Las variantes se puntúan al seleccionarlas</div>
                         </div>
                         <div class="si-card-body">
                             <div style="display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;padding-bottom:8px;border-bottom:1px solid var(--border);font-size: 11px;font-weight:600;letter-spacing:.08em;color:var(--text-tertiary);text-transform:uppercase;">
@@ -7701,7 +7707,7 @@
      ================================================================ -->
 <script>
 /* ================================================================
-   NeumuacFQ v4 — CFTR PRECISION MEDICINE PLATFORM
+   `NeumuacFQ ${CONFIG.VERSION || 'v4'}` — CFTR PRECISION MEDICINE PLATFORM
    Features: Full CRUD, Validation, Evidence, Import/Export, Analytics
    Architecture: Collapsible sidebar + full-width detail
    Design: Clean & Clinical (IBM Plex)
@@ -7720,6 +7726,44 @@ window.NeumuacFQ = window.NeumuacFQ || {
     /** Public function registry — populated at DOMContentLoaded */
     fn: {}
 };
+
+
+// ═══════════════════════════════════════════════════════════════════════
+// GLOBAL ERROR BOUNDARY
+// Catches uncaught errors and shows a recovery UI instead of blank panel
+// ═══════════════════════════════════════════════════════════════════════
+window.addEventListener('error', function(event) {
+    console.error('[NeumuacFQ] Uncaught error:', event.error || event.message);
+    // Only show recovery UI for panel rendering errors
+    const rightPanel = document.getElementById('variantDetail') || document.getElementById('rightPanel');
+    if (rightPanel && rightPanel.innerHTML.trim() === '') {
+        rightPanel.innerHTML = `
+            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
+                 height:100%;padding:40px;text-align:center;">
+                <div style="font-size:24px;margin-bottom:12px;">⚠️</div>
+                <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:6px;">
+                    Error al cargar la variante
+                </div>
+                <div style="font-size:12px;color:var(--text-tertiary);margin-bottom:16px;max-width:280px;line-height:1.5;">
+                    ${event.message || 'Error inesperado'}. Seleccione otra variante o recargue la página.
+                </div>
+                <button onclick="location.reload()" style="padding:8px 18px;background:rgba(41,121,255,.1);
+                    border:1px solid rgba(41,121,255,.25);border-radius:7px;color:#60a5fa;
+                    cursor:pointer;font-size:12px;font-family:var(--font-body);">
+                    Recargar
+                </button>
+            </div>`;
+    }
+});
+
+window.addEventListener('unhandledrejection', function(event) {
+    console.warn('[NeumuacFQ] Unhandled promise rejection:', event.reason);
+    // Suppress noisy network errors in console for expected failures
+    if (event.reason?.message?.includes('Failed to fetch') ||
+        event.reason?.message?.includes('AbortError')) {
+        event.preventDefault();
+    }
+});
 
 const CONFIG = {
     SUPABASE: {
@@ -7949,6 +7993,177 @@ const AUTH = {
 };
 
 // Initialise auth on DOM ready — before the cover page fires
+
+// ═══════════════════════════════════════════════════════════════════════
+// KEYBOARD SHORTCUT HELP OVERLAY
+// ═══════════════════════════════════════════════════════════════════════
+function showShortcutHelp() {
+    if (document.getElementById('shortcutHelpOverlay')) return;
+    const overlay = document.createElement('div');
+    overlay.id = 'shortcutHelpOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
+    overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+    const shortcuts = [
+        ['Búsqueda', [
+            ['/', 'Enfocar búsqueda'],
+            ['Esc', 'Limpiar búsqueda / cerrar'],
+            ['↑ / ↓', 'Navegar resultados'],
+            ['Enter', 'Seleccionar variante'],
+        ]],
+        ['Navegación', [
+            ['⌘G / Ctrl+G', 'Panel Genotype (CGC)'],
+            ['⌘K / Ctrl+K', 'Búsqueda rápida'],
+            ['⌘Z / Ctrl+Z', 'Deshacer última edición'],
+        ]],
+        ['Variante seleccionada', [
+            ['E', 'Exportar PDF élite'],
+            ['M', 'Generar informe MDT'],
+            ['←  →', 'Variante anterior / siguiente'],
+        ]],
+        ['Sistema', [
+            ['?', 'Mostrar esta ayuda'],
+            ['Esc', 'Cerrar modales'],
+        ]],
+    ];
+
+    overlay.innerHTML = `
+        <div style="background:#0d1b2e;border:1px solid rgba(41,121,255,.25);border-radius:14px;
+             padding:28px 32px;max-width:520px;width:90%;box-shadow:0 32px 80px rgba(0,0,0,.8);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+                <div style="font-family:var(--font-syne);font-size:16px;font-weight:800;color:#fff;">
+                    Atajos de teclado
+                </div>
+                <button onclick="document.getElementById('shortcutHelpOverlay').remove()"
+                    style="background:none;border:1px solid rgba(255,255,255,.15);border-radius:6px;
+                    color:rgba(255,255,255,.4);padding:3px 10px;cursor:pointer;font-size:12px;">✕</button>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                ${shortcuts.map(([section, keys]) => `
+                    <div>
+                        <div style="font-size:9px;font-weight:700;letter-spacing:.12em;
+                             text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:8px;">
+                            ${section}
+                        </div>
+                        ${keys.map(([key, desc]) => `
+                            <div style="display:flex;align-items:center;justify-content:space-between;
+                                 padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+                                <span style="font-size:11px;color:rgba(255,255,255,.5);">${desc}</span>
+                                <kbd style="font-family:var(--font-mono);font-size:10px;padding:2px 7px;
+                                     background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+                                     border-radius:4px;color:rgba(255,255,255,.75);">${key}</kbd>
+                            </div>`).join('')}
+                    </div>`).join('')}
+            </div>
+            <div style="margin-top:16px;text-align:center;font-size:9px;color:rgba(255,255,255,.2);">
+                Pulse <kbd style="font-size:9px;padding:1px 5px;background:rgba(255,255,255,.08);
+                border:1px solid rgba(255,255,255,.15);border-radius:3px;">?</kbd> en cualquier momento para mostrar esta ayuda
+            </div>
+        </div>`;
+    document.body.appendChild(overlay);
+}
+Object.assign(window, { showShortcutHelp });
+
+// Wire '?' key to show help
+document.addEventListener('keydown', e => {
+    const tag = document.activeElement?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    if (e.key === '?' || (e.key === '/' && !e.shiftKey)) {
+        e.preventDefault();
+        if (e.key === '?') showShortcutHelp();
+        else {
+            const si = document.getElementById('searchInput');
+            if (si) { si.focus(); si.select(); }
+        }
+    }
+    // E = Elite PDF for selected variant
+    if (e.key === 'e' || e.key === 'E') {
+        const v = STATE.view?.selectedVariant;
+        if (v && !document.querySelector('.overlay, .modal, [id$="Overlay"]')) {
+            if (typeof generateElitePDF === 'function') generateElitePDF([v], AUTH?.displayName?.() || 'Clinician');
+        }
+    }
+});
+
+
+// ═══════════════════════════════════════════════════════════════════════
+// ONBOARDING / QUICK START MODAL
+// Shown on first visit or when user clicks help
+// ═══════════════════════════════════════════════════════════════════════
+function showOnboardingModal() {
+    if (document.getElementById('onboardingModal')) return;
+    const modal = document.createElement('div');
+    modal.id = 'onboardingModal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:99998;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);';
+    modal.innerHTML = `
+        <div style="background:linear-gradient(135deg,#0f1e38,#1a2d4a);border:1px solid rgba(41,121,255,.25);
+             border-radius:16px;padding:32px 36px;max-width:560px;width:92%;box-shadow:0 40px 100px rgba(0,0,0,.9);
+             max-height:85vh;overflow-y:auto;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+                <div style="background:#fff;border-radius:8px;padding:5px 8px;box-shadow:0 2px 8px rgba(0,0,0,.3);">
+                    <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
+                        <rect width="40" height="40" rx="8" fill="#0f1e38"/>
+                        <path d="M8 20C8 13.373 13.373 8 20 8C26.627 8 32 13.373 32 20C32 26.627 26.627 32 20 32" stroke="#2979ff" stroke-width="2.5" stroke-linecap="round"/>
+                        <circle cx="20" cy="20" r="3" fill="#2cc6f2"/>
+                        <path d="M14 20C14 16.686 16.686 14 20 14C23.314 14 26 16.686 26 20" stroke="#60a5fa" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div>
+                    <div style="font-family:var(--font-syne);font-size:20px;font-weight:800;color:#fff;">Bienvenido a NeumuacFQ</div>
+                    <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:1px;">Plataforma de Medicina de Precisión CFTR · CHUAC / Big-B-LAB</div>
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+                ${[
+                    ['🔍','Búsqueda de variantes','Escriba el nombre de la variante (legacy, proteína o cDNA). Ej: F508del, G551D, c.1521_1523del'],
+                    ['🧬','Genotipo compuesto (CGC)','Pulse ⌘G para abrir el Calculador de Genotipo Compuesto — introduzca dos alelos para evaluar elegibilidad a moduladores'],
+                    ['📋','Informe MDT','Tras calcular el genotipo, genere un informe MDT completo listo para imprimir o descargar como PDF'],
+                    ['📊','Analytics & Signal Map','Panel de analítica clínica y mapa geográfico de búsquedas institucionales — acceda desde el icono de gráfica'],
+                    ['🔬','Helios — Curación de datos','Sistema de curation asistido: revise y apruebe sugerencias automáticas de clasificación variante'],
+                    ['❓','Ayuda','Pulse <kbd style="padding:1px 5px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:3px;font-size:10px;">?</kbd> para ver todos los atajos de teclado'],
+                ].map(([icon, title, desc]) => `
+                    <div style="padding:12px 14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:9px;">
+                        <div style="font-size:18px;margin-bottom:6px;">${icon}</div>
+                        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.85);margin-bottom:4px;">${title}</div>
+                        <div style="font-size:10px;color:rgba(255,255,255,.4);line-height:1.5;">${desc}</div>
+                    </div>`).join('')}
+            </div>
+
+            <div style="padding:10px 14px;border-radius:8px;background:rgba(251,191,36,.06);
+                 border:1px solid rgba(251,191,36,.2);margin-bottom:16px;font-size:10px;color:#92701a;line-height:1.5;">
+                ⚠ Fase 1 — Uso exclusivo para discusión clínica. No introducir datos identificativos de pacientes (NHC).
+                Las clasificaciones deben verificarse antes de tomar decisiones clínicas.
+            </div>
+
+            <div style="display:flex;gap:10px;">
+                <button onclick="document.getElementById('onboardingModal').remove();localStorage.setItem('nfq_onboarded','1');"
+                    style="flex:1;padding:10px;background:rgba(41,121,255,.15);border:1px solid rgba(41,121,255,.3);
+                    border-radius:8px;color:#60a5fa;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-body);">
+                    Comenzar →
+                </button>
+                <button onclick="document.getElementById('onboardingModal').remove();localStorage.setItem('nfq_onboarded','1');showShortcutHelp();"
+                    style="padding:10px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
+                    border-radius:8px;color:rgba(255,255,255,.5);font-size:11px;cursor:pointer;font-family:var(--font-body);">
+                    Ver atajos
+                </button>
+            </div>
+        </div>`;
+    document.body.appendChild(modal);
+}
+
+// Show onboarding on first visit
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        if (!localStorage.getItem('nfq_onboarded') && document.getElementById('coverPage')?.style.display !== 'none') {
+            // Show after cover page is dismissed
+            const _origEnter = window.handleEnterClick;
+            window._showOnboardAfterEnter = true;
+        }
+    }, 500);
+});
+Object.assign(window, { showOnboardingModal });
+
 document.addEventListener('DOMContentLoaded', () => AUTH.init());
 Object.assign(window, { AUTH });
 
@@ -8992,6 +9207,8 @@ async function triggerRoboticSearchOnMiss(query, missId) {
                 showNotification(`Helios: evidence found for "${query}" — added to review queue`, 'info', 4000);
             }
             ROBOTIC_SCAN_QUEUE.delete(query);
+            // Also attempt auto-annotation from CFTR2/ClinVar
+            attemptAutoAnnotation(query, missId).catch(() => {});
             return;
         }
     } catch(e) {
@@ -10133,7 +10350,14 @@ async function replayFailedSaveQueue() {
     }
 }
 
-async function dbWrite(url, options, { retries = 3, label = 'Save', silent = false } = {}) {
+async function dbWrite(url, options, { retries = 3, label = 'Save', silent = false, bypassWriteCheck = false } = {}) {
+    // All DB writes (except analytics events) require write mode
+    const isAnalytics = url.startsWith('search_logs') || url.startsWith('search_miss_queue') || url.startsWith('genotype_assessments');
+    if (!bypassWriteCheck && !isAnalytics && !isWriteMode()) {
+        console.warn('[NeumuacFQ] dbWrite blocked — write mode not active:', url);
+        if (!silent) showNotification('Se requiere PIN de escritura para modificar datos', 'warning', 3000);
+        return { ok: false, status: 403 };
+    }
     let lastErr = null;
     for (let attempt = 1; attempt <= retries; attempt++) {
         try {
@@ -10218,8 +10442,9 @@ async function writeAuditLog(entry) {
     // Our app uses richer action names internally. Map them here so DB writes
     // never fail a constraint violation — extra detail goes in the `note` field.
     const ACTION_MAP = {
-        'updated':        'note_added',   // field edit → note_added
-        'deleted':        'rejected',     // deletion = rejection of the record
+        'updated':        'note_added',   // field edit — stored as note with field name
+        'field_edit':     'note_added',   // explicit field edit
+        'deleted':        'note_added',   // deletion — logged as note (not rejection)
         'undo':           'note_added',   // undo of a field edit
         'import_add':     'bot_created',  // new variant from import = bot_created
         'import_update':  'note_added',   // update from import
@@ -10908,18 +11133,22 @@ STATE.variants.forEach(v => {
         applyFilterChain();
 
         // Load cross-session search history from Supabase — non-blocking
-        setTimeout(async () => {
-    try {
-        await loadCrossSessionHistory();
-        // After DB history loads, re-render the home dashboard's recent section
-        if (typeof renderHomeDashboard === 'function') {
-            const recEl = document.getElementById('recentSearches');
-            if (recEl && STATE.searchHistory && STATE.searchHistory.length > 0) {
-                renderHomeDashboard(); // re-render with fresh history
-            }
+        // Load cross-session history — retry until institution is resolved
+(function waitForInstitution(attempts) {
+    setTimeout(async () => {
+        const hasInst = STATE.searchIntelligence?.hospitalObj?.id;
+        if (!hasInst && attempts < 8) {
+            return waitForInstitution(attempts + 1); // retry every 2s, up to 8 times
         }
-    } catch(e) {}
-}, 2000);
+        try {
+            await loadCrossSessionHistory();
+            if (typeof renderHomeDashboard === 'function') {
+                const recEl = document.getElementById('recentSearches');
+                if (recEl && STATE.searchHistory?.length > 0) renderHomeDashboard();
+            }
+        } catch(e) {}
+    }, 2000);
+})(0);
 
         // Load drug safety alerts + jurisdiction rules — non-blocking, used by CGC + single-variant detail
         setTimeout(() => loadDrugReferenceData().catch(() => {}), 1500);
@@ -11070,9 +11299,18 @@ function buildSearchIndex() {
     }
 
     STATE.variants.forEach(v => {
-        addKey(v.legacy_name,  v.id);
-        addKey(v.protein_name, v.id);
-        addKey(v.cdna_name,    v.id);
+        addKey(v.legacy_name,       v.id);
+        addKey(v.protein_name,      v.id);
+        addKey(v.cdna_name,         v.id);
+        // Rich DB fields — allow searching by alert status, confidence, recommendation
+        addKey(v.class_confidence,  v.id);  // 'NEEDS_REVIEW', 'confirmed', 'high'
+        addKey(v.final_determination, v.id); // 'CF-causing', 'Non CF-causing'
+        // clinical_alert text is too long to index in full — index key status words
+        if (v.clinical_alert) {
+            ['NEEDS_REVIEW','auto-annotated','UNKNOWN','EXCEPTIONAL','TRUE Class'].forEach(token => {
+                if (v.clinical_alert.includes(token)) addKey(token.toLowerCase().replace(/\s+/g,'_'), v.id);
+            });
+        }
         // alt_names: space/comma/semicolon separated
         if (v.alt_names) {
             v.alt_names.split(/[\s,;]+/).forEach(n => addKey(n, v.id));
@@ -12549,11 +12787,18 @@ async function fetchLocationOnce() {
                     timeout: 6000, maximumAge: 3600000, enableHighAccuracy: false
                 });
             });
-            // Reverse-geocode the coordinates to get city/country via ipapi
-            // (we already have the accurate coordinates — ipapi just adds human labels)
+            // Reverse-geocode the coordinates to get city/country
+            // ipapi.co: 1,000 req/day free — use sparingly, fallback to ip-api.com
             const { latitude, longitude } = pos.coords;
             let city = null, country = null, region = null;
-            try {
+            // Check cache first — avoid repeated API calls for same session
+            const _geoKey = `${latitude.toFixed(2)},${longitude.toFixed(2)}`;
+            const _geoCache = sessionStorage.getItem('nfq_geo_' + _geoKey);
+            if (_geoCache) {
+                try { ({ city, country, region } = JSON.parse(_geoCache)); } catch {}
+            }
+            if (!city) try {
+                // Primary: ipapi.co (more accurate, GDPR-friendly)
                 const geoRes = await fetch(
                     `https://ipapi.co/${latitude},${longitude}/json/`,
                     { signal: AbortSignal.timeout(4000) }
@@ -13072,7 +13317,9 @@ function computeReclassScores() {
 
         // Factor 1: Time since last validation (max 25 pts)
         // Use the most recent validation_created_at or last_updated_at
-        const lastActivity = v.last_validation_at || v.updated_at || v.created_at;
+        // DB has no last_validation_at — use last curator action or search pressure
+        const lastActivity = v.updated_at || v.created_at;  // updated_at reflects last field edit
+        const hasEverBeenValidated = (v.validation_count || 0) > 0;
         if (lastActivity) {
             const ageDays = (Date.now() - new Date(lastActivity).getTime()) / 86400000;
             if (ageDays > 730) { score += 25; triggers.push('no activity >2 years'); }
@@ -13351,6 +13598,13 @@ async function fetchClinVarData(variant) {
         const name = encodeURIComponent(variant.legacy_name || variant.protein_name || '');
         if (!name) return null;
         // Search for the variant in ClinVar
+        // Rate limit: NCBI eutils = 3 req/sec without API key
+        // Track last call time globally to avoid 429 errors
+        const _ncbiNow = Date.now();
+        const _ncbiWait = (window._lastNcbiCall || 0) + 400 - _ncbiNow;
+        if (_ncbiWait > 0) await new Promise(r => setTimeout(r, _ncbiWait));
+        window._lastNcbiCall = Date.now();
+
         const searchRes = await fetch(
             `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=clinvar&term=${name}+AND+CFTR[gene]&retmode=json&retmax=3`,
             { signal: AbortSignal.timeout(6000) }
@@ -14436,7 +14690,7 @@ function getSearchTimeline() {
     });
     const labels = data.map((_,i) => {
         const t = new Date(min + i*size);
-        return t.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
+        return t.toLocaleTimeString('es-ES', {hour:'2-digit',minute:'2-digit'});
     });
     return {
         labels,
@@ -15299,6 +15553,19 @@ function cfsmBuild() {
     st._svg = svg;
     st._g = g;
 
+    // ── Stat overlay: show summary of visible data ──────────────
+    const overlay = document.getElementById('cfsmStatOverlay');
+    if (overlay) {
+        const total = st.points.reduce((s, p) => s + p.hits + p.misses, 0);
+        const centres = st.points.length;
+        const arcs = document.querySelectorAll('.cfsm-arc').length;
+        overlay.innerHTML = [
+            `<span style="font-size:9px;color:rgba(255,255,255,.3);font-family:var(--font-mono);">${centres} centros</span>`,
+            `<span style="font-size:9px;color:rgba(255,255,255,.25);font-family:var(--font-mono);">${total.toLocaleString()} búsquedas</span>`,
+            arcs > 0 ? `<span style="font-size:9px;color:rgba(41,121,255,.5);font-family:var(--font-mono);">${arcs} conexiones</span>` : '',
+        ].filter(Boolean).join('');
+    }
+
     // ── Zoom controls ──
     cfsmAddZoomControls(svg, zoom, W, H);
 
@@ -15338,7 +15605,7 @@ function cfsmBuild() {
 
     // Mode label
     const modeLabel = document.getElementById('cfsmModeLabel');
-    if (modeLabel) modeLabel.textContent = { network:'NETWORK MODE', variant:'VARIANT FOCUS', miss:'MISS MAP' }[st.mode] || 'NETWORK MODE';
+    if (modeLabel) modeLabel.textContent = { network:'MODO RED', variant:'FOCO VARIANTE', miss:'MAPA DE FALLOS' }[st.mode] || 'MODO RED';
 
     cfsmUpdateTimeLabels();
     cfsmAutoSelectHome();
@@ -15372,41 +15639,68 @@ function cfsmHighlightVariant(variantName) {
     const st = window._cfsm;
     if (!st?._g || !variantName) return;
 
-    st._g.selectAll('.cfsm-node').each(function(d) {
+    const normName = variantName.toLowerCase().trim();
+    let topPt = null, topCount = 0;
+
+    st._g.selectAll('.cfsm-node').each(function() {
         const g = d3.select(this);
         const key = g.attr('data-key');
         const pt = st.points.find(p => p.key === key);
         if (!pt) return;
 
-        const count = pt.queries?.[variantName] || 0;
-        const maxQ = Math.max(...st.points.map(p => p.queries?.[variantName] || 0)) || 1;
+        // Match by query string or resolved legacy name
+        const count = Object.entries(pt.queries || {}).reduce((sum, [q, c]) => {
+            if (q.toLowerCase() === normName) return sum + c;
+            const resolved = STATE.variantsByLegacyName?.get(q)?.legacy_name?.toLowerCase();
+            return resolved === normName ? sum + c : sum;
+        }, 0);
+        const maxQ = Math.max(...st.points.map(p => {
+            return Object.entries(p.queries || {}).reduce((s, [q, c]) => {
+                return (q.toLowerCase() === normName) ? s + c : s;
+            }, 0);
+        }), 1);
         const pct = count / maxQ;
 
-        g.select('.cfsm-circle')
-            .transition().duration(400)
-            .attr('fill-opacity', count > 0 ? 0.08 + pct * 0.3 : 0.04)
-            .attr('stroke-opacity', count > 0 ? 0.4 + pct * 0.6 : 0.15)
-            .attr('r', count > 0 ? null : null);  // keep radius, just dim
+        // Dim non-matching, highlight matching
+        g.transition().duration(300)
+            .style('opacity', count > 0 ? 0.95 : 0.12);
 
-        // Show count label on matching nodes
+        // Show count badge on matching nodes
         g.select('.cfsm-var-count').remove();
         if (count > 0) {
             g.append('text')
                 .attr('class', 'cfsm-var-count')
-                .attr('dy', -8)
+                .attr('dy', -10)
                 .attr('text-anchor', 'middle')
-                .attr('font-size', '8')
+                .attr('font-size', '9')
                 .attr('font-family', 'var(--font-mono)')
                 .attr('fill', '#60a5fa')
-                .attr('fill-opacity', 0.9)
                 .attr('pointer-events', 'none')
                 .text(count + '×');
+            if (count > topCount) { topCount = count; topPt = pt; }
         }
     });
 
+    // Select top institution and update panel
+    if (topPt) {
+        cfsmSelectPoint(topPt);
+    } else {
+        // No institution has searched this variant
+        const titleEl = document.getElementById('cfsmPanelTitle');
+        const metaEl  = document.getElementById('cfsmPanelMeta');
+        const bodyEl  = document.getElementById('cfsmPanelBody');
+        if (titleEl) titleEl.textContent = variantName;
+        if (metaEl)  metaEl.textContent  = '0 centros han buscado esta variante';
+        if (bodyEl)  bodyEl.innerHTML = `
+            <div style="padding:20px 14px;font-size:11px;color:rgba(255,255,255,.3);line-height:1.6;text-align:center;">
+                Ningún centro ha buscado <strong style="color:rgba(255,255,255,.5);">${escapeHTML(variantName)}</strong>.<br>
+                <span style="font-size:9px;margin-top:4px;display:block;">Amplíe el período o verifique la ortografía.</span>
+            </div>`;
+    }
+
     // Update mode label
     const modeLabel = document.getElementById('cfsmModeLabel');
-    if (modeLabel) modeLabel.textContent = `VARIANT: ${variantName}`;
+    if (modeLabel) modeLabel.textContent = `VARIANTE: ${variantName}`;
 }
 
 // Reset variant highlighting
@@ -15418,7 +15712,7 @@ function cfsmClearVariantHighlight() {
         .attr('fill-opacity', 0.1)
         .attr('stroke-opacity', null);
     const modeLabel = document.getElementById('cfsmModeLabel');
-    if (modeLabel) modeLabel.textContent = 'NETWORK MODE';
+    if (modeLabel) modeLabel.textContent = 'MODO RED';
 }
 
 
@@ -15460,7 +15754,7 @@ function cfsmDrawArcs(g, st) {
             if (count < 2) return; // needs multiple searches to be meaningful
             const v = STATE.variantsByLegacyName?.get(q);
             // Only rare variants (not ΔF508 which connects everyone)
-            if (!v || v.search_hit_count > 100) return;
+            if (!v || v.search_hit_count > 20) return; // draw arcs for moderately rare variants
             if (!variantInsts.has(q)) variantInsts.set(q, new Set());
             variantInsts.get(q).add(pt.key);
         });
@@ -15498,7 +15792,7 @@ function cfsmDrawArcs(g, st) {
         const opacity = Math.min(0.45, 0.12 + count * 0.08);
         const strokeW = Math.min(2, 0.6 + count * 0.2);
 
-        arcG.append('path')
+        const arcPath = arcG.append('path')
             .attr('d', `M${pA[0]},${pA[1]} Q${mx},${my} ${pB[0]},${pB[1]}`)
             .attr('class', 'cfsm-arc')
             .attr('stroke', '#2979ff')
@@ -15511,35 +15805,36 @@ function cfsmDrawArcs(g, st) {
 function cfsmDrawNodes(g, st, W, H) {
     const maxVol = d3.max(st.points, p => p.hits + p.misses) || 1;
 
-    // ── Proper sqrt scale with sane range ──
-    // CHUAC at 847 gets ~16px, a centre at 10 gets ~4px, no node eclipses the map
-    const rScale = d3.scaleSqrt().domain([0, maxVol]).range([3.5, 16]);
+    // Sqrt scale — small centres still visible, dominant centre doesn't overwhelm
+    const rScale = d3.scaleSqrt().domain([0, maxVol]).range([4, 18]);
 
     const now = Date.now();
     const nodeG = g.append('g').attr('class', 'cfsm-nodes');
+    const filterText = (st.filter || '').toLowerCase();
 
-    // Filter by search text
-    const filterText = st.filter || '';
+    // Helper: hexagon path centred at 0,0
+    function hexPath(r) {
+        const pts = d3.range(6).map(i => {
+            const a = Math.PI / 180 * (60 * i - 30);
+            return [r * Math.cos(a), r * Math.sin(a)];
+        });
+        return 'M' + pts.map(p => p.join(',')).join('L') + 'Z';
+    }
 
     st.points.forEach(pt => {
-        // Apply ETI filter
+        // Apply filters
         if (st.etiOnly) {
-            const etTotal = pt.etiCounts.responsive + pt.etiCounts.non_responsive + pt.etiCounts.unknown || 1;
-            if (pt.etiCounts.responsive / etTotal < 0.3) return;
+            const etT = pt.etiCounts.responsive + pt.etiCounts.non_responsive + pt.etiCounts.unknown || 1;
+            if (pt.etiCounts.responsive / etT < 0.3) return;
         }
-
-        // Apply Alyftrek filter — show only centres searching Alyftrek-eligible variants
         if (st.alyftrekOnly) {
-            const alyCount = (pt.queries
-                ? Object.keys(pt.queries).filter(q => {
-                    const v = STATE.variantsByLegacyName?.get(q) || STATE.variants?.find(x => x.legacy_name?.toLowerCase() === q.toLowerCase());
-                    return v?.alyftrek_prediction === 'responsive';
-                }).length
-                : 0);
-            if (alyCount === 0) return;
+            const hasAly = Object.keys(pt.queries || {}).some(q => {
+                const v = STATE.variantsByLegacyName?.get(q) || STATE.variants?.find(x => x.legacy_name?.toLowerCase() === q.toLowerCase());
+                return v?.alyftrek_prediction === 'responsive';
+            });
+            if (!hasAly) return;
         }
 
-        // Apply text filter — dim non-matching instead of hiding
         const matchesFilter = !filterText || pt.name.toLowerCase().includes(filterText)
             || Object.keys(pt.queries).some(q => q.toLowerCase().includes(filterText));
 
@@ -15549,109 +15844,106 @@ function cfsmDrawNodes(g, st, W, H) {
 
         const vol = pt.hits + pt.misses;
         const r = rScale(vol);
+        const etT = pt.etiCounts.responsive + pt.etiCounts.non_responsive + pt.etiCounts.unknown || 1;
+        const etiPct = pt.etiCounts.responsive / etT;
+        const nonPct = pt.etiCounts.non_responsive / etT;
 
-        // ETI colour
-        const etTotal = pt.etiCounts.responsive + pt.etiCounts.non_responsive + pt.etiCounts.unknown || 1;
-        const etiPct  = pt.etiCounts.responsive / etTotal;
-        const nonPct  = pt.etiCounts.non_responsive / etTotal;
-        const color = etiPct > 0.5 ? '#34d399' : nonPct > 0.3 ? '#f87171' : '#fbbf24';
-
-        const daysAgo   = pt.lastSeen > 0 ? (now - pt.lastSeen) / 86400000 : 999;
-        const isRecent  = daysAgo < 3;
+        // Colour: green dominant ETI+, red dominant non-resp, amber mixed/unknown
+        const nodeColor = etiPct > 0.5 ? '#34d399' : nonPct > 0.3 ? '#f87171' : '#60a5fa';
+        const hitRate = vol > 0 ? Math.round(pt.hits / vol * 100) : 0;
+        const daysAgo = pt.lastSeen > 0 ? (now - pt.lastSeen) / 86400000 : 999;
+        const isRecent = daysAgo < 7;
         const isSelected = st.selectedKey === pt.key;
-        const baseOpacity = matchesFilter ? (daysAgo < 14 ? 0.92 : 0.5) : 0.18;
+        const opacity = matchesFilter ? (daysAgo < 30 ? 0.95 : 0.55) : 0.15;
 
         const ng = nodeG.append('g')
             .attr('class', 'cfsm-node')
             .attr('transform', `translate(${x},${y})`)
             .attr('data-key', pt.key)
             .style('cursor', 'pointer')
+            .style('opacity', opacity)
             .on('click', function(event) {
                 event.stopPropagation();
                 cfsmSelectPoint(pt);
-                // Zoom to clicked institution on double-click
                 if (event.detail === 2 && st._svg && st._zoom) {
-                    const transform = d3.zoomIdentity
-                        .translate(W / 2, H / 2)
-                        .scale(6)
-                        .translate(-x, -y);
-                    st._svg.transition().duration(600).call(st._zoom.transform, transform);
+                    const transform = d3.zoomIdentity.translate(W/2, H/2).scale(5).translate(-x, -y);
+                    st._svg.transition().duration(500).call(st._zoom.transform, transform);
                 }
             })
-            .on('mouseenter', function(event) {
-                d3.select(this).select('.cfsm-circle').attr('r', r * 1.25);
-                cfsmShowTooltip(pt, x, y, W, H);
-            })
-            .on('mouseleave', function() {
-                d3.select(this).select('.cfsm-circle').attr('r', isSelected ? r * 1.15 : r);
-                cfsmHideTooltip();
-            });
+            .on('mouseenter', () => cfsmShowTooltip(pt, x, y, W, H))
+            .on('mouseleave', cfsmHideTooltip);
 
-        // Pulse ring — sized relative to the node, not absolute
+        // ── Glow ring for recent activity ──────────────────────────
         if (isRecent) {
-            const ring = ng.append('circle')
-                .attr('r', r)
-                .attr('fill', 'none')
-                .attr('stroke', color)
-                .attr('stroke-width', .8)
-                .attr('opacity', 0);
-
-            ring.append('animate')
-                .attr('attributeName', 'r')
-                .attr('values', `${r};${r * 2.2}`)
-                .attr('dur', `${1.8 + Math.random() * 0.6}s`)
-                .attr('repeatCount', 'indefinite');
-            ring.append('animate')
-                .attr('attributeName', 'opacity')
-                .attr('values', '.65;0')
-                .attr('dur', `${1.8 + Math.random() * 0.6}s`)
-                .attr('repeatCount', 'indefinite');
-        }
-
-        // Selection ring
-        if (isSelected) {
             ng.append('circle')
-                .attr('r', r + 4)
+                .attr('r', r + 5)
                 .attr('fill', 'none')
-                .attr('stroke', color)
-                .attr('stroke-width', 1.2)
-                .attr('opacity', .7)
-                .attr('stroke-dasharray', '3 2');
+                .attr('stroke', nodeColor)
+                .attr('stroke-width', 1)
+                .attr('opacity', 0.2);
         }
 
-        // Main circle
+        // ── Background circle (always visible, even unverified) ────
         ng.append('circle')
-            .attr('class', 'cfsm-circle')
-            .attr('r', isSelected ? r * 1.15 : r)
-            .attr('fill', color)
-            .attr('fill-opacity', isSelected ? 0.22 : 0.1)
-            .attr('stroke', color)
-            .attr('stroke-width', isSelected ? 1.5 : 0.8)
-            .attr('opacity', baseOpacity);
+            .attr('r', r)
+            .attr('fill', isSelected ? nodeColor : `rgba(${nodeColor === '#34d399' ? '52,211,153' : nodeColor === '#f87171' ? '248,113,113' : '96,165,250'},.15)`)
+            .attr('stroke', nodeColor)
+            .attr('stroke-width', isSelected ? 2.5 : 1.5);
 
-        // Tier dot (GPS / verified)
-        if (pt.tier <= 2) {
+        // ── Hit rate arc (donut segment inside circle) ─────────────
+        if (hitRate > 0 && hitRate < 100 && r > 6) {
+            const arcGen = d3.arc()
+                .innerRadius(r * 0.55)
+                .outerRadius(r - 1)
+                .startAngle(0)
+                .endAngle(hitRate / 100 * Math.PI * 2);
+            ng.append('path')
+                .attr('d', arcGen())
+                .attr('fill', nodeColor)
+                .attr('opacity', 0.7);
+        } else if (hitRate === 100) {
             ng.append('circle')
-                .attr('cx', r * 0.65).attr('cy', -r * 0.65)
-                .attr('r', 1.8)
-                .attr('fill', pt.tier === 1 ? '#34d399' : '#60a5fa')
-                .attr('opacity', .85);
+                .attr('r', r - 2)
+                .attr('fill', nodeColor)
+                .attr('opacity', 0.7);
         }
 
-        // Label — only for selected or large nodes; hidden at low zoom via CSS class
-        if (isSelected || r > 10) {
-            const label = pt.name.split(/[—–\-(]/)[0].trim();
-            const short = label.length > 14 ? label.slice(0, 13) + '…' : label;
+        // ── Verified badge — small diamond ─────────────────────────
+        if (pt.verified && r > 6) {
+            ng.append('rect')
+                .attr('width', 5).attr('height', 5)
+                .attr('x', r - 3).attr('y', -2.5)
+                .attr('transform', 'rotate(45)')
+                .attr('fill', '#fff')
+                .attr('opacity', 0.9);
+        }
+
+        // ── Label — always visible, size scales with node ──────────
+        const labelSize = Math.max(8, Math.min(11, 7 + r * 0.25));
+        const shortName = pt.name.length > 28 ? pt.name.slice(0, 27) + '…' : pt.name;
+        ng.append('text')
+            .attr('class', 'cfsm-node-label')
+            .attr('y', r + labelSize + 2)
+            .attr('text-anchor', 'middle')
+            .attr('font-size', labelSize)
+            .attr('font-family', 'var(--font-body)')
+            .attr('font-weight', '500')
+            .attr('fill', 'rgba(255,255,255,.75)')
+            .attr('pointer-events', 'none')
+            .style('text-shadow', '0 1px 3px rgba(0,0,0,.9)')
+            .text(shortName);
+
+        // ── Search volume counter below label ──────────────────────
+        if (vol > 0) {
             ng.append('text')
-                .attr('class', 'cfsm-node-label')
-                .attr('dy', r + 11)
+                .attr('y', r + labelSize * 2 + 4)
                 .attr('text-anchor', 'middle')
-                .attr('font-size', '8.5')
+                .attr('font-size', labelSize - 2)
                 .attr('font-family', 'var(--font-mono)')
-                .attr('fill', color)
-                .attr('fill-opacity', isSelected ? 0.9 : 0.55)
+                .attr('fill', nodeColor)
+                .attr('opacity', 0.7)
                 .attr('pointer-events', 'none')
-                .text(short);
+                .text(`${vol} · ${hitRate}%`);
         }
     });
 }
@@ -15785,8 +16077,10 @@ function cfsmUpdatePanel(pt) {
                 const v = STATE.variantsByLegacyName?.get(q);
                 const vc = v?.eti_prediction === 'responsive' ? '#34d399'
                          : v?.eti_prediction === 'non_responsive' ? '#f87171' : '#fbbf24';
-                return `<div class="cfsm-variant-row" onclick="selectVariant('${escapeAttr(q)}',true)">
-                    <span class="cfsm-vname" title="${escapeHTML(q)}">${escapeHTML(q)}</span>
+                const _vResolved = STATE.variantsByLegacyName?.get(q)?.legacy_name || 
+                    STATE.variants?.find(x => x.legacy_name?.toLowerCase() === q.toLowerCase())?.legacy_name || q;
+                return `<div class="cfsm-variant-row" onclick="selectVariant('${escapeAttr(_vResolved)}',true)">
+                    <span class="cfsm-vname" title="${escapeHTML(q)}">${escapeHTML(_vResolved)}</span>
                     <div class="cfsm-vbar"><div class="cfsm-vbar-fill" style="width:${Math.round(count/maxQ*100)}%;background:${vc};"></div></div>
                     <span class="cfsm-vcount">${count}</span>
                 </div>`;
@@ -16615,7 +16909,7 @@ async function exportSearchPDF() {
         rule(283, M, W-M, 0.35, C.rule);
         setFont(7, 'normal', C.light);
         doc.text(BRAND.full, M, 288);
-        doc.text('CONFIDENTIAL', W/2, 288, {align:'center'});
+        doc.text('CONFIDENCIAL', W/2, 288, {align:'center'});
         doc.text(`S-${p} / S-${pageCount}`, W-M, 288, {align:'right'});
     }
 
@@ -16643,7 +16937,7 @@ function exportSearchReport() {
         '=== TOP HITS (by frequency) ===',
         ...top.map((r,i) => String(i+1).padStart(2,'0') + '. ' + r.query.padEnd(28) + r.count + ' searches'),
         '',
-        '=== MISS QUEUE — RESEARCH GAP SIGNAL (by unique users) ===',
+        '=== MISS QUEUE — RESEARCH GAP SIGNAL (por usuarios únicos) ===',
         ...misses.map((r,i) => String(i+1).padStart(2,'0') + '. ' + r.query.padEnd(28) + r.sessions + ' users · ' + r.count + ' times'),
     ];
     const blob = new Blob([lines.join('\n')], {type:'text/plain'});
@@ -17407,6 +17701,11 @@ function navigateVariant(dir) {
     if (!next) return;
     selectVariant(next.legacy_name, false);
     setTimeout(() => _updateBreadcrumbCounter(STATE.view.selectedVariant), 50);
+    // Update browser tab title for multi-tab identification
+    const _v = STATE.view.selectedVariant;
+    if (_v) {
+        document.title = `${_v.legacy_name}${_v.cftr_class ? ' · Class ' + _v.cftr_class : ''} — NeumuacFQ`;
+    }
     // Federation enrichment on variant open
     setTimeout(() => enrichVariantFederation(STATE.view.selectedVariant), 900);
     // #3: Clinical trial matcher
@@ -17516,7 +17815,7 @@ function renderHomeDashboard() {
     /* ── GREETING BAR ── */
     (function populateGreeting() {
         var hr   = new Date().getHours();
-        var greeting = hr < 5 ? 'Working late' : hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening';
+        var greeting = hr < 5 ? 'Trabajando tarde' : hr < 12 ? 'Buenos días' : hr < 18 ? 'Buenas tardes' : 'Buenas noches';
         var icon = hr < 5 ? '🌙' : hr < 12 ? '☀️' : hr < 18 ? '🏥' : '🌆';
         var institution = STATE.searchIntelligence?.hospital;
         var who = institution && institution !== 'Anonymous'
@@ -17529,20 +17828,20 @@ function renderHomeDashboard() {
         var dateEl = document.getElementById('homeGreetingDate');
         if (dateEl) {
             var now = new Date();
-            var dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-            var monNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            var dayNames = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+            var monNames = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
             dateEl.textContent = dayNames[now.getDay()] + ' ' + now.getDate() + ' ' + monNames[now.getMonth()] + ' ' + now.getFullYear()
-                + ' · ' + now.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
+                + ' · ' + now.toLocaleTimeString('es-ES', {hour:'2-digit',minute:'2-digit'});
         }
         /* Update date every minute */
         if (!window._greetingTimer) {
             window._greetingTimer = setInterval(function() {
                 var d = new Date();
-                var mo = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                var mo = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
                 var el = document.getElementById('homeGreetingDate');
-                if (el) el.textContent = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()]
+                if (el) el.textContent = ['Domingo','Lunes','Martes','Miércoles','Juevesy','Friday','Saturday'][d.getDay()]
                     + ' ' + d.getDate() + ' ' + mo[d.getMonth()] + ' ' + d.getFullYear()
-                    + ' · ' + d.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
+                    + ' · ' + d.toLocaleTimeString('es-ES', {hour:'2-digit',minute:'2-digit'});
             }, 60000);
         }
 
@@ -18684,6 +18983,28 @@ function renderClinicalReferencePanel(variant) {
             Not included in standard UK/ACMG/EU newborn screening panels
         </div>` : '');
 
+    // Multisystem checklist toggle — shown for any CF variant
+    const multisystemToggleHTML = `
+        <div style="margin-top:10px;">
+            <button onclick="(function(btn){
+                const panel = btn.nextElementSibling;
+                if (panel.style.display === 'none') {
+                    panel.style.display = 'block';
+                    renderMultisystemChecklist(STATE.view?.selectedVariant || {}, panel);
+                    btn.textContent = '▲ Ocultar seguimiento multisistémico';
+                } else {
+                    panel.style.display = 'none';
+                    btn.textContent = '📋 Seguimiento multisistémico FQ';
+                }
+            })(this)"
+            style="font-size:10px;padding:5px 12px;border-radius:5px;
+                   border:1px solid rgba(52,211,153,0.3);background:rgba(52,211,153,0.06);
+                   color:#34d399;cursor:pointer;width:100%;">
+                📋 Seguimiento multisistémico FQ
+            </button>
+            <div style="display:none;"></div>
+        </div>`;
+
     const classISubtypeHTML = classISubtypeNote ? `
         <div style="margin-top:8px;padding:8px 10px;border-radius:6px;
              background:rgba(248,113,113,0.06);border:1px solid rgba(248,113,113,0.2);
@@ -18710,6 +19031,27 @@ function renderClinicalReferencePanel(variant) {
             </div>
             ${modulatorRow}
             ${nbsPanel}
+            ${multisystemToggleHTML}
+            <!-- Ver en Signal Map -->
+            <div style="margin-top:8px;">
+                <button onclick="(function(vname){
+                    setSITab('geo', null);
+                    const si = document.getElementById('searchIntelligencePanel');
+                    if (si) si.classList.remove('hidden');
+                    setTimeout(function(){
+                        if (typeof cfsmHighlightVariant === 'function') cfsmHighlightVariant(vname);
+                        const inp = document.getElementById('cfsmSearch');
+                        if (inp) { inp.value = vname; cfsmFilterInput(vname); }
+                    }, 700);
+                })('${escapeAttr(variant.legacy_name)}')"
+                style="width:100%;font-size:10px;padding:6px 12px;border-radius:6px;
+                       border:1px solid rgba(41,121,255,0.2);background:rgba(41,121,255,0.05);
+                       color:#60a5fa;cursor:pointer;display:flex;align-items:center;
+                       justify-content:center;gap:6px;font-family:var(--font-body);">
+                    <i class="fas fa-earth-europe" style="font-size:9px;"></i>
+                    Ver en Signal Map — dónde se busca esta variante
+                </button>
+            </div>
         </div>
     </div>`;
 }
@@ -20669,14 +21011,14 @@ function initializeBulkImport() {
 
 function handleCSVFile(file) {
     if (!file.name.match(/\.(csv|tsv|txt)$/i)) {
-        showNotification('Please upload a CSV, TSV or TXT file', 'error');
+        showNotification('Suba un archivo CSV, TSV o TXT', 'error');
         return;
     }
 
     const reader = new FileReader();
     reader.onload = (e) => {
         try {
-            showNotification(`Parsing ${file.name}…`, 'info', 2000);
+            showNotification(`Analizando ${file.name}…`, 'info', 2000);
             const raw = e.target.result;
             const lines = raw.trim().split(/\r?\n/);
 
@@ -22851,6 +23193,13 @@ function confirmPDFGenerate() {
 }
 
 function generateElitePDF(variants, reporter) {
+    // Capture patient clinical parameters from PGP if open
+    const _pdfWeight   = document.getElementById('pgpWeight')?.value || null;
+    const _pdfAge      = document.getElementById('pgpAge')?.value    || null;
+    const _pdfCaseCode = document.getElementById('pgpCaseCode')?.value?.trim() || null;
+    const _pdfPatCtx   = (_pdfWeight || _pdfAge)
+        ? `${_pdfAge ? `${_pdfAge}a` : ''}${_pdfWeight && _pdfAge ? ' · ' : ''}${_pdfWeight ? `${_pdfWeight} kg` : ''}` 
+        : null;
     const now        = new Date();
     const dateStr    = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
     const timeStr    = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
@@ -23522,16 +23871,31 @@ function generateElitePDF(variants, reporter) {
 
     /* ── Print overrides ────────────────────────────────── */
     @media print {
-        body { background: #fff !important; }
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        body { background: #fff !important; margin: 0; }
         .report-page {
             box-shadow: none !important;
             border: none !important;
             margin: 0 !important;
             border-radius: 0 !important;
+            page-break-inside: avoid;
         }
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-        .rpt-header, .hero-left, .rpt-footer { color-adjust: exact !important; }
-        .rpt-accent-rule { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .rpt-header, .hero-left, .rpt-footer,
+        .rpt-header *, .hero-left *, .rpt-footer *,
+        .hero-badges span, .rpt-recommendation, .rpt-accent-rule,
+        .evidence-num, .conf-strip, .det-badge, .exc-badge, .th-badge {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+        }
+        /* Prevent awkward page breaks */
+        .rpt-section { page-break-inside: avoid; break-inside: avoid; }
+        .rpt-evidence-item { page-break-inside: avoid; }
+        .no-print { display: none !important; }
         .rpt-header, .rpt-footer, .hero-left, .evidence-num, .rpt-recommendation {
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
@@ -25973,8 +26337,12 @@ function renderGapQueue() {
     const note  = document.getElementById('gapQueueNote');
     const note2 = document.getElementById('siGapQueueNote');
     if (!list && !list2) return;
-    const queue = getGapQueue(20);
-    const noteText = `${queue.length} variants need attention`;
+    const _gapPage = (STATE.view._gapPage || 0);
+    const _gapSize = 30;
+    const _allGaps  = getGapQueue(200);  // score up to 200
+    const queue     = _allGaps.slice(_gapPage * _gapSize, (_gapPage + 1) * _gapSize);
+    const totalGaps = _allGaps.length;
+    const noteText = `${totalGaps} variantes necesitan atención · mostrando ${queue.length}`;
     if (note)  note.textContent  = noteText;
     if (note2) note2.textContent = noteText;
     const html = !queue.length
@@ -26014,7 +26382,7 @@ function renderGapQueue() {
 }
 
 function renderCommandCentre() {
-    // High priority variants
+    // Variantes alta prioridad
     const hp = document.getElementById('ccHighPriority');
     if (hp) {
         const urgent = STATE.variants
@@ -28283,7 +28651,7 @@ function openAboutModal() {
             </div>
             <div style="margin-bottom:14px;">
                 <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#3a5a7a;margin-bottom:6px;">Intended use</div>
-                <div style="color:#c8d8f0;">Clinical decision support for authorised healthcare professionals. For MDT discussion only.
+                <div style="color:#c8d8f0;">Clinical decision support for authorised healthcare professionals. Solo para discusión MDT.
                 Does not replace clinical assessment, specialist genetics review, or current prescribing information.</div>
             </div>
             <div style="margin-bottom:14px;">
@@ -30844,7 +31212,7 @@ function heliosTab(tab) {
 function heliosUpdateGreeting() {
     const hr = new Date().getHours();
     const name = STATE.searchIntelligence?.hospital || '';
-    const greet = hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening';
+    const greet = hr < 12 ? 'Buenos días' : hr < 18 ? 'Buenas tardes' : 'Good evening';
     const who = name && name !== 'Anonymous' ? `, ${name.split('—')[0].trim().split('(')[0].trim()}` : '';
     document.getElementById('heliosGreetingMsg').textContent = greet + who;
 }
@@ -33364,6 +33732,9 @@ async function heliosRunHealthCheck() {
     }
     // Load monitor targets
     heliosLoadMonitorTargets();
+
+    // Compute reclassification scores on health check
+    if (typeof computeReclassScores === 'function') computeReclassScores();
 }
 
 async function heliosLoadMonitorTargets() {
@@ -34352,7 +34723,14 @@ function cgcSaveCase(allele1, allele2) {
     deduped.unshift(entry);
     if (deduped.length > CGC_MAX_CASES) deduped.length = CGC_MAX_CASES;
     try { localStorage.setItem(CGC_HISTORY_KEY, JSON.stringify(deduped)); } catch {}
-    showNotification('Case saved' + (caseCode ? ' as ' + caseCode : ''), 'success', 2000);
+    // Also save to DB genotype_assessments for persistence across browsers/sessions
+    const v1 = STATE.variantsByLegacyName?.get(allele1);
+    const v2 = STATE.variantsByLegacyName?.get(allele2);
+    if (v1 && v2) {
+        const verdict = computeCompoundHetVerdict(v1, v2);
+        saveGenotypeAssessment(allele1, allele2, verdict, caseCode).catch(() => {});
+    }
+    showNotification('Caso guardado' + (caseCode ? ': ' + caseCode : ''), 'success', 2000);
     cgcRenderSavedCases();
 }
 
@@ -34611,10 +34989,15 @@ function openCompoundGenotypeCalculator(preloadAllele1) {
                          background:rgba(255,255,255,0.02);
                          border:1px solid rgba(41,121,255,0.09);">
                         <i class="fas fa-tag" style="font-size:8px;color:#1e3050;"></i>
-                        <input id="pgpCaseCode" placeholder="Case code (optional — de-identified)"
+                        <input id="pgpCaseCode" placeholder="Código interno (sin datos EHR reales)"
                             style="background:none;border:none;color:#8ab0d0;
                             font-family:var(--pgp-mono);font-size:10px;
-                            outline:none;width:100%;" autocomplete="off">
+                            outline:none;width:100%;" autocomplete="off"
+                            oninput="(function(el){ 
+                                const code = el.value.trim();
+                                const panel = document.getElementById('cgcCaseHistory');
+                                if (code.length >= 4 && panel) renderCaseHistoryPanel(code, panel);
+                            })(this)">
                     </div>
                     <button onclick="pgpToggleSavedCases()" class="pgp-hbtn"
                         style="border-color:rgba(41,121,255,0.1);background:rgba(41,121,255,0.03);
@@ -34623,6 +35006,46 @@ function openCompoundGenotypeCalculator(preloadAllele1) {
                         History
                     </button>
                 </div>
+
+                <!-- ⚠ Privacy disclaimer -->
+                <div style="margin-top:4px;padding:5px 8px;border-radius:5px;
+                     background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);
+                     font-size:9px;color:#92701a;line-height:1.4;">
+                    ⚠ No introducir números de historia clínica reales (NHC) ni datos identificativos.
+                    Usar únicamente códigos internos de-identificados (ej: CHUAC-2025-047).
+                </div>
+
+                <!-- Patient clinical parameters -->
+                <div style="margin-top:8px;padding:8px 10px;border-radius:7px;
+                     background:rgba(255,255,255,0.02);border:1px solid rgba(41,121,255,0.09);">
+                    <div style="font-size:9px;color:#2a4a6a;text-transform:uppercase;
+                         letter-spacing:.08em;margin-bottom:6px;">
+                        Parámetros clínicos (opcional)
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                        <div>
+                            <div style="font-size:8px;color:#1e3050;margin-bottom:2px;">
+                                Peso del paciente (kg)
+                            </div>
+                            <input id="pgpWeight" type="number" min="3" max="200" step="0.5"
+                                placeholder="kg" autocomplete="off"
+                                class="pgp-in" style="height:28px;font-size:11px;"
+                                oninput="pgpUpdateDosingNote()">
+                        </div>
+                        <div>
+                            <div style="font-size:8px;color:#1e3050;margin-bottom:2px;">
+                                Edad (años)
+                            </div>
+                            <input id="pgpAge" type="number" min="0" max="99" step="1"
+                                placeholder="años" autocomplete="off"
+                                class="pgp-in" style="height:28px;font-size:11px;"
+                                oninput="pgpUpdateDosingNote()">
+                        </div>
+                    </div>
+                    <div id="pgpDosingNote" style="margin-top:5px;font-size:9px;color:#4a6a8a;
+                         min-height:12px;line-height:1.4;"></div>
+                </div>
+                <div id="cgcCaseHistory" style="margin-top:4px;max-height:120px;overflow-y:auto;"></div>
             </div>
         </div>
 
@@ -35687,7 +36110,18 @@ function runCompoundGenotypeCalculation() {
             ${modHTML}
         </div>
 
-        ${comparisonHTML}
+        ${(function(){
+        const bothElig = verdict.trikaftaEligible && verdict.alyftrekEligible;
+        if (bothElig) {
+            setTimeout(() => {
+                const c = document.getElementById('cgcSwitchAid');
+                if (c && !c.dataset.init) { c.dataset.init='1'; renderSwitchingDecisionAid(v1, v2, c); }
+            }, 100);
+        }
+        return '';
+    })()}
+    <div id="cgcSwitchAid"></div>
+    ${comparisonHTML}
         ${swclHTML}
         ${cfrdHTML}
         ${checklistHTML}
@@ -35711,7 +36145,7 @@ function runCompoundGenotypeCalculation() {
         </div>
 
         <div style="font-size:10px;color:var(--text-tertiary);line-height:1.6;border-top:1px solid var(--border);padding-top:8px;">
-            NeumuacFQ compound genotype prediction · For MDT discussion only · Not a substitute for clinical genetics assessment.
+            NeumuacFQ compound genotype prediction · Solo para discusión MDT · Not a substitute for clinical genetics assessment.
             <button onclick="cgcSaveCase('${escapeAttr(v1.legacy_name)}','${escapeAttr(v2.legacy_name)}')"
                     style="margin-left:10px;font-size:11px;padding:3px 10px;border-radius:5px;border:1px solid rgba(52,211,153,0.3);
                     background:rgba(52,211,153,0.08);color:#34d399;cursor:pointer;font-family:var(--font-body);">
@@ -35728,7 +36162,7 @@ function runCompoundGenotypeCalculation() {
                 <span style="font-size:9px;color:var(--text-tertiary);">— enter current medications to flag interactions</span>
             </div>
             <div style="display:flex;gap:6px;">
-                <input id="cgcDrugCheck" placeholder="e.g. itraconazole, clarithromycin, rifampicin…"
+                <input id="cgcDrugCheck" placeholder="Ej: itraconazol, claritromicina, rifampicina…"
                     style="flex:1;height:28px;background:rgba(4,8,20,0.6);border:1px solid rgba(248,113,113,0.2);
                     border-radius:5px;color:var(--text-primary);font-size:10px;padding:0 8px;outline:none;
                     font-family:var(--font-mono);"
@@ -36051,7 +36485,12 @@ function generateMDTReport(allele1Name, allele2Name) {
     const v2 = STATE.variantsByLegacyName.get(allele2Name);
     if (!v1 || !v2) return;
     // Capture case code from PGP panel if open
-    const _caseCode = (document.getElementById('pgpCaseCode')?.value || '').trim();
+    const _caseCode  = (document.getElementById('pgpCaseCode')?.value || '').trim();
+    const _weight    = document.getElementById('pgpWeight')?.value || null;
+    const _age       = document.getElementById('pgpAge')?.value    || null;
+    const _patientContext = (_weight || _age)
+        ? `${_age ? `${_age} años` : ''}${_weight && _age ? ' · ' : ''}${_weight ? `${_weight} kg` : ''}` 
+        : null;
 
     const verdict    = computeCompoundHetVerdict(v1, v2);
     const dom        = verdict.dominantAllele;
@@ -36154,16 +36593,53 @@ function generateMDTReport(allele1Name, allele2Name) {
         // Report body
         + '<div style="padding:32px 40px 48px;font-family:\'IBM Plex Sans\',sans-serif;font-size:13px;line-height:1.6;">'
 
-        // Header
-        + '<div style="border-bottom:2px solid #162540;padding-bottom:16px;margin-bottom:24px;'
-        +   'display:flex;justify-content:space-between;align-items:flex-start;">'
-        +   '<div>'
-        +     '<div style="font-family:\'Syne\',sans-serif;font-size:22px;font-weight:800;color:#162540;margin-bottom:4px;">CF Genetics MDT Report</div>'
-        +     '<div style="font-size:12px;color:#64748b;">' + escapeHTML(institution) + ' \u00b7 ' + dateStr + ' \u00b7 NeumuacFQ CFTR Precision Medicine Platform</div>'
-        +     (_caseCode ? '<div style="font-size:11px;color:#94a3b8;margin-top:4px;"><i class="fas fa-tag" style="margin-right:4px;"></i>Case reference: <strong style="font-family:monospace;">' + escapeHTML(_caseCode) + '</strong></div>' : '')
+        // ── Branded header strip (matches Elite PDF) ──────────────────────
+        + '<div style="background:linear-gradient(135deg,#0f1e38 0%,#162540 60%,#1a2d4a 100%);'
+        +   'padding:18px 32px;margin:-32px -40px 28px;border-radius:0;display:flex;'
+        +   'justify-content:space-between;align-items:center;">'
+        +   '<div style="display:flex;align-items:center;gap:14px;">'
+        +     '<div style="background:#fff;border-radius:9px;padding:6px 9px;'
+        +       'box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;">'
+        +       '<svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">'
+        +         '<rect width="40" height="40" rx="8" fill="#0f1e38"/>'
+        +         '<path d="M8 20C8 13.373 13.373 8 20 8C26.627 8 32 13.373 32 20C32 26.627 26.627 32 20 32" stroke="#2979ff" stroke-width="2.5" stroke-linecap="round"/>'
+        +         '<path d="M20 8L20 32" stroke="#2979ff" stroke-width="1.5" stroke-opacity="0.3"/>'
+        +         '<circle cx="20" cy="20" r="3" fill="#2cc6f2"/>'
+        +         '<path d="M14 20C14 16.686 16.686 14 20 14C23.314 14 26 16.686 26 20" stroke="#60a5fa" stroke-width="1.5" stroke-linecap="round"/>'
+        +       '</svg>'
+        +     '</div>'
+        +     '<div>'
+        +       '<div style="font-family:\'Syne\',sans-serif;font-size:16px;font-weight:800;color:#fff;letter-spacing:-.02em;line-height:1;">NeumuacFQ</div>'
+        +       '<div style="font-size:9px;color:rgba(255,255,255,.45);letter-spacing:.1em;text-transform:uppercase;margin-top:1px;">CFTR Precision Medicine Platform</div>'
+        +     '</div>'
+        +     '<div style="width:1px;height:28px;background:rgba(255,255,255,.12);margin:0 4px;"></div>'
+        +     '<div>'
+        +       '<div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.8);letter-spacing:.06em;text-transform:uppercase;">Informe MDT · Genética CF</div>'
+        +       '<div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:1px;">' + escapeHTML(institution) + ' · ' + dateStr + '</div>'
+        +     '</div>'
         +   '</div>'
-        +   '<div style="text-align:right;font-size:11px;color:#64748b;"><div><strong>CONFIDENTIAL</strong></div><div>For MDT discussion only</div></div>'
+        +   '<div style="text-align:right;">'
+        +     '<div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:.06em;">CONFIDENCIAL</div>'
+        +     '<div style="font-size:9px;color:rgba(255,255,255,.35);margin-top:1px;">Solo para discusión MDT</div>'
+        +     '<div style="font-size:9px;color:rgba(255,255,255,.25);margin-top:1px;">v' + (CONFIG.VERSION || '4.0') + '</div>'
+        +   '</div>'
         + '</div>'
+
+        // Case ref + patient params bar
+        + ((_caseCode || _patientContext) ? '<div style="margin-bottom:20px;padding:8px 14px;border-radius:7px;'
+        +   'background:#f8fafc;border:1px solid #e2e8f0;display:flex;align-items:center;gap:16px;">'
+        +   '<div style="display:flex;align-items:center;gap:6px;">'
+        +     '<i class="fas fa-tag" style="font-size:10px;color:#94a3b8;"></i>'
+        +     '<span style="font-size:11px;color:#64748b;">Ref. interna:</span>'
+        +     '<strong style="font-family:monospace;font-size:11px;color:#334155;">' + escapeHTML(_caseCode || '—') + '</strong>'
+        +   '</div>'
+        +   (_patientContext ? '<div style="width:1px;height:14px;background:#e2e8f0;"></div>'
+        +   '<div style="font-size:11px;color:#64748b;"><i class="fas fa-user" style="font-size:9px;margin-right:4px;"></i>' + escapeHTML(_patientContext) + '</div>' : '')
+        +   '<div style="margin-left:auto;font-size:9px;padding:2px 8px;border-radius:3px;'
+        +     'background:rgba(192,132,252,0.08);border:1px solid rgba(192,132,252,0.2);color:#7c3aed;">'
+        +     '⚠ Código de-identificado · Sin datos EHR reales'
+        +   '</div>'
+        + '</div>' : '')
 
         // Genotype
         + '<div style="margin-bottom:20px;">'
@@ -36268,7 +36744,7 @@ function generateMDTReport(allele1Name, allele2Name) {
 
         // Footer
         + '<div style="margin-top:32px;padding-top:12px;border-top:1px solid #e2e8f0;font-size:9px;color:#94a3b8;line-height:1.6;">'
-        +   'Generated by NeumuacFQ CFTR Precision Medicine Platform \u00b7 For MDT discussion only \u00b7 '
+        +   'Generated by NeumuacFQ CFTR Precision Medicine Platform \u00b7 Solo para discusión MDT \u00b7 '
         +   'Does not replace clinical assessment, functional studies, or specialist genetics review. '
         +   'Confirm modulator eligibility against current EMA/FDA prescribing information. \u00b7 '
         +   escapeHTML(CONFIG.VERSION || 'v4.0') + ' \u00b7 ' + dateStr
@@ -37180,6 +37656,585 @@ const SWCL_PREDICTIONS = {
     'extrapolation':  { mean: null, ci: null, threshold60: null, threshold30: null, source: 'Class rule — insufficient direct SwCl data', drug: 'Alyftrek' },
 };
 
+
+// ═══════════════════════════════════════════════════════════════════════
+// PATIENT CASE TRACKER
+// Lightweight longitudinal case registry built on genotype_assessments
+// Case code = anonymous patient identifier (e.g. CHUAC-2025-047)
+// ═══════════════════════════════════════════════════════════════════════
+
+async function loadPatientCaseHistory(caseCode) {
+    if (!caseCode || !CONFIG.SUPABASE.URL) return [];
+    try {
+        const res = await fetch(
+            `${CONFIG.SUPABASE.URL}/rest/v1/genotype_assessments?allele1_legacy=not.is.null&order=assessed_at.desc&limit=20`,
+            { headers: { apikey: CONFIG.SUPABASE.KEY, Authorization: `Bearer ${CONFIG.SUPABASE.KEY}` } }
+        );
+        if (!res.ok) return [];
+        const rows = await res.json();
+        // Filter client-side by case_code stored in eligible_modulators JSON
+        return rows.filter(r => {
+            try {
+                const em = typeof r.eligible_modulators === 'string'
+                    ? JSON.parse(r.eligible_modulators) : r.eligible_modulators || {};
+                return em.case_ref === caseCode;
+            } catch { return false; }
+        });
+    } catch(e) { return []; }
+}
+
+async function renderCaseHistoryPanel(caseCode, container) {
+    if (!container) return;
+    container.innerHTML = '<div style="font-size:10px;color:#3a5a7a;">Cargando historial…</div>';
+    const history = await loadPatientCaseHistory(caseCode);
+    if (!history.length) {
+        container.innerHTML = '<div style="font-size:10px;color:#3a5a7a;">No hay historial previo para este código de caso.</div>';
+        return;
+    }
+    container.innerHTML = history.map(r => {
+        const em = typeof r.eligible_modulators === 'string' ? JSON.parse(r.eligible_modulators||'{}') : r.eligible_modulators || {};
+        const date = r.assessed_at ? new Date(r.assessed_at).toLocaleDateString('es-ES') : '—';
+        const mods = [em.trikafta && 'Trikafta', em.alyftrek && 'Alyftrek', em.kalydeco && 'Kalydeco'].filter(Boolean).join(' + ') || 'No modulator';
+        return `<div style="padding:7px 10px;border-radius:6px;margin-bottom:4px;
+                     background:rgba(255,255,255,0.025);border:1px solid rgba(99,140,210,0.1);
+                     display:flex;align-items:center;gap:10px;">
+            <span style="font-size:10px;color:#4a6a8a;min-width:70px;">${date}</span>
+            <span style="font-family:var(--font-mono);font-size:11px;color:#c8d8f0;flex:1;">
+                ${escapeHTML(r.allele1_legacy||'?')} / ${escapeHTML(r.allele2_legacy||'?')}
+            </span>
+            <span style="font-size:10px;padding:1px 7px;border-radius:3px;
+                  background:rgba(41,121,255,0.1);color:#60a5fa;">${mods}</span>
+            ${em.clinician ? `<span style="font-size:9px;color:#2a4a6a;">${escapeHTML(em.clinician)}</span>` : ''}
+        </div>`;
+    }).join('');
+}
+Object.assign(window, { loadPatientCaseHistory, renderCaseHistoryPanel });
+
+
+// ═══════════════════════════════════════════════════════════════════════
+// SWITCHING DECISION AID — Trikafta → Alyftrek
+// Clinical decision support for patients currently on Trikafta
+// where Alyftrek is also eligible. Captures FEV1, SwCl, LFTs, CYP3A meds.
+// Outputs structured switch/hold/contraindicated recommendation.
+// ═══════════════════════════════════════════════════════════════════════
+
+function renderSwitchingDecisionAid(v1, v2, container) {
+    if (!container) return;
+    container.innerHTML = `
+        <div style="border:1px solid rgba(129,140,248,0.25);border-radius:10px;
+             padding:14px 16px;background:rgba(129,140,248,0.04);margin-bottom:12px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                <span style="font-size:14px;">🔄</span>
+                <div>
+                    <div style="font-size:12px;font-weight:700;color:#a78bfa;">Ayuda de decisión — Cambio a Alyftrek</div>
+                    <div style="font-size:10px;color:#4a6a8a;">Cumplimente los parámetros clínicos actuales del paciente</div>
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+                <div>
+                    <div style="font-size:9px;color:#4a6a8a;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;">FEV₁ actual (%)</div>
+                    <input id="sdFev1" type="number" min="10" max="150" placeholder="e.g. 72"
+                        class="pgp-in" style="width:100%;"
+                        oninput="computeSwitchRecommendation()">
+                </div>
+                <div>
+                    <div style="font-size:9px;color:#4a6a8a;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;">ClSud actual (mmol/L)</div>
+                    <input id="sdSwCl" type="number" min="5" max="120" placeholder="e.g. 31"
+                        class="pgp-in" style="width:100%;"
+                        oninput="computeSwitchRecommendation()">
+                </div>
+                <div>
+                    <div style="font-size:9px;color:#4a6a8a;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;">ALT/AST actual (× ULN)</div>
+                    <input id="sdLFT" type="number" min="0" max="20" step="0.1" placeholder="e.g. 1.2"
+                        class="pgp-in" style="width:100%;"
+                        oninput="computeSwitchRecommendation()">
+                </div>
+                <div>
+                    <div style="font-size:9px;color:#4a6a8a;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;">Tiempo en Trikafta</div>
+                    <select id="sdTime" class="pgp-in" style="width:100%;height:36px;"
+                        onchange="computeSwitchRecommendation()">
+                        <option value="">Seleccionar</option>
+                        <option value="<6m">&lt; 6 meses</option>
+                        <option value="6-12m">6–12 meses</option>
+                        <option value=">12m">&gt; 12 meses (estable)</option>
+                    </select>
+                </div>
+            </div>
+            <div style="margin-bottom:8px;">
+                <div style="font-size:9px;color:#4a6a8a;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;">Medicación CYP3A activa</div>
+                <input id="sdCYP3A" type="text" placeholder="e.g. fluconazol, claritromicina — dejar vacío si ninguna"
+                    class="pgp-in" style="width:100%;"
+                    oninput="computeSwitchRecommendation()">
+            </div>
+            <div id="sdResult" style="min-height:40px;padding:8px 10px;border-radius:6px;
+                 background:rgba(255,255,255,0.02);border:1px solid rgba(99,140,210,0.1);
+                 font-size:11px;color:#4a6a8a;line-height:1.5;">
+                Complete los parámetros anteriores para obtener una recomendación…
+            </div>
+        </div>`;
+}
+
+function computeSwitchRecommendation() {
+    const fev1   = parseFloat(document.getElementById('sdFev1')?.value);
+    const swcl   = parseFloat(document.getElementById('sdSwCl')?.value);
+    const lft    = parseFloat(document.getElementById('sdLFT')?.value);
+    const time   = document.getElementById('sdTime')?.value;
+    const cyp3a  = (document.getElementById('sdCYP3A')?.value || '').trim().toLowerCase();
+    const el     = document.getElementById('sdResult');
+    if (!el) return;
+
+    // Need at least one parameter
+    if (isNaN(fev1) && isNaN(swcl) && isNaN(lft) && !time) return;
+
+    const issues = [], strengths = [], cautions = [];
+
+    // Hard stops
+    if (!isNaN(lft) && lft > 5)
+        issues.push('ALT/AST >5× ULN — contraindicado hasta normalización (SmPC Alyftrek)');
+    if (!isNaN(lft) && lft > 3 && lft <= 5)
+        cautions.push('ALT/AST 3–5× ULN — monitorizar mensualmente antes de cambiar');
+
+    // CYP3A interactions
+    const strongInhibitors = ['itraconazol','ketoconazol','posaconazol','voriconazol','claritromicina','ritonavir','nelfinavir','lopinavir'];
+    const strongInducers   = ['rifampicina','carbamazepina','fenitoína','hierba de san juan','rifabutin'];
+    const hasStrongInhibitor = strongInhibitors.some(d => cyp3a.includes(d));
+    const hasStrongInducer   = strongInducers.some(d => cyp3a.includes(d));
+    if (hasStrongInhibitor)
+        cautions.push('Inhibidor CYP3A potente — ajuste de dosis obligatorio (una vez a la semana con Alyftrek vs cada dos días con Trikafta — diferente pauta)');
+    if (hasStrongInducer)
+        issues.push('Inductor CYP3A potente — evitar Alyftrek hasta suspender inductor');
+
+    // Clinical benefits
+    if (!isNaN(swcl) && swcl > 60)
+        strengths.push(`ClSud ${swcl} mmol/L — reducción adicional esperada de ~9 mmol/L con Alyftrek vs Trikafta (RIDGELINE 102/103)`);
+    if (!isNaN(swcl) && swcl <= 30)
+        strengths.push(`ClSud ya en rango normal — beneficio del cambio probablemente modesto`);
+    if (!isNaN(fev1) && fev1 < 70)
+        strengths.push(`FEV₁ ${fev1}% — paciente con función pulmonar reducida puede beneficiarse de la mayor eficacia de Alyftrek`);
+    if (time === '>12m')
+        strengths.push('Paciente estable >12 meses en Trikafta — cambio electivo bien documentado');
+    if (time === '<6m')
+        cautions.push('< 6 meses en Trikafta — valorar esperar a estabilidad antes de cambiar');
+
+    // Decision
+    let decision, color;
+    if (issues.length > 0) {
+        decision = '⛔ CAMBIO CONTRAINDICADO O DIFERIR';
+        color = '#f87171';
+    } else if (cautions.length > 0 && strengths.length === 0) {
+        decision = '⚠ PROCEDER CON PRECAUCIÓN — valorar en MDT';
+        color = '#fbbf24';
+    } else if (strengths.length > 0) {
+        decision = '✅ CAMBIO APROPIADO — discutir con el paciente';
+        color = '#34d399';
+    } else {
+        decision = '🔵 DATOS INSUFICIENTES — completar evaluación clínica';
+        color = '#60a5fa';
+    }
+
+    const allPoints = [
+        ...issues.map(i => `<div style="color:#f87171;">• ${escapeHTML(i)}</div>`),
+        ...cautions.map(c => `<div style="color:#fbbf24;">• ${escapeHTML(c)}</div>`),
+        ...strengths.map(s => `<div style="color:#34d399;">• ${escapeHTML(s)}</div>`),
+    ].join('');
+
+    el.innerHTML = `
+        <div style="font-weight:700;color:${color};margin-bottom:6px;">${decision}</div>
+        ${allPoints}
+        <div style="margin-top:6px;font-size:9px;color:#2a4a6a;border-top:1px solid rgba(99,140,210,0.1);padding-top:5px;">
+            Esta herramienta es orientativa — la decisión final es responsabilidad del equipo clínico.
+            Documentar en la historia clínica y obtener consentimiento informado antes del cambio.
+        </div>`;
+}
+Object.assign(window, { renderSwitchingDecisionAid, computeSwitchRecommendation });
+
+
+// ═══════════════════════════════════════════════════════════════════════
+// MULTISYSTEM CF COMPLICATION CHECKLIST
+// Takes patient age range + modulator status → screening schedule
+// Based on UK CFF / ECFS consensus guidelines 2023
+// ═══════════════════════════════════════════════════════════════════════
+
+const CF_SCREENING_SCHEDULE = [
+    {
+        name: 'Función pulmonar (espirometría)',
+        from_age: 5,
+        frequency: 'Cada 3 meses (pacientes estables)',
+        note: null,
+        relevant_classes: null // all
+    },
+    {
+        name: 'Diabetes relacionada con la FQ (OGTT)',
+        from_age: 10,
+        frequency: 'Anual',
+        note: 'Riesgo aumentado con Clases I/II. En moduladores: monitorizar glucemia por cambios metabólicos.',
+        relevant_classes: ['I','II','III']
+    },
+    {
+        name: 'Enfermedad hepática (ALT/AST/GGT + ecografía)',
+        from_age: 0,
+        frequency: 'Anual',
+        note: 'OBLIGATORIO antes y durante Alyftrek (riesgo hepatotoxicidad — warning en caja)',
+        relevant_classes: null
+    },
+    {
+        name: 'Densidad mineral ósea (DXA)',
+        from_age: 18,
+        frequency: 'Cada 2–5 años (según riesgo)',
+        note: 'Antes en pacientes con FEV₁ <50%, corticoides crónicos, o BMI <18',
+        relevant_classes: null
+    },
+    {
+        name: 'Cribado de osteoporosis (25-OH vitamina D)',
+        from_age: 0,
+        frequency: 'Anual',
+        note: null,
+        relevant_classes: null
+    },
+    {
+        name: 'Azoospermia / ACAF (varones)',
+        from_age: 16,
+        frequency: 'Una vez (consejería reproductiva)',
+        note: 'Espermograma antes de asumir fertilidad normal. ACAF presente en ~97% varones CF.',
+        relevant_classes: null
+    },
+    {
+        name: 'Salud mental (ansiedad / depresión)',
+        from_age: 12,
+        frequency: 'Anual (PHQ-9 / GAD-7)',
+        note: 'Recomendación CFF 2018. Alta prevalencia en pacientes y cuidadores.',
+        relevant_classes: null
+    },
+    {
+        name: 'Estado nutricional (IMC, vitaminas ADEK)',
+        from_age: 0,
+        frequency: 'Cada 3 meses',
+        note: null,
+        relevant_classes: null
+    },
+    {
+        name: 'Función renal (creatinina, eGFR)',
+        from_age: 0,
+        frequency: 'Anual (más frecuente si tobramicina IV)',
+        note: 'Tobramicina inhalada: seguimiento auditivo anual',
+        relevant_classes: null
+    },
+    {
+        name: 'Audición (audiometría)',
+        from_age: 0,
+        frequency: 'Anual si tobramicina crónica',
+        note: null,
+        relevant_classes: null
+    },
+    {
+        name: 'Artropatía CF (articulaciones)',
+        from_age: 16,
+        frequency: 'Según síntomas',
+        note: 'Presente en ~5–8% pacientes adultos CF',
+        relevant_classes: null
+    },
+    {
+        name: 'Teratogenicidad (embarazo / anticoncepción)',
+        from_age: 14,
+        frequency: 'En cada visita (mujeres en edad fértil)',
+        note: 'Trikafta y Alyftrek: evitar en 1er trimestre — datos limitados. Ácido fólico obligatorio. Coordinar con obstetricia.',
+        relevant_classes: null
+    },
+];
+
+function renderMultisystemChecklist(variant, containerEl) {
+    if (!containerEl) return;
+
+    const cls = variant?.cftr_class;
+    const isOnModulator = variant?.eti_prediction === 'responsive' || variant?.alyftrek_prediction === 'responsive';
+
+    const items = CF_SCREENING_SCHEDULE.filter(item =>
+        !item.relevant_classes || !cls || item.relevant_classes.includes(cls)
+    );
+
+    containerEl.innerHTML = `
+        <div style="margin-top:14px;padding:12px 14px;border-radius:8px;
+             background:rgba(52,211,153,0.04);border:1px solid rgba(52,211,153,0.15);">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                <span style="font-size:13px;">📋</span>
+                <div>
+                    <div style="font-size:11px;font-weight:700;color:#34d399;">
+                        Seguimiento multisistémico FQ
+                    </div>
+                    <div style="font-size:9px;color:#4a6a8a;">
+                        Basado en guías ECFS/CFF 2023 · ${isOnModulator ? 'Paciente elegible para modulator' : 'Sin modulator CFTR aprobado'}
+                    </div>
+                </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+                ${items.map(item => `
+                    <div style="display:grid;grid-template-columns:1fr auto;gap:8px;
+                         padding:6px 8px;border-radius:5px;
+                         background:rgba(255,255,255,0.025);
+                         border:1px solid rgba(99,140,210,0.08);">
+                        <div>
+                            <div style="font-size:10px;font-weight:600;color:var(--text-primary);">
+                                ${item.name}
+                            </div>
+                            ${item.note ? `<div style="font-size:9px;color:#4a6a8a;margin-top:1px;line-height:1.4;">${item.note}</div>` : ''}
+                        </div>
+                        <div style="font-size:9px;color:#34d399;white-space:nowrap;padding-top:2px;text-align:right;">
+                            ${item.frequency}
+                            ${item.from_age > 0 ? `<div style="color:#2a4a6a;">desde ${item.from_age}a</div>` : ''}
+                        </div>
+                    </div>`).join('')}
+            </div>
+            <div style="margin-top:8px;font-size:9px;color:#1e3050;">
+                Esta tabla es orientativa. Adaptar según la situación clínica individual y los protocolos del centro.
+            </div>
+        </div>`;
+}
+Object.assign(window, { renderMultisystemChecklist, CF_SCREENING_SCHEDULE });
+
+
+// ═══════════════════════════════════════════════════════════════════════
+// FERTILITY & REPRODUCTIVE PATHWAY
+// Genotype-specific guidance for fertility and pregnancy in CF
+// Based on ECFS / SEGO / CFF consensus 2023
+// ═══════════════════════════════════════════════════════════════════════
+
+function renderFertilityPanel(variant, containerEl) {
+    if (!containerEl) return;
+
+    const cls = variant?.cftr_class;
+    const name = variant?.legacy_name || '';
+    const isClassIV_V = ['IV','V'].includes(cls);
+    const isClassI_II_III = ['I','II','III'].includes(cls);
+    const isR117H = /R117H/i.test(name);
+
+    // CBAVD risk by class
+    const cbavdRisk = isR117H ? 'Alto (>90% en varones con genotipo R117H / ACAF)'
+        : isClassIV_V ? 'Moderado-alto (60–80% varones Clase IV/V)'
+        : isClassI_II_III ? 'Muy alto (>95% varones Clase I/II/III)'
+        : 'Desconocido — clasificar variante primero';
+
+    const teratoText = `
+        <div style="margin-bottom:6px;font-size:10px;font-weight:700;color:#fbbf24;">⚠ Teratogenicidad moduladores CFTR</div>
+        <div style="font-size:10px;color:var(--text-secondary);line-height:1.6;">
+            <strong>Trikafta / Kaftrio (ETI):</strong> Datos animales muestran toxicidad reproductiva a altas dosis. 
+            Categoría Riesgo Embarazo: <strong>C</strong>. Evitar en 1er trimestre salvo beneficio claro. 
+            Continuar ácido fólico 5mg/día desde preconcepción.<br>
+            <strong>Alyftrek (VTD):</strong> Datos reproductivos aún limitados — misma precaución que ETI. 
+            Coordinar con Obstetricia y Unidad CF antes de gestación planificada.<br>
+            <strong>Kalydeco (IVA):</strong> Seguridad en embarazo mejor establecida. Mayor experiencia clínica.<br>
+            <strong>Lactancia:</strong> Todos los moduladores se excretan en leche materna — valorar individualmente.
+        </div>`;
+
+    containerEl.innerHTML = `
+        <div style="margin-top:10px;padding:12px 14px;border-radius:8px;
+             background:rgba(244,114,182,0.04);border:1px solid rgba(244,114,182,0.2);">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                <span style="font-size:13px;">🧬</span>
+                <div>
+                    <div style="font-size:11px;font-weight:700;color:#f472b6;">Fertilidad y reproducción</div>
+                    <div style="font-size:9px;color:#4a6a8a;">Basado en consenso ECFS/CFF/SEGO 2023</div>
+                </div>
+            </div>
+
+            <!-- Male fertility -->
+            <div style="margin-bottom:8px;padding:8px 10px;border-radius:6px;
+                 background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.15);">
+                <div style="font-size:10px;font-weight:700;color:#60a5fa;margin-bottom:4px;">
+                    Varones — Riesgo ACAF/CBAVD
+                </div>
+                <div style="font-size:10px;color:var(--text-secondary);line-height:1.5;">
+                    <strong>Riesgo CBAVD:</strong> ${cbavdRisk}<br>
+                    <strong>Espermograma:</strong> Recomendado antes de asumir fertilidad — discutir a partir de los 16 años<br>
+                    <strong>Preservación:</strong> Banco de esperma antes de iniciar moduladores (algunos datos sugieren mejoría de espermatogénesis con ETI)<br>
+                    <strong>Opciones:</strong> ICSI con biopsia testicular (TESE) — remitir a Andrología / Reproducción Asistida
+                </div>
+            </div>
+
+            <!-- Female fertility -->
+            <div style="margin-bottom:8px;padding:8px 10px;border-radius:6px;
+                 background:rgba(244,114,182,0.06);border:1px solid rgba(244,114,182,0.15);">
+                <div style="font-size:10px;font-weight:700;color:#f472b6;margin-bottom:4px;">
+                    Mujeres — Fertilidad y anticoncepción
+                </div>
+                <div style="font-size:10px;color:var(--text-secondary);line-height:1.5;">
+                    <strong>Fertilidad:</strong> Generalmente conservada, aunque el moco cervical espeso puede reducirla<br>
+                    <strong>Anticoncepción:</strong> Esencial mientras esté en moduladores — embarazo no planificado con moduladores activos: riesgo fetal desconocido<br>
+                    <strong>Planificación:</strong> Coordinar con Obstetricia CF-expert antes de suspender anticoncepción<br>
+                    <strong>FEV₁ mínimo:</strong> FEV₁ >60% generalmente recomendado antes de gestación — valorar individualmente
+                </div>
+            </div>
+
+            <!-- Teratogenicity -->
+            <div style="padding:8px 10px;border-radius:6px;
+                 background:rgba(251,191,36,0.05);border:1px solid rgba(251,191,36,0.2);">
+                ${teratoText}
+            </div>
+
+            <div style="margin-top:8px;font-size:9px;color:#1e3050;">
+                Remitir a Consulta Monográfica FQ antes de gestación planificada.
+                Notificar embarazo en curso al fabricante (registros de farmacovigilancia).
+            </div>
+        </div>`;
+}
+Object.assign(window, { renderFertilityPanel });
+
+
+// ═══════════════════════════════════════════════════════════════════════
+// AUTO-ANNOTATION ON SEARCH MISS
+// When a query misses the local index, attempt to look up the variant
+// in CFTR2 public API and ClinVar eutils, then create a stub record
+// in the DB for curator review. Reduces manual curation burden.
+// ═══════════════════════════════════════════════════════════════════════
+
+async function attemptAutoAnnotation(query, missId) {
+    if (!query || query.length < 3) return;
+    // Only attempt for things that look like a real variant name
+    const looksLikeVariant = /^[A-Z]\d+|^[a-z]\.\d|^\d+[+-]|^c\.\d/i.test(query);
+    if (!looksLikeVariant) return;
+
+    // 1. Try CFTR2 — public API search
+    let cftr2Data = null;
+    try {
+        const cftr2Res = await fetch(
+            `https://cftr2.org/api/v1/mutations?name=${encodeURIComponent(query)}&limit=1`,
+            { signal: AbortSignal.timeout(8000), headers: { Accept: 'application/json' } }
+        );
+        if (cftr2Res.ok) {
+            const data = await cftr2Res.json();
+            cftr2Data = data?.results?.[0] || data?.[0] || null;
+        }
+    } catch(e) { /* CFTR2 may not have a public REST API — fallback */ }
+
+    // 2. Try NCBI ClinVar eutils
+    let clinvarData = null;
+    try {
+        const cvRes = await fetch(
+            `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=clinvar&term=${encodeURIComponent(query + '[varname] AND CFTR[gene]')}&retmax=1&retmode=json`,
+            { signal: AbortSignal.timeout(8000) }
+        );
+        if (cvRes.ok) {
+            const data = await cvRes.json();
+            const ids = data?.esearchresult?.idlist || [];
+            if (ids.length > 0) {
+                // Fetch the ClinVar summary
+                const sumRes = await fetch(
+                    `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=clinvar&id=${ids[0]}&retmode=json`,
+                    { signal: AbortSignal.timeout(8000) }
+                );
+                if (sumRes.ok) {
+                    const sumData = await sumRes.json();
+                    clinvarData = sumData?.result?.[ids[0]] || null;
+                }
+            }
+        }
+    } catch(e) { /* ClinVar CORS or timeout */ }
+
+    // 3. If we found anything, create a stub in the DB
+    if (cftr2Data || clinvarData) {
+        const stub = {
+            legacy_name:       query,
+            cftr_class:        cftr2Data?.cftr_class || null,
+            eti_prediction:    clinvarData?.clinical_significance?.includes('pathogenic') ? 'unknown' : 'unknown',
+            alyftrek_prediction: 'unknown',
+            source_summary:    'AUTO_ANNOTATION: ' +
+                               (cftr2Data ? 'CFTR2_API ' : '') +
+                               (clinvarData ? `ClinVar:${clinvarData.accession}` : ''),
+            final_determination: clinvarData?.clinical_significance || 'Variant of unknown significance',
+            clinical_alert:    '⚠️ Auto-annotated stub — curator review required before clinical use',
+            class_confidence:  'NEEDS_REVIEW',
+        };
+
+        try {
+            const res = await fetch(
+                `${CONFIG.SUPABASE.URL}/rest/v1/variants`,
+                {
+                    method: 'POST',
+                    headers: {
+                        apikey: CONFIG.SUPABASE.KEY,
+                        Authorization: `Bearer ${CONFIG.SUPABASE.KEY}`,
+                        'Content-Type': 'application/json',
+                        Prefer: 'return=representation',
+                    },
+                    body: JSON.stringify(stub)
+                }
+            );
+            if (res.ok) {
+                const created = await res.json();
+                const newVariant = Array.isArray(created) ? created[0] : created;
+
+                // Update miss_queue with the new variant ID
+                if (missId && newVariant?.id) {
+                    await fetch(
+                        `${CONFIG.SUPABASE.URL}/rest/v1/search_miss_queue?id=eq.${missId}`,
+                        {
+                            method: 'PATCH',
+                            headers: {
+                                apikey: CONFIG.SUPABASE.KEY,
+                                Authorization: `Bearer ${CONFIG.SUPABASE.KEY}`,
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                status: 'auto_annotated',
+                                resolved_variant_id: newVariant.id,
+                                notes: `Auto-annotated stub created. Sources: ${stub.source_summary}`
+                            })
+                        }
+                    );
+                }
+
+                // Add to local index so it can be found immediately
+                if (newVariant && STATE.variants) {
+                    STATE.variants.push(newVariant);
+                    STATE.variantsById.set(newVariant.id, newVariant);
+                    STATE.variantsByLegacyName.set(newVariant.legacy_name, newVariant);
+                    buildSearchIndex(); // rebuild index to include stub
+                    showNotification(
+                        `Variante "${query}" localizada en fuentes externas y añadida para revisión del curador`,
+                        'info', 5000
+                    );
+                }
+            }
+        } catch(e) {
+            console.warn('[NeumuacFQ AutoAnnotate] Stub creation failed:', e.message);
+        }
+    }
+}
+Object.assign(window, { attemptAutoAnnotation });
+
+
+// Update dosing note in PGP based on weight + age input
+function pgpUpdateDosingNote() {
+    const weight = parseFloat(document.getElementById('pgpWeight')?.value);
+    const age    = parseFloat(document.getElementById('pgpAge')?.value);
+    const el     = document.getElementById('pgpDosingNote');
+    if (!el) return;
+    if (isNaN(weight) && isNaN(age)) { el.textContent = ''; return; }
+
+    const notes = [];
+
+    // Age gate for modulators
+    if (!isNaN(age)) {
+        if (age < 2)  notes.push('⛔ < 2 años: ningún modulator CFTR aprobado');
+        else if (age < 4) notes.push('⚠ 2–3 años: Trikafta aprobado (EMA ≥2a) — Alyftrek no (≥6a)');
+        else if (age < 6) notes.push('⚠ 4–5 años: Kalydeco gránulos (si indicado) · Trikafta ≥2a · Alyftrek ≥6a');
+        else if (age < 12) notes.push('ℹ 6–11 años: Alyftrek, Trikafta, Kalydeco aprobados');
+    }
+
+    // Weight-based Alyftrek dosing
+    if (!isNaN(weight)) {
+        if (weight < 20)       notes.push('Alyftrek: gránulos pediátricos (<20 kg)');
+        else if (weight < 40)  notes.push(`Alyftrek: 1 comprimido/día (20–<40 kg · ${weight}kg)`);
+        else                   notes.push(`Alyftrek: 2 comprimidos/día (≥40 kg · ${weight}kg)`);
+
+        // Trikafta dosing
+        if (weight < 30)       notes.push('Trikafta: revisar ficha técnica para peso <30 kg');
+        else if (weight < 40)  notes.push('Trikafta: formulación pediátrica — confirmar dosis con SmPC');
+    }
+
+    el.innerHTML = notes.map(n => `<div>${n}</div>`).join('');
+}
+Object.assign(window, { pgpUpdateDosingNote });
+
 function getSwClPrediction(v1, v2) {
     // Use the best evidence tier between the two alleles
     const tier1 = v1?.alyftrek_evidence_tier || '';
@@ -37265,15 +38320,75 @@ const CFTR_DRUG_INTERACTIONS = {
     }
 };
 
+
+// Wire drug checker input to the DB-backed checkModulatorInteractions
+function cgcCheckInteractions(drugList) {
+    const el = document.getElementById('cgcInteractionResult');
+    if (!el) return;
+    if (!drugList || !drugList.trim()) { el.innerHTML = ''; return; }
+
+    const alerts = checkModulatorInteractions(drugList);
+    if (!alerts.length) {
+        el.innerHTML = `<div style="font-size:10px;color:#34d399;padding:4px 0;">
+            ✓ No interacciones críticas conocidas para los moduladores CFTR identificadas</div>`;
+        return;
+    }
+
+    el.innerHTML = alerts.map(a => {
+        const col = a.severity === 'contraindicated' ? '#f87171'
+                  : a.severity === 'caution' ? '#fbbf24' : '#60a5fa';
+        const icon = a.severity === 'contraindicated' ? '🚫' : a.severity === 'caution' ? '⚠' : 'ℹ';
+        return `<div style="padding:6px 8px;margin-top:4px;border-radius:6px;
+                     background:rgba(${col==='#f87171'?'248,113,113':col==='#fbbf24'?'251,191,36':'96,165,250'},.07);
+                     border:1px solid rgba(${col==='#f87171'?'248,113,113':col==='#fbbf24'?'251,191,36':'96,165,250'},.25);">
+            <div style="font-size:10px;font-weight:700;color:${col};margin-bottom:2px;">
+                ${icon} ${a.title || (a.matched.join(', ') + ' — ' + a.severity.toUpperCase())}
+                ${a.fromDB ? '<span style="font-size:8px;opacity:.5;margin-left:4px;">DB</span>' : ''}
+            </div>
+            <div style="font-size:10px;color:var(--text-secondary);line-height:1.4;">${a.guidance}</div>
+            ${a.monitor ? `<div style="font-size:9px;color:#4a6a8a;margin-top:2px;">📊 ${a.monitor}</div>` : ''}
+            ${a.source ? `<div style="font-size:8px;color:#2a4a6a;margin-top:1px;">Fuente: ${a.source}</div>` : ''}
+        </div>`;
+    }).join('');
+}
+Object.assign(window, { cgcCheckInteractions });
+
 function checkModulatorInteractions(drugList) {
     if (!drugList || !drugList.trim()) return [];
     const drugs = drugList.toLowerCase().split(/[,;\n]+/).map(d => d.trim()).filter(Boolean);
     const found = [];
+
+    // Priority: DB drug_safety_alerts (populated, curated, Spanish)
+    const dbAlerts = STATE.drugSafetyAlerts || [];
+    if (dbAlerts.length > 0) {
+        const seen = new Set();
+        for (const alert of dbAlerts) {
+            if (!alert.is_active) continue;
+            const key = alert.drug_name.toLowerCase();
+            const match = drugs.find(d => d.includes(key) || key.includes(d));
+            if (match && !seen.has(alert.drug_name)) {
+                seen.add(alert.drug_name);
+                // Map DB schema to the format CGC expects
+                const severityMap = { BOXED: 'contraindicated', SERIOUS: 'contraindicated', MODERATE: 'caution', INFORMATIONAL: 'informational' };
+                found.push({
+                    type:      alert.alert_type,
+                    severity:  severityMap[alert.severity] || 'caution',
+                    matched:   [match],
+                    guidance:  alert.description,
+                    monitor:   alert.monitoring_schedule || null,
+                    title:     alert.title,
+                    source:    alert.source_label,
+                    fromDB:    true,
+                });
+            }
+        }
+        if (found.length > 0) return found;
+    }
+
+    // Fallback: hardcoded CFTR_DRUG_INTERACTIONS
     for (const [type, data] of Object.entries(CFTR_DRUG_INTERACTIONS)) {
         const matches = drugs.filter(d => data.drugs.some(k => d.includes(k) || k.includes(d)));
-        if (matches.length > 0) {
-            found.push({ ...data, matched: matches, type });
-        }
+        if (matches.length > 0) found.push({ ...data, matched: matches, type });
     }
     return found;
 }
@@ -37778,7 +38893,7 @@ function exportIRBPackage() {
             export_date:    dateStr,
             variant_count:  variants.length,
             filter_applied: STATE.view.activeFilters || [],
-            disclaimer:     'For research and clinical use only. NeumuacFQ v4. Verify all classifications before clinical decision-making.'
+            disclaimer:     'For research and clinical use only. ' + `NeumuacFQ ${CONFIG.VERSION || 'v4'}` + '. Verificar todas las clasificaciones antes de tomar decisiones clínicas.'
         },
         variants: variants.map(v => {
             const gap = calculateGapScore(v);
