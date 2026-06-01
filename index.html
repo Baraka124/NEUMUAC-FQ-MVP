@@ -7080,26 +7080,34 @@
                 <div class="dash-card">
                     <div class="dash-card-title">Distribución por clase</div>
                     <div style="position:relative;height:280px;width:100%;">
-                        <canvas id="classChart"></canvas>
+                        <div id="classChartLoading" style="position:absolute;inset:0;display:flex;
+                             align-items:center;justify-content:center;
+                             background:rgba(255,255,255,.02);border-radius:6px;">
+                            <div style="font-size:10px;color:rgba(255,255,255,.2);">
+                                <i class="fas fa-spinner fa-spin" style="margin-right:6px;font-size:9px;"></i>
+                                Cargando gráfico…
+                            </div>
+                        </div>
+                        <canvas id="classChart" style="max-height:260px;"></canvas>
                     </div>
                 </div>
                 <div class="dash-card">
                     <div class="dash-card-title">Calidad de evidencia ETI</div>
                     <div style="position:relative;height:280px;width:100%;">
-                        <canvas id="responseChart"></canvas>
+                        <canvas id="responseChart" style="max-height:260px;"></canvas>
                     </div>
                 </div>
             </div>
             <div class="dash-card">
                 <div class="dash-card-title">Brechas de curationField <span style="font-size:10px;color:var(--text-tertiary);font-weight:400;margin-left:6px;">pulsar barra para filtrar</span></div>
                 <div style="position:relative;height:80px;width:100%;">
-                    <canvas id="completionChart"></canvas>
+                    <canvas id="completionChart" style="max-height:80px;"></canvas>
                     </div>
                     <!-- Validation coverage chart — NEW Batch2 -->
                     <div class="dashboard-chart-card">
                         <div class="dash-card-title" style="padding:0 0 8px;">Demanda vs cobertura de validación <span style="font-size:10px;color:#f87171;font-weight:400;">▲ = riesgo</span></div>
                         <div style="height:160px;position:relative;">
-                            <canvas id="validationChart"></canvas>
+                            <canvas id="validationChart" style="max-height:260px;"></canvas>
                         </div>
                     </div>
                     <div style="display:none;"><!-- placeholder close -->
@@ -7512,6 +7520,14 @@
 
         <!-- ── Time scrubber ── -->
         <div style="display:flex;align-items:center;gap:10px;padding:7px 14px;border-top:1px solid rgba(255,255,255,.06);background:#0c1422;flex-shrink:0;">
+            <!-- Playback control -->
+            <button id="cfsmPlayBtn" onclick="cfsmTogglePlayback()"
+                title="Animar datos en el tiempo"
+                style="background:none;border:1px solid rgba(41,121,255,.25);border-radius:4px;
+                color:rgba(41,121,255,.6);font-size:9px;padding:0 7px;cursor:pointer;
+                height:20px;display:flex;align-items:center;gap:3px;flex-shrink:0;">
+                <span id="cfsmPlayIcon">▶</span>
+            </button>
             <span style="font-size:8.5px;color:rgba(255,255,255,.2);font-family:var(--font-mono);white-space:nowrap;" id="cfsmTimeStart">—</span>
             <input type="range" id="cfsmTimeScrubber" min="0" max="100" value="100"
                 style="flex:1;height:3px;accent-color:#2979ff;cursor:pointer;"
@@ -7570,14 +7586,36 @@
                     <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px;">
                         <div style="font-size:11px;font-weight:600;color:var(--text-primary);margin-bottom:8px;">Curation velocity</div>
                         <div id="velocityTrackerContainer"></div>
+                    <!-- Usage growth chart -->
+                    <div style="margin-top:16px;">
+                        <div style="font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+                             color:var(--text-tertiary);margin-bottom:8px;">Crecimiento de búsquedas (semanal)</div>
+                        <div id="usageGrowthChartContainer" style="background:rgba(255,255,255,.02);
+                             border-radius:8px;padding:10px;border:1px solid rgba(255,255,255,.04);">
+                            <div style="font-size:10px;color:var(--text-tertiary);padding:20px 0;text-align:center;">
+                                Abra esta pestaña para cargar el gráfico
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Regional miss chart -->
+                    <div style="margin-top:16px;">
+                        <div style="font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+                             color:var(--text-tertiary);margin-bottom:8px;">Brechas clínicas por región</div>
+                        <div id="regionalMissChartContainer" style="background:rgba(255,255,255,.02);
+                             border-radius:8px;padding:10px;border:1px solid rgba(255,255,255,.04);">
+                            <div style="font-size:10px;color:var(--text-tertiary);padding:20px 0;text-align:center;">
+                                Abra esta pestaña para cargar el gráfico
+                            </div>
+                        </div>
+                    </div>
                     </div>
                 </div>
             </div>
             <!-- IMPROVEMENT 5: Population equity dashboard -->
             <div id="siPanelEquity" class="si-panel" style="display:none;">
                 <div style="padding:16px 20px 8px;">
-                    <div style="font-size:12px;font-weight:600;color:var(--text-primary);margin-bottom:4px;">Treatment access equity</div>
-                    <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:12px;">Population-level modulator eligibility across ${(STATE.variants||[]).length.toLocaleString()} CFTR variants</div>
+                    <div style="font-size:12px;font-weight:600;color:var(--text-primary);margin-bottom:4px;">Equidad de acceso al tratamiento</div>
+                    <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:12px;">Elegibilidad de moduladores a nivel poblacional · ${(STATE.variants||[]).length.toLocaleString()} CFTR variants</div>
                     <div id="equityDashboardContainer"></div>
                 </div>
             </div>
@@ -16199,14 +16237,14 @@ function cfsmBuild() {
     if (st.mode === 'miss') {
         setTimeout(() => {
             if (!st._g) return;
-            st._g.selectAll('.cfsm-circle').each(function() {
+            st._g.selectAll('.cfsm-node').each(function() {
                 const key = d3.select(this.parentNode).attr('data-key');
                 const pt = st.points.find(p => p.key === key);
                 if (!pt) return;
                 const total = pt.hits + pt.misses;
                 const missPct = total > 0 ? pt.misses / total : 0;
                 const mc = missPct > 0.7 ? '#f87171' : missPct > 0.4 ? '#fbbf24' : '#34d399';
-                d3.select(this).attr('fill', mc).attr('stroke', mc);
+                d3.select(this).selectAll('path').attr('fill', mc + '22').attr('stroke', mc);
             });
             const ml = document.getElementById('cfsmModeLabel');
             if (ml) ml.textContent = 'MISS RATE — red=high miss · green=high hit';
@@ -16990,6 +17028,39 @@ function cfsmZoomRegion(region) {
             .translate(W/2 - fitScale * cx, H/2 - fitScale * cy)
             .scale(fitScale));
 }
+
+// ── Time playback — animates the scrubber ─────────────────────────
+let _cfsmPlaybackTimer = null;
+function cfsmTogglePlayback() {
+    const btn = document.getElementById('cfsmPlayBtn');
+    const icon = document.getElementById('cfsmPlayIcon');
+    const scrubber = document.getElementById('cfsmTimeScrubber');
+    if (!scrubber) return;
+    if (_cfsmPlaybackTimer) {
+        clearInterval(_cfsmPlaybackTimer);
+        _cfsmPlaybackTimer = null;
+        if (icon) icon.textContent = '▶';
+        if (btn) btn.style.color = 'rgba(41,121,255,.6)';
+        return;
+    }
+    let pct = parseInt(scrubber.value, 10);
+    if (pct >= 99) { pct = 0; scrubber.value = 0; cfsmScrub(0); }
+    if (icon) icon.textContent = '⏸';
+    if (btn) btn.style.color = '#60a5fa';
+    _cfsmPlaybackTimer = setInterval(() => {
+        pct = Math.min(100, pct + 1);
+        scrubber.value = pct;
+        cfsmScrub(pct);
+        if (pct >= 100) {
+            clearInterval(_cfsmPlaybackTimer);
+            _cfsmPlaybackTimer = null;
+            if (icon) icon.textContent = '▶';
+            if (btn) btn.style.color = 'rgba(41,121,255,.6)';
+        }
+    }, 80);
+}
+Object.assign(window, { cfsmTogglePlayback });
+
 
 function cfsmScrub(pct) {
     if (!window._cfsm) return;
@@ -21864,6 +21935,13 @@ async function executeImportBatch(validatedRows, resultsEl) {
     buildSearchIndex();
     calculateMasterStats();
     updateFilterChips();
+    // Auto-refresh home dashboard KPI strip if visible
+    const kpiStrip = document.getElementById('homeKpiStrip');
+    if (kpiStrip && typeof renderHomeDashboard === 'function') {
+        // Debounce to avoid excessive re-renders
+        clearTimeout(window._kpiRefreshTimer);
+        window._kpiRefreshTimer = setTimeout(() => renderHomeDashboard(), 500);
+    }
 
     // Write audit log
     writeAuditLog('updated', 'bulk_import', null, null,
@@ -22358,6 +22436,21 @@ function setSITab(name, btn) {
     else if (name === 'velocity_tracker') {
         const vc = document.getElementById('velocityTrackerContainer');
         if (vc) renderCurationVelocity(vc);
+        // Wire usage growth and regional miss charts if containers exist
+        const ugc = document.getElementById('usageGrowthChartContainer');
+        if (ugc && !ugc._rendered) {
+            ugc._rendered = true;
+            ugc.innerHTML = '<canvas id="usageGrowthChart" style="width:100%;height:180px;"></canvas>';
+            if (typeof renderUsageGrowthChart === 'function')
+                renderUsageGrowthChart('usageGrowthChart').catch(() => {});
+        }
+        const rmc = document.getElementById('regionalMissChartContainer');
+        if (rmc && !rmc._rendered) {
+            rmc._rendered = true;
+            rmc.innerHTML = '<canvas id="regionalMissChart" style="width:100%;height:200px;"></canvas>';
+            if (typeof renderRegionalMissChart === 'function')
+                renderRegionalMissChart('regionalMissChart').catch(() => {});
+        }
     }
     // Load assessments KPI whenever analytics overview is shown
     if (name === 'overview' || name === 'priority') loadAssessmentsKpi();
@@ -23775,7 +23868,19 @@ function lazyLoadChartJs() {
 }
 
 function renderCharts() {
-    if (!window.Chart) return;
+    if (!window.Chart) {
+        // Chart.js not yet loaded — show shimmer loaders in each canvas container
+        ['classChart','responseChart','completionChart','validationChart'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el && el.parentElement) {
+                el.parentElement.style.background = 'rgba(255,255,255,.02)';
+                el.parentElement.style.animation = 'shimmer 1.5s infinite';
+            }
+        });
+        // Retry after CDN loads
+        setTimeout(() => { if (window.Chart) renderCharts(); }, 1500);
+        return;
+    }
     const s = STATE.masterStats;
     const v = STATE.variants;
 
@@ -23798,6 +23903,7 @@ function renderCharts() {
         const litCount    = v.filter(x => x.eti_evidence_tier === 'literature').length;
         const insufCount  = v.filter(x => !x.eti_evidence_tier
                                        || x.eti_evidence_tier === 'insufficient').length;
+        document.getElementById('classChartLoading')?.remove();
         STATE.ui.charts.classChart = new Chart(cc, {
             type: 'doughnut',
             data: {
@@ -23819,6 +23925,7 @@ function renderCharts() {
                 labels: ['I','II','III','IV','V','VI','—'],
             },
             options: {
+                responsive: true, maintainAspectRatio: false,
                 responsive: true, maintainAspectRatio: false, cutout: '55%',
                 plugins: {
                     legend: { position:'bottom', labels:{ color:TICK, font:{size:10},
@@ -23864,6 +23971,7 @@ function renderCharts() {
         const literature    = v.filter(x => x.eti_evidence_tier === 'literature').length;
         const insufficient  = v.filter(x => !x.eti_evidence_tier
                                          || x.eti_evidence_tier === 'insufficient').length;
+        document.getElementById('responseChartLoading')?.remove();
         STATE.ui.charts.responseChart = new Chart(rc, {
             type: 'doughnut',
             data: {
@@ -23878,6 +23986,7 @@ function renderCharts() {
                 }]
             },
             options: {
+                responsive: true, maintainAspectRatio: false,
                 responsive: true, maintainAspectRatio: false,
                 circumference: 180, rotation: -90, cutout: '70%',
                 plugins: {
@@ -24018,6 +24127,7 @@ function renderCharts() {
                 danger: (x.search_hit_count||0) >= 5 && !(x.validation_count||0),
             }));
         const maxDemand = Math.max(...scatter.map(p => p.x), 1);
+        document.getElementById('validationChartLoading')?.remove();
         STATE.ui.charts.validationChart = new Chart(vc, {
             type: 'scatter',
             data: {
@@ -24035,6 +24145,7 @@ function renderCharts() {
                 }]
             },
             options: {
+                responsive: true, maintainAspectRatio: false,
                 responsive: true, maintainAspectRatio: false,
                 plugins: {
                     legend: { labels:{ color:TICK, font:{size:10}, boxWidth:10,
@@ -36299,16 +36410,17 @@ async function renderCurationVelocity(container) {
         const weekAgo = new Date(now - 7 * 86400000);
         const monthAgo = new Date(now - 30 * 86400000);
 
-        const thisWeek = rows.filter(r => new Date(r.validated_count_at) > weekAgo).length;
-        const thisMonth = rows.filter(r => new Date(r.validated_count_at) > monthAgo).length;
+        // DB field is created_at (not validated_at or validated_count_at)
+        const thisWeek = rows.filter(r => new Date(r.created_at) > weekAgo).length;
+        const thisMonth = rows.filter(r => new Date(r.created_at) > monthAgo).length;
 
         // Build 30-day sparkline
         const days = Array.from({length:30}, (_, i) => {
             const d = new Date(now - (29-i) * 86400000);
             return { date: d, count: 0 };
         });
-        rows.filter(r => new Date(r.validated_count_at) > monthAgo).forEach(r => {
-            const d = new Date(r.validated_count_at);
+        rows.filter(r => new Date(r.created_at) > monthAgo).forEach(r => {
+            const d = new Date(r.created_at);
             const idx = Math.floor((d - monthAgo) / 86400000);
             if (idx >= 0 && idx < 30) days[idx].count++;
         });
