@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 import { RouterLink, RouterView, useRoute } from 'vue-router';
 import { sections } from './router';
 import {authController} from './services/authSession';
@@ -7,6 +7,33 @@ import {readConfigFromEnvironment} from './services/liveVariants';
 
 const route = useRoute();
 const mobileMenuOpen = ref(false);
+const sidebarCollapsed = ref(false);
+const NAV_STORAGE_KEY = 'nfq-sidebar-collapsed-v1';
+let compactQuery: MediaQueryList | null = null;
+let manualPreference: boolean | null = null;
+
+function syncSidebarToViewport(): void {
+  sidebarCollapsed.value = manualPreference ?? Boolean(compactQuery?.matches);
+}
+
+onMounted(() => {
+  compactQuery = window.matchMedia('(max-width: 1180px)');
+  try {
+    const stored = window.localStorage.getItem(NAV_STORAGE_KEY);
+    manualPreference = stored === 'true' ? true : stored === 'false' ? false : null;
+  } catch { manualPreference = null; }
+  syncSidebarToViewport();
+  compactQuery.addEventListener('change', syncSidebarToViewport);
+});
+
+onUnmounted(() => compactQuery?.removeEventListener('change', syncSidebarToViewport));
+
+function toggleSidebar(): void {
+  sidebarCollapsed.value = !sidebarCollapsed.value;
+  manualPreference = sidebarCollapsed.value;
+  try { window.localStorage.setItem(NAV_STORAGE_KEY, String(manualPreference)); }
+  catch { /* Optional UI preference only; private storage may be unavailable. */ }
+}
 const availableSections = sections.slice(0, 2);
 // A configured endpoint does not mean a successful authenticated connection.
 const sourceConfigured = Boolean(readConfigFromEnvironment());
@@ -16,25 +43,58 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
 </script>
 
 <template>
-  <div class="app-frame" @keydown.esc="closeNavigation">
+  <div class="app-frame" :class="{ 'sidebar-collapsed': sidebarCollapsed }" @keydown.esc="closeNavigation">
     <a class="skip-link" href="#main">Skip to main content</a>
 
     <aside class="sidebar" aria-label="Application navigation">
-      <RouterLink class="wordmark" to="/" aria-label="NeumuacFQ overview">
+      <RouterLink class="wordmark" to="/" aria-label="NeumuacFQ overview" title="NeumuacFQ overview">
         <span class="wordmark-icon" aria-hidden="true"><span class="mark-line"></span><span class="mark-line"></span><span class="mark-line"></span></span>
-        <span class="wordmark-text"><strong>NeumuacFQ</strong><small>CFTR research intelligence</small></span>
+        <span v-if="!sidebarCollapsed" class="wordmark-text"><strong>NeumuacFQ</strong><small>CFTR research intelligence</small></span>
       </RouterLink>
-      <div class="sidebar-caption">WORKSPACES</div>
-      <nav class="workspace-nav" aria-label="Workspaces">
+      <button class="sidebar-toggle" type="button" aria-controls="primary-workspace-nav"
+        :aria-expanded="!sidebarCollapsed"
+        :aria-label="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+        :title="sidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'"
+        @click="toggleSidebar">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path v-if="sidebarCollapsed" d="m9 5 7 7-7 7"/>
+          <path v-else d="m15 5-7 7 7 7"/>
+        </svg>
+      </button>
+      <div v-if="!sidebarCollapsed" class="sidebar-caption">WORKSPACES</div>
+      <nav id="primary-workspace-nav" class="workspace-nav" aria-label="Workspaces">
         <RouterLink v-for="(section, index) in availableSections" :key="section.path" :to="section.path"
+          :aria-label="section.name" :title="sidebarCollapsed ? section.name : undefined"
           :class="{ 'variant-route-active': section.path === '/variants' && route.path.startsWith('/variants/') }">
-          <span class="nav-index" aria-hidden="true">{{ String(index + 1).padStart(2, '0') }}</span>
-          <span>{{ section.name }}</span>
+          <svg class="nav-glyph" viewBox="0 0 24 24" width="21" height="21" fill="none"
+            stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <template v-if="section.path === '/'">
+              <rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/>
+              <rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/>
+              <rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/>
+              <rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/>
+            </template>
+            <template v-else>
+              <path d="M7 3c11 5 11 13 0 18M17 3C6 8 6 16 17 21"/>
+              <path d="M9 6h6M7.5 10h9M7.5 14h9M9 18h6"/>
+            </template>
+          </svg>
+          <span v-if="!sidebarCollapsed" class="nav-index" aria-hidden="true">{{ String(index + 1).padStart(2, '0') }}</span>
+          <span v-if="!sidebarCollapsed" class="nav-name">{{ section.name }}</span>
         </RouterLink>
       </nav>
-      <RouterLink class="staff-access-link" to="/admin">Research administration <span aria-hidden="true">→</span></RouterLink>
-      <p class="sidebar-roadmap">Evidence, clinical review, genotype and reporting tools are in development.</p>
-      <div class="sidebar-base">
+      <RouterLink class="staff-access-link" to="/admin" aria-label="Research administration"
+        :title="sidebarCollapsed ? 'Research administration' : undefined">
+        <svg class="nav-glyph" viewBox="0 0 24 24" width="21" height="21" fill="none"
+          stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 3 19 6v5c0 5-3.5 8.3-7 10-3.5-1.7-7-5-7-10V6l7-3Z"/>
+          <path d="M9 12h6m-3-3v6"/>
+        </svg>
+        <span v-if="!sidebarCollapsed" class="staff-link-name">Research administration <span aria-hidden="true">→</span></span>
+      </RouterLink>
+      <p v-if="!sidebarCollapsed" class="sidebar-roadmap">Evidence, clinical review, genotype and reporting tools are in development.</p>
+      <div v-if="!sidebarCollapsed" class="sidebar-base">
         <span class="sidebar-rule" aria-hidden="true"></span>
         <strong>Research environment</strong>
         <span>Modernization · read-only access</span>
@@ -65,6 +125,7 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
         <RouterLink v-for="section in availableSections" :key="section.path" :to="section.path" @click="closeNavigation">
           {{ section.name }}
         </RouterLink>
+        <RouterLink class="mobile-admin-link" to="/admin" @click="closeNavigation">Research administration</RouterLink>
       </nav>
 
       <main id="main" tabindex="-1">

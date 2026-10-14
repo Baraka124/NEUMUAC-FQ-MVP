@@ -56,3 +56,30 @@ test('public research needs no sign-in and admin never exposes unapproved writes
   await expect(page.getByRole('link', { name: 'Explore public variants' })).toHaveAttribute('href', '#/variants');
   await expect(page.locator('html')).toHaveJSProperty('scrollWidth', await page.locator('html').evaluate(e => e.clientWidth));
 });
+
+
+test('sidebar expands, contracts and persists preference without hiding navigation', async ({ page }) => {
+  await page.goto('/#/variants');
+  const wideDesktop = page.viewportSize()!.width > 1180;
+  if (page.viewportSize()!.width > 760) {
+    if (!wideDesktop) {
+      await expect(page.locator('.app-frame')).toHaveClass(/sidebar-collapsed/);
+      await page.getByRole('button',{name:'Expand sidebar'}).click();
+    }
+    const toggle = page.getByRole('button',{name:'Collapse sidebar'});
+    await expect(toggle).toBeVisible();
+    await toggle.click();
+    await expect(page.locator('.app-frame')).toHaveClass(/sidebar-collapsed/);
+    await expect(page.getByRole('button', { name: 'Expand sidebar' })).toHaveAttribute('aria-expanded','false');
+    await expect(page.getByRole('navigation',{name:'Workspaces'}).getByRole('link',{name:'Variants'})).toBeVisible();
+    await page.reload();
+    await expect(page.locator('.app-frame')).toHaveClass(/sidebar-collapsed/);
+    await page.getByRole('button',{name:'Expand sidebar'}).click();
+    await expect(page.locator('.app-frame')).not.toHaveClass(/sidebar-collapsed/);
+  } else {
+    await expect(page.getByRole('button',{name:'Collapse sidebar'})).toBeHidden();
+    await page.getByRole('button',{name:/workspaces/i}).click();
+    await expect(page.getByRole('navigation',{name:'Mobile workspaces'}).getByRole('link',{name:'Research administration'})).toBeVisible();
+  }
+  await expect(page.locator('html')).toHaveJSProperty('scrollWidth',await page.locator('html').evaluate(e=>e.clientWidth));
+});
