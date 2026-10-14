@@ -50,3 +50,17 @@ it('reads legacy public variants table using GET-only allowlisted columns in dev
  expect(calls[0].init.method).toBe('GET');
  expect(calls[0].init.credentials).toBe('omit');
 });
+
+it('applies actual class I and unclassified filters at the database before paging',async()=>{
+ const urls:string[]=[];
+ const transport=vi.fn(async(url:string)=>{urls.push(url);return new Response('[]',{status:200})});
+ const src=createReadOnlyRepository({...config,readTable:'variants'},transport as typeof fetch);
+ await src.list({query:'',page:0,classFilter:'I',sort:'recent-record'});
+ await src.list({query:'',page:1,classFilter:'unclassified',sort:'name-desc'});
+ const a=new URL(urls[0]),b=new URL(urls[1]);
+ expect(a.searchParams.get('cftr_class')).toBe('eq.I');
+ expect(a.searchParams.get('order')).toBe('id.desc');
+ expect(b.searchParams.get('cftr_class')).toBe('is.null');
+ expect(b.searchParams.get('offset')).toBe('40');
+ expect(b.searchParams.get('order')).toBe('legacy_name.desc,id.asc');
+});
