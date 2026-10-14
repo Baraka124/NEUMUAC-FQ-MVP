@@ -1,14 +1,30 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
-import { RouterLink, RouterView, useRoute } from 'vue-router';
-import { sections } from './router';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router';
+import { researchWorkspaces, researchShortcuts } from './domain/researchWorkspaces';
 import {authController} from './services/authSession';
 import {readConfigFromEnvironment} from './services/liveVariants';
 
 const route = useRoute();
+const router=useRouter();
+function goToShortcut(path:string){closeLauncher();void router.push(path);}
 const routeName = computed(() => availableSections.find(section => section.path===route.path || (section.path==='/variants'&&route.path.startsWith('/variants/')))?.name || (route.path==='/admin'?'Administration':route.path==='/sign-in'?'Staff sign-in':'Research workspace'));
 const isHome = computed(() => route.path==='/');
 const mobileMenuOpen = ref(false);
+const launcherOpen=ref(false);
+const launcherQuery=ref('');
+const launcherInput=ref<HTMLInputElement|null>(null);
+const launcherResults=computed(()=>[...researchWorkspaces,...researchShortcuts].filter(item=>{
+ const q=launcherQuery.value.trim().toLocaleLowerCase();
+ return !q||[item.name,item.description,...item.keywords].some(v=>v.toLocaleLowerCase().includes(q));
+}));
+function openLauncher(){mobileMenuOpen.value=false;launcherQuery.value='';launcherOpen.value=true;void nextTick(()=>launcherInput.value?.focus());}
+function closeLauncher(){launcherOpen.value=false;}
+function keyboardShortcut(e:KeyboardEvent){
+ if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();launcherOpen.value?closeLauncher():openLauncher();}
+ if(e.key==='Escape'){closeLauncher();closeNavigation();}
+}
+
 const sidebarCollapsed = ref(false);
 const NAV_STORAGE_KEY = 'nfq-sidebar-collapsed-v1';
 let compactQuery: MediaQueryList | null = null;
@@ -26,9 +42,10 @@ onMounted(() => {
   } catch { manualPreference = null; }
   syncSidebarToViewport();
   compactQuery.addEventListener('change', syncSidebarToViewport);
+  window.addEventListener('keydown',keyboardShortcut);
 });
 
-onUnmounted(() => compactQuery?.removeEventListener('change', syncSidebarToViewport));
+onUnmounted(() => {compactQuery?.removeEventListener('change', syncSidebarToViewport);window.removeEventListener('keydown',keyboardShortcut);});
 
 function toggleSidebar(): void {
   sidebarCollapsed.value = !sidebarCollapsed.value;
@@ -36,10 +53,10 @@ function toggleSidebar(): void {
   try { window.localStorage.setItem(NAV_STORAGE_KEY, String(manualPreference)); }
   catch { /* Optional UI preference only; private storage may be unavailable. */ }
 }
-const availableSections = sections.filter(section => ['/', '/variants', '/evidence', '/genotype', '/intelligence'].includes(section.path));
+const availableSections = researchWorkspaces;
 // A configured endpoint does not mean a successful authenticated connection.
 const sourceConfigured = Boolean(readConfigFromEnvironment());
-watch(() => route.fullPath, () => { mobileMenuOpen.value = false; });
+watch(() => route.fullPath, () => { mobileMenuOpen.value = false;launcherOpen.value=false; });
 
 function closeNavigation(): void { mobileMenuOpen.value = false; }
 </script>
@@ -115,6 +132,7 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
           </button>
           <span class="header-path">NEUMUACFQ <span aria-hidden="true">/</span> <strong>{{routeName}}</strong></span>
         </div>
+        <button type="button" class="workspace-launcher-trigger" @click="openLauncher" aria-label="Open workspace switcher"><span>Search workspaces</span><kbd>Ctrl K</kbd></button>
         <div class="header-environment" :class="{ 'preview-environment': !sourceConfigured }" role="status">
           <span class="environment-dot" aria-hidden="true"></span>
           <template v-if="!sourceConfigured"><span>Live variant source · configuration pending</span></template>
@@ -133,6 +151,14 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
         <RouterLink class="mobile-admin-link" to="/admin" @click="closeNavigation">Research administration</RouterLink>
       </nav>
 
+      <div v-if="launcherOpen" class="launcher-backdrop" @click.self="closeLauncher">
+        <section role="dialog" aria-modal="true" aria-label="Research workspace switcher" class="workspace-launcher" @keydown.esc.stop="closeLauncher">
+          <div class="launcher-search"><input ref="launcherInput" v-model="launcherQuery" type="search" aria-label="Find a research workspace" placeholder="Search workspaces and research shortcuts"/><button type="button" aria-label="Close workspace switcher" @click="closeLauncher">×</button></div>
+          <p class="launcher-heading">WORKSPACES & RESEARCH SHORTCUTS</p>
+          <div class="launcher-options"><button v-for="item in launcherResults" :key="item.id" type="button" @click="goToShortcut(item.path)"><strong>{{item.name}}</strong><span>{{item.description}}</span></button><p v-if="!launcherResults.length" role="status">No matching research workspace.</p></div>
+          <p class="launcher-footnote">Only currently available workspaces are listed. Editing and review tools remain subject to separate authorization.</p>
+        </section>
+      </div>
       <main id="main" tabindex="-1" :class="{'home-main':isHome}">
         <div v-if="!sourceConfigured" class="development-notice" :class="{ 'preview-notice': !sourceConfigured }" role="note">
           <span class="notice-symbol" aria-hidden="true">i</span>
