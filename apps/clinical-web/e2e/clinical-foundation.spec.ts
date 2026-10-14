@@ -54,7 +54,10 @@ test('keyboard skip target remains accessible', async ({ page }) => {
 test('public research needs no sign-in and admin never exposes unapproved writes', async ({ page }) => {
   await page.goto('/#/variants');
   await expect(page.getByRole('heading', { name: 'Variant workspace' })).toBeVisible();
-  await expect(page.getByText('2234 in snapshot')).toBeVisible();
+  // CI intentionally has no Supabase credentials. The public Explorer must
+  // remain accessible without signing in and must not fabricate records.
+  await expect(page.getByRole('alert')).toContainText('public variant catalog has not been connected yet');
+  await expect(page.locator('.record-list button')).toHaveCount(0);
   await page.goto('/#/admin');
   await expect(page.getByRole('heading', { name: 'Research administration' })).toBeVisible();
   await expect(page.getByText(/Staff sign-in has not yet been connected in this deployment/)).toBeVisible();
