@@ -2,11 +2,9 @@ import {writeFileSync} from 'node:fs';
 import {auditDifferences,differencesFor} from './differentialPolicy';
 import {runLegacyOracle} from './legacySearchOracle';
 import {searchScientificFixtures} from '../src/domain/searchParity';
-import {DEMO_RECORDS} from '../src/fixtures/variantRecords';
-import type {VariantRecord} from '../src/domain/variantRecord';
-const record=(id:string,name:string,protein:string|null=null,cdna:string|null=null):VariantRecord=>({...DEMO_RECORDS[0],id,name,aliases:[],nomenclature:{legacy:name,protein,cdna},evidence:[],evidenceCount:0});
-const records=[record('v1','F508del','p.Phe508del','c.1521_1523delCTT'),record('v2','G551D','p.Gly551Asp'),record('v3','W1282X','p.Trp1282Ter'),record('v4','G551N')];
-const queries=['F508del','f508DEL','p.Phe508del','G551D','p.Gly551Asp','c.1521_1523delCTT','W1282X','deltaF508','551','rs12345','G551E','G551D G551N','https://example.test/variant','patient treatment report','ΔF508'];
+import {REFERENCE_RECORDS,SEARCH_REFERENCE_CASES} from './searchReferenceCorpus';
+const records=REFERENCE_RECORDS;
+const queries=SEARCH_REFERENCE_CASES.map(c=>c.query);
 const report=queries.map(query=>{
  const old=runLegacyOracle(records,query);const now=searchScientificFixtures(records,query);
  const newIds=now.hits.map(hit=>hit.record.id);
