@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/live-vue-cutover.yml'
+      - 'apps/clinical-web/**'
   workflow_dispatch:
 permissions:
   contents: write
@@ -48,7 +49,8 @@ jobs:
           test "$(git hash-object index.1.html)" = "c18221fb6baf47782318ca3685b94b088c359a66"
           cp apps/clinical-web/dist/index.html index.html
           mkdir -p assets
-          cp -R apps/clinical-web/dist/assets/. assets/
+          rm -rf assets
+          cp -R apps/clinical-web/dist/assets assets
           touch .nojekyll
           node tools/phase0b-baseline.mjs
           node --test tools/phase0b-baseline.test.mjs

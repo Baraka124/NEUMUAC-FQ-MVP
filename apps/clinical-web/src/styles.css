@@ -66,3 +66,10 @@
 .research-capabilities dd{margin:6px 0 0;font-size:13px;font-weight:640}
 .research-entry-aside p{font-size:12px;line-height:1.65;color:var(--muted)}
 @media(max-width:800px){.research-entry{grid-template-columns:minmax(0,1fr)}.research-entry-aside{padding:22px 0 0;border-left:0;border-top:1px solid var(--line)}}
+
+/* Phase 2P-B — accurate preview status, quiet pending-navigation explanation */
+.preview-environment{color:#786744}.preview-environment .environment-dot{background:#bb9260}
+.preview-notice{background:#f8f5ee;border-color:#e8dfd0;color:#534c3c}
+.preview-notice p{color:#706657}
+.sidebar-roadmap{font-size:12px;line-height:1.65;color:#9db4c0;margin:18px 12px 22px;padding-top:17px;border-top:1px solid #405562}
+@media(max-width:760px){.sidebar-roadmap{display:none}}

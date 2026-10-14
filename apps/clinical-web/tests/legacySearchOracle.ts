@@ -14,7 +14,10 @@ import { createContext, runInContext } from 'node:vm';
 import type { VariantRecord } from '../src/domain/variantRecord';
 
 export const LEGACY_SEARCH_BLOB = 'c18221fb6baf47782318ca3685b94b088c359a66';
-const rootFile = resolve(dirname(fileURLToPath(import.meta.url)), '../../../index.html');
+// The 2P frontend cutover moves the immutable historical application to
+// index.1.html. Never compare against the generated Vue root index.html.
+// A missing/altered archive must still fail the SHA-pinned oracle.
+const rootFile = resolve(dirname(fileURLToPath(import.meta.url)), '../../../index.1.html');
 const legacyHtml = readFileSync(rootFile);
 const gitHash = createHash('sha1')
   .update(Buffer.from('blob ' + legacyHtml.length + '\0')).update(legacyHtml).digest('hex');
