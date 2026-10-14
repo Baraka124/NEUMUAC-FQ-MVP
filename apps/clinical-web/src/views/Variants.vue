@@ -5,6 +5,7 @@ import {authController,authSessionProvider} from '../services/authSession';
 
 import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
 import {createScientificDossierSource,type ScientificDossier} from '../services/scientificDossier';
+import {createVariantResearchBrief} from '../services/researchBrief';
 import { createReadOnlyRepository, readConfigFromEnvironment, variantDisplayName, formatReadStatus, type RealVariant, type RealVariantSource } from '../services/liveVariants';
 const route=useRoute(),router=useRouter();
 const config=readConfigFromEnvironment();
@@ -25,6 +26,23 @@ let configError='';
 try { if(config) source=createReadOnlyRepository(config,fetch,authSessionProvider); } catch(e){configError=formatReadStatus(e);}
 const rows=ref<readonly RealVariant[]>([]);
 const selected=ref<RealVariant|null>(null);
+const briefBusy=ref(false);
+const briefStatus=ref('');
+let briefAbort:AbortController|null=null;
+watch(selected,()=>{briefAbort?.abort();briefBusy.value=false;briefStatus.value='';});
+async function copyResearchBrief():Promise<void>{
+ if(!selected.value||!config||briefBusy.value)return;
+ const id=selected.value.id,controller=new AbortController();briefAbort?.abort();briefAbort=controller;
+ briefBusy.value=true;briefStatus.value='';
+ try{
+  const contents=await createVariantResearchBrief(config,id,fetch,controller.signal);
+  if(controller.signal.aborted||selected.value?.id!==id)return;
+  await navigator.clipboard.writeText(contents);
+  if(!controller.signal.aborted&&selected.value?.id===id)briefStatus.value='Research brief copied. It contains current recorded fields and linked references.';
+ }catch{
+  if(!controller.signal.aborted)briefStatus.value='Research brief could not be completed or copied. No partial report was produced.';
+ }finally{if(!controller.signal.aborted)briefBusy.value=false;}
+}
 watch(selected,async record=>{
  dossierAbort?.abort();dossier.value=null;dossierError.value='';
  if(!record||!dossierSource)return;
@@ -79,7 +97,7 @@ watch(()=>authController?.state.phase,()=>{current?.abort();detailRequest?.abort
 watch([search,page,classFilter,sort,searchMode],()=>{clearTimeout(timer);timer=setTimeout(()=>{void load();},search.value?250:0)},{immediate:true});
 watch([search,classFilter,sort,searchMode],()=>{page.value=0;});
 watch(()=>route.params.id,id=>{void loadDetail(id);},{immediate:true});
-onUnmounted(()=>{current?.abort();detailRequest?.abort();evidenceAbort?.abort();dossierAbort?.abort();clearTimeout(timer);});
+onUnmounted(()=>{current?.abort();detailRequest?.abort();evidenceAbort?.abort();dossierAbort?.abort();briefAbort?.abort();clearTimeout(timer);});
 function updateWorklistRoute():void {
  const query:Record<string,string>={};
  if(search.value.trim())query.q=search.value.trim();
@@ -131,7 +149,11 @@ function select(id:string):void{void router.push({path:'/variants/'+encodeURICom
     <article class="record-overview" aria-labelledby="selected-title">
      <div class="section-label">DATABASE RECORD / READ ONLY</div>
      <p v-if="detailBusy" role="status">Loading record…</p>
-     <template v-else-if="selected"><div class="record-identity"><div><h2 id="selected-title">{{variantDisplayName(selected)}}</h2><p>Recorded variant identity fields only. No scientific conclusions or clinical validation are inferred.</p></div><span class="record-state">Nomenclature only</span></div><dl class="identity-grid"><div><dt>Legacy name</dt><dd>{{selected.legacyName||'Not recorded'}}</dd></div><div><dt>Protein notation</dt><dd>{{selected.proteinName||'Not recorded'}}</dd></div><div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div><div><dt>Recorded aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div></dl><section class="dossier-science" aria-label="Recorded scientific classification">
+     <template v-else-if="selected"><div class="record-identity"><div><h2 id="selected-title">{{variantDisplayName(selected)}}</h2><p>Recorded variant identity fields only. No scientific conclusions or clinical validation are inferred.</p></div><span class="record-state">Nomenclature only</span></div><dl class="identity-grid"><div><dt>Legacy name</dt><dd>{{selected.legacyName||'Not recorded'}}</dd></div><div><dt>Protein notation</dt><dd>{{selected.proteinName||'Not recorded'}}</dd></div><div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div><div><dt>Recorded aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div></dl><div class="variant-export-actions">
+      <button type="button" :disabled="briefBusy" @click="copyResearchBrief">{{briefBusy?'Preparing full research brief…':'Copy scientific research brief'}}</button>
+      <p role="status" v-if="briefStatus">{{briefStatus}}</p>
+      <p class="rail-caption">Copies current scientific fields and recorded reference links. No patient data, clinical report or treatment recommendations.</p>
+     </div><section class="dossier-science" aria-label="Recorded scientific classification">
       <h3>Scientific record</h3>
       <p class="rail-caption">Values below are recorded database fields, not independently adjudicated conclusions.</p>
       <p v-if="dossierError" role="alert">{{dossierError}}</p>
