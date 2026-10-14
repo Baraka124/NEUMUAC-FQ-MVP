@@ -27,9 +27,11 @@ jobs:
       - name: Install and verify modern application
         working-directory: apps/clinical-web
         env:
-          VITE_NFQ_READ_ONLY_ENABLED: 'false'
-          VITE_NFQ_SUPABASE_URL: ''
-          VITE_NFQ_SUPABASE_PUBLISHABLE_KEY: ''
+          VITE_NFQ_READ_ONLY_ENABLED: 'true'
+          VITE_NFQ_READ_ACCESS_MODE: anonymous
+          VITE_NFQ_VARIANT_SOURCE: variants
+          VITE_NFQ_SUPABASE_URL: https://oxlkisjwfarseyqgeyuw.supabase.co
+          VITE_NFQ_SUPABASE_PUBLISHABLE_KEY: sb_publishable_vKCe5bc1Qr20_LI_awKIYw_CqSFrblh
         run: |
           npm install --no-audit --no-fund
           npm run typecheck
