@@ -46,3 +46,5 @@
 @media(max-width:1150px){.record-layout{grid-template-columns:minmax(260px,310px) minmax(0,1fr)}.record-identity{display:block}.record-state{margin-top:5px}}
 @media(max-width:1000px){.record-layout{grid-template-columns:1fr}.record-list{grid-template-columns:repeat(3,minmax(0,1fr))}.variant-heading{display:block}.fixture-stamp{display:inline-flex;margin:0 0 18px}}
 @media(max-width:620px){.record-list{grid-template-columns:1fr}.identity-grid{grid-template-columns:1fr}.record-section-header,.record-identity{display:block}.record-rail{padding:20px}.record-overview,.record-section,.unselected-record{padding:22px}}
+
+.auth-surface{max-width:490px}.auth-surface form{display:grid;gap:9px}.auth-surface label{font-size:13px;font-weight:650;margin-top:12px}.auth-surface input{width:100%;min-height:44px;padding:10px;border:1px solid var(--line);border-radius:7px}.auth-surface button{min-height:44px;margin-top:18px;border:0;border-radius:7px;background:#215b6b;color:white;font-weight:650}.header-environment button{border:1px solid var(--line);background:white;border-radius:6px;padding:7px 10px}.header-environment a{color:#17697a;text-decoration:underline}
