@@ -101,3 +101,16 @@ test('evidence module never substitutes static records when live source is uncon
  await expect(page.locator('.evidence-row')).toHaveCount(0);
  await expect(page.locator('html')).toHaveJSProperty('scrollWidth',await page.locator('html').evaluate(e=>e.clientWidth));
 });
+
+
+test('genotype is a real-record two-variant research workflow with no clinical inference',async({page})=>{
+ await page.goto('/#/genotype');
+ await expect(page.getByRole('heading',{name:'Genotype research'})).toBeVisible();
+ await expect(page.getByRole('region',{name:'Variant 1'})).toBeVisible();
+ await expect(page.getByRole('region',{name:'Variant 2'})).toBeVisible();
+ await expect(page.getByText(/does not establish allelic phase/)).toBeVisible();
+ await page.locator('#genotype-search-0').fill('R117H');
+ await expect(page.getByRole('alert')).toContainText('Live CFTR access is not configured');
+ await expect(page.getByRole('button',{name:/DEMO-CFTR/i})).toHaveCount(0);
+ await expect(page.locator('html')).toHaveJSProperty('scrollWidth',await page.locator('html').evaluate(e=>e.clientWidth));
+});

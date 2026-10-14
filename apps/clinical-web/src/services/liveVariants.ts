@@ -171,7 +171,7 @@ export function createReadOnlyRepository(
       if (text) {
         // PostgREST wildcard alias '*' and URLSearchParams encoding; no raw query construction.
         // Only PostgREST-safe identifier-style characters are permitted above.
-        params.set('or',`(legacy_name.ilike.*${text}*,protein_name.ilike.*${text}*,cdna_name.ilike.*${text}*)`);
+        params.set('or',`(legacy_name.ilike.*${text}*,protein_name.ilike.*${text}*,cdna_name.ilike.*${text}*,alt_names.ilike.*${text}*)`);
       }
       const result=await request(params,signal);
       return {records:result.slice(0,PAGE_SIZE),hasMore:result.length>PAGE_SIZE};
