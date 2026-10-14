@@ -1,0 +1,130 @@
+/**
+ * Real database records only. No fixture fallback, local persistent cache or writes.
+ * Public/publishable API key is NOT an authorization mechanism: actual read access
+ * must be granted and protected by Supabase RLS, which remains owner-unverified.
+ */
+export interface RealVariant {
+  readonly id: string;
+  readonly legacyName: string | null;
+  readonly proteinName: string | null;
+  readonly cdnaName: string | null;
+  readonly aliases: readonly string[];
+}
+export interface RealVariantPage {
+  readonly records: readonly RealVariant[];
+  readonly hasMore: boolean;
+}
+export interface RealVariantSource {
+  list(options: { readonly query: string; readonly page: number; readonly signal?: AbortSignal }): Promise<RealVariantPage>;
+  get(id: string, signal?: AbortSignal): Promise<RealVariant | null>;
+}
+export type ConnectionIssue = 'not-configured' | 'invalid-configuration' | 'access-denied' | 'request-failed';
+export class VariantConnectionError extends Error {
+  constructor(public readonly code: ConnectionIssue, message: string) { super(message); this.name='VariantConnectionError'; }
+}
+
+/** Enabled only through deliberate non-secret environment configuration. */
+export interface ReadOnlyConfig {
+  readonly endpoint: string;
+  readonly publishableKey: string;
+  readonly enabled: boolean;
+}
+export function readConfigFromEnvironment(): ReadOnlyConfig | null {
+  const endpoint = (import.meta.env.VITE_NFQ_SUPABASE_URL || '').trim();
+  const publishableKey = (import.meta.env.VITE_NFQ_SUPABASE_PUBLISHABLE_KEY || '').trim();
+  const enabled = import.meta.env.VITE_NFQ_READ_ONLY_ENABLED === 'true';
+  if (!enabled || !endpoint || !publishableKey) return null;
+  return {endpoint, publishableKey, enabled};
+}
+export function validateReadOnlyConfig(config: ReadOnlyConfig): URL {
+  if (!config.enabled || !config.publishableKey.trim()) throw new VariantConnectionError('not-configured','Real-data access is not configured.');
+  let base: URL;
+  try { base = new URL(config.endpoint); } catch { throw new VariantConnectionError('invalid-configuration','Invalid data endpoint.'); }
+  // HTTPS and a root endpoint only: reject embedded userinfo/path/query fragments.
+  if (base.protocol !== 'https:' || !base.hostname || base.username || base.password ||
+      base.pathname !== '/' || base.search || base.hash)
+    throw new VariantConnectionError('invalid-configuration','Invalid data endpoint.');
+  if (/service_role/i.test(config.publishableKey))
+    throw new VariantConnectionError('invalid-configuration','Privileged credentials are forbidden in the frontend.');
+  return base;
+}
+function requiredText(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+function decodeAliases(value: unknown): readonly string[] {
+  if (Array.isArray(value)) return value.filter((x):x is string=>typeof x==='string'&&!!x.trim()).map(x=>x.trim());
+  if (typeof value === 'string') {
+    // Database may store this legacy field as comma-separated text or text[].
+    return value.split(',').map(x=>x.trim()).filter(Boolean);
+  }
+  return [];
+}
+/** Do not manufacture a variant identifier or scientific conclusion on missing fields. */
+export function decodeRealVariant(input: unknown): RealVariant {
+  if (!input || typeof input!=='object' || Array.isArray(input)) throw new VariantConnectionError('request-failed','Unexpected record schema.');
+  const raw = input as Record<string,unknown>;
+  const id = typeof raw.id==='number' && Number.isFinite(raw.id) ? String(raw.id) : requiredText(raw.id);
+  if (!id) throw new VariantConnectionError('request-failed','A variant identifier was missing.');
+  const legacyName=requiredText(raw.legacy_name);
+  const proteinName=requiredText(raw.protein_name);
+  const cdnaName=requiredText(raw.cdna_name);
+  return {id,legacyName,proteinName,cdnaName,aliases:decodeAliases(raw.alt_names)};
+}
+export function variantDisplayName(value: RealVariant): string {
+  return value.legacyName || value.proteinName || value.cdnaName || value.id;
+}
+export function formatReadStatus(error: unknown): string {
+  if (error instanceof VariantConnectionError) {
+    if (error.code === 'not-configured') return 'The authorized variant database connection has not been configured.';
+    if (error.code === 'access-denied') return 'The database has denied access to variant records.';
+    if (error.code === 'invalid-configuration') return 'The database connection settings are invalid.';
+  }
+  return 'Variant records could not be loaded. Check the connection or access permissions.';
+}
+function safeSearchTerm(query: string): string {
+  const trim=query.trim();
+  if (trim.length>75 || /[(),*%\\]/.test(trim) || /[\r\n]/.test(trim)) return '';
+  return trim;
+}
+export const PAGE_SIZE=40;
+export function createReadOnlyRepository(config: ReadOnlyConfig, transport: typeof fetch = fetch): RealVariantSource {
+  const endpoint=validateReadOnlyConfig(config);
+  const headers: HeadersInit={apikey:config.publishableKey,Authorization:`Bearer ${config.publishableKey}`,Accept:'application/json'};
+  async function request(params: URLSearchParams,signal?: AbortSignal): Promise<readonly RealVariant[]> {
+    const url=new URL('/rest/v1/variants',endpoint);
+    url.search=params.toString();
+    let response:Response;
+    try {
+      response=await transport(url.toString(),{method:'GET',headers,signal,cache:'no-store',credentials:'omit',redirect:'error'});
+    } catch (error) {
+      if (signal?.aborted) throw error;
+      throw new VariantConnectionError('request-failed','The variant data source is unreachable.');
+    }
+    if (response.status===401||response.status===403) throw new VariantConnectionError('access-denied','Variant read access was denied.');
+    if (!response.ok) throw new VariantConnectionError('request-failed','The variant data source responded with an error.');
+    const data:unknown=await response.json();
+    if (!Array.isArray(data)) throw new VariantConnectionError('request-failed','Unexpected database response.');
+    return data.map(decodeRealVariant);
+  }
+  return Object.freeze({
+    async list({query,page,signal}) {
+      if (!Number.isInteger(page)||page<0||page>10000) throw new VariantConnectionError('invalid-configuration','Invalid page.');
+      const params=new URLSearchParams({select:'id,legacy_name,protein_name,cdna_name,alt_names',order:'legacy_name.asc',limit:String(PAGE_SIZE+1),offset:String(page*PAGE_SIZE)});
+      const text=safeSearchTerm(query);
+      if (query.trim() && !text) throw new VariantConnectionError('request-failed','Search contains unsupported characters.');
+      if (text) {
+        // PostgREST wildcard alias '*' and URLSearchParams encoding; no raw query construction.
+        const escaped=text.replace(/[.]/g,'.');
+        params.set('or',`(legacy_name.ilike.*${escaped}*,protein_name.ilike.*${escaped}*,cdna_name.ilike.*${escaped}*)`);
+      }
+      const result=await request(params,signal);
+      return {records:result.slice(0,PAGE_SIZE),hasMore:result.length>PAGE_SIZE};
+    },
+    async get(id,signal) {
+      if (!id || id.length>128) return null;
+      const params=new URLSearchParams({select:'id,legacy_name,protein_name,cdna_name,alt_names',id:`eq.${id}`,limit:'1'});
+      const found=await request(params,signal);
+      return found[0]??null;
+    }
+  });
+}
