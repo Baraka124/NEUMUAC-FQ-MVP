@@ -1,0 +1,5 @@
+<script setup lang="ts">
+import {RouterLink,RouterView} from 'vue-router';
+import {sections} from './router';
+</script>
+<template><div class="layout"><a class="skip" href="#main">Skip to content</a><aside class="nav" aria-label="Clinical workspaces"><div class="brand"><span class="brand-symbol">N<span>·</span></span><span><strong>NeumuacFQ</strong><small>CFTR evidence workspace</small></span></div><p class="nav-caption">WORKSPACES</p><nav aria-label="Workspaces"><RouterLink v-for="section in sections" :key="section.path" :to="section.path">{{section.name}}</RouterLink></nav><div class="nav-foot"><strong>Foundation environment</strong><span>Isolated from clinical data</span></div></aside><div class="body"><header class="topbar"><span>PRECISION MEDICINE / WORKSPACE FOUNDATION</span><span class="environment">● Synthetic environment</span></header><main id="main" tabindex="-1"><div class="banner" role="note"><strong>Development preview · synthetic data only</strong><span>No patient records, clinical recommendations, live APIs, or writable workflows.</span></div><RouterView/></main></div></div></template>
