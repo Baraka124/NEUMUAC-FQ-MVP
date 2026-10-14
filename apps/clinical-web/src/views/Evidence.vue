@@ -1,37 +1,62 @@
 <script setup lang="ts">
-import {computed,ref} from 'vue';
+import {ref,watch,onUnmounted} from 'vue';
 import {RouterLink} from 'vue-router';
-import {evidenceReferences,evidenceVariantCount,EVIDENCE_SNAPSHOT_DATE} from '../services/publicEvidence';
-const term=ref('');
-const rows=computed(()=>{const q=term.value.trim().toLocaleLowerCase();return q?evidenceReferences().filter(r=>[r.title,r.source,r.type,r.journal||'',r.pmid||'',r.variantId].some(v=>v.toLocaleLowerCase().includes(q))):evidenceReferences()});
-const visible=ref(30);
-const paged=computed(()=>rows.value.slice(0,visible.value));
-function reveal(){visible.value+=30}
+import {createLiveEvidenceSource, EVIDENCE_PAGE_SIZE, type LiveEvidenceReference} from '../services/liveEvidence';
+import {readConfigFromEnvironment} from '../services/liveVariants';
+const config=readConfigFromEnvironment();
+const source=config?createLiveEvidenceSource(config):null;
+const query=ref('');
+const page=ref(0);
+const rows=ref<readonly LiveEvidenceReference[]>([]);
+const hasMore=ref(false);
+const loading=ref(false);
+const error=ref('');
+let abort:AbortController|null=null;
+let sequence=0;
+let debounce:ReturnType<typeof setTimeout>|undefined;
+async function refresh(){
+ abort?.abort();
+ const run=++sequence;
+ const controller=new AbortController();abort=controller;
+ rows.value=[];hasMore.value=false;error.value='';
+ if(!source){error.value='Live evidence access is not configured.';return;}
+ loading.value=true;
+ try{
+  const data=await source.list({query:query.value,page:page.value,signal:controller.signal});
+  if(run===sequence){rows.value=data.records;hasMore.value=data.hasMore;}
+ }catch{
+  if(!controller.signal.aborted&&run===sequence)error.value='Live references could not be retrieved.';
+ }finally{if(run===sequence)loading.value=false;}
+}
+watch(query,()=>{page.value=0;});
+watch([query,page],()=>{clearTimeout(debounce);debounce=setTimeout(()=>{void refresh();},query.value?250:0);},{immediate:true});
+onUnmounted(()=>{abort?.abort();clearTimeout(debounce);});
 </script>
 <template>
  <div class="page evidence-page">
   <div class="eyebrow">CFTR RESEARCH / SOURCES</div>
   <h1>Evidence & provenance</h1>
-  <p class="intro">Explore existing links to scientific resources recorded in NeumuacFQ. These are references, not independently validated interpretations or evidence grades.</p>
-  <section class="evidence-overview" aria-label="Evidence coverage">
-   <div><strong>{{evidenceReferences().length}}</strong><span>Recorded references</span></div>
-   <div><strong>{{evidenceVariantCount}}</strong><span>Variants with references</span></div>
-   <div><strong>{{EVIDENCE_SNAPSHOT_DATE}}</strong><span>Source snapshot</span></div>
-  </section>
+  <p class="intro">Browse current source links recorded for CFTR variants in NeumuacFQ. These are research references, not independently validated clinical interpretations.</p>
   <div class="evidence-search-head">
    <label for="evidence-search">Find a source or reference</label>
-   <input id="evidence-search" v-model="term" type="search" placeholder="Title, source, PMID or variant ID" @input="visible=30"/>
+   <input id="evidence-search" v-model="query" type="search" placeholder="Title, source or PMID"/>
   </div>
-  <p class="evidence-results-count" role="status">{{rows.length}} matching references</p>
-  <p v-if="!rows.length" class="empty-result">No recorded references match this search.</p>
-  <div v-else class="evidence-register" aria-label="Recorded citations">
-   <article v-for="item in paged" :key="item.id" class="evidence-row">
+  <p v-if="loading" role="status">Loading current references…</p>
+  <p v-else-if="error" role="alert" class="empty-result">{{error}}</p>
+  <p v-else role="status" class="evidence-results-count">{{rows.length}} references on page {{page+1}}</p>
+  <p v-if="!loading&&!error&&!rows.length" class="empty-result">No recorded source links match this search.</p>
+  <div v-if="rows.length" class="evidence-register" aria-label="Recorded citations">
+   <article v-for="item in rows" :key="item.id" class="evidence-row">
     <div class="evidence-row-meta"><span>{{item.source}}</span><span v-if="item.year">{{item.year}} (recorded)</span></div>
     <h2><a :href="item.url" target="_blank" rel="noopener noreferrer">{{item.title}} <span aria-hidden="true">↗</span></a></h2>
     <div class="evidence-row-foot"><RouterLink :to="'/variants/'+item.variantId">Variant record #{{item.variantId}}</RouterLink><span v-if="item.journal">{{item.journal}}</span><span v-if="item.pmid">PMID {{item.pmid}}</span></div>
    </article>
-   <button v-if="paged.length<rows.length" class="evidence-more" type="button" @click="reveal">Show more references</button>
   </div>
-  <p class="history-disclaimer">Reference titles, links and dates are retained as entered in the source database. Publication dates and source claims have not been independently checked. Other evidence datasets and reviewer histories are not included in this public view.</p>
+  <nav class="pagination-controls" aria-label="Evidence pages">
+   <button type="button" :disabled="loading||page===0" @click="page--">Previous</button>
+   <span>Page {{page+1}} · {{EVIDENCE_PAGE_SIZE}} per page</span>
+   <button type="button" :disabled="loading||!hasMore" @click="page++">Next</button>
+  </nav>
+  <p class="history-disclaimer">Source titles, dates and links reflect the live database. A recorded reference does not establish validation, clinical relevance or certainty.</p>
  </div>
 </template>
