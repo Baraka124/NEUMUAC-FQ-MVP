@@ -1,6 +1,6 @@
 import {describe,it,expect,vi} from 'vitest';
 import {createReadOnlyRepository,decodeRealVariant,variantDisplayName,VariantConnectionError} from './liveVariants';
-const config={endpoint:'https://db.example.org',publishableKey:'public-test-key',enabled:true};
+const config={endpoint:'https://db.example.org',publishableKey:'sb_publishable_test_only_123',enabled:true};
 describe('real-record read-only adapter contract',()=>{
 it('never manufactures missing variant names, evidence or classification',()=>{const row=decodeRealVariant({id:123,legacy_name:null,protein_name:'p.Arg117His',alt_names:['R117H']});expect(variantDisplayName(row)).toBe('p.Arg117His');expect(row.aliases).toEqual(['R117H']);});
 it('rejects malformed and privileged configuration',()=>{expect(()=>createReadOnlyRepository({...config,endpoint:'http://db.example.org'})).toThrow(VariantConnectionError);expect(()=>createReadOnlyRepository({...config,publishableKey:'service_role'})).toThrow();});
