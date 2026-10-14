@@ -5,8 +5,8 @@ test('real-data-only boundary, navigation and horizontal containment', async ({ 
   await expect(page.getByRole('heading', { name: 'CFTR variant research', exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Explore variant records' })).toHaveAttribute('href', '#/variants');
   await expect(page.getByRole('complementary', { name: 'Current capability' })).toContainText('Evidence and provenance');
-  await expect(page.getByText('Research interface preview · data source not connected')).toBeVisible();
-  await expect(page.getByText('Preview · records offline')).toBeVisible();
+  await expect(page.getByText('Public research interface · data connection pending')).toBeVisible();
+  await expect(page.getByText('Public catalog · connection pending')).toBeVisible();
   if (page.viewportSize()!.width <= 760) {
     await page.getByRole('button', { name: /workspaces/i }).click();
     await page.getByRole('navigation', { name: 'Mobile workspaces' }).getByRole('link', { name: 'Variants' }).click();
