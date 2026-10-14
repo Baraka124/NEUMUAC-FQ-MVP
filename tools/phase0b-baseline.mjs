@@ -17,6 +17,10 @@ import { fileURLToPath } from 'node:url';
 export const REFERENCE_BLOB_SHA = 'c18221fb6baf47782318ca3685b94b088c359a66';
 export const PRODUCTION_DOMAIN = 'fq.neumact.org';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+// Before cutover the frozen app is index.html; after cutover it is index.1.html.
+function legacyEntry(rootDir) {
+  return existsSync(join(rootDir, 'index.1.html')) ? 'index.1.html' : 'index.html';
+}
 
 export function gitBlobSha(buffer) {
   const bytes = Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer);
@@ -74,7 +78,7 @@ export function checkNewCredentialLeaks(rootDir) {
     }
     const contents = readFileSync(fullPath, 'utf8');
     for (const token of embeddedJwtTokens(contents)) {
-      if (normalized === 'index.html' && jwtRole(token) === 'anon') {
+      if (normalized === legacyEntry(rootDir) && jwtRole(token) === 'anon') {
         legacyAnonTokenCount++;
       } else {
         errors.push('Non-baselined JWT-like credential in ' + normalized + ' (never print token)');
@@ -90,19 +94,32 @@ export function checkNewCredentialLeaks(rootDir) {
 
 export function checkLegacyBaseline(rootDir = ROOT) {
   const errors = [];
-  const htmlPath = join(rootDir, 'index.html');
+  const archiveName = legacyEntry(rootDir);
+  const htmlPath = join(rootDir, archiveName);
   const domainPath = join(rootDir, 'CNAME');
-  if (!existsSync(htmlPath) || !existsSync(domainPath)) {
-    return { errors: ['Legacy index.html or CNAME missing'], scriptCount: 0 };
+  if (!existsSync(join(rootDir, 'index.html')) || !existsSync(htmlPath) || !existsSync(domainPath)) {
+    return { errors: ['Production entry, frozen legacy entry or CNAME missing'], scriptCount: 0 };
   }
   const source = readFileSync(htmlPath);
   const actualSha = gitBlobSha(source);
   if (actualSha !== REFERENCE_BLOB_SHA) {
-    errors.push('Legacy index.html changed (expected Git blob ' + REFERENCE_BLOB_SHA +
+    errors.push('Frozen legacy entry changed (expected Git blob ' + REFERENCE_BLOB_SHA +
       ', got ' + actualSha + '). Review and update the baseline intentionally.');
   }
   if (readFileSync(domainPath, 'utf8').trim() !== PRODUCTION_DOMAIN) {
     errors.push('Production CNAME changed unexpectedly.');
+  }
+  if (archiveName === 'index.1.html') {
+    const current = readFileSync(join(rootDir, 'index.html'), 'utf8');
+    // The published Vite asset paths must point to files actually committed at the root.
+    const assets = [...current.matchAll(/(?:src|href)=["']\.\/(assets\/[^"'?#]+)["']/g)]
+      .map(match => match[1]);
+    if (!/<div\s+id=["']app["']/.test(current) || !assets.length) {
+      errors.push('Modern root must mount the Vue app and reference built local assets.');
+    }
+    for (const asset of assets) {
+      if (!existsSync(join(rootDir, asset))) errors.push('Missing compiled Vue asset: ' + asset);
+    }
   }
   const html = source.toString('utf8');
   for (const id of ['appSidebar', 'appMain', 'variantList', 'homeDashboard', 'variantDetail']) {
