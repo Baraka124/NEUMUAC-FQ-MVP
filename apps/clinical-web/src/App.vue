@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue';
 import { RouterLink, RouterView, useRoute } from 'vue-router';
 import { sections } from './router';
+import {authController} from './services/authSession';
 
 const route = useRoute();
 const mobileMenuOpen = ref(false);
@@ -45,7 +46,7 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
           </button>
           <span class="header-path">NEUMUACFQ <span aria-hidden="true">/</span> CLINICAL WORKSPACE</span>
         </div>
-        <div class="header-environment" role="status"><span class="environment-dot" aria-hidden="true"></span> Read-only workspace</div>
+        <div class="header-environment" role="status"><span class="environment-dot" aria-hidden="true"></span><template v-if="authController?.state.phase==='signed-in'"><span>{{ authController.state.email || 'Signed in' }}</span><button type="button" @click="authController.signOut()">Sign out</button></template><RouterLink v-else to="/sign-in">Sign in</RouterLink></div>
       </header>
 
       <nav v-if="mobileMenuOpen" id="mobile-workspace-nav" class="mobile-nav" aria-label="Mobile workspaces">
