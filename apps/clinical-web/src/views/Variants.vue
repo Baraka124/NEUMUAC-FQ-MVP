@@ -6,6 +6,7 @@ import {authController,authSessionProvider} from '../services/authSession';
 import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
 import {createScientificDossierSource,type ScientificDossier} from '../services/scientificDossier';
 import {createVariantResearchBrief} from '../services/researchBrief';
+import {createLiveResearchHistorySource,type ResearchHistory} from '../services/liveResearchHistory';
 import { createReadOnlyRepository, readConfigFromEnvironment, variantDisplayName, formatReadStatus, type RealVariant, type RealVariantSource } from '../services/liveVariants';
 const route=useRoute(),router=useRouter();
 const config=readConfigFromEnvironment();
@@ -26,6 +27,26 @@ let configError='';
 try { if(config) source=createReadOnlyRepository(config,fetch,authSessionProvider); } catch(e){configError=formatReadStatus(e);}
 const rows=ref<readonly RealVariant[]>([]);
 const selected=ref<RealVariant|null>(null);
+const researchHistory=ref<ResearchHistory|null>(null);
+const historyError=ref('');
+const historyLoading=ref(false);
+const historyOpen=ref(false);
+let historyAbort:AbortController|null=null;
+const historySource=config?createLiveResearchHistorySource(config):null;
+watch(selected,()=>{historyAbort?.abort();researchHistory.value=null;historyError.value='';historyLoading.value=false;historyOpen.value=false;});
+async function toggleResearchHistory():Promise<void>{
+ historyOpen.value=!historyOpen.value;
+ if(!historyOpen.value||researchHistory.value||historyLoading.value||!selected.value)return;
+ if(!historySource){historyError.value='The historical register is not configured.';return;}
+ const id=selected.value.id;const controller=new AbortController();historyAbort=controller;
+ historyLoading.value=true;historyError.value='';
+ try{
+  const records=await historySource.get(id,controller.signal);
+  if(!controller.signal.aborted&&selected.value?.id===id)researchHistory.value=records;
+ }catch{
+  if(!controller.signal.aborted&&selected.value?.id===id)historyError.value='Historical records could not be retrieved. No incomplete timeline is shown.';
+ }finally{if(!controller.signal.aborted)historyLoading.value=false;}
+}
 const briefBusy=ref(false);
 const briefStatus=ref('');
 let briefAbort:AbortController|null=null;
@@ -97,7 +118,7 @@ watch(()=>authController?.state.phase,()=>{current?.abort();detailRequest?.abort
 watch([search,page,classFilter,sort,searchMode],()=>{clearTimeout(timer);timer=setTimeout(()=>{void load();},search.value?250:0)},{immediate:true});
 watch([search,classFilter,sort,searchMode],()=>{page.value=0;});
 watch(()=>route.params.id,id=>{void loadDetail(id);},{immediate:true});
-onUnmounted(()=>{current?.abort();detailRequest?.abort();evidenceAbort?.abort();dossierAbort?.abort();briefAbort?.abort();clearTimeout(timer);});
+onUnmounted(()=>{current?.abort();detailRequest?.abort();evidenceAbort?.abort();dossierAbort?.abort();briefAbort?.abort();historyAbort?.abort();clearTimeout(timer);});
 function updateWorklistRoute():void {
  const query:Record<string,string>={};
  if(search.value.trim())query.q=search.value.trim();
@@ -167,6 +188,28 @@ function select(id:string):void{void router.push({path:'/variants/'+encodeURICom
        <div><dt>Recorded validations</dt><dd>{{dossier.validationCount??'Not recorded'}}</dd></div>
        <div><dt>Last validation</dt><dd>{{dossier.lastValidatedAt||'Not recorded'}}</dd></div>
       </dl>
+     </section>
+     <section class="research-history-section" aria-label="Recorded research history">
+      <button class="disclosure-button" type="button" :aria-expanded="historyOpen" aria-controls="variant-research-history" @click="toggleResearchHistory">
+       <span>Validation & conflict history</span><span aria-hidden="true">{{historyOpen?'−':'+'}}</span>
+      </button>
+      <div v-if="historyOpen" id="variant-research-history">
+       <p class="rail-caption">Database-recorded events only. Historical log entries do not establish an independently verified immutable audit trail. Personal identifiers and free-text annotations are excluded.</p>
+       <p v-if="historyLoading" role="status">Loading recorded history…</p>
+       <p v-else-if="historyError" role="alert">{{historyError}}</p>
+       <template v-else-if="researchHistory">
+        <h4>Validation entries · {{researchHistory.validations.length}}</h4>
+        <p v-if="!researchHistory.validations.length" class="rail-caption">No validation events returned for this variant.</p>
+        <ul v-else class="research-history-list">
+         <li v-for="event in researchHistory.validations" :key="'v'+event.id"><strong>{{event.action}}</strong> · {{event.at||'Date not recorded'}}<small>Recorded class: {{event.recordedClass||'Not recorded'}} · Confidence: {{event.confidence||'Not recorded'}}</small></li>
+        </ul>
+        <h4>Recorded conflicts · {{researchHistory.conflicts.length}}</h4>
+        <p v-if="!researchHistory.conflicts.length" class="rail-caption">No conflict events returned for this variant.</p>
+        <ul v-else class="research-history-list">
+         <li v-for="event in researchHistory.conflicts" :key="'c'+event.id"><strong>{{event.field}}</strong> · {{event.resolved?'Resolved':'Unresolved'}}<small>Detected: {{event.detectedAt||'Not recorded'}} · Resolution: {{event.resolvedAt||'Not recorded'}}</small></li>
+        </ul>
+       </template>
+      </div>
      </section>
      <section class="variant-evidence-links" aria-label="Recorded source references">
       <button class="disclosure-button" type="button" :aria-expanded="showReferences" aria-controls="variant-reference-list" @click="showReferences=!showReferences"><span>Recorded references · {{linkedEvidence.length}}</span><span aria-hidden="true">{{showReferences?'−':'+'}}</span></button>
