@@ -2,18 +2,16 @@
 import { computed, ref, watch, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {authController,authSessionProvider} from '../services/authSession';
-import {createPublicSnapshotSource,SNAPSHOT_DATE,SNAPSHOT_EXPECTED_COUNT} from '../services/publicSnapshotVariants';
+
 import {evidenceForVariant,EVIDENCE_SNAPSHOT_DATE} from '../services/publicEvidence';
 import { createReadOnlyRepository, readConfigFromEnvironment, variantDisplayName, formatReadStatus, type RealVariant, type RealVariantSource } from '../services/liveVariants';
 const route=useRoute(),router=useRouter();
 const config=readConfigFromEnvironment();
 let source:RealVariantSource|null=null;
-const snapshotMode = !config;
-const snapshotDate = SNAPSHOT_DATE;
-const snapshotCount = SNAPSHOT_EXPECTED_COUNT;
+const liveMode = Boolean(config);
 const linkedEvidence = computed(() => selected.value ? evidenceForVariant(selected.value.id) : []);
 let configError='';
-try { source=config ? createReadOnlyRepository(config,fetch,authSessionProvider) : createPublicSnapshotSource(); } catch(e){configError=formatReadStatus(e);}
+try { if(config) source=createReadOnlyRepository(config,fetch,authSessionProvider); } catch(e){configError=formatReadStatus(e);}
 const rows=ref<readonly RealVariant[]>([]);
 const selected=ref<RealVariant|null>(null);
 const search=ref('');
@@ -55,13 +53,13 @@ function select(id:string):void{void router.push({path:'/variants/'+encodeURICom
 <template>
  <div class="page variant-page">
   <div class="eyebrow">RESEARCH WORKSPACES / VARIANT INTELLIGENCE</div>
-  <div class="variant-heading"><div><h1>Variant workspace</h1><p class="intro">Read-only CFTR nomenclature from real research records. Scientific evidence and clinical interpretation are not available in this view.</p></div><span class="fixture-stamp">{{snapshotMode ? "SNAPSHOT · READ ONLY" : "READ ONLY"}}</span></div>
+  <div class="variant-heading"><div><h1>Variant workspace</h1><p class="intro">Read-only CFTR nomenclature from real research records. Scientific evidence and clinical interpretation are not available in this view.</p></div><span class="fixture-stamp">{{liveMode ? "LIVE · READ ONLY" : "CONNECTION REQUIRED"}}</span></div>
   <div class="record-layout">
    <section class="record-rail" aria-labelledby="record-list-title">
-    <div class="rail-topline"><div><span class="section-label">VARIANT INDEX</span><h2 id="record-list-title">Variant records</h2></div><span class="record-total">{{snapshotMode ? snapshotCount+" in snapshot" : rows.length+" on page"}}</span></div>
+    <div class="rail-topline"><div><span class="section-label">VARIANT INDEX</span><h2 id="record-list-title">Variant records</h2></div><span class="record-total">{{rows.length}} on page</span></div>
     <label for="search">Search variant identifier</label>
     <input id="search" v-model="search" type="search" autocomplete="off" placeholder="Variant name or HGVS notation"/>
-    <p class="rail-caption">{{snapshotMode ? "Searches the real-data snapshot, including recorded aliases. Updated "+snapshotDate+"; changes in the source database will not appear automatically." : "Read-only database lookup. Scientific ranking and clinical assessment are not yet active."}}</p>
+    <p class="rail-caption">Live database lookup when configured. Clinical assessment is not active.</p>
     <p v-if="busy" role="status">Loading public variant records…</p>
     <p v-else-if="error" role="alert" class="empty-result">{{ error }} <RouterLink v-if="error.includes('Sign in')" to="/sign-in">Sign in</RouterLink></p>
     <p v-else-if="!rows.length" role="status" class="empty-result">No variant records returned for this search. No demonstration records are substituted.</p>
@@ -70,7 +68,7 @@ function select(id:string):void{void router.push({path:'/variants/'+encodeURICom
    </section>
    <div class="record-content">
     <article class="record-overview" aria-labelledby="selected-title">
-     <div class="section-label">{{snapshotMode ? 'SNAPSHOT RECORD / READ ONLY' : 'DATABASE RECORD / READ ONLY'}}</div>
+     <div class="section-label">DATABASE RECORD / READ ONLY</div>
      <p v-if="detailBusy" role="status">Loading record…</p>
      <template v-else-if="selected"><div class="record-identity"><div><h2 id="selected-title">{{variantDisplayName(selected)}}</h2><p>Recorded variant identity fields only. No scientific conclusions or clinical validation are inferred.</p></div><span class="record-state">Nomenclature only</span></div><dl class="identity-grid"><div><dt>Legacy name</dt><dd>{{selected.legacyName||'Not recorded'}}</dd></div><div><dt>Protein notation</dt><dd>{{selected.proteinName||'Not recorded'}}</dd></div><div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div><div><dt>Recorded aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div></dl><section class="variant-evidence-links" aria-label="Recorded source references">
       <h3>Recorded references <span>{{linkedEvidence.length}}</span></h3>
@@ -81,7 +79,7 @@ function select(id:string):void{void router.push({path:'/variants/'+encodeURICom
       </ul>
       <RouterLink class="variant-evidence-browse" to="/evidence">Browse the evidence register →</RouterLink>
      </section>
-     <p class="history-disclaimer">Clinical assessment, private annotations and review history are not included in this public snapshot.</p></template>
+     <p class="history-disclaimer">Clinical assessment, private annotations and review history are not available in this view.</p></template>
      <template v-else><h2 id="selected-title">{{route.params.id?'Record unavailable':'Select a variant'}}</h2><p>{{route.params.id?'No accessible record was returned for this identifier.':'Choose a database record to view its available nomenclature.'}}</p></template>
     </article>
    </div>

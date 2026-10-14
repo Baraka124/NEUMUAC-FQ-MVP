@@ -30,6 +30,8 @@ export interface ReadOnlyConfig {
   readonly publishableKey: string;
   readonly enabled: boolean;
   readonly accessMode?: ReadAccessMode;
+  /** Temporary development adapter for GET-only calls to existing public.variants. */
+  readonly readTable?: 'nfq_public_variant_catalog' | 'variants';
 }
 export interface ReadSessionProvider {
   /** Signed-in user JWT. Never supply a service/secret key here. */
@@ -42,7 +44,9 @@ export function readConfigFromEnvironment(): ReadOnlyConfig | null {
   if (!enabled || !endpoint || !publishableKey) return null;
   const accessMode: ReadAccessMode = import.meta.env.VITE_NFQ_READ_ACCESS_MODE === 'authenticated'
     ? 'authenticated' : 'anonymous';
-  return {endpoint, publishableKey, enabled, accessMode};
+  const readTable = import.meta.env.VITE_NFQ_VARIANT_SOURCE === 'variants'
+    ? 'variants' : 'nfq_public_variant_catalog';
+  return {endpoint, publishableKey, enabled, accessMode, readTable};
 }
 export function validateReadOnlyConfig(config: ReadOnlyConfig): URL {
   if (!config.enabled || !config.publishableKey.trim()) throw new VariantConnectionError('not-configured','Real-data access is not configured.');
@@ -114,9 +118,10 @@ export function createReadOnlyRepository(
   sessionProvider?: ReadSessionProvider
 ): RealVariantSource {
   const endpoint=validateReadOnlyConfig(config);
-  const mode: ReadAccessMode = config.accessMode ?? 'authenticated';
+  const mode: ReadAccessMode = config.accessMode ?? 'anonymous';
+  const table = config.readTable === 'variants' ? 'variants' : 'nfq_public_variant_catalog';
   async function request(params: URLSearchParams,signal?: AbortSignal): Promise<readonly RealVariant[]> {
-    const url=new URL('/rest/v1/nfq_public_variant_catalog',endpoint);
+    const url=new URL('/rest/v1/'+table,endpoint);
     url.search=params.toString();
     // Publishable keys identify the application; they are NOT bearer JWTs.
     const headers: Record<string,string> = {apikey:config.publishableKey,Accept:'application/json'};

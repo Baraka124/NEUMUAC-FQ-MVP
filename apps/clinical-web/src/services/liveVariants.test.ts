@@ -38,3 +38,15 @@ it('distinguishes schema mismatch and blocks injection-shaped search',async()=>{
  await expect(safe.list({query:'x),id.eq.1',page:0})).rejects.toMatchObject({code:'request-failed'});
  expect(network).not.toHaveBeenCalled();
 });
+
+it('reads legacy public variants table using GET-only allowlisted columns in development',async()=>{
+ const calls:{url:string,init:RequestInit}[]=[];
+ const transport=vi.fn(async(url:string,init:RequestInit)=>{calls.push({url,init});return new Response(JSON.stringify([{id:101,legacy_name:'R117H',protein_name:'p.Arg117His',cdna_name:'c.350G>A',alt_names:null}]),{status:200})});
+ const source=createReadOnlyRepository({...config,readTable:'variants'},transport as typeof fetch);
+ const result=await source.list({query:'R117H',page:0});
+ expect(result.records[0].legacyName).toBe('R117H');
+ expect(calls[0].url).toContain('/rest/v1/variants?');
+ expect(calls[0].url).toContain('select=id%2Clegacy_name%2Cprotein_name%2Ccdna_name%2Calt_names');
+ expect(calls[0].init.method).toBe('GET');
+ expect(calls[0].init.credentials).toBe('omit');
+});
