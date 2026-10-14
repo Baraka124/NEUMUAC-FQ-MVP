@@ -30,8 +30,8 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
       <div class="sidebar-base">
         <span class="sidebar-rule" aria-hidden="true"></span>
         <strong>Research environment</strong>
-        <span>Phase 1B · isolated prototype</span>
-        <span>Not for clinical use</span>
+        <span>Modernization · read-only access</span>
+        <span>Clinical interpretation not migrated</span>
       </div>
     </aside>
 
@@ -45,7 +45,7 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
           </button>
           <span class="header-path">NEUMUACFQ <span aria-hidden="true">/</span> CLINICAL WORKSPACE</span>
         </div>
-        <div class="header-environment" role="status"><span class="environment-dot" aria-hidden="true"></span> Synthetic environment</div>
+        <div class="header-environment" role="status"><span class="environment-dot" aria-hidden="true"></span> Read-only workspace</div>
       </header>
 
       <nav v-if="mobileMenuOpen" id="mobile-workspace-nav" class="mobile-nav" aria-label="Mobile workspaces">
@@ -58,15 +58,15 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
         <div class="development-notice" role="note">
           <span class="notice-symbol" aria-hidden="true">i</span>
           <div>
-            <strong>Prototype environment · synthetic records only</strong>
-            <p>No patient data, medical recommendations, real evidence or live data connections.</p>
+            <strong>Real records only · access-controlled connection</strong>
+            <p>Data is displayed only if an authorized source is configured. Clinical decisions, edits and approvals are unavailable.</p>
           </div>
         </div>
         <RouterView />
       </main>
       <footer class="page-footer">
         <span>NeumuacFQ · Research software architecture</span>
-        <span>Phase 1B design study · No clinical functionality</span>
+        <span>Read-only foundation · review tools pending</span>
       </footer>
     </div>
   </div>
