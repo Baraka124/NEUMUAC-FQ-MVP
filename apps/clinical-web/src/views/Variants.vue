@@ -2,6 +2,7 @@
 import { ref, watch, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {authController,authSessionProvider} from '../services/authSession';
+import {unambiguousExactMatch} from '../domain/instantMatch';
 
 import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
 import {createScientificDossierSource,type ScientificDossier} from '../services/scientificDossier';
@@ -80,6 +81,8 @@ watch(selected,async value=>{
  } catch {if(!controller.signal.aborted)evidenceError.value='Current source links could not be loaded.';}
 });
 const search=ref(typeof route.query.q==='string'?route.query.q:'');
+const inputActive=ref(false);
+const exactMatchState=ref('');
 const classFilter=ref(typeof route.query.class==='string'&&['I','II','III','IV','V','VI','unclassified'].includes(route.query.class)?route.query.class:'all');
 const sort=ref(typeof route.query.sort==='string'&&['name-desc','recent-record','fewest-validations','most-validations'].includes(route.query.sort)?route.query.sort:'name-asc');
 const searchMode=ref(typeof route.query.mode==='string'&&route.query.mode==='exact-name'?'exact-name':'contains');
@@ -101,7 +104,15 @@ async function load():Promise<void>{
   rows.value=[];hasMore.value=false;error.value='';
   if(!source){error.value=configError||'The public variant catalog has not been connected yet.';return;}
   busy.value=true;
-  try {const data=await source.list({query:search.value,page:page.value,classFilter:classFilter.value as 'all'|'I'|'II'|'III'|'IV'|'V'|'VI'|'unclassified',sort:sort.value as 'name-asc'|'name-desc'|'recent-record'|'fewest-validations'|'most-validations',searchMode:searchMode.value as 'contains'|'exact-name',signal:abort.signal});if(run===listSequence){rows.value=data.records;hasMore.value=data.hasMore;}}
+  try {const data=await source.list({query:search.value,page:page.value,classFilter:classFilter.value as 'all'|'I'|'II'|'III'|'IV'|'V'|'VI'|'unclassified',sort:sort.value as 'name-asc'|'name-desc'|'recent-record'|'fewest-validations'|'most-validations',searchMode:searchMode.value as 'contains'|'exact-name',signal:abort.signal});if(run===listSequence){
+    rows.value=data.records;hasMore.value=data.hasMore;
+    const exact=page.value===0&&searchMode.value==='contains'
+      ?unambiguousExactMatch(search.value,data.records,data.hasMore):null;
+    if(exact && route.params.id!==exact.id){
+      exactMatchState.value='Exact identity found — dossier opened automatically.';
+      void router.replace({path:'/variants/'+encodeURIComponent(exact.id),query:{...route.query,q:search.value}});
+    }else if(!exact)exactMatchState.value='';
+  }}
   catch(e){if(!abort.signal.aborted&&run===listSequence)error.value=formatReadStatus(e);}
   finally {if(run===listSequence)busy.value=false;}
 }
@@ -129,6 +140,11 @@ function updateWorklistRoute():void {
  void router.replace({path:route.path,query});
 }
 watch([search,classFilter,sort,searchMode,page],updateWorklistRoute);
+function onSearchKeydown(event:KeyboardEvent):void{
+ if(event.key==='Escape'){search.value='';return;}
+ if(event.key==='ArrowDown'){event.preventDefault();document.querySelector<HTMLButtonElement>('.record-list button')?.focus();}
+ if(event.key==='Enter'&&rows.value.length){event.preventDefault();select(rows.value[0].id);}
+}
 function select(id:string):void{void router.push({path:'/variants/'+encodeURIComponent(id),query:{...route.query}});}
 </script>
 <template>
@@ -137,9 +153,15 @@ function select(id:string):void{void router.push({path:'/variants/'+encodeURICom
   <div class="variant-heading"><div><h1>Variant workspace</h1><p class="intro">Read-only CFTR nomenclature from real research records. Scientific profiles and linked references are available for records where the source contains them. Clinical conclusions are not independently validated.</p></div><span class="fixture-stamp">{{liveMode ? "LIVE · READ ONLY" : "CONNECTION REQUIRED"}}</span></div>
   <div class="record-layout">
    <section class="record-rail" aria-labelledby="record-list-title">
-    <div class="rail-topline"><div><span class="section-label">VARIANT INDEX</span><h2 id="record-list-title">Variant records</h2></div><span class="record-total">{{rows.length}} on page</span></div>
-    <label for="search">Search variant identifier</label>
-    <input id="search" v-model="search" type="search" autocomplete="off" placeholder="Variant name or HGVS notation"/>
+    <div class="rail-topline"><div><span class="section-label">SCIENTIFIC DISCOVERY</span><h2 id="record-list-title">Find a CFTR variant</h2></div><span class="record-total">{{rows.length}} results</span></div>
+    <label for="search">Variant name, HGVS or recorded alias</label>
+    <div class="discovery-input" :class="{'discovery-input-active':inputActive}">
+      <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>
+      <input id="search" v-model="search" type="search" autocomplete="off" spellcheck="false" placeholder="F508del, c.1521_1523delCTT…" aria-describedby="discovery-hint" @focus="inputActive=true" @blur="inputActive=false" @keydown="onSearchKeydown"/>
+      <button v-if="search" type="button" class="discovery-clear" aria-label="Clear variant search" @click="search='';document.getElementById('search')?.focus()">×</button>
+    </div>
+    <p id="discovery-hint" class="discovery-hint">Search updates as you type · unique exact matches open automatically</p>
+    <p v-if="exactMatchState" role="status" class="discovery-match">{{exactMatchState}}</p>
     <details class="research-disclosure" :open="showAdvanced" @toggle="showAdvanced=($event.target as HTMLDetailsElement).open">
      <summary>Advanced search & prioritization <span>{{classFilter==='all'&&sort==='name-asc'&&searchMode==='contains'?'Optional filters':'Filters active'}}</span></summary>
      <div class="variant-worklist-filters" aria-label="Scientific worklist filters">
