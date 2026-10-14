@@ -34,7 +34,7 @@ function toggleSidebar(): void {
   try { window.localStorage.setItem(NAV_STORAGE_KEY, String(manualPreference)); }
   catch { /* Optional UI preference only; private storage may be unavailable. */ }
 }
-const availableSections = sections.filter(section => ['/', '/variants', '/evidence', '/genotype'].includes(section.path));
+const availableSections = sections.filter(section => ['/', '/variants', '/evidence', '/genotype', '/intelligence'].includes(section.path));
 // A configured endpoint does not mean a successful authenticated connection.
 const sourceConfigured = Boolean(readConfigFromEnvironment());
 watch(() => route.fullPath, () => { mobileMenuOpen.value = false; });
@@ -94,7 +94,7 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
         </svg>
         <span v-if="!sidebarCollapsed" class="staff-link-name">Research administration <span aria-hidden="true">→</span></span>
       </RouterLink>
-      <p v-if="!sidebarCollapsed" class="sidebar-roadmap">Clinical review, intelligence and reporting tools are in development.</p>
+      <p v-if="!sidebarCollapsed" class="sidebar-roadmap">Clinical review and reporting tools are in development.</p>
       <div v-if="!sidebarCollapsed" class="sidebar-base">
         <span class="sidebar-rule" aria-hidden="true"></span>
         <strong>Research environment</strong>

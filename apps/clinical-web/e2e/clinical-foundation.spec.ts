@@ -114,3 +114,11 @@ test('genotype is a real-record two-variant research workflow with no clinical i
  await expect(page.getByRole('button',{name:/DEMO-CFTR/i})).toHaveCount(0);
  await expect(page.locator('html')).toHaveJSProperty('scrollWidth',await page.locator('html').evaluate(e=>e.clientWidth));
 });
+
+test('intelligence never substitutes partial or fabricated coverage data',async({page})=>{
+ await page.goto('/#/intelligence');
+ await expect(page.getByRole('heading',{name:'Research intelligence'})).toBeVisible();
+ await expect(page.getByRole('alert')).toContainText('Live research coverage connection is not configured');
+ await expect(page.locator('.intelligence-record')).toHaveCount(0);
+ await expect(page.locator('html')).toHaveJSProperty('scrollWidth',await page.locator('html').evaluate(e=>e.clientWidth));
+});
