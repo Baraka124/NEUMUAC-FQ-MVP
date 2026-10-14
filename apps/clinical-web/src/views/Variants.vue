@@ -40,7 +40,9 @@ watch(selected,async value=>{
    if(!controller.signal.aborted)linkedEvidence.value=result;
  } catch {if(!controller.signal.aborted)evidenceError.value='Current source links could not be loaded.';}
 });
-const search=ref('');
+const search=ref(typeof route.query.q==='string'?route.query.q:'');
+const classFilter=ref(typeof route.query.class==='string'&&['I','II','III','IV','V','VI','unclassified'].includes(route.query.class)?route.query.class:'all');
+const sort=ref(typeof route.query.sort==='string'&&['name-desc','recent-record'].includes(route.query.sort)?route.query.sort:'name-asc');
 const page=ref(0);
 const hasMore=ref(false);
 const busy=ref(false);
@@ -56,7 +58,7 @@ async function load():Promise<void>{
   rows.value=[];hasMore.value=false;error.value='';
   if(!source){error.value=configError||'The public variant catalog has not been connected yet.';return;}
   busy.value=true;
-  try {const data=await source.list({query:search.value,page:page.value,signal:abort.signal});if(run===listSequence){rows.value=data.records;hasMore.value=data.hasMore;}}
+  try {const data=await source.list({query:search.value,page:page.value,classFilter:classFilter.value as 'all'|'I'|'II'|'III'|'IV'|'V'|'VI'|'unclassified',sort:sort.value as 'name-asc'|'name-desc'|'recent-record',signal:abort.signal});if(run===listSequence){rows.value=data.records;hasMore.value=data.hasMore;}}
   catch(e){if(!abort.signal.aborted&&run===listSequence)error.value=formatReadStatus(e);}
   finally {if(run===listSequence)busy.value=false;}
 }
@@ -70,26 +72,46 @@ async function loadDetail(id:unknown):Promise<void>{
   finally {if(run===detailSequence)detailBusy.value=false;}
 }
 watch(()=>authController?.state.phase,()=>{current?.abort();detailRequest?.abort();rows.value=[];selected.value=null;page.value=0;void load();});
-watch([search,page],()=>{clearTimeout(timer);timer=setTimeout(()=>{void load();},search.value?250:0)},{immediate:true});
-watch(search,()=>{page.value=0;});
+watch([search,page,classFilter,sort],()=>{clearTimeout(timer);timer=setTimeout(()=>{void load();},search.value?250:0)},{immediate:true});
+watch([search,classFilter,sort],()=>{page.value=0;});
 watch(()=>route.params.id,id=>{void loadDetail(id);},{immediate:true});
 onUnmounted(()=>{current?.abort();detailRequest?.abort();evidenceAbort?.abort();dossierAbort?.abort();clearTimeout(timer);});
+function updateWorklistRoute():void {
+ const query:Record<string,string>={};
+ if(search.value.trim())query.q=search.value.trim();
+ if(classFilter.value!=='all')query.class=classFilter.value;
+ if(sort.value!=='name-asc')query.sort=sort.value;
+ if(page.value>0)query.page=String(page.value);
+ void router.replace({path:route.path,query});
+}
+watch([search,classFilter,sort,page],updateWorklistRoute);
 function select(id:string):void{void router.push({path:'/variants/'+encodeURIComponent(id)});}
 </script>
 <template>
  <div class="page variant-page">
   <div class="eyebrow">RESEARCH WORKSPACES / VARIANT INTELLIGENCE</div>
-  <div class="variant-heading"><div><h1>Variant workspace</h1><p class="intro">Read-only CFTR nomenclature from real research records. Scientific evidence and clinical interpretation are not available in this view.</p></div><span class="fixture-stamp">{{liveMode ? "LIVE · READ ONLY" : "CONNECTION REQUIRED"}}</span></div>
+  <div class="variant-heading"><div><h1>Variant workspace</h1><p class="intro">Read-only CFTR nomenclature from real research records. Scientific profiles and linked references are available for records where the source contains them. Clinical conclusions are not independently validated.</p></div><span class="fixture-stamp">{{liveMode ? "LIVE · READ ONLY" : "CONNECTION REQUIRED"}}</span></div>
   <div class="record-layout">
    <section class="record-rail" aria-labelledby="record-list-title">
     <div class="rail-topline"><div><span class="section-label">VARIANT INDEX</span><h2 id="record-list-title">Variant records</h2></div><span class="record-total">{{rows.length}} on page</span></div>
     <label for="search">Search variant identifier</label>
     <input id="search" v-model="search" type="search" autocomplete="off" placeholder="Variant name or HGVS notation"/>
-    <p class="rail-caption">Live database lookup when configured. Clinical assessment is not active.</p>
+    <div class="variant-worklist-filters" aria-label="Scientific worklist filters">
+      <label for="class-filter">Functional class (recorded)</label>
+      <select id="class-filter" v-model="classFilter">
+       <option value="all">All classes</option>
+       <option v-for="item in ['I','II','III','IV','V','VI']" :key="item" :value="item">Class {{item}}</option>
+       <option value="unclassified">Unclassified in database</option>
+      </select>
+      <label for="variant-sort">Order by</label>
+      <select id="variant-sort" v-model="sort">
+       <option value="name-asc">Name A–Z</option><option value="name-desc">Name Z–A</option><option value="recent-record">Record ID · newest first</option>
+      </select>
+     </div><p class="rail-caption">Live server-side class filtering. Labels reflect existing research records, not independent scientific validation.</p>
     <p v-if="busy" role="status">Loading public variant records…</p>
     <p v-else-if="error" role="alert" class="empty-result">{{ error }} <RouterLink v-if="error.includes('Sign in')" to="/sign-in">Sign in</RouterLink></p>
     <p v-else-if="!rows.length" role="status" class="empty-result">No variant records returned for this search. No demonstration records are substituted.</p>
-    <div v-else class="record-list" aria-label="Search results"><button v-for="record in rows" :key="record.id" type="button" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span class="record-subline">{{ record.proteinName || record.cdnaName || 'Additional nomenclature not recorded' }}</span><span class="record-bottom">Database record <span aria-hidden="true">→</span></span></button></div>
+    <div v-else class="record-list" aria-label="Search results"><button v-for="record in rows" :key="record.id" type="button" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span class="record-subline">{{ record.proteinName || record.cdnaName || 'Additional nomenclature not recorded' }}</span><span v-if="record.recordedClass" class="record-class">Class {{record.recordedClass}} · recorded</span><span class="record-bottom">Database record <span aria-hidden="true">→</span></span></button></div>
     <div class="pagination-controls"><button type="button" :disabled="busy||page===0" @click="page--">Previous</button><span>Page {{page+1}}</span><button type="button" :disabled="busy||!hasMore" @click="page++">Next</button></div>
    </section>
    <div class="record-content">
