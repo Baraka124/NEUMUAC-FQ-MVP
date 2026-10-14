@@ -167,3 +167,18 @@ test('Phase 3B light institutional shell stays legible and usable across viewpor
   }
  }
 });
+
+test('Phase 3C research workbench exposes shortcuts and preserves variant worklist',async({page})=>{
+ await page.goto('/');
+ await expect(page.getByRole('heading',{name:'Continue your research'})).toBeVisible();
+ await expect(page.getByRole('link',{name:/Open Class I variant worklist/})).toHaveAttribute('href','#/variants?class=I');
+ await page.getByRole('button',{name:'Open workspace switcher'}).click();
+ await expect(page.getByRole('dialog',{name:'Research workspace switcher'})).toBeVisible();
+ await page.getByRole('searchbox',{name:'Find a research workspace'}).fill('genotype');
+ await page.getByRole('dialog',{name:'Research workspace switcher'}).getByRole('button',{name:/Genotype/}).click();
+ await expect(page.getByRole('heading',{name:'Genotype research'})).toBeVisible();
+ await page.goto('/#/variants?class=I&q=R117H');
+ await expect(page.locator('#class-filter')).toHaveValue('I');
+ await expect(page.locator('#search')).toHaveValue('R117H');
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});

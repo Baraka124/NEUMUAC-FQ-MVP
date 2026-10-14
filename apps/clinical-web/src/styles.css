@@ -349,3 +349,33 @@ main{background:#fbfcfa}
  .mobile-nav-backdrop{background:#122a1d72}
  .mobile-menu-button{background:#fff;border-color:#d4e2d6;color:#2c5740}
 }
+
+
+/* Phase 3C: task-first research navigation, shared across light-first workbench */
+.workspace-launcher-trigger{border:1px solid #d5e2d8;background:#f7faf6;border-radius:8px;display:flex;align-items:center;gap:14px;justify-content:space-between;min-height:39px;color:#436655;padding:0 12px;font-size:12px;margin-left:auto;flex:0 1 250px;min-width:0}
+.workspace-launcher-trigger:hover{background:#edf5ed;border-color:#a9cab1}
+.workspace-launcher-trigger kbd{font:inherit;color:#748e7f;background:#fff;border:1px solid #dfebe1;border-radius:4px;padding:2px 5px;white-space:nowrap}
+.launcher-backdrop{position:fixed;inset:0;background:#142b1d80;z-index:70;display:flex;align-items:flex-start;justify-content:center;padding:clamp(36px,11vh,130px) 15px 20px}
+.workspace-launcher{background:#fff;width:min(650px,100%);min-width:0;border-radius:14px;box-shadow:0 22px 80px #0b251b40;overflow:hidden;max-height:80dvh;display:flex;flex-direction:column}
+.launcher-search{display:flex;gap:9px;align-items:center;border-bottom:1px solid var(--line);padding:14px 17px}
+.launcher-search input{flex:1;min-width:0;border:0;outline:0;background:transparent;min-height:43px;font-size:15px;color:var(--ink)}
+.launcher-search button{border:0;background:#f0f5f0;color:#375445;border-radius:6px;min-width:38px;min-height:38px;font-size:24px}
+.launcher-heading{font-size:10px;letter-spacing:.11em;color:#718a78;font-weight:750;margin:15px 20px 8px}
+.launcher-options{overflow-y:auto;padding:0 11px 10px}
+.launcher-options button{border:0;background:transparent;text-align:left;width:100%;padding:13px 12px;display:flex;flex-direction:column;gap:3px;border-radius:7px}
+.launcher-options button:hover,.launcher-options button:focus-visible{background:#edf5ee}
+.launcher-options strong{font-size:14px;color:#213f2d}
+.launcher-options span,.launcher-footnote{font-size:12px;color:#708477}
+.launcher-footnote{margin:0;border-top:1px solid var(--line);padding:12px 19px}
+.research-workbench-index{margin:35px 0 20px;padding-top:21px;border-top:1px solid var(--line)}
+.research-workbench-index h2{font-size:clamp(21px,2.25vw,30px)}
+.workbench-index-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:#dce8df;border:1px solid #dce8df;margin-top:17px}
+.workbench-index-item{background:white;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px 12px;text-decoration:none;padding:19px 22px}
+.workbench-index-item strong{font-size:15px;color:#224b34}
+.workbench-index-item span:nth-child(2){font-size:12px;color:#617a66;line-height:1.5;grid-column:1}
+.workbench-index-item span:last-child{grid-row:1;grid-column:2;color:#377958}
+.workbench-index-item:hover{background:#f4faf5}
+.workbench-shortcut{margin-top:15px}.workbench-shortcut a,.record-return{font-size:13px;color:#176d51;display:inline-flex;min-height:36px;align-items:center;text-decoration:none;font-weight:650}
+.record-return:hover,.workbench-shortcut a:hover{text-decoration:underline;text-underline-offset:3px}
+@media(max-width:930px){.workspace-launcher-trigger{max-width:45px;flex-basis:45px;justify-content:center;padding:4px}.workspace-launcher-trigger>span{display:none}}
+@media(max-width:600px){.workbench-index-grid{grid-template-columns:1fr}.workspace-launcher-trigger kbd{font-size:11px}.workspace-launcher-trigger{min-height:38px;max-width:43px;flex-basis:43px}.institution-header{gap:7px}.header-environment{max-width:44%;min-width:0}.workspace-launcher{max-height:85dvh}}

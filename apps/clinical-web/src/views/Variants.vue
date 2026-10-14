@@ -86,7 +86,7 @@ const searchMode=ref(typeof route.query.mode==='string'&&route.query.mode==='exa
 const showAdvanced=ref(classFilter.value!=='all'||sort.value!=='name-asc'||searchMode.value!=='contains');
 const showReferences=ref(false);
 watch(selected,()=>{showReferences.value=false;});
-const page=ref(0);
+const page=ref(typeof route.query.page==='string'&&/^\d{1,4}$/.test(route.query.page)?Number(route.query.page):0);
 const hasMore=ref(false);
 const busy=ref(false);
 const detailBusy=ref(false);
@@ -129,7 +129,7 @@ function updateWorklistRoute():void {
  void router.replace({path:route.path,query});
 }
 watch([search,classFilter,sort,searchMode,page],updateWorklistRoute);
-function select(id:string):void{void router.push({path:'/variants/'+encodeURIComponent(id)});}
+function select(id:string):void{void router.push({path:'/variants/'+encodeURIComponent(id),query:{...route.query}});}
 </script>
 <template>
  <div class="page variant-page">
@@ -170,7 +170,7 @@ function select(id:string):void{void router.push({path:'/variants/'+encodeURICom
     <article class="record-overview" aria-labelledby="selected-title">
      <div class="section-label">DATABASE RECORD / READ ONLY</div>
      <p v-if="detailBusy" role="status">Loading record…</p>
-     <template v-else-if="selected"><div class="record-identity"><div><h2 id="selected-title">{{variantDisplayName(selected)}}</h2><p>Recorded variant identity fields only. No scientific conclusions or clinical validation are inferred.</p></div><span class="record-state">Nomenclature only</span></div><dl class="identity-grid"><div><dt>Legacy name</dt><dd>{{selected.legacyName||'Not recorded'}}</dd></div><div><dt>Protein notation</dt><dd>{{selected.proteinName||'Not recorded'}}</dd></div><div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div><div><dt>Recorded aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div></dl><div class="variant-export-actions">
+     <template v-else-if="selected"><div class="record-identity"><div><RouterLink class="record-return" :to="{path:'/variants',query:route.query}">← Back to worklist</RouterLink><h2 id="selected-title">{{variantDisplayName(selected)}}</h2><p>Recorded variant identity fields only. No scientific conclusions or clinical validation are inferred.</p></div><span class="record-state">Nomenclature only</span></div><dl class="identity-grid"><div><dt>Legacy name</dt><dd>{{selected.legacyName||'Not recorded'}}</dd></div><div><dt>Protein notation</dt><dd>{{selected.proteinName||'Not recorded'}}</dd></div><div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div><div><dt>Recorded aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div></dl><div class="variant-export-actions">
       <button type="button" :disabled="briefBusy" @click="copyResearchBrief">{{briefBusy?'Preparing full research brief…':'Copy scientific research brief'}}</button>
       <p role="status" v-if="briefStatus">{{briefStatus}}</p>
       <p class="rail-caption">Copies current scientific fields and recorded reference links. No patient data, clinical report or treatment recommendations.</p>
