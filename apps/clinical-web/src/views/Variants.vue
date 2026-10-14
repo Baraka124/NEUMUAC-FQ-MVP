@@ -4,12 +4,18 @@ import { useRoute, useRouter } from 'vue-router';
 import {authController,authSessionProvider} from '../services/authSession';
 
 import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
+import {createScientificDossierSource,type ScientificDossier} from '../services/scientificDossier';
 import { createReadOnlyRepository, readConfigFromEnvironment, variantDisplayName, formatReadStatus, type RealVariant, type RealVariantSource } from '../services/liveVariants';
 const route=useRoute(),router=useRouter();
 const config=readConfigFromEnvironment();
 let source:RealVariantSource|null=null;
 const liveMode = Boolean(config);
 const evidenceSource=config?createLiveEvidenceSource(config):null;
+const dossierSource=config?createScientificDossierSource(config):null;
+const dossier=ref<ScientificDossier|null>(null);
+const dossierError=ref('');
+let dossierAbort:AbortController|null=null;
+
 const linkedEvidence=ref<readonly LiveEvidenceReference[]>([]);
 const evidenceError=ref('');
 let evidenceAbort:AbortController|null=null;
@@ -19,6 +25,13 @@ let configError='';
 try { if(config) source=createReadOnlyRepository(config,fetch,authSessionProvider); } catch(e){configError=formatReadStatus(e);}
 const rows=ref<readonly RealVariant[]>([]);
 const selected=ref<RealVariant|null>(null);
+watch(selected,async record=>{
+ dossierAbort?.abort();dossier.value=null;dossierError.value='';
+ if(!record||!dossierSource)return;
+ const controller=new AbortController();dossierAbort=controller;
+ try{const data=await dossierSource.get(record.id,controller.signal);if(!controller.signal.aborted)dossier.value=data;}
+ catch{if(!controller.signal.aborted)dossierError.value='Scientific fields could not be loaded.';}
+});
 watch(selected,async value=>{
  evidenceAbort?.abort(); linkedEvidence.value=[]; evidenceError.value='';
  if(!value || !evidenceSource)return;
@@ -60,7 +73,7 @@ watch(()=>authController?.state.phase,()=>{current?.abort();detailRequest?.abort
 watch([search,page],()=>{clearTimeout(timer);timer=setTimeout(()=>{void load();},search.value?250:0)},{immediate:true});
 watch(search,()=>{page.value=0;});
 watch(()=>route.params.id,id=>{void loadDetail(id);},{immediate:true});
-onUnmounted(()=>{current?.abort();detailRequest?.abort();evidenceAbort?.abort();clearTimeout(timer);});
+onUnmounted(()=>{current?.abort();detailRequest?.abort();evidenceAbort?.abort();dossierAbort?.abort();clearTimeout(timer);});
 function select(id:string):void{void router.push({path:'/variants/'+encodeURIComponent(id)});}
 </script>
 <template>
@@ -83,7 +96,22 @@ function select(id:string):void{void router.push({path:'/variants/'+encodeURICom
     <article class="record-overview" aria-labelledby="selected-title">
      <div class="section-label">DATABASE RECORD / READ ONLY</div>
      <p v-if="detailBusy" role="status">Loading record…</p>
-     <template v-else-if="selected"><div class="record-identity"><div><h2 id="selected-title">{{variantDisplayName(selected)}}</h2><p>Recorded variant identity fields only. No scientific conclusions or clinical validation are inferred.</p></div><span class="record-state">Nomenclature only</span></div><dl class="identity-grid"><div><dt>Legacy name</dt><dd>{{selected.legacyName||'Not recorded'}}</dd></div><div><dt>Protein notation</dt><dd>{{selected.proteinName||'Not recorded'}}</dd></div><div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div><div><dt>Recorded aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div></dl><section class="variant-evidence-links" aria-label="Recorded source references">
+     <template v-else-if="selected"><div class="record-identity"><div><h2 id="selected-title">{{variantDisplayName(selected)}}</h2><p>Recorded variant identity fields only. No scientific conclusions or clinical validation are inferred.</p></div><span class="record-state">Nomenclature only</span></div><dl class="identity-grid"><div><dt>Legacy name</dt><dd>{{selected.legacyName||'Not recorded'}}</dd></div><div><dt>Protein notation</dt><dd>{{selected.proteinName||'Not recorded'}}</dd></div><div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div><div><dt>Recorded aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div></dl><section class="dossier-science" aria-label="Recorded scientific classification">
+      <h3>Scientific record</h3>
+      <p class="rail-caption">Values below are recorded database fields, not independently adjudicated conclusions.</p>
+      <p v-if="dossierError" role="alert">{{dossierError}}</p>
+      <dl v-else-if="dossier" class="identity-grid">
+       <div><dt>CFTR functional class</dt><dd>{{dossier.functionalClass||'Not recorded'}}</dd></div>
+       <div><dt>Class subtype</dt><dd>{{dossier.subtype||'Not recorded'}}</dd></div>
+       <div><dt>Recorded determination</dt><dd>{{dossier.recordedDetermination||'Not recorded'}}</dd></div>
+       <div><dt>Class confidence (recorded)</dt><dd>{{dossier.confidence||'Not recorded'}}</dd></div>
+       <div><dt>Source summary</dt><dd>{{dossier.sourceSummary||'Not recorded'}}</dd></div>
+       <div><dt>Data status</dt><dd>{{dossier.dataStatus||'Not recorded'}}</dd></div>
+       <div><dt>Recorded validations</dt><dd>{{dossier.validationCount??'Not recorded'}}</dd></div>
+       <div><dt>Last validation</dt><dd>{{dossier.lastValidatedAt||'Not recorded'}}</dd></div>
+      </dl>
+     </section>
+     <section class="variant-evidence-links" aria-label="Recorded source references">
       <h3>Recorded references <span>{{linkedEvidence.length}}</span></h3>
       <p class="rail-caption">Current source links from the research database. A recorded link is not a clinical assessment or an independently verified claim.</p>
       <p v-if="evidenceError" role="alert" class="rail-caption">{{evidenceError}}</p><p v-else-if="!linkedEvidence.length" class="rail-caption">No source links currently returned for this variant. This does not establish an absence of published research.</p>
