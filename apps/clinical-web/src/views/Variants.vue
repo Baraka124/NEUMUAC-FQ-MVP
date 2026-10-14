@@ -158,7 +158,7 @@ function select(id:string):void{void router.push({path:'/variants/'+encodeURICom
     <div class="discovery-input" :class="{'discovery-input-active':inputActive}">
       <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>
       <input id="search" v-model="search" type="search" autocomplete="off" spellcheck="false" placeholder="F508del, c.1521_1523delCTT…" aria-describedby="discovery-hint" @focus="inputActive=true" @blur="inputActive=false" @keydown="onSearchKeydown"/>
-      <button v-if="search" type="button" class="discovery-clear" aria-label="Clear variant search" @click="search='';document.getElementById('search')?.focus()">×</button>
+      <button v-if="search" type="button" class="discovery-clear" aria-label="Clear variant search" @click="search=''">×</button>
     </div>
     <p id="discovery-hint" class="discovery-hint">Search updates as you type · unique exact matches open automatically</p>
     <p v-if="exactMatchState" role="status" class="discovery-match">{{exactMatchState}}</p>
