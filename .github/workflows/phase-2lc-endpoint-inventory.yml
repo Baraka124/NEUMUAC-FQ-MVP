@@ -1,0 +1,30 @@
+name: Phase 2L-C legacy endpoint inventory
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  endpoint-inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Scan full legacy index without exposing endpoint arguments
+        run: python tools/legacy_endpoint_inventory.py --source index.html --output /tmp/phase-2lc-inventory.md
+      - name: Verify generated inventory has no URLs or argument payloads
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          s=Path("/tmp/phase-2lc-inventory.md").read_text()
+          assert "Source lines" in s
+          assert "https://" not in s and "eyJ" not in s
+          print("Inventory report generated with redacted arguments.")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: phase-2lc-redacted-inventory
+          path: /tmp/phase-2lc-inventory.md
+          retention-days: 7
