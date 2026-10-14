@@ -1,0 +1,45 @@
+name: NeumuacFQ staging security policy contract
+on:
+  pull_request:
+    paths:
+      - 'staging/security/**'
+      - '.github/workflows/security-policy-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'staging/security/**'
+      - '.github/workflows/security-policy-contract.yml'
+permissions:
+  contents: read
+jobs:
+  isolated-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: security_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: local-disposable-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d security_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install PostgreSQL client
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+      - name: Verify restrictive staging policy contracts
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: postgres
+          PGPASSWORD: local-disposable-only
+          PGDATABASE: security_ci
+        run: psql -X -v ON_ERROR_STOP=1 -f staging/security/03_disposable_policy_contract.sql
