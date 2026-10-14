@@ -1,0 +1,46 @@
+name: NeumuacFQ staging PostgreSQL review contract
+on:
+  pull_request:
+    paths:
+      - 'staging/review/**'
+      - '.github/workflows/review-postgres-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'staging/review/**'
+      - '.github/workflows/review-postgres-contract.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  postgres-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: review_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: disposable-test-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d review_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install PostgreSQL client
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+      - name: Run isolated disposable PostgreSQL test
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: postgres
+          PGPASSWORD: disposable-test-only
+          PGDATABASE: review_test
+        run: psql -X -v ON_ERROR_STOP=1 -f staging/review/002_disposable_ci_contract.sql
