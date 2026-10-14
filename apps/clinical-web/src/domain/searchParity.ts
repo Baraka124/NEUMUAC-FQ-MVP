@@ -30,7 +30,19 @@ export function normalizeScientificQuery(raw: string): { normalized: string; ste
   return {normalized:s,steps};
 }
 function phonetic(s:string):string{return s.toLowerCase().replace(/[aeiou]+(?=.)/g,'').replace(/(.)\1+/g,'$1').replace(/[^a-z0-9]/g,'').slice(0,12)}
-function distance(a:string,b:string):number{const prev=Array.from({length:b.length+1},(_,i)=>i);for(let i=1;i<=a.length;i++){let left=i;for(let j=1;j<=b.length;j++){const next=a[i-1]===b[j-1]?prev[j-1]:Math.min(prev[j-1],prev[j],left)+1;prev[j-1]=left;left=next;}}return prev[b.length];}
+function distance(a:string,b:string):number{
+ const previous=Array.from({length:b.length+1},(_,i)=>i);
+ for(let i=1;i<=a.length;i++){
+  let diagonal=previous[0];
+  previous[0]=i;
+  for(let j=1;j<=b.length;j++){
+   const above=previous[j];
+   previous[j]=a[i-1]===b[j-1]?diagonal:Math.min(diagonal,previous[j-1],above)+1;
+   diagonal=above;
+  }
+ }
+ return previous[b.length];
+}
 function invalid(raw:string):boolean{
  const q=raw.trim();if(!q||q.length>60||/https?:\/\/|@[\w.]+\.\w{2,}|^\/[\w/]+/.test(q)||/\([^)]{3,}\)/.test(q)||/^\d{7,}$/.test(q))return true;
  const words=q.split(/\s+/);if(words.length>=3&&words.every(w=>/^[a-z]{4,}$/i.test(w)))return true;
