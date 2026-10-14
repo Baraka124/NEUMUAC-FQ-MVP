@@ -38,7 +38,7 @@ test('unconfigured database never substitutes invented records', async ({ page }
   await expect(page.getByRole('list', { name: 'Search results' })).toHaveCount(0);
   await expect(page.locator('.record-list button')).toHaveCount(0);
   await expect(page.getByRole('button', { name: /DEMO-CFTR/i })).toHaveCount(0);
-  await page.getByRole('searchbox', { name: 'Search variant identifier' }).fill('R117H');
+  await page.getByRole('searchbox', { name: 'Variant name, HGVS or recorded alias' }).fill('R117H');
   await expect(page.getByRole('alert')).toContainText('public variant catalog has not been connected yet');
   await expect(page.getByRole('heading', { name: 'Select a variant' })).toBeVisible();
 });
@@ -181,4 +181,15 @@ test('Phase 3C research workbench exposes shortcuts and preserves variant workli
  await expect(page.locator('#class-filter')).toHaveValue('I');
  await expect(page.locator('#search')).toHaveValue('R117H');
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
+
+test('Phase 3D scientific search stays primary across six widths',async({page})=>{
+ for(const width of [320,390,768,1024,1366,1600]){
+  await page.setViewportSize({width,height:860});
+  await page.goto('/#/variants');
+  await expect(page.getByRole('heading',{name:'Find a CFTR variant'})).toBeVisible();
+  await expect(page.getByRole('searchbox',{name:'Variant name, HGVS or recorded alias'})).toBeVisible();
+  await expect(page.getByText('unique exact matches open automatically')).toBeVisible();
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
 });
