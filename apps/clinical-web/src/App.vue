@@ -34,7 +34,7 @@ function toggleSidebar(): void {
   try { window.localStorage.setItem(NAV_STORAGE_KEY, String(manualPreference)); }
   catch { /* Optional UI preference only; private storage may be unavailable. */ }
 }
-const availableSections = sections.slice(0, 2);
+const availableSections = sections.slice(0, 3);
 // A configured endpoint does not mean a successful authenticated connection.
 const sourceConfigured = Boolean(readConfigFromEnvironment());
 watch(() => route.fullPath, () => { mobileMenuOpen.value = false; });
@@ -75,10 +75,11 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
               <rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/>
               <rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/>
             </template>
-            <template v-else>
+            <template v-else-if="section.path === '/variants'">
               <path d="M7 3c11 5 11 13 0 18M17 3C6 8 6 16 17 21"/>
               <path d="M9 6h6M7.5 10h9M7.5 14h9M9 18h6"/>
             </template>
+            <template v-else><path d="M5 4h14M5 9h14M5 14h10M5 19h14"/></template>
           </svg>
           <span v-if="!sidebarCollapsed" class="nav-index" aria-hidden="true">{{ String(index + 1).padStart(2, '0') }}</span>
           <span v-if="!sidebarCollapsed" class="nav-name">{{ section.name }}</span>
@@ -93,7 +94,7 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
         </svg>
         <span v-if="!sidebarCollapsed" class="staff-link-name">Research administration <span aria-hidden="true">→</span></span>
       </RouterLink>
-      <p v-if="!sidebarCollapsed" class="sidebar-roadmap">Evidence, clinical review, genotype and reporting tools are in development.</p>
+      <p v-if="!sidebarCollapsed" class="sidebar-roadmap">Clinical review, genotype and reporting tools are in development.</p>
       <div v-if="!sidebarCollapsed" class="sidebar-base">
         <span class="sidebar-rule" aria-hidden="true"></span>
         <strong>Research environment</strong>
