@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { RouterLink } from 'vue-router';
 import { authController } from '../services/authSession';
+import {researcherRole,refreshResearcherRole} from '../services/researchRole';
 
 const signedIn = computed(() => authController?.state.phase === 'signed-in');
 const phase = computed(() => authController?.state.phase || 'unavailable');
@@ -29,11 +30,11 @@ const identity = computed(() => signedIn.value ? authController?.state.email || 
     <span class="section-label">PERMISSION VERIFICATION</span>
     <dl class="research-capabilities">
      <div><dt>Identity</dt><dd>{{signedIn ? 'Session present' : 'Not authenticated'}}</dd></div>
-     <div><dt>Contributor role</dt><dd>Not verifiable</dd></div>
+     <div><dt>Research membership</dt><dd>{{researcherRole.phase==='verified' ? researcherRole.role : researcherRole.phase==='unassigned' ? 'No assignment' : 'Not verifiable'}}</dd></div>
      <div><dt>Scientific reviewer role</dt><dd>Not verifiable</dd></div>
      <div><dt>Administrator role</dt><dd>Not verifiable</dd></div>
     </dl>
-    <p>Signing in does not grant research editing privileges. Database-enforced assignments and audit controls are required before contributions are enabled.</p>
+    <p v-if="signedIn&&researcherRole.phase==='unavailable'" role="alert">Role verification unavailable. No operations will be enabled.</p><button v-if="signedIn" type="button" class="evidence-more" @click="refreshResearcherRole">Recheck role</button><p>Signing in does not grant research editing privileges. Database-enforced assignments and audit controls are required before contributions are enabled.</p>
    </aside>
   </section>
   <section class="admin-readiness" aria-label="Research operations readiness">

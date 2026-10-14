@@ -1,0 +1,44 @@
+name: Verified research membership staging
+on:
+  pull_request:
+    paths:
+      - 'staging/security/120_verified_research_memberships.sql'
+      - 'staging/security/130_verified_research_memberships_contract.sql'
+      - '.github/workflows/research-membership-staging.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'staging/security/120_verified_research_memberships.sql'
+      - 'staging/security/130_verified_research_memberships_contract.sql'
+      - '.github/workflows/research-membership-staging.yml'
+permissions:
+  contents: read
+jobs:
+  membership-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: membership_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ephemeral-contract-only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d membership_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install postgres client
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+      - name: Verify role isolation and denial of self-promotion
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: postgres
+          PGPASSWORD: ephemeral-contract-only
+          PGDATABASE: membership_test
+        run: psql -X -v ON_ERROR_STOP=1 -f staging/security/130_verified_research_memberships_contract.sql
