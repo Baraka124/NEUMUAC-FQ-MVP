@@ -60,8 +60,13 @@ test('public research needs no sign-in and admin never exposes unapproved writes
 
 test('sidebar expands, contracts and persists preference without hiding navigation', async ({ page }) => {
   await page.goto('/#/variants');
-  const toggle = page.getByRole('button', { name: 'Collapse sidebar' });
+  const wideDesktop = page.viewportSize()!.width > 1180;
   if (page.viewportSize()!.width > 760) {
+    if (!wideDesktop) {
+      await expect(page.locator('.app-frame')).toHaveClass(/sidebar-collapsed/);
+      await page.getByRole('button',{name:'Expand sidebar'}).click();
+    }
+    const toggle = page.getByRole('button',{name:'Collapse sidebar'});
     await expect(toggle).toBeVisible();
     await toggle.click();
     await expect(page.locator('.app-frame')).toHaveClass(/sidebar-collapsed/);
@@ -72,7 +77,7 @@ test('sidebar expands, contracts and persists preference without hiding navigati
     await page.getByRole('button',{name:'Expand sidebar'}).click();
     await expect(page.locator('.app-frame')).not.toHaveClass(/sidebar-collapsed/);
   } else {
-    await expect(toggle).toBeHidden();
+    await expect(page.getByRole('button',{name:'Collapse sidebar'})).toBeHidden();
     await page.getByRole('button',{name:/workspaces/i}).click();
     await expect(page.getByRole('navigation',{name:'Mobile workspaces'}).getByRole('link',{name:'Research administration'})).toBeVisible();
   }
