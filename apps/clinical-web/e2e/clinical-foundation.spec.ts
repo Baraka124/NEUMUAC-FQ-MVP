@@ -104,3 +104,12 @@ test('real evidence register provides linked references without implying clinica
  await expect(page.locator('.evidence-row').first()).toBeVisible();
  await expect(page.locator('html')).toHaveJSProperty('scrollWidth',await page.locator('html').evaluate(e=>e.clientWidth));
 });
+test('genotype explorer uses only live verified identifiers and never predicts treatment',async({page})=>{
+ await page.goto('/#/genotype?a=18&b=20');
+ await expect(page.getByRole('heading',{name:'Genotype exploration'})).toBeVisible();
+ await expect(page.getByRole('region',{name:'Variant pair selection'}).getByRole('searchbox',{name:'Find a CFTR variant'})).toHaveCount(2);
+ await expect(page.getByRole('heading',{name:'Pair comparison'})).toBeVisible();
+ await expect(page.getByText('No prediction is calculated here.')).toBeVisible();
+ await expect(page.getByRole('button',{name:/approve|prescribe|save variant|edit evidence/i})).toHaveCount(0);
+ await expect(page.locator('html')).toHaveJSProperty('scrollWidth',await page.locator('html').evaluate(e=>e.clientWidth));
+});
