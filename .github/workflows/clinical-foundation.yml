@@ -1,0 +1,39 @@
+name: NeumuacFQ clinical foundation
+on:
+  pull_request:
+    paths:
+      - 'apps/clinical-web/**'
+      - '.github/workflows/clinical-foundation.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/clinical-web/**'
+      - '.github/workflows/clinical-foundation.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  foundation:
+    name: Vue TypeScript / check
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: apps/clinical-web
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Assert no direct Supabase/backend integration
+        run: |
+          if grep -RIE 'supabase.co|service_role|/rest/v1/|https?://.*(pubmed|clinvar)' src; then
+            echo 'A production integration was introduced into isolated clinical-web foundation.'
+            exit 1
+          fi
