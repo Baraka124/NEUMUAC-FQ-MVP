@@ -18,6 +18,10 @@ The legacy engine (`searchVariants`, approximately L12785–12959) performs norm
 - Some structurally invalid queries
 - Read-only in-memory operation with no search log persistence
 
+## First confirmed discrepancy
+
+The legacy-inspired normalization transforms `ΔF508` into `delf508`, which is not identical to `f508del`. This is recorded as **non-parity for a canonical clinical synonym** and must receive an explicitly approved normalization correction with differential tests. We are not importing the discrepancy as a clinical rule.
+
 ## Explicit parity gaps (must not be silently approved)
 
 1. No equivalence proof for all legacy aliases, including positional/eponymic shortcuts; some colloquial associations may be scientifically misleading.
