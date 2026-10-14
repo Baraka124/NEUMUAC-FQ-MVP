@@ -4,7 +4,7 @@ test('real-data-only boundary, navigation and horizontal containment', async ({ 
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'CFTR variant research', exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Explore variant records' })).toHaveAttribute('href', '#/variants');
-  await expect(page.getByRole('region', { name: 'Current capability' })).toContainText('Evidence and provenance');
+  await expect(page.getByRole('complementary', { name: 'Current capability' })).toContainText('Evidence and provenance');
   await expect(page.getByText('Real records only · access-controlled connection')).toBeVisible();
   if (page.viewportSize()!.width <= 760) {
     await page.getByRole('button', { name: /workspaces/i }).click();
