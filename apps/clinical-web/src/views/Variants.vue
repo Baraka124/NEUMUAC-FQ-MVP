@@ -1,19 +1,32 @@
 <script setup lang="ts">
-import { computed, ref, watch, onUnmounted } from 'vue';
+import { ref, watch, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {authController,authSessionProvider} from '../services/authSession';
 
-import {evidenceForVariant,EVIDENCE_SNAPSHOT_DATE} from '../services/publicEvidence';
+import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
 import { createReadOnlyRepository, readConfigFromEnvironment, variantDisplayName, formatReadStatus, type RealVariant, type RealVariantSource } from '../services/liveVariants';
 const route=useRoute(),router=useRouter();
 const config=readConfigFromEnvironment();
 let source:RealVariantSource|null=null;
 const liveMode = Boolean(config);
-const linkedEvidence = computed(() => selected.value ? evidenceForVariant(selected.value.id) : []);
+const evidenceSource=config?createLiveEvidenceSource(config):null;
+const linkedEvidence=ref<readonly LiveEvidenceReference[]>([]);
+const evidenceError=ref('');
+let evidenceAbort:AbortController|null=null;
+
+
 let configError='';
 try { if(config) source=createReadOnlyRepository(config,fetch,authSessionProvider); } catch(e){configError=formatReadStatus(e);}
 const rows=ref<readonly RealVariant[]>([]);
 const selected=ref<RealVariant|null>(null);
+watch(selected,async value=>{
+ evidenceAbort?.abort(); linkedEvidence.value=[]; evidenceError.value='';
+ if(!value || !evidenceSource)return;
+ const controller=new AbortController(); evidenceAbort=controller;
+ try {const result=await evidenceSource.forVariant(value.id,controller.signal);
+   if(!controller.signal.aborted)linkedEvidence.value=result;
+ } catch {if(!controller.signal.aborted)evidenceError.value='Current source links could not be loaded.';}
+});
 const search=ref('');
 const page=ref(0);
 const hasMore=ref(false);
@@ -47,7 +60,7 @@ watch(()=>authController?.state.phase,()=>{current?.abort();detailRequest?.abort
 watch([search,page],()=>{clearTimeout(timer);timer=setTimeout(()=>{void load();},search.value?250:0)},{immediate:true});
 watch(search,()=>{page.value=0;});
 watch(()=>route.params.id,id=>{void loadDetail(id);},{immediate:true});
-onUnmounted(()=>{current?.abort();detailRequest?.abort();clearTimeout(timer);});
+onUnmounted(()=>{current?.abort();detailRequest?.abort();evidenceAbort?.abort();clearTimeout(timer);});
 function select(id:string):void{void router.push({path:'/variants/'+encodeURIComponent(id)});}
 </script>
 <template>
@@ -72,8 +85,8 @@ function select(id:string):void{void router.push({path:'/variants/'+encodeURICom
      <p v-if="detailBusy" role="status">Loading record…</p>
      <template v-else-if="selected"><div class="record-identity"><div><h2 id="selected-title">{{variantDisplayName(selected)}}</h2><p>Recorded variant identity fields only. No scientific conclusions or clinical validation are inferred.</p></div><span class="record-state">Nomenclature only</span></div><dl class="identity-grid"><div><dt>Legacy name</dt><dd>{{selected.legacyName||'Not recorded'}}</dd></div><div><dt>Protein notation</dt><dd>{{selected.proteinName||'Not recorded'}}</dd></div><div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div><div><dt>Recorded aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div></dl><section class="variant-evidence-links" aria-label="Recorded source references">
       <h3>Recorded references <span>{{linkedEvidence.length}}</span></h3>
-      <p class="rail-caption">Source links from the {{EVIDENCE_SNAPSHOT_DATE}} snapshot. A recorded link is not a clinical assessment or an independently verified claim.</p>
-      <p v-if="!linkedEvidence.length" class="rail-caption">No source links recorded for this variant in the current snapshot. This does not establish an absence of published research.</p>
+      <p class="rail-caption">Current source links from the research database. A recorded link is not a clinical assessment or an independently verified claim.</p>
+      <p v-if="evidenceError" role="alert" class="rail-caption">{{evidenceError}}</p><p v-else-if="!linkedEvidence.length" class="rail-caption">No source links currently returned for this variant. This does not establish an absence of published research.</p>
       <ul v-else class="variant-evidence-list">
         <li v-for="entry in linkedEvidence" :key="entry.id"><a :href="entry.url" target="_blank" rel="noopener noreferrer">{{entry.title}} ↗</a><span>{{entry.source}}</span></li>
       </ul>
