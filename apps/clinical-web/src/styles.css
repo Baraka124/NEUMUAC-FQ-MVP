@@ -73,3 +73,12 @@
 .preview-notice p{color:#706657}
 .sidebar-roadmap{font-size:12px;line-height:1.65;color:#9db4c0;margin:18px 12px 22px;padding-top:17px;border-top:1px solid #405562}
 @media(max-width:760px){.sidebar-roadmap{display:none}}
+
+/* Phase 2M-D: understated staff access, not a public research login gate. */
+.staff-access-link{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#d1e0e6;text-decoration:none;font-size:12px;padding:14px 12px;margin-top:18px;border-top:1px solid #405562}
+.staff-access-link:hover{color:#fff}
+.staff-signin-form{display:grid;gap:10px;margin:22px 0 12px;max-width:440px}
+.staff-signin-form label{font-size:13px;font-weight:650;margin-top:7px}
+.staff-signin-form input{min-height:44px;width:100%;padding:10px 12px;border:1px solid #bfced6;border-radius:7px;background:white}
+.staff-signin-form button{min-height:44px;background:#215b6b;color:#fff;border:0;border-radius:6px;font-weight:650;margin-top:7px}
+@media(max-width:760px){.staff-access-link{display:none}}
