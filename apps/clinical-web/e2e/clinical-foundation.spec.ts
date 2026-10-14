@@ -16,13 +16,13 @@ test('real-data-only boundary, navigation and horizontal containment', async ({ 
   }
   await expect(page.getByRole('heading', { name: 'Variant workspace' })).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Workspaces' }).getByRole('link', { name: 'Helios Review' })).toHaveCount(0);
-  await expect(page.getByRole('alert')).toContainText('authorized variant database connection has not been configured');
+  await expect(page.getByRole('alert')).toContainText('public variant catalog has not been connected yet');
   await expect(page.locator('html')).toHaveJSProperty('scrollWidth', await page.locator('html').evaluate(e => e.clientWidth));
 });
 
 test('unconfigured database never substitutes invented records', async ({ page }) => {
   await page.goto('/#/variants');
-  await expect(page.getByRole('alert')).toContainText('not been configured');
+  await expect(page.getByRole('alert')).toContainText('not been connected yet');
   await expect(page.getByRole('button', { name: /DEMO-CFTR/i })).toHaveCount(0);
   await page.getByRole('searchbox', { name: 'Search variant identifier' }).fill('R117H');
   await expect(page.getByRole('alert')).toContainText('not been configured');
