@@ -1,3 +1,6 @@
+<script setup lang="ts">
+import {researchWorkspaces,researchShortcuts} from '../domain/researchWorkspaces';
+</script>
 <template>
   <div class="page research-home">
     <header class="research-home-intro">
@@ -22,6 +25,14 @@
         </dl>
         <p>These availability statements describe the modern workspace, not the existing legacy application.</p>
       </aside>
+    </section>
+    <section class="research-workbench-index" aria-labelledby="workbench-title">
+      <div class="section-label">RESEARCH TOOLS</div>
+      <h2 id="workbench-title">Continue your research</h2>
+      <div class="workbench-index-grid">
+       <RouterLink v-for="tool in researchWorkspaces.filter(item=>item.id!=='overview')" :key="tool.id" :to="tool.path" class="workbench-index-item"><strong>{{tool.name}}</strong><span>{{tool.description}}</span><span aria-hidden="true">↗</span></RouterLink>
+      </div>
+      <div class="workbench-shortcut"><RouterLink :to="researchShortcuts[0].path">Open Class I variant worklist →</RouterLink></div>
     </section>
   </div>
 </template>
