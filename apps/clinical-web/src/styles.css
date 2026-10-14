@@ -379,3 +379,23 @@ main{background:#fbfcfa}
 .record-return:hover,.workbench-shortcut a:hover{text-decoration:underline;text-underline-offset:3px}
 @media(max-width:930px){.workspace-launcher-trigger{max-width:45px;flex-basis:45px;justify-content:center;padding:4px}.workspace-launcher-trigger>span{display:none}}
 @media(max-width:600px){.workbench-index-grid{grid-template-columns:1fr}.workspace-launcher-trigger kbd{font-size:11px}.workspace-launcher-trigger{min-height:38px;max-width:43px;flex-basis:43px}.institution-header{gap:7px}.header-environment{max-width:44%;min-width:0}.workspace-launcher{max-height:85dvh}}
+
+
+/* Phase 3D — search rail as the primary scientific instrument */
+.record-rail{background:#fff;border:1px solid #d6e6dc;box-shadow:0 8px 30px #1d432913;padding-top:24px}
+.record-rail .rail-topline{align-items:start;gap:12px}
+.record-rail .rail-topline h2{font-size:clamp(19px,1.7vw,25px);line-height:1.15;letter-spacing:-.035em;margin:8px 0 14px;color:#163d2d}
+.record-rail label[for=search]{display:block;font-size:12px;font-weight:700;color:#365e4a;margin:10px 0 8px}
+.discovery-input{display:flex;align-items:center;gap:8px;min-height:51px;padding:0 10px;border:1.5px solid #a9cbbb;background:#fbfefa;border-radius:9px;color:#357860;transition:border-color .16s ease,box-shadow .16s ease}
+.discovery-input-active,.discovery-input:focus-within{border-color:#168468;box-shadow:0 0 0 4px #2f9c7d18}
+.discovery-input svg{flex:0 0 20px}
+.discovery-input input{flex:1;min-width:0;border:0!important;background:transparent!important;box-shadow:none!important;outline:none!important;padding:12px 1px!important;min-height:47px!important;font-size:14px}
+.discovery-input input:focus{outline:none!important}
+.discovery-clear{border:0;background:#e6f2e8;color:#245b43;font-size:20px;display:grid;place-items:center;width:31px;height:31px;border-radius:7px;flex:none}
+.discovery-hint{font-size:11px;color:#73877b;line-height:1.5;margin:9px 0 13px}
+.discovery-match{font-size:12px;font-weight:650;color:#176a4e;margin:8px 0}
+.record-rail .record-total{white-space:nowrap;font-variant-numeric:tabular-nums;font-size:11px;color:#638071}
+.record-list button{border-radius:5px;text-align:left;transition:background .15s ease,box-shadow .15s ease}
+.record-list button:focus-visible{outline:2px solid #198366;outline-offset:-2px}
+@media(max-width:760px){.record-rail{box-shadow:0 3px 18px #194a2b0c}.record-rail .rail-topline h2{font-size:21px}}
+@media(prefers-reduced-motion:reduce){.discovery-input,.record-list button{transition:none}}
