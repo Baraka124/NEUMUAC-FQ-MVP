@@ -107,7 +107,7 @@ export function createReadOnlyRepository(config: ReadOnlyConfig, transport: type
     return data.map(decodeRealVariant);
   }
   return Object.freeze({
-    async list({query,page,signal}) {
+    async list({query,page,signal}: {query:string;page:number;signal?:AbortSignal}) {
       if (!Number.isInteger(page)||page<0||page>10000) throw new VariantConnectionError('invalid-configuration','Invalid page.');
       const params=new URLSearchParams({select:'id,legacy_name,protein_name,cdna_name,alt_names',order:'legacy_name.asc',limit:String(PAGE_SIZE+1),offset:String(page*PAGE_SIZE)});
       const text=safeSearchTerm(query);
@@ -120,7 +120,7 @@ export function createReadOnlyRepository(config: ReadOnlyConfig, transport: type
       const result=await request(params,signal);
       return {records:result.slice(0,PAGE_SIZE),hasMore:result.length>PAGE_SIZE};
     },
-    async get(id,signal) {
+    async get(id:string,signal?:AbortSignal) {
       if (!id || id.length>128) return null;
       const params=new URLSearchParams({select:'id,legacy_name,protein_name,cdna_name,alt_names',id:`eq.${id}`,limit:'1'});
       const found=await request(params,signal);
