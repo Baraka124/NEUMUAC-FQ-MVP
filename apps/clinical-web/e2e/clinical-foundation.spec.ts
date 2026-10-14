@@ -67,7 +67,9 @@ test('public research needs no sign-in and admin never exposes unapproved writes
   await expect(page.locator('.record-list button')).toHaveCount(0);
   await page.goto('/#/admin');
   await expect(page.getByRole('heading', { name: 'Research administration' })).toBeVisible();
-  await expect(page.getByText(/Staff sign-in has not yet been connected in this deployment/)).toBeVisible();
+  await expect(page.getByText(/Staff authentication is not configured here/)).toBeVisible();
+  await expect(page.getByRole('region',{name:'Research operations readiness'})).toBeVisible();
+  await expect(page.getByRole('complementary',{name:'Administration availability'})).toContainText('Not verifiable');
   await expect(page.getByRole('button', { name: /approve|publish|edit|save/i })).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Explore public variants' })).toHaveAttribute('href', '#/variants');
   await expect(page.locator('html')).toHaveJSProperty('scrollWidth', await page.locator('html').evaluate(e => e.clientWidth));
