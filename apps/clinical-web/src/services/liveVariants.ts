@@ -9,13 +9,24 @@ export interface RealVariant {
   readonly proteinName: string | null;
   readonly cdnaName: string | null;
   readonly aliases: readonly string[];
+  /** Raw functional class label from the live catalog, not a clinical verdict. */
+  readonly recordedClass?: string | null;
+}
+export type RecordedClassFilter = 'all'|'I'|'II'|'III'|'IV'|'V'|'VI'|'unclassified';
+export type VariantSort = 'name-asc'|'name-desc'|'recent-record';
+export interface VariantListOptions {
+  readonly query:string;
+  readonly page:number;
+  readonly classFilter?:RecordedClassFilter;
+  readonly sort?:VariantSort;
+  readonly signal?:AbortSignal;
 }
 export interface RealVariantPage {
   readonly records: readonly RealVariant[];
   readonly hasMore: boolean;
 }
 export interface RealVariantSource {
-  list(options: { readonly query: string; readonly page: number; readonly signal?: AbortSignal }): Promise<RealVariantPage>;
+  list(options: VariantListOptions): Promise<RealVariantPage>;
   get(id: string, signal?: AbortSignal): Promise<RealVariant | null>;
 }
 export type ConnectionIssue = 'not-configured' | 'invalid-configuration' | 'authentication-required' | 'access-denied' | 'schema-mismatch' | 'request-failed';
@@ -91,7 +102,7 @@ export function decodeRealVariant(input: unknown): RealVariant {
   const legacyName=requiredText(raw.legacy_name);
   const proteinName=requiredText(raw.protein_name);
   const cdnaName=requiredText(raw.cdna_name);
-  return {id,legacyName,proteinName,cdnaName,aliases:decodeAliases(raw.alt_names)};
+  return {id,legacyName,proteinName,cdnaName,aliases:decodeAliases(raw.alt_names),recordedClass:requiredText(raw.cftr_class)};
 }
 export function variantDisplayName(value: RealVariant): string {
   return value.legacyName || value.proteinName || value.cdnaName || value.id;
@@ -163,9 +174,22 @@ export function createReadOnlyRepository(
     return data.map(decodeRealVariant);
   }
   return Object.freeze({
-    async list({query,page,signal}: {query:string;page:number;signal?:AbortSignal}) {
+    async list({query,page,classFilter='all',sort='name-asc',signal}: VariantListOptions) {
+      const classes: readonly RecordedClassFilter[]=['all','I','II','III','IV','V','VI','unclassified'];
+      const sorts: readonly VariantSort[]=['name-asc','name-desc','recent-record'];
+      if(!classes.includes(classFilter)||!sorts.includes(sort))
+        throw new VariantConnectionError('invalid-configuration','Invalid research filters.');
+      if(table!=='variants'&&classFilter!=='all')
+        throw new VariantConnectionError('not-configured','Scientific class filters require the full authorized variant source.');
       if (!Number.isInteger(page)||page<0||page>10000) throw new VariantConnectionError('invalid-configuration','Invalid page.');
-      const params=new URLSearchParams({select:'id,legacy_name,protein_name,cdna_name,alt_names',order:'legacy_name.asc',limit:String(PAGE_SIZE+1),offset:String(page*PAGE_SIZE)});
+      const params=new URLSearchParams({
+        select:table==='variants'
+          ? 'id,legacy_name,protein_name,cdna_name,alt_names,cftr_class'
+          : 'id,legacy_name,protein_name,cdna_name,alt_names',
+        order:sort==='recent-record'?'id.desc':sort==='name-desc'?'legacy_name.desc,id.asc':'legacy_name.asc,id.asc',
+        limit:String(PAGE_SIZE+1),offset:String(page*PAGE_SIZE)
+      });
+      if(classFilter!=='all')params.set('cftr_class',classFilter==='unclassified'?'is.null':'eq.'+classFilter);
       const text=safeSearchTerm(query);
       if (query.trim() && !text) throw new VariantConnectionError('request-failed','Search contains unsupported characters.');
       if (text) {
@@ -178,7 +202,9 @@ export function createReadOnlyRepository(
     },
     async get(id:string,signal?:AbortSignal) {
       if (!/^[a-zA-Z0-9_-]{1,128}$/.test(id)) return null;
-      const params=new URLSearchParams({select:'id,legacy_name,protein_name,cdna_name,alt_names',id:`eq.${id}`,limit:'1'});
+      const params=new URLSearchParams({select:table==='variants'
+        ? 'id,legacy_name,protein_name,cdna_name,alt_names,cftr_class'
+        : 'id,legacy_name,protein_name,cdna_name,alt_names',id:`eq.${id}`,limit:'1'});
       const found=await request(params,signal);
       return found[0]??null;
     }
