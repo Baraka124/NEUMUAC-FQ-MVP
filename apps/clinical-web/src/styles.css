@@ -284,3 +284,68 @@ button:focus-visible,summary:focus-visible,a:focus-visible,input:focus-visible,s
  .intelligence-filters input,.intelligence-filters select{width:100%}
 }
 @media(prefers-reduced-motion:reduce){.mobile-nav{animation:none}.workspace-nav a,.record-list button{transition:none}}
+
+
+/* Phase 3B — LIGHT-FIRST institutional research system, after the structural Phase 3A.
+   Quiet pale navigation, white canvas, graphite type, deep-teal interaction only.
+   Retain explicit visual hierarchy and never encode scientific certainty by colour. */
+:root{--ink:#20332e;--muted:#526861;--subtle:#758880;--line:#dce5e0;--paper:#fff;--accent:#176c65;--nav:#f1f5f0;--focus:#137c73;background:#fbfcfa;color:#20332e}
+body{background:#fbfcfa}
+.app-frame,.app-frame.sidebar-collapsed{background:#fbfcfa}
+.sidebar{color:#274239;background:#f0f5f0;border-right:1px solid #dce5dd;box-shadow:inset -1px 0 #ffffffa8}
+.wordmark{color:#223c32}
+.wordmark-icon{border:1px solid #bacdc0;background:#fff;border-radius:11px}
+.mark-line{background:#437c64}.mark-line:nth-child(2){background:#79ad7f}
+.wordmark-text strong{font-size:17px;letter-spacing:-.045em;color:#1d382d;font-weight:760}
+.wordmark-text small{color:#6b8374}
+.sidebar-caption{color:#678274}
+.workspace-nav a{color:#37564b;font-weight:600}
+.workspace-nav a:hover{color:#174c3f;background:#e3eee6}
+.workspace-nav a.router-link-exact-active,.workspace-nav a.variant-route-active{background:#dcebe0;color:#175b45;box-shadow:inset 3px 0 #318a66;font-weight:720}
+.sidebar-base{color:#6d8579}.sidebar-base strong{color:#345346}.sidebar-rule{background:#d2ded4}
+.sidebar-roadmap{color:#718879;border-top-color:#d8e3da}
+.staff-access-link{color:#416c5a;border-top-color:#d4e0d7}
+.staff-access-link:hover{color:#165340}
+.sidebar-toggle{background:#fff;color:#336b55;border-color:#c8d9ce;box-shadow:0 2px 9px #274b3118}
+.sidebar-toggle:hover{background:#edf6ef;color:#10573b}
+.institution-header{background:#ffffffee;border-bottom:1px solid #e1e9e2;box-shadow:none}
+.header-path{color:#748d7f}.header-path strong{color:#274a38}
+.header-environment{color:#496e56}
+.environment-dot{background:#4a9777}
+.header-environment a{color:#176750}
+main{background:#fbfcfa}
+.page h1,.page h2,.research-entry-main h2{color:#173629}
+.eyebrow,.section-label{color:#477a61}
+.intro,.section-description,.rail-caption{color:#597267}
+.surface,.record-rail,.record-overview,.record-section,.unselected-record{background:#fff;border-color:#e0e9e1;box-shadow:0 3px 15px #20462c07}
+.record-list button{background:#fff;border-color:#e7eee8}
+.record-list button:hover{background:#f0f7f1}
+.record-list button.record-selected{background:#e9f5ed;border-color:#99c7a9;box-shadow:inset 3px 0 #378c63}
+.record-first strong{color:#204333}
+.record-class{color:#47806a}
+.record-state,.fixture-stamp{background:#f3f8f3;color:#446a58;border-color:#d2e5d5}
+.source-note{background:#f3f8f3;color:#496b55}
+.research-entry{border-color:#dce7df}
+.research-entry-aside{border-color:#dce7df}
+.research-entry-link,.variant-evidence-browse,.genotype-locus a{color:#126c50}
+.research-entry-link:hover{color:#104e3c}
+.facet-set button[aria-pressed=true]{background:#e7f3e9;color:#175c46;border-color:#a5c9b0}
+.research-disclosure summary,.disclosure-button{color:#285a45}
+.research-disclosure,.research-history-section,.variant-evidence-links{border-color:#dce6df}
+.evidence-row h2 a,.evidence-row-foot a,.intelligence-record a,.variant-evidence-list li a{color:#176750}
+.evidence-row-disclosure:hover{color:#135841}
+.research-history-list li,.evidence-row,.intelligence-record{border-bottom-color:#e1ebe4}
+.history-disclaimer,.empty-result{background:#f4f7f3;color:#607568}
+.action{background:#1d7155;color:#fff}.action:hover{background:#14563e}
+.variant-export-actions button{border-color:#b8d2bf;color:#176b4e}
+.record-rail input,.evidence-search-head input,.genotype-locus input,.intelligence-filters input,.intelligence-filters select,.variant-worklist-filters select{border-color:#ccdcd1;color:#203d30}
+.record-rail input:focus,.genotype-locus input:focus{border-color:#428c68}
+.page-footer{background:#fbfcfa;border-top-color:#e4ece6;color:#819284}
+@media(max-width:760px){
+ .mobile-nav{background:#fafcf9}
+ .mobile-nav-heading{color:#244637}
+ .mobile-nav a{color:#335a45}
+ .mobile-nav a:hover,.mobile-nav a.router-link-exact-active{background:#e6f2e7;color:#196645}
+ .mobile-nav-backdrop{background:#122a1d72}
+ .mobile-menu-button{background:#fff;border-color:#d4e2d6;color:#2c5740}
+}
