@@ -32,7 +32,8 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
           <span>{{ section.name }}</span>
         </RouterLink>
       </nav>
-      <p class="sidebar-roadmap">Evidence, clinical review, genotype and reporting tools are not yet available in this Vue release.</p>
+      <RouterLink class="staff-access-link" to="/admin">Research administration <span aria-hidden="true">→</span></RouterLink>
+      <p class="sidebar-roadmap">Evidence, clinical review, genotype and reporting tools are in development.</p>
       <div class="sidebar-base">
         <span class="sidebar-rule" aria-hidden="true"></span>
         <strong>Research environment</strong>
@@ -53,10 +54,10 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
         </div>
         <div class="header-environment" :class="{ 'preview-environment': !sourceConfigured }" role="status">
           <span class="environment-dot" aria-hidden="true"></span>
-          <template v-if="!sourceConfigured"><span>Preview · records offline</span></template>
+          <template v-if="!sourceConfigured"><span>Public catalog · connection pending</span></template>
           <template v-else-if="authController?.state.phase==='signed-in'"><span>{{ authController.state.email || 'Signed in' }}</span><button type="button" @click="authController.signOut()">Sign out</button></template>
           <RouterLink v-else-if="authController" to="/sign-in">Sign in</RouterLink>
-          <span v-else>Source configured · access unverified</span>
+          <span v-else>Public research access</span>
         </div>
       </header>
 
@@ -71,12 +72,12 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
           <span class="notice-symbol" aria-hidden="true">i</span>
           <div>
             <template v-if="!sourceConfigured">
-              <strong>Research interface preview · data source not connected</strong>
-              <p>This release is available for design review. Variant records, authentication and clinical operations are not enabled. No demonstration records are substituted.</p>
+              <strong>Public research interface · data connection pending</strong>
+              <p>Variant search will be available publicly once the read-only catalog is connected. Staff changes require sign-in and verified permissions.</p>
             </template>
             <template v-else>
-              <strong>Restricted research data · authorization required</strong>
-              <p>Data appears only when the source grants access. Clinical decisions, edits and approvals remain unavailable.</p>
+              <strong>Public CFTR catalog · read-only access</strong>
+              <p>Visitors may browse approved variant nomenclature. Contributions and approvals require separate authorization.</p>
             </template>
           </div>
         </div>
@@ -84,7 +85,7 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
       </main>
       <footer class="page-footer">
         <span>NeumuacFQ · Research software architecture</span>
-        <span>{{ sourceConfigured ? 'Controlled research access · under verification' : 'Interface preview · no clinical data connection' }}</span>
+        <span>{{ sourceConfigured ? 'Controlled research access · under verification' : 'Public catalog · connection pending' }}</span>
       </footer>
     </div>
   </div>
