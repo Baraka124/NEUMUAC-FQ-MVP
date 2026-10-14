@@ -12,6 +12,9 @@ export interface LiveEvidenceReference {
   readonly year: number | null;
   readonly pmid: string | null;
   readonly doi: string | null;
+  readonly recordedQualityScore:number|null;
+  readonly recordedSourceWeight:number|null;
+  readonly recordedCitationCount:number|null;
 }
 export interface EvidencePage {
   readonly records: readonly LiveEvidenceReference[];
@@ -22,7 +25,7 @@ export interface LiveEvidenceSource {
   forVariant(variantId: string, signal?: AbortSignal): Promise<readonly LiveEvidenceReference[]>;
 }
 export const EVIDENCE_PAGE_SIZE = 30;
-const LINK_COLUMNS='id,variant_id,title,url,source,type,category,journal,year,pmid,doi';
+const LINK_COLUMNS='id,variant_id,title,url,source,type,category,journal,year,pmid,doi,quality_score,source_weight,citation_count';
 const trustedHosts = new Set([
   'pubmed.ncbi.nlm.nih.gov','www.ncbi.nlm.nih.gov','scholar.google.com','cftr2.org','doi.org'
 ]);
@@ -52,7 +55,10 @@ export function decodeLiveEvidence(row: unknown): LiveEvidenceReference {
     journal:typeof data.journal==='string'?data.journal:null,
     year:typeof data.year==='number' && Number.isInteger(data.year)?data.year:null,
     pmid:typeof data.pmid==='string'?data.pmid:null,
-    doi:typeof data.doi==='string'?data.doi:null
+    doi:typeof data.doi==='string'?data.doi:null,
+    recordedQualityScore:typeof data.quality_score==='number'&&Number.isFinite(data.quality_score)?data.quality_score:null,
+    recordedSourceWeight:typeof data.source_weight==='number'&&Number.isFinite(data.source_weight)?data.source_weight:null,
+    recordedCitationCount:typeof data.citation_count==='number'&&Number.isSafeInteger(data.citation_count)?data.citation_count:null
   });
 }
 

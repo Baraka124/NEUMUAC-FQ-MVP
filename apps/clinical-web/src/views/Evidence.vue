@@ -51,7 +51,10 @@ onUnmounted(()=>{abort?.abort();clearTimeout(debounce);});
    <article v-for="item in rows" :key="item.id" class="evidence-row">
     <div class="evidence-row-meta"><span>{{item.source}}</span><span v-if="item.year">{{item.year}} (recorded)</span></div>
     <h2><button type="button" class="evidence-row-disclosure" :aria-expanded="expandedRows.includes(item.id)" @click="toggleRow(item.id)"><span>{{item.title}}</span><span aria-hidden="true">{{expandedRows.includes(item.id)?'−':'+'}}</span></button></h2>
-    <div v-if="expandedRows.includes(item.id)" class="evidence-row-foot"><a :href="item.url" target="_blank" rel="noopener noreferrer">Open source ↗</a><RouterLink :to="'/variants/'+item.variantId">Variant record #{{item.variantId}}</RouterLink><span v-if="item.journal">{{item.journal}}</span><span v-if="item.pmid">PMID {{item.pmid}}</span></div>
+    <div v-if="expandedRows.includes(item.id)" class="evidence-row-foot">
+     <span>Recorded quality score: {{item.recordedQualityScore??'Not recorded'}}</span>
+     <span>Recorded source weight: {{item.recordedSourceWeight??'Not recorded'}}</span>
+     <span>Recorded citation count: {{item.recordedCitationCount??'Not recorded'}}</span><a :href="item.url" target="_blank" rel="noopener noreferrer">Open source ↗</a><RouterLink :to="'/variants/'+item.variantId">Variant record #{{item.variantId}}</RouterLink><span v-if="item.journal">{{item.journal}}</span><span v-if="item.pmid">PMID {{item.pmid}}</span></div>
    </article>
   </div>
   <nav class="pagination-controls" aria-label="Evidence pages">
@@ -59,6 +62,6 @@ onUnmounted(()=>{abort?.abort();clearTimeout(debounce);});
    <span>Page {{page+1}} · {{EVIDENCE_PAGE_SIZE}} per page</span>
    <button type="button" :disabled="loading||!hasMore" @click="page++">Next</button>
   </nav>
-  <p class="history-disclaimer">Source titles, dates and links reflect the live database. A recorded reference does not establish validation, clinical relevance or certainty.</p>
+  <p class="history-disclaimer">Source titles, dates and links reflect the live database. Existing source weights and quality scores are displayed as database metadata, not independently validated rankings or clinical certainty.</p>
  </div>
 </template>

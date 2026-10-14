@@ -35,8 +35,8 @@
 | NFQ-017 | Classification | Scientific nomenclature decision governance | Staged only | ADR-0003, differential exception register | Independent review approvals and versioned release gates |
 | NFQ-018 | Curation | Contributor draft and evidence submission | Not migrated | Legacy edit/save; proposal records | Verified authorship, drafts, conflict-safe write and audit |
 | NFQ-019 | Curation | Validation actions and reviewer attestations | Not migrated | Legacy validation_history | Server authorization, attributable review and rejection path |
-| NFQ-020 | Curation | Inter-rater contradictions and conflict handling | Not migrated | Legacy checkInterRaterConflict / contradictions | Concurrent disagreement, resolution and audit replay tested |
-| NFQ-021 | Curation | Variant chronology and immutable audit history | Not migrated | Legacy showAuditTrail | Readable history, provenance and tamper-resistant server log |
+| NFQ-020 | Curation | Inter-rater contradictions and conflict handling | Partial | Legacy checkInterRaterConflict / contradictions | Concurrent disagreement, resolution and audit replay tested |
+| NFQ-021 | Curation | Variant chronology and immutable audit history | Partial | Legacy showAuditTrail | Readable history, provenance and tamper-resistant server log |
 | NFQ-022 | Helios | Helios review inbox and claim/release | Staged only | Legacy openHelios, helios_claim/release | Atomic ownership, lease/timeout and concurrency gates |
 | NFQ-023 | Helios | Helios approval/reject and trace | Staged only | Legacy approve and audit flows | Human decision, conflict resolution and transactional audit tests |
 | NFQ-024 | Genotype | Two-variant exploratory comparison | Partial | Legacy compound genotype; Vue pair workspace | Nomenclature/evidence comparison, saved stable URL and coverage |
@@ -67,7 +67,7 @@
 ## Next implementation sequence
 
 - **2M-R:** deterministic real-data research brief export **NFQ-031** and continuity gate; no patient identifiers or clinical recommendations.
-- **2M-S:** richer source provenance and scientific disagreement register **NFQ-009, NFQ-010, NFQ-020, NFQ-021**.
+- **2M-S:** live read-only quality metadata and historical validation/conflict summaries implemented as partial **NFQ-009, NFQ-010, NFQ-020, NFQ-021**; independent scoring and immutable audit verification remain outstanding.
 - **2M-T:** source-supported nomenclature/structured search parity **NFQ-004, NFQ-005**, resolving outstanding differential exceptions with review.
 - **2M-U:** approved contributor submission and validation workflow **NFQ-018..023, NFQ-036** (requires deployed server-side authorization).
 - **Later:** Helios, external federation, genotype interpretation, batch import, offline replay, trend analytics, ethics reporting, and background monitors remain explicit open requirements. None are dropped.
