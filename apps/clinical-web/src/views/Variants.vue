@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, watch, onUnmounted } from 'vue';
+import { computed, ref, watch, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {authController,authSessionProvider} from '../services/authSession';
 import {createPublicSnapshotSource,SNAPSHOT_DATE,SNAPSHOT_EXPECTED_COUNT} from '../services/publicSnapshotVariants';
+import {evidenceForVariant,EVIDENCE_SNAPSHOT_DATE} from '../services/publicEvidence';
 import { createReadOnlyRepository, readConfigFromEnvironment, variantDisplayName, formatReadStatus, type RealVariant, type RealVariantSource } from '../services/liveVariants';
 const route=useRoute(),router=useRouter();
 const config=readConfigFromEnvironment();
@@ -10,6 +11,7 @@ let source:RealVariantSource|null=null;
 const snapshotMode = !config;
 const snapshotDate = SNAPSHOT_DATE;
 const snapshotCount = SNAPSHOT_EXPECTED_COUNT;
+const linkedEvidence = computed(() => selected.value ? evidenceForVariant(selected.value.id) : []);
 let configError='';
 try { source=config ? createReadOnlyRepository(config,fetch,authSessionProvider) : createPublicSnapshotSource(); } catch(e){configError=formatReadStatus(e);}
 const rows=ref<readonly RealVariant[]>([]);
@@ -70,7 +72,16 @@ function select(id:string):void{void router.push({path:'/variants/'+encodeURICom
     <article class="record-overview" aria-labelledby="selected-title">
      <div class="section-label">{{snapshotMode ? 'SNAPSHOT RECORD / READ ONLY' : 'DATABASE RECORD / READ ONLY'}}</div>
      <p v-if="detailBusy" role="status">Loading record…</p>
-     <template v-else-if="selected"><div class="record-identity"><div><h2 id="selected-title">{{variantDisplayName(selected)}}</h2><p>Recorded variant identity fields only. No scientific conclusions or clinical validation are inferred.</p></div><span class="record-state">Nomenclature only</span></div><dl class="identity-grid"><div><dt>Legacy name</dt><dd>{{selected.legacyName||'Not recorded'}}</dd></div><div><dt>Protein notation</dt><dd>{{selected.proteinName||'Not recorded'}}</dd></div><div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div><div><dt>Recorded aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div></dl><p class="history-disclaimer">Evidence, provenance, curation and review history are not loaded until their underlying authorization and schema are verified.</p></template>
+     <template v-else-if="selected"><div class="record-identity"><div><h2 id="selected-title">{{variantDisplayName(selected)}}</h2><p>Recorded variant identity fields only. No scientific conclusions or clinical validation are inferred.</p></div><span class="record-state">Nomenclature only</span></div><dl class="identity-grid"><div><dt>Legacy name</dt><dd>{{selected.legacyName||'Not recorded'}}</dd></div><div><dt>Protein notation</dt><dd>{{selected.proteinName||'Not recorded'}}</dd></div><div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div><div><dt>Recorded aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div></dl><section class="variant-evidence-links" aria-label="Recorded source references">
+      <h3>Recorded references <span>{{linkedEvidence.length}}</span></h3>
+      <p class="rail-caption">Source links from the {{EVIDENCE_SNAPSHOT_DATE}} snapshot. A recorded link is not a clinical assessment or an independently verified claim.</p>
+      <p v-if="!linkedEvidence.length" class="rail-caption">No source links recorded for this variant in the current snapshot. This does not establish an absence of published research.</p>
+      <ul v-else class="variant-evidence-list">
+        <li v-for="entry in linkedEvidence" :key="entry.id"><a :href="entry.url" target="_blank" rel="noopener noreferrer">{{entry.title}} ↗</a><span>{{entry.source}}</span></li>
+      </ul>
+      <RouterLink class="variant-evidence-browse" to="/evidence">Browse the evidence register →</RouterLink>
+     </section>
+     <p class="history-disclaimer">Clinical assessment, private annotations and review history are not included in this public snapshot.</p></template>
      <template v-else><h2 id="selected-title">{{route.params.id?'Record unavailable':'Select a variant'}}</h2><p>{{route.params.id?'No accessible record was returned for this identifier.':'Choose a database record to view its available nomenclature.'}}</p></template>
     </article>
    </div>
