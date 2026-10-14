@@ -116,7 +116,7 @@ export function createReadOnlyRepository(
   const endpoint=validateReadOnlyConfig(config);
   const mode: ReadAccessMode = config.accessMode ?? 'authenticated';
   async function request(params: URLSearchParams,signal?: AbortSignal): Promise<readonly RealVariant[]> {
-    const url=new URL('/rest/v1/variants',endpoint);
+    const url=new URL('/rest/v1/nfq_public_variant_catalog',endpoint);
     url.search=params.toString();
     // Publishable keys identify the application; they are NOT bearer JWTs.
     const headers: Record<string,string> = {apikey:config.publishableKey,Accept:'application/json'};
