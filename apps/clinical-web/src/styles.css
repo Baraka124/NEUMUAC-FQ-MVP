@@ -126,3 +126,12 @@
 @media(prefers-reduced-motion:reduce){
   .app-frame{transition:none}
 }
+
+/* Phase 2M-G — editorial evidence register */
+.evidence-overview{display:flex;gap:32px;border-block:1px solid var(--line);padding:20px 0;flex-wrap:wrap;margin-bottom:30px}
+.evidence-overview>div{display:flex;flex-direction:column;gap:4px}.evidence-overview strong{font-size:22px;letter-spacing:-.03em;font-weight:650}.evidence-overview span{color:var(--muted);font-size:12px}
+.evidence-search-head{display:grid;gap:8px;max-width:600px}.evidence-search-head label{font-size:13px;font-weight:650}.evidence-search-head input{min-height:46px;border:1px solid #c6d7df;background:white;border-radius:7px;padding:10px 14px;width:100%}
+.evidence-results-count{color:var(--muted);font-size:12px;margin:19px 0 8px}.evidence-register{border-top:1px solid var(--line)}
+.evidence-row{border-bottom:1px solid var(--line);padding:21px 0}.evidence-row-meta,.evidence-row-foot{display:flex;flex-wrap:wrap;gap:10px 22px;font-size:12px;color:var(--muted)}
+.evidence-row-meta span:first-child{font-weight:700;color:#416c7c}.evidence-row h2{font-size:clamp(16px,1.45vw,20px);line-height:1.45;letter-spacing:-.02em;font-weight:600;margin:8px 0}
+.evidence-row h2 a{text-decoration:none}.evidence-row h2 a:hover{text-decoration:underline;text-underline-offset:4px}.evidence-row-foot a{color:#156878}.evidence-more{background:transparent;border:1px solid var(--line);padding:12px 18px;margin:22px 0;border-radius:6px}
