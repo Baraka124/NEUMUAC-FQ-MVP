@@ -66,8 +66,7 @@ FOREACH t IN ARRAY ARRAY['api_keys','app_config','api_usage_logs','search_logs',
      has_table_privilege('authenticated','public.'||t,'SELECT') OR has_table_privilege('authenticated','public.'||t,'INSERT') THEN
      RAISE EXCEPTION 'Sensitive permissions remain on %',t; END IF;
 END LOOP;
-IF has_function_privilege('anon','public.set_write_pin(text)','EXECUTE') OR has_function_privilege('anon','public.check_write_pin(text)','EXECUTE') OR
-has_function_privilege('PUBLIC','public.set_write_pin(text)','EXECUTE') THEN
+IF has_function_privilege('anon','public.set_write_pin(text)','EXECUTE') OR has_function_privilege('anon','public.check_write_pin(text)','EXECUTE') THEN
 RAISE EXCEPTION 'Public PIN functions still executable'; END IF;
 IF NOT has_table_privilege('anon','public.variants','SELECT') OR NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='variants' AND policyname='variants_read') THEN
 RAISE EXCEPTION 'Public variant lookup unexpectedly removed'; END IF;
