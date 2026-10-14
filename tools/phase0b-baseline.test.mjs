@@ -52,6 +52,21 @@ test('public anon token is grandfathered ONLY in frozen legacy entry point', () 
   }
 });
 
+test('public anon key remains grandfathered only in archived index after cutover', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'nfq-archive-'));
+  try {
+    writeFileSync(join(dir, 'index.1.html'), '<script>const key = "' + token('anon') + '";</script>');
+    writeFileSync(join(dir, 'index.html'), '<div id="app"></div>');
+    const safe = checkNewCredentialLeaks(dir);
+    assert.deepEqual(safe.errors, []);
+    assert.equal(safe.legacyAnonTokenCount, 1);
+    writeFileSync(join(dir, 'index.html'), '<script>const duplicate = "' + token('anon') + '";</script>');
+    assert.match(checkNewCredentialLeaks(dir).errors.join(';'), /Non-baselined JWT/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('production baseline has not changed since Phase 0 architecture audit', () => {
   const report = checkLegacyBaseline();
   assert.deepEqual(report.errors, []);
