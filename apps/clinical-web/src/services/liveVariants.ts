@@ -44,8 +44,19 @@ export function validateReadOnlyConfig(config: ReadOnlyConfig): URL {
   if (base.protocol !== 'https:' || !base.hostname || base.username || base.password ||
       base.pathname !== '/' || base.search || base.hash)
     throw new VariantConnectionError('invalid-configuration','Invalid data endpoint.');
-  if (/service_role/i.test(config.publishableKey))
-    throw new VariantConnectionError('invalid-configuration','Privileged credentials are forbidden in the frontend.');
+  const key = config.publishableKey.trim();
+  const modernPublic = /^sb_publishable_[a-zA-Z0-9_-]+$/.test(key);
+  let legacyAnon = false;
+  if (!modernPublic && key.split('.').length === 3) {
+    try {
+      // Only an accidental-secret safety check. JWT payload is NOT trusted
+      // for authorization; Supabase validates the actual token and RLS.
+      const body = JSON.parse(atob(key.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))) as {role?:unknown};
+      legacyAnon = body.role === 'anon';
+    } catch { legacyAnon = false; }
+  }
+  if (!modernPublic && !legacyAnon)
+    throw new VariantConnectionError('invalid-configuration','Only a Supabase publishable or legacy anon key is permitted in browser configuration.');
   return base;
 }
 function requiredText(value: unknown): string | null {
@@ -121,7 +132,7 @@ export function createReadOnlyRepository(config: ReadOnlyConfig, transport: type
       return {records:result.slice(0,PAGE_SIZE),hasMore:result.length>PAGE_SIZE};
     },
     async get(id:string,signal?:AbortSignal) {
-      if (!id || id.length>128) return null;
+      if (!/^[a-zA-Z0-9_-]{1,128}$/.test(id)) return null;
       const params=new URLSearchParams({select:'id,legacy_name,protein_name,cdna_name,alt_names',id:`eq.${id}`,limit:'1'});
       const found=await request(params,signal);
       return found[0]??null;
