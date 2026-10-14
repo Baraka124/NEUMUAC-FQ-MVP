@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ref, watch, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import {authController,authSessionProvider} from '../services/authSession';
 import { createReadOnlyRepository, readConfigFromEnvironment, variantDisplayName, formatReadStatus, type RealVariant, type RealVariantSource } from '../services/liveVariants';
 const route=useRoute(),router=useRouter();
 const config=readConfigFromEnvironment();
 let source:RealVariantSource|null=null;
 let configError='';
-try { if(config) source=createReadOnlyRepository(config); } catch(e){configError=formatReadStatus(e);}
+try { if(config) source=createReadOnlyRepository(config,fetch,authSessionProvider); } catch(e){configError=formatReadStatus(e);}
 const rows=ref<readonly RealVariant[]>([]);
 const selected=ref<RealVariant|null>(null);
 const search=ref('');
@@ -38,6 +39,7 @@ async function loadDetail(id:unknown):Promise<void>{
   catch(e){if(!abort.signal.aborted&&run===detailSequence)error.value=formatReadStatus(e);}
   finally {if(run===detailSequence)detailBusy.value=false;}
 }
+watch(()=>authController?.state.phase,()=>{current?.abort();detailRequest?.abort();rows.value=[];selected.value=null;page.value=0;void load();});
 watch([search,page],()=>{clearTimeout(timer);timer=setTimeout(()=>{void load();},search.value?250:0)},{immediate:true});
 watch(search,()=>{page.value=0;});
 watch(()=>route.params.id,id=>{void loadDetail(id);},{immediate:true});
@@ -55,7 +57,7 @@ function select(id:string):void{void router.push({path:'/variants/'+encodeURICom
     <input id="search" v-model="search" type="search" autocomplete="off" placeholder="Variant name or HGVS notation"/>
     <p class="rail-caption">Search is a read-only database lookup. The full legacy scientific ranking and alias engine are not yet active.</p>
     <p v-if="busy" role="status">Loading authorized variant records…</p>
-    <p v-else-if="error" role="alert" class="empty-result">{{ error }}</p>
+    <p v-else-if="error" role="alert" class="empty-result">{{ error }} <RouterLink v-if="error.includes('Sign in')" to="/sign-in">Sign in</RouterLink></p>
     <p v-else-if="!rows.length" role="status" class="empty-result">No variant records returned for this search. No demonstration records are substituted.</p>
     <div v-else class="record-list" aria-label="Search results"><button v-for="record in rows" :key="record.id" type="button" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span class="record-subline">{{ record.proteinName || record.cdnaName || 'Additional nomenclature not recorded' }}</span><span class="record-bottom">Database record <span aria-hidden="true">→</span></span></button></div>
     <div class="pagination-controls"><button type="button" :disabled="busy||page===0" @click="page--">Previous</button><span>Page {{page+1}}</span><button type="button" :disabled="busy||!hasMore" @click="page++">Next</button></div>
