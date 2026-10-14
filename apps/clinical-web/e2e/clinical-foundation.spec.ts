@@ -15,6 +15,7 @@ test('real-data-only boundary, navigation and horizontal containment', async ({ 
     await page.getByRole('navigation', { name: 'Workspaces' }).getByRole('link', { name: /Variants/ }).click();
   }
   await expect(page.getByRole('heading', { name: 'Variant workspace' })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Workspaces' }).getByRole('link', { name: 'Evidence & Curation' })).toBeVisible();
   await expect(page.getByRole('navigation', { name: 'Workspaces' }).getByRole('link', { name: 'Helios Review' })).toHaveCount(0);
   await expect(page.getByText('2234 in snapshot')).toBeVisible();
   await expect(page.locator('html')).toHaveJSProperty('scrollWidth', await page.locator('html').evaluate(e => e.clientWidth));
@@ -82,4 +83,16 @@ test('sidebar expands, contracts and persists preference without hiding navigati
     await expect(page.getByRole('navigation',{name:'Mobile workspaces'}).getByRole('link',{name:'Research administration'})).toBeVisible();
   }
   await expect(page.locator('html')).toHaveJSProperty('scrollWidth',await page.locator('html').evaluate(e=>e.clientWidth));
+});
+
+
+test('real evidence register provides linked references without implying clinical validation',async({page})=>{
+ await page.goto('/#/evidence');
+ await expect(page.getByRole('heading',{name:'Evidence & provenance'})).toBeVisible();
+ await expect(page.getByText('154').first()).toBeVisible();
+ await expect(page.getByText('39').first()).toBeVisible();
+ await expect(page.locator('.evidence-row')).toHaveCount(30);
+ await page.getByRole('searchbox',{name:'Find a source or reference'}).fill('PubMed article');
+ await expect(page.locator('.evidence-row').first()).toBeVisible();
+ await expect(page.locator('html')).toHaveJSProperty('scrollWidth',await page.locator('html').evaluate(e=>e.clientWidth));
 });
