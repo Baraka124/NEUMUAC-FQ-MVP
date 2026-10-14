@@ -40,10 +40,14 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
       - run: npm run build
-      - name: Assert no direct Supabase/backend integration
+      - name: Verify real-data-only source boundaries
         run: |
-          if grep -RIE 'supabase.co|service_role|/rest/v1/|https?://.*(pubmed|clinvar)' src; then
-            echo 'A production integration was introduced into isolated clinical-web foundation.'
+          if grep -RIE 'https?://[a-z0-9-]+\\.supabase\\.co|service_role.{0,25}(eyJ|sk_)' src --include='*.ts' --include='*.vue'; then
+            echo 'Hardcoded Supabase endpoints or privileged credentials are forbidden.'
+            exit 1
+          fi
+          if grep -E 'DEMO_RECORDS|DEMO-CFTR|syntheticVariantRepository|fixtures/' src/views/Variants.vue src/views/Overview.vue; then
+            echo 'Running Vue workspaces cannot import or display synthetic variant records.'
             exit 1
           fi
 
