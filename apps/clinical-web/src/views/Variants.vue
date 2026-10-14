@@ -15,13 +15,7 @@ const dossierSource=config?createScientificDossierSource(config):null;
 const dossier=ref<ScientificDossier|null>(null);
 const dossierError=ref('');
 let dossierAbort:AbortController|null=null;
-watch(selected,async record=>{
- dossierAbort?.abort();dossier.value=null;dossierError.value='';
- if(!record||!dossierSource)return;
- const controller=new AbortController();dossierAbort=controller;
- try{const data=await dossierSource.get(record.id,controller.signal);if(!controller.signal.aborted)dossier.value=data;}
- catch{if(!controller.signal.aborted)dossierError.value='Scientific fields could not be loaded.';}
-});
+
 const linkedEvidence=ref<readonly LiveEvidenceReference[]>([]);
 const evidenceError=ref('');
 let evidenceAbort:AbortController|null=null;
@@ -31,6 +25,13 @@ let configError='';
 try { if(config) source=createReadOnlyRepository(config,fetch,authSessionProvider); } catch(e){configError=formatReadStatus(e);}
 const rows=ref<readonly RealVariant[]>([]);
 const selected=ref<RealVariant|null>(null);
+watch(selected,async record=>{
+ dossierAbort?.abort();dossier.value=null;dossierError.value='';
+ if(!record||!dossierSource)return;
+ const controller=new AbortController();dossierAbort=controller;
+ try{const data=await dossierSource.get(record.id,controller.signal);if(!controller.signal.aborted)dossier.value=data;}
+ catch{if(!controller.signal.aborted)dossierError.value='Scientific fields could not be loaded.';}
+});
 watch(selected,async value=>{
  evidenceAbort?.abort(); linkedEvidence.value=[]; evidenceError.value='';
  if(!value || !evidenceSource)return;
