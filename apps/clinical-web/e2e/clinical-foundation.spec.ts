@@ -4,7 +4,14 @@ test('real-data-only boundary, navigation and horizontal containment', async ({ 
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'CFTR variant research', exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Explore variant records' })).toHaveAttribute('href', '#/variants');
-  await expect(page.getByRole('complementary', { name: 'Current capability' })).toContainText('Evidence and provenance');
+  const capabilities = page.getByRole('complementary', { name: 'Current capability' });
+  await expect(capabilities).toContainText('Variant identities');
+  await expect(capabilities).toContainText('Live read-only lookup');
+  await expect(capabilities).toContainText('Sources and evidence');
+  await expect(capabilities).toContainText('Recorded references; claims unverified');
+  await expect(capabilities).toContainText('Variant-pair research');
+  await expect(capabilities).toContainText('Editing and curation');
+  await expect(capabilities).toContainText('Not yet available');
   await expect(page.getByText('Live CFTR research interface')).toBeVisible();
   await expect(page.getByRole('status').getByText('Live variant source · configuration pending')).toBeVisible();
   if (page.viewportSize()!.width <= 760) {
