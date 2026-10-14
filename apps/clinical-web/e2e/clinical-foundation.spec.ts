@@ -15,7 +15,12 @@ test('real-data-only boundary, navigation and horizontal containment', async ({ 
     await page.getByRole('navigation', { name: 'Workspaces' }).getByRole('link', { name: /Variants/ }).click();
   }
   await expect(page.getByRole('heading', { name: 'Variant workspace' })).toBeVisible();
-  await expect(page.getByRole('navigation', { name: 'Workspaces' }).getByRole('link', { name: 'Evidence & Curation' })).toBeVisible();
+  if (page.viewportSize()!.width > 760) {
+    await expect(page.getByRole('navigation', { name: 'Workspaces' }).getByRole('link', { name: 'Evidence & Curation' })).toBeVisible();
+  } else {
+    await page.getByRole('button', { name: /workspaces/i }).click();
+    await expect(page.getByRole('navigation', { name: 'Mobile workspaces' }).getByRole('link', { name: 'Evidence & Curation' })).toBeVisible();
+  }
   await expect(page.getByRole('navigation', { name: 'Workspaces' }).getByRole('link', { name: 'Helios Review' })).toHaveCount(0);
   await expect(page.getByText('2234 in snapshot')).toBeVisible();
   await expect(page.locator('html')).toHaveJSProperty('scrollWidth', await page.locator('html').evaluate(e => e.clientWidth));
