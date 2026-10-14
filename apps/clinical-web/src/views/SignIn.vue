@@ -1,8 +1,33 @@
 <script setup lang="ts">
 import {ref} from 'vue';
-import {useRouter} from 'vue-router';
+import {RouterLink,useRouter} from 'vue-router';
 import {authController} from '../services/authSession';
 const email=ref(''),password=ref(''),busy=ref(false),router=useRouter();
-async function submit(){if(!authController||busy.value)return;busy.value=true;try{if(await authController.signIn(email.value,password.value)){password.value='';await router.replace('/variants');}}finally{busy.value=false;}}
+async function submit(){if(!authController||busy.value)return;busy.value=true;try{if(await authController.signIn(email.value,password.value)){password.value='';await router.replace('/admin');}}finally{busy.value=false;}}
 </script>
-<template><div class="page"><div class="eyebrow">AUTHORIZED RESEARCH ACCESS</div><h1>Sign in</h1><p class="intro">Access to research records requires an authorized Supabase account. No open registration or anonymous clinical access is available in this workspace.</p><section class="surface auth-surface" aria-label="Research sign in"><p v-if="!authController" role="status">Sign-in is not available in this visual preview. The restricted research data connection has not yet been enabled.</p><form v-else @submit.prevent="submit"><label for="auth-email">Email address</label><input id="auth-email" v-model="email" type="email" autocomplete="username" required/><label for="auth-password">Password</label><input id="auth-password" v-model="password" type="password" autocomplete="current-password" required/><p v-if="authController.state.message" role="alert">{{authController.state.message}}</p><button type="submit" :disabled="busy">{{busy?'Signing in…':'Sign in'}}</button></form></section></div></template>
+<template>
+ <div class="page staff-signin">
+  <div class="eyebrow">NEUMUACFQ / STAFF ACCESS</div>
+  <h1>Research staff sign in</h1>
+  <p class="intro">The research catalog is public. Sign in only to access authorized scientific contributions, reviews or administration.</p>
+  <section class="research-entry" aria-labelledby="staff-signin-title">
+   <div class="research-entry-main">
+    <div class="section-label">SECURE SESSION</div>
+    <h2 id="staff-signin-title">Your research account</h2>
+    <p v-if="!authController" role="status">Staff authentication is not configured in this deployment. Public variant exploration remains available.</p>
+    <form v-else class="staff-signin-form" @submit.prevent="submit">
+     <label for="auth-email">Email address</label><input id="auth-email" v-model="email" type="email" autocomplete="username" required/>
+     <label for="auth-password">Password</label><input id="auth-password" v-model="password" type="password" autocomplete="current-password" required/>
+     <p v-if="authController.state.message" role="alert">{{authController.state.message}}</p>
+     <button type="submit" :disabled="busy">{{busy?'Signing in…':'Sign in'}}</button>
+    </form>
+    <RouterLink class="research-entry-link" to="/variants">Continue without signing in <span aria-hidden="true">→</span></RouterLink>
+   </div>
+   <aside class="research-entry-aside" aria-label="Account permissions">
+    <div class="section-label">ACCOUNT PERMISSIONS</div>
+    <p>Accounts are assigned permissions by the research team. Signing in does not automatically enable editing, approval or administrative operations.</p>
+    <p>There is no public registration or self-assigned administrator role.</p>
+   </aside>
+  </section>
+ </div>
+</template>

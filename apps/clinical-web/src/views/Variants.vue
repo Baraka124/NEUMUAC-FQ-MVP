@@ -24,7 +24,7 @@ let detailSequence=0;
 async function load():Promise<void>{
   current?.abort();const run=++listSequence;const abort=new AbortController();current=abort;
   rows.value=[];hasMore.value=false;error.value='';
-  if(!source){error.value=configError||'The authorized variant database connection has not been configured.';return;}
+  if(!source){error.value=configError||'The public variant catalog has not been connected yet.';return;}
   busy.value=true;
   try {const data=await source.list({query:search.value,page:page.value,signal:abort.signal});if(run===listSequence){rows.value=data.records;hasMore.value=data.hasMore;}}
   catch(e){if(!abort.signal.aborted&&run===listSequence)error.value=formatReadStatus(e);}
@@ -49,14 +49,14 @@ function select(id:string):void{void router.push({path:'/variants/'+encodeURICom
 <template>
  <div class="page variant-page">
   <div class="eyebrow">RESEARCH WORKSPACES / VARIANT INTELLIGENCE</div>
-  <div class="variant-heading"><div><h1>Variant workspace</h1><p class="intro">Read-only research records from the authorized variant database. Scientific assessment and editorial review are not yet migrated.</p></div><span class="fixture-stamp">READ ONLY</span></div>
+  <div class="variant-heading"><div><h1>Variant workspace</h1><p class="intro">Read-only CFTR variant nomenclature available to visitors when the public catalog is connected. Scientific assessment and editorial review are not yet migrated.</p></div><span class="fixture-stamp">READ ONLY</span></div>
   <div class="record-layout">
    <section class="record-rail" aria-labelledby="record-list-title">
     <div class="rail-topline"><div><span class="section-label">VARIANT INDEX</span><h2 id="record-list-title">Variant records</h2></div><span class="record-total">{{ rows.length }} on page</span></div>
     <label for="search">Search variant identifier</label>
     <input id="search" v-model="search" type="search" autocomplete="off" placeholder="Variant name or HGVS notation"/>
     <p class="rail-caption">Search is a read-only database lookup. The full legacy scientific ranking and alias engine are not yet active.</p>
-    <p v-if="busy" role="status">Loading authorized variant records…</p>
+    <p v-if="busy" role="status">Loading public variant records…</p>
     <p v-else-if="error" role="alert" class="empty-result">{{ error }} <RouterLink v-if="error.includes('Sign in')" to="/sign-in">Sign in</RouterLink></p>
     <p v-else-if="!rows.length" role="status" class="empty-result">No variant records returned for this search. No demonstration records are substituted.</p>
     <div v-else class="record-list" aria-label="Search results"><button v-for="record in rows" :key="record.id" type="button" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span class="record-subline">{{ record.proteinName || record.cdnaName || 'Additional nomenclature not recorded' }}</span><span class="record-bottom">Database record <span aria-hidden="true">→</span></span></button></div>

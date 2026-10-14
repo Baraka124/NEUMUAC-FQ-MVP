@@ -40,8 +40,8 @@ export function readConfigFromEnvironment(): ReadOnlyConfig | null {
   const publishableKey = (import.meta.env.VITE_NFQ_SUPABASE_PUBLISHABLE_KEY || '').trim();
   const enabled = import.meta.env.VITE_NFQ_READ_ONLY_ENABLED === 'true';
   if (!enabled || !endpoint || !publishableKey) return null;
-  const accessMode: ReadAccessMode = import.meta.env.VITE_NFQ_READ_ACCESS_MODE === 'anonymous'
-    ? 'anonymous' : 'authenticated';
+  const accessMode: ReadAccessMode = import.meta.env.VITE_NFQ_READ_ACCESS_MODE === 'authenticated'
+    ? 'authenticated' : 'anonymous';
   return {endpoint, publishableKey, enabled, accessMode};
 }
 export function validateReadOnlyConfig(config: ReadOnlyConfig): URL {

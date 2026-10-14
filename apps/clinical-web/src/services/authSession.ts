@@ -78,7 +78,9 @@ export type AuthController=ReturnType<typeof createAuthController>;
 
 function configureAuth():AuthController|null {
   const cfg=readConfigFromEnvironment();
-  if(!cfg || cfg.accessMode!=='authenticated')return null;
+  // Signing in grants a session for authorized staff operations; public catalog
+  // reads can remain anonymous independently of the authentication controller.
+  if(!cfg)return null;
   try {validateReadOnlyConfig(cfg);} catch {return null;}
   const client=createClient(cfg.endpoint,cfg.publishableKey,{
     auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}
