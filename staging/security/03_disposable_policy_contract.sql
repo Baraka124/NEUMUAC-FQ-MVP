@@ -42,7 +42,7 @@ create policy anon_read_app_config on public.app_config for select to anon using
 create policy anon_read_search_logs on public.search_logs for select to anon,authenticated using(true);
 create policy anon_select_helios_pending on public.helios_pending_review for select to anon using(true);
 create function public.check_write_pin(p_pin text) returns boolean language sql security definer as $$select false$$;
-create function public.set_write_pin(p_pin text) returns void language sql security definer as $$select$$;
+create function public.set_write_pin(p_pin text) returns void language plpgsql security definer as $begin null; end$;
 grant execute on function public.check_write_pin(text), public.set_write_pin(text) to anon,authenticated;
 \i staging/security/01_sensitive_access.sql
 do $$begin
