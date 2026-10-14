@@ -3,14 +3,14 @@
     <header class="research-home-intro">
       <div class="eyebrow">NEUMUACFQ / CFTR RESEARCH</div>
       <h1>CFTR variant research</h1>
-      <p class="intro">A governed environment for examining recorded variant identities and, as verified services become available, their scientific evidence. The current Vue workspace provides authorized, read-only nomenclature access only.</p>
+      <p class="intro">A governed environment for examining recorded variant identities and, as verified services become available, their scientific evidence. The current Vue workspace provides public, read-only variant nomenclature from a dated snapshot.</p>
     </header>
 
     <section class="research-entry" aria-labelledby="research-entry-title">
       <div class="research-entry-main">
         <div class="section-label">RESEARCH INDEX</div>
         <h2 id="research-entry-title">Variant records</h2>
-        <p>Search available variant identifiers and recorded nomenclature from the authorized source. Results are never replaced with example records.</p>
+        <p>Search 2,234 real variant identifiers and recorded nomenclature from the 14 October 2026 read-only snapshot. Results are never replaced with example records.</p>
         <RouterLink class="research-entry-link" to="/variants">Explore variant records <span aria-hidden="true">→</span></RouterLink>
       </div>
       <aside class="research-entry-aside" aria-label="Current capability">
