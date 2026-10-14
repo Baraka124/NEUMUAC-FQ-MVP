@@ -5,8 +5,8 @@ test('real-data-only boundary, navigation and horizontal containment', async ({ 
   await expect(page.getByRole('heading', { name: 'CFTR variant research', exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Explore variant records' })).toHaveAttribute('href', '#/variants');
   await expect(page.getByRole('complementary', { name: 'Current capability' })).toContainText('Evidence and provenance');
-  await expect(page.getByText('Public research interface · verified snapshot')).toBeVisible();
-  await expect(page.getByRole('status').getByText('Public catalog · snapshot available')).toBeVisible();
+  await expect(page.getByText('Live CFTR research interface')).toBeVisible();
+  await expect(page.getByRole('status').getByText('Live variant source · configuration pending')).toBeVisible();
   if (page.viewportSize()!.width <= 760) {
     await page.getByRole('button', { name: /workspaces/i }).click();
     await page.getByRole('navigation', { name: 'Mobile workspaces' }).getByRole('link', { name: 'Variants' }).click();
@@ -22,17 +22,17 @@ test('real-data-only boundary, navigation and horizontal containment', async ({ 
     await expect(page.getByRole('navigation', { name: 'Mobile workspaces' }).getByRole('link', { name: 'Evidence & Curation' })).toBeVisible();
   }
   await expect(page.getByRole('navigation', { name: 'Workspaces' }).getByRole('link', { name: 'Helios Review' })).toHaveCount(0);
-  await expect(page.getByText('2234 in snapshot')).toBeVisible();
+  await expect(page.getByRole('alert')).toContainText('public variant catalog has not been connected yet');
   await expect(page.locator('html')).toHaveJSProperty('scrollWidth', await page.locator('html').evaluate(e => e.clientWidth));
 });
 
 test('unconfigured database never substitutes invented records', async ({ page }) => {
   await page.goto('/#/variants');
   await expect(page.getByRole('list', { name: 'Search results' })).toHaveCount(0);
-  await expect(page.locator('.record-list button')).toHaveCount(40);
+  await expect(page.locator('.record-list button')).toHaveCount(0);
   await expect(page.getByRole('button', { name: /DEMO-CFTR/i })).toHaveCount(0);
   await page.getByRole('searchbox', { name: 'Search variant identifier' }).fill('R117H');
-  await expect(page.getByRole('button', { name: /R117H/i }).first()).toBeVisible();
+  await expect(page.getByRole('alert')).toContainText('public variant catalog has not been connected yet');
   await expect(page.getByRole('heading', { name: 'Select a variant' })).toBeVisible();
 });
 
