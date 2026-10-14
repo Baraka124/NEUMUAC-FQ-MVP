@@ -12,7 +12,8 @@ export interface ReviewedDeviation {
   rationale:string;
 }
 export const reviewedDeviations:readonly ReviewedDeviation[]=[
-  {query:'ΔF508',differences:['result-ids-or-order'],decision:'pending-clinical-review',rationale:'Greek-delta shortcut has divergent result identities. Do not assume automatic normalization to a canonical CFTR variant.'},
+  {query:'ΔF508',differences:['result-ids-or-order'],decision:'pending-clinical-review',rationale:'Uppercase Greek-delta shortcut has divergent result identities. Do not assume automatic normalization to a canonical CFTR variant.'},
+  {query:'δF508',differences:['result-ids-or-order'],decision:'pending-clinical-review',rationale:'Lowercase Greek-delta shortcut has the same unresolved search identity mismatch. Scientific nomenclature review required.'},
   {query:'patient treatment report',differences:['structural-gate'],decision:'pending-technical-review',rationale:'Search rejection and analytics logging are different boundaries; make deliberate product decision before adoption.'}
 ];
 export function differencesFor(legacy:DifferentialCase['legacy'],modern:DifferentialCase['modern']):DifferenceKind[]{
