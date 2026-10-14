@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { RouterLink, RouterView, useRoute } from 'vue-router';
 import { sections } from './router';
 import {authController} from './services/authSession';
 import {readConfigFromEnvironment} from './services/liveVariants';
 
 const route = useRoute();
+const routeName = computed(() => availableSections.find(section => section.path===route.path || (section.path==='/variants'&&route.path.startsWith('/variants/')))?.name || (route.path==='/admin'?'Administration':route.path==='/sign-in'?'Staff sign-in':'Research workspace'));
+const isHome = computed(() => route.path==='/');
 const mobileMenuOpen = ref(false);
 const sidebarCollapsed = ref(false);
 const NAV_STORAGE_KEY = 'nfq-sidebar-collapsed-v1';
@@ -111,7 +113,7 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
             <span class="hamburger" aria-hidden="true">☰</span>
             <span>{{ mobileMenuOpen ? 'Close menu' : 'Workspaces' }}</span>
           </button>
-          <span class="header-path">NEUMUACFQ <span aria-hidden="true">/</span> CLINICAL WORKSPACE</span>
+          <span class="header-path">NEUMUACFQ <span aria-hidden="true">/</span> <strong>{{routeName}}</strong></span>
         </div>
         <div class="header-environment" :class="{ 'preview-environment': !sourceConfigured }" role="status">
           <span class="environment-dot" aria-hidden="true"></span>
@@ -122,25 +124,24 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
         </div>
       </header>
 
+      <button v-if="mobileMenuOpen" type="button" class="mobile-nav-backdrop" tabindex="-1" aria-label="Close workspace navigation" @click="closeNavigation"></button>
       <nav v-if="mobileMenuOpen" id="mobile-workspace-nav" class="mobile-nav" aria-label="Mobile workspaces">
+        <div class="mobile-nav-heading">Research workspaces <button type="button" aria-label="Close menu" @click="closeNavigation">×</button></div>
         <RouterLink v-for="section in availableSections" :key="section.path" :to="section.path" @click="closeNavigation">
           {{ section.name }}
         </RouterLink>
         <RouterLink class="mobile-admin-link" to="/admin" @click="closeNavigation">Research administration</RouterLink>
       </nav>
 
-      <main id="main" tabindex="-1">
-        <div class="development-notice" :class="{ 'preview-notice': !sourceConfigured }" role="note">
+      <main id="main" tabindex="-1" :class="{'home-main':isHome}">
+        <div v-if="!sourceConfigured" class="development-notice" :class="{ 'preview-notice': !sourceConfigured }" role="note">
           <span class="notice-symbol" aria-hidden="true">i</span>
           <div>
             <template v-if="!sourceConfigured">
               <strong>Live CFTR research interface</strong>
               <p>Variant search uses the live source when configured. Changes and approvals are reserved for authorized staff.</p>
             </template>
-            <template v-else>
-              <strong>Public CFTR catalog · read-only access</strong>
-              <p>Visitors may browse approved variant nomenclature. Contributions and approvals require separate authorization.</p>
-            </template>
+
           </div>
         </div>
         <RouterView />
