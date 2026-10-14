@@ -22,7 +22,8 @@ test('real-data-only boundary, navigation and horizontal containment', async ({ 
 
 test('unconfigured database never substitutes invented records', async ({ page }) => {
   await page.goto('/#/variants');
-  await expect(page.getByRole('button', { name: /F508del/i }).first()).toBeVisible();
+  await expect(page.getByRole('list', { name: 'Search results' })).toHaveCount(0);
+  await expect(page.locator('.record-list button')).toHaveCount(40);
   await expect(page.getByRole('button', { name: /DEMO-CFTR/i })).toHaveCount(0);
   await page.getByRole('searchbox', { name: 'Search variant identifier' }).fill('R117H');
   await expect(page.getByRole('button', { name: /R117H/i }).first()).toBeVisible();
@@ -47,7 +48,7 @@ test('keyboard skip target remains accessible', async ({ page }) => {
 test('public research needs no sign-in and admin never exposes unapproved writes', async ({ page }) => {
   await page.goto('/#/variants');
   await expect(page.getByRole('heading', { name: 'Variant workspace' })).toBeVisible();
-  await expect(page.getByRole('alert')).toContainText('public variant catalog has not been connected yet');
+  await expect(page.getByText('2234 in snapshot')).toBeVisible();
   await page.goto('/#/admin');
   await expect(page.getByRole('heading', { name: 'Research administration' })).toBeVisible();
   await expect(page.getByText(/Staff sign-in has not yet been connected in this deployment/)).toBeVisible();
