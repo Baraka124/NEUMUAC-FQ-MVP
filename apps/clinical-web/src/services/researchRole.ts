@@ -37,4 +37,5 @@ export async function refreshResearcherRole():Promise<void>{
    state.role=value.role;state.phase='verified';
  }catch{if(run===generation){state.phase='unavailable';state.message='Research-role verification is unavailable.';}}
 }
-if(authController)watch(()=>authController.state.phase,()=>void refreshResearcherRole(),{immediate:true});
+const controller = authController;
+if(controller)watch(()=>controller.state.phase,()=>void refreshResearcherRole(),{immediate:true});
