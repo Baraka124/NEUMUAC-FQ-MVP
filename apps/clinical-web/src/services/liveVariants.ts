@@ -18,23 +18,31 @@ export interface RealVariantSource {
   list(options: { readonly query: string; readonly page: number; readonly signal?: AbortSignal }): Promise<RealVariantPage>;
   get(id: string, signal?: AbortSignal): Promise<RealVariant | null>;
 }
-export type ConnectionIssue = 'not-configured' | 'invalid-configuration' | 'access-denied' | 'request-failed';
+export type ConnectionIssue = 'not-configured' | 'invalid-configuration' | 'authentication-required' | 'access-denied' | 'schema-mismatch' | 'request-failed';
 export class VariantConnectionError extends Error {
   constructor(public readonly code: ConnectionIssue, message: string) { super(message); this.name='VariantConnectionError'; }
 }
 
 /** Enabled only through deliberate non-secret environment configuration. */
+export type ReadAccessMode = 'anonymous' | 'authenticated';
 export interface ReadOnlyConfig {
   readonly endpoint: string;
   readonly publishableKey: string;
   readonly enabled: boolean;
+  readonly accessMode?: ReadAccessMode;
+}
+export interface ReadSessionProvider {
+  /** Signed-in user JWT. Never supply a service/secret key here. */
+  getAccessToken(): Promise<string | null>;
 }
 export function readConfigFromEnvironment(): ReadOnlyConfig | null {
   const endpoint = (import.meta.env.VITE_NFQ_SUPABASE_URL || '').trim();
   const publishableKey = (import.meta.env.VITE_NFQ_SUPABASE_PUBLISHABLE_KEY || '').trim();
   const enabled = import.meta.env.VITE_NFQ_READ_ONLY_ENABLED === 'true';
   if (!enabled || !endpoint || !publishableKey) return null;
-  return {endpoint, publishableKey, enabled};
+  const accessMode: ReadAccessMode = import.meta.env.VITE_NFQ_READ_ACCESS_MODE === 'anonymous'
+    ? 'anonymous' : 'authenticated';
+  return {endpoint, publishableKey, enabled, accessMode};
 }
 export function validateReadOnlyConfig(config: ReadOnlyConfig): URL {
   if (!config.enabled || !config.publishableKey.trim()) throw new VariantConnectionError('not-configured','Real-data access is not configured.');
@@ -88,22 +96,43 @@ export function formatReadStatus(error: unknown): string {
   if (error instanceof VariantConnectionError) {
     if (error.code === 'not-configured') return 'The authorized variant database connection has not been configured.';
     if (error.code === 'access-denied') return 'The database has denied access to variant records.';
+    if (error.code === 'authentication-required') return 'Sign in to access the authorized variant records.';
+    if (error.code === 'schema-mismatch') return 'The variant schema is different from the expected read-only fields. Database verification is required.';
     if (error.code === 'invalid-configuration') return 'The database connection settings are invalid.';
   }
   return 'Variant records could not be loaded. Check the connection or access permissions.';
 }
 function safeSearchTerm(query: string): string {
   const trim=query.trim();
-  if (trim.length>75 || /[(),*%\\]/.test(trim) || /[\r\n]/.test(trim)) return '';
+  if (trim.length>75 || !/^[a-zA-Z0-9 _.+>:\-]+$/.test(trim)) return '';
   return trim;
 }
 export const PAGE_SIZE=40;
-export function createReadOnlyRepository(config: ReadOnlyConfig, transport: typeof fetch = fetch): RealVariantSource {
+export function createReadOnlyRepository(
+  config: ReadOnlyConfig,
+  transport: typeof fetch = fetch,
+  sessionProvider?: ReadSessionProvider
+): RealVariantSource {
   const endpoint=validateReadOnlyConfig(config);
-  const headers: HeadersInit={apikey:config.publishableKey,Authorization:`Bearer ${config.publishableKey}`,Accept:'application/json'};
+  const mode: ReadAccessMode = config.accessMode ?? 'authenticated';
   async function request(params: URLSearchParams,signal?: AbortSignal): Promise<readonly RealVariant[]> {
     const url=new URL('/rest/v1/variants',endpoint);
     url.search=params.toString();
+    // Publishable keys identify the application; they are NOT bearer JWTs.
+    const headers: Record<string,string> = {apikey:config.publishableKey,Accept:'application/json'};
+    if (mode === 'authenticated') {
+      if (!sessionProvider) throw new VariantConnectionError('authentication-required','An authenticated session provider is required.');
+      const accessToken=await sessionProvider.getAccessToken();
+      if (!accessToken) throw new VariantConnectionError('authentication-required','Please sign in.');
+      if (accessToken === config.publishableKey || !/^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(accessToken)) {
+        throw new VariantConnectionError('authentication-required','A signed-in user JWT is required.');
+      }
+      headers.Authorization=`Bearer ${accessToken}`;
+    } else if (mode === 'anonymous') {
+      // Legacy anon keys are JWTs; modern publishable keys are NOT.
+      if (!config.publishableKey.startsWith('sb_publishable_'))
+        headers.Authorization=`Bearer ${config.publishableKey}`;
+    } else throw new VariantConnectionError('invalid-configuration','Unknown read access mode.');
     let response:Response;
     try {
       response=await transport(url.toString(),{method:'GET',headers,signal,cache:'no-store',credentials:'omit',redirect:'error'});
@@ -112,7 +141,18 @@ export function createReadOnlyRepository(config: ReadOnlyConfig, transport: type
       throw new VariantConnectionError('request-failed','The variant data source is unreachable.');
     }
     if (response.status===401||response.status===403) throw new VariantConnectionError('access-denied','Variant read access was denied.');
-    if (!response.ok) throw new VariantConnectionError('request-failed','The variant data source responded with an error.');
+    if (!response.ok) {
+      // Never expose untrusted raw database error details to the UI.
+      let schemaError=false;
+      try {
+        const detail:unknown=await response.json();
+        if (detail && typeof detail==='object' && !Array.isArray(detail)) {
+          const code=(detail as {code?:unknown}).code;
+          schemaError=code==='42703'||code==='PGRST200'||code==='PGRST204'||code==='PGRST205';
+        }
+      } catch { /* non-JSON error */ }
+      throw new VariantConnectionError(schemaError?'schema-mismatch':'request-failed','Variant read failed.');
+    }
     const data:unknown=await response.json();
     if (!Array.isArray(data)) throw new VariantConnectionError('request-failed','Unexpected database response.');
     return data.map(decodeRealVariant);
@@ -125,8 +165,8 @@ export function createReadOnlyRepository(config: ReadOnlyConfig, transport: type
       if (query.trim() && !text) throw new VariantConnectionError('request-failed','Search contains unsupported characters.');
       if (text) {
         // PostgREST wildcard alias '*' and URLSearchParams encoding; no raw query construction.
-        const escaped=text.replace(/[.]/g,'.');
-        params.set('or',`(legacy_name.ilike.*${escaped}*,protein_name.ilike.*${escaped}*,cdna_name.ilike.*${escaped}*)`);
+        // Only PostgREST-safe identifier-style characters are permitted above.
+        params.set('or',`(legacy_name.ilike.*${text}*,protein_name.ilike.*${text}*,cdna_name.ilike.*${text}*)`);
       }
       const result=await request(params,signal);
       return {records:result.slice(0,PAGE_SIZE),hasMore:result.length>PAGE_SIZE};
