@@ -13,6 +13,12 @@ const evidenceSource=config?createLiveEvidenceSource(config):null;
 const linkedEvidence=ref<readonly LiveEvidenceReference[]>([]);
 const evidenceError=ref('');
 let evidenceAbort:AbortController|null=null;
+
+
+let configError='';
+try { if(config) source=createReadOnlyRepository(config,fetch,authSessionProvider); } catch(e){configError=formatReadStatus(e);}
+const rows=ref<readonly RealVariant[]>([]);
+const selected=ref<RealVariant|null>(null);
 watch(selected,async value=>{
  evidenceAbort?.abort(); linkedEvidence.value=[]; evidenceError.value='';
  if(!value || !evidenceSource)return;
@@ -21,11 +27,6 @@ watch(selected,async value=>{
    if(!controller.signal.aborted)linkedEvidence.value=result;
  } catch {if(!controller.signal.aborted)evidenceError.value='Current source links could not be loaded.';}
 });
-
-let configError='';
-try { if(config) source=createReadOnlyRepository(config,fetch,authSessionProvider); } catch(e){configError=formatReadStatus(e);}
-const rows=ref<readonly RealVariant[]>([]);
-const selected=ref<RealVariant|null>(null);
 const search=ref('');
 const page=ref(0);
 const hasMore=ref(false);
