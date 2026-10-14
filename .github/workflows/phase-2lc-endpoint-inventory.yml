@@ -13,7 +13,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Scan full legacy index without exposing endpoint arguments
-        run: python tools/legacy_endpoint_inventory.py --source index.html --output /tmp/phase-2lc-inventory.md
+        run: python tools/legacy_endpoint_inventory.py --source "$(test -f index.1.html && echo index.1.html || echo index.html)" --output /tmp/phase-2lc-inventory.md
       - name: Verify generated inventory has no URLs or argument payloads
         run: |
           python - <<'PY'
