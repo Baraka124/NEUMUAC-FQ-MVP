@@ -1,0 +1,32 @@
+name: NeumuacFQ legacy integrity
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: legacy-integrity-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  integrity:
+    name: Legacy integrity / check
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout full source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Characterization tests
+        run: node --test tools/phase0b-baseline.test.mjs
+      - name: Check frozen legacy entry and credential patterns
+        run: node tools/phase0b-baseline.mjs
