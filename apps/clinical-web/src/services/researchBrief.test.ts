@@ -16,7 +16,7 @@ it('builds a reproducible research summary from source fields, not invented find
  const text=await createVariantResearchBrief(cfg,'18',transport as typeof fetch);
  expect(text).toContain('F508del');expect(text).toContain('Class confidence label: high');
  expect(text).toContain('https://doi.org/10.1234/test');
- expect(text).not.toContain('clinician_note');expect(text).toContain('not independently adjudicated');
+ expect(text).not.toContain('clinician_note');expect(text).toContain('have not been independently adjudicated');
  expect(transport).toHaveBeenCalledTimes(3);
 });
 it('never outputs incomplete summaries on source failure',async()=>{
