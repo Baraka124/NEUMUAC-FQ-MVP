@@ -54,7 +54,7 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
         </div>
         <div class="header-environment" :class="{ 'preview-environment': !sourceConfigured }" role="status">
           <span class="environment-dot" aria-hidden="true"></span>
-          <template v-if="!sourceConfigured"><span>Public catalog · connection pending</span></template>
+          <template v-if="!sourceConfigured"><span>Public catalog · snapshot available</span></template>
           <template v-else-if="authController?.state.phase==='signed-in'"><span>{{ authController.state.email || 'Signed in' }}</span><button type="button" @click="authController.signOut()">Sign out</button></template>
           <RouterLink v-else-if="authController" to="/sign-in">Sign in</RouterLink>
           <span v-else>Public research access</span>
@@ -72,8 +72,8 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
           <span class="notice-symbol" aria-hidden="true">i</span>
           <div>
             <template v-if="!sourceConfigured">
-              <strong>Public research interface · data connection pending</strong>
-              <p>Variant search will be available publicly once the read-only catalog is connected. Staff changes require sign-in and verified permissions.</p>
+              <strong>Public research interface · verified snapshot</strong>
+              <p>Explore 2,234 real CFTR variant nomenclature records captured 14 October 2026. Live synchronization and editing are not connected.</p>
             </template>
             <template v-else>
               <strong>Public CFTR catalog · read-only access</strong>
@@ -85,7 +85,7 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
       </main>
       <footer class="page-footer">
         <span>NeumuacFQ · Research software architecture</span>
-        <span>{{ sourceConfigured ? 'Controlled research access · under verification' : 'Public catalog · connection pending' }}</span>
+        <span>{{ sourceConfigured ? 'Controlled research access · under verification' : 'Public catalog · snapshot available' }}</span>
       </footer>
     </div>
   </div>
