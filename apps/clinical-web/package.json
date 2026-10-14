@@ -8,7 +8,8 @@
     "build": "vue-tsc --noEmit && vite build",
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest run src",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:differential": "tsx tests/compare.mts"
   },
   "dependencies": {
     "vue": "3.5.18",
@@ -22,6 +23,7 @@
     "vite": "7.1.5",
     "vitest": "3.2.4",
     "vue-tsc": "3.1.0",
-    "@playwright/test": "1.56.1"
+    "@playwright/test": "1.56.1",
+    "tsx": "4.20.5"
   }
 }
