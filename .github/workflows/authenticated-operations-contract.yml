@@ -1,0 +1,44 @@
+name: NeumuacFQ authenticated operations staging
+on:
+  pull_request:
+    paths:
+      - 'staging/security/**'
+      - '.github/workflows/authenticated-operations-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'staging/security/**'
+      - '.github/workflows/authenticated-operations-contract.yml'
+permissions:
+  contents: read
+jobs:
+  authenticated-operations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: clinical_staging
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: disposable-only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d clinical_staging"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install PostgreSQL client
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+      - name: Verify isolated authenticated clinical contract
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: postgres
+          PGPASSWORD: disposable-only
+          PGDATABASE: clinical_staging
+        run: psql -X -v ON_ERROR_STOP=1 -f staging/security/060_authenticated_contract.sql
