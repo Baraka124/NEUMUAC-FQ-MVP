@@ -97,4 +97,66 @@ do $$begin
  exception when sqlstate '55000' then null; end;
 end$$;
 
+
+-- Adversarial stage: show authorization, optimistic locking and replay rejection.
+insert into review_stage.decisions(id,revision,kind,proposer_id,evidence_hash,ruleset_hash)
+values ('NFQ-NOM-103',1,'alias-equivalence','00000000-0000-0000-0000-000000000001',repeat('e',64),repeat('f',64));
+insert into review_stage.evidence_checks(decision_id,revision,evidence_hash,verified_by)
+values ('NFQ-NOM-103',1,repeat('e',64),'00000000-0000-0000-0000-000000000009');
+
+set role authenticated;
+set request.jwt.claim.sub='00000000-0000-0000-0000-000000000001';
+select public.nfq_stage_review_command('NFQ-NOM-103',1,0,'submit',null,null,'submit-attack01','Authorized submission');
+do $begin
+  begin
+    perform public.nfq_stage_review_command('NFQ-NOM-103',1,1,'review','approve','scientific','review-attack01','Self review');
+    raise exception 'SELF REVIEW WAS PERMITTED';
+  exception when sqlstate '42501' then null; end;
+end$;
+reset role;
+
+set role authenticated;
+set request.jwt.claim.sub='00000000-0000-0000-0000-000000000005';
+do $begin
+  begin
+    perform public.nfq_stage_review_command('NFQ-NOM-103',1,1,'review','approve','scientific','review-attack02','Forged role');
+    raise exception 'UNGRANTED ROLE WAS ACCEPTED';
+  exception when sqlstate '42501' then null; end;
+end$;
+reset role;
+
+set role authenticated;
+set request.jwt.claim.sub='00000000-0000-0000-0000-000000000002';
+do $begin
+  begin
+    perform public.nfq_stage_review_command('NFQ-NOM-103',1,0,'review','approve','scientific','review-attack03','Stale version');
+    raise exception 'STALE UPDATE WAS PERMITTED';
+  exception when sqlstate '40001' then null; end;
+end$;
+select public.nfq_stage_review_command('NFQ-NOM-103',1,1,'review','approve','scientific','review-attack04','First scientific review');
+do $begin
+  begin
+    perform public.nfq_stage_review_command('NFQ-NOM-103',1,1,'review','approve','scientific','review-attack04','Different payload');
+    raise exception 'CHANGED IDEMPOTENCY PAYLOAD WAS PERMITTED';
+  exception when sqlstate '23505' then null; end;
+end$;
+reset role;
+
+do $begin
+ if (select count(*) from review_stage.events where decision_id='NFQ-NOM-103') <> 2 then raise exception 'DENIED OPERATIONS WROTE AUDIT'; end if;
+ if (select row_version from review_stage.decisions where id='NFQ-NOM-103') <> 2 then raise exception 'DENIED OPERATIONS MUTATED STATE'; end if;
+end$;
+
+-- Exposed RPC must not be executable as anonymous. This assumes Supabase
+-- would map an unauthenticated browser request to the anon DB role.
+set role anon;
+do $begin
+  begin
+    perform public.nfq_stage_review_command('NFQ-NOM-103',1,2,'review','approve','engineering','anonymous-001','Should deny');
+    raise exception 'ANON EXECUTION WAS PERMITTED';
+  exception when insufficient_privilege then null; end;
+end$;
+reset role;
+
+
 select 'PHASE 2I LOCAL TRANSACTION TESTS PASSED' as test_result;
