@@ -7,6 +7,8 @@ const config=readConfigFromEnvironment();
 const source=config?createLiveEvidenceSource(config):null;
 const query=ref('');
 const page=ref(0);
+const expandedRows=ref<readonly number[]>([]);
+function toggleRow(id:number){expandedRows.value=expandedRows.value.includes(id)?expandedRows.value.filter(x=>x!==id):[...expandedRows.value,id];}
 const rows=ref<readonly LiveEvidenceReference[]>([]);
 const hasMore=ref(false);
 const loading=ref(false);
@@ -48,8 +50,8 @@ onUnmounted(()=>{abort?.abort();clearTimeout(debounce);});
   <div v-if="rows.length" class="evidence-register" aria-label="Recorded citations">
    <article v-for="item in rows" :key="item.id" class="evidence-row">
     <div class="evidence-row-meta"><span>{{item.source}}</span><span v-if="item.year">{{item.year}} (recorded)</span></div>
-    <h2><a :href="item.url" target="_blank" rel="noopener noreferrer">{{item.title}} <span aria-hidden="true">↗</span></a></h2>
-    <div class="evidence-row-foot"><RouterLink :to="'/variants/'+item.variantId">Variant record #{{item.variantId}}</RouterLink><span v-if="item.journal">{{item.journal}}</span><span v-if="item.pmid">PMID {{item.pmid}}</span></div>
+    <h2><button type="button" class="evidence-row-disclosure" :aria-expanded="expandedRows.includes(item.id)" @click="toggleRow(item.id)"><span>{{item.title}}</span><span aria-hidden="true">{{expandedRows.includes(item.id)?'−':'+'}}</span></button></h2>
+    <div v-if="expandedRows.includes(item.id)" class="evidence-row-foot"><a :href="item.url" target="_blank" rel="noopener noreferrer">Open source ↗</a><RouterLink :to="'/variants/'+item.variantId">Variant record #{{item.variantId}}</RouterLink><span v-if="item.journal">{{item.journal}}</span><span v-if="item.pmid">PMID {{item.pmid}}</span></div>
    </article>
   </div>
   <nav class="pagination-controls" aria-label="Evidence pages">
