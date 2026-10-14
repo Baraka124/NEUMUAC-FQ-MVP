@@ -64,3 +64,16 @@ it('applies actual class I and unclassified filters at the database before pagin
  expect(b.searchParams.get('offset')).toBe('40');
  expect(b.searchParams.get('order')).toBe('legacy_name.desc,id.asc');
 });
+
+it('uses exact-name matching and stable server-side validation priorities',async()=>{
+ const urls:string[]=[];const net=vi.fn(async(url:string)=>{urls.push(url);return new Response('[]',{status:200})});
+ const src=createReadOnlyRepository({...config,readTable:'variants'},net as typeof fetch);
+ await src.list({query:'R117H',page:0,searchMode:'exact-name',sort:'fewest-validations'});
+ await src.list({query:'G551D',page:1,sort:'most-validations'});
+ const a=new URL(urls[0]),b=new URL(urls[1]);
+ expect(a.searchParams.get('order')).toBe('validation_count.asc.nullslast,id.asc');
+ expect(a.searchParams.get('or')).toContain('legacy_name.ilike.R117H');
+ expect(a.searchParams.get('or')).not.toContain('alt_names');
+ expect(b.searchParams.get('order')).toBe('validation_count.desc.nullslast,id.asc');
+ expect(b.searchParams.get('offset')).toBe('40');
+});
