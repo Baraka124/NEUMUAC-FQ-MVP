@@ -16,6 +16,7 @@ const error=[ref(''),ref('')];
 const aborts:[AbortController|null,AbortController|null]=[null,null];
 const citationAborts:[AbortController|null,AbortController|null]=[null,null];
 const sequence=[0,0];
+const showCitations=[ref(false),ref(false)];
 const sameVariant=computed(()=>Boolean(chosen[0].value&&chosen[1].value&&chosen[0].value.id===chosen[1].value.id));
 let syncingRoute=false;
 function routeId(slot:number):string|null{const v=route.query[slot===0?'a':'b'];return typeof v==='string'&&/^\d{1,18}$/.test(v)?v:null;}
@@ -84,9 +85,9 @@ onUnmounted(()=>{for(const n of [0,1]){aborts[n]?.abort();citationAborts[n]?.abo
      </dl>
      <RouterLink :to="'/variants/'+chosen[slot].value!.id">Open variant record →</RouterLink>
      <section class="genotype-references">
-      <h3>Recorded references · {{citations[slot].value.length}}</h3>
+      <button class="disclosure-button" type="button" :aria-expanded="showCitations[slot].value" @click="showCitations[slot].value=!showCitations[slot].value"><span>Recorded references · {{citations[slot].value.length}}</span><span aria-hidden="true">{{showCitations[slot].value?'−':'+'}}</span></button>
       <p v-if="!citations[slot].value.length">No references returned in the linked source register.</p>
-      <ul v-else><li v-for="item in citations[slot].value.slice(0,8)" :key="item.id"><a :href="item.url" target="_blank" rel="noopener noreferrer">{{item.title}} ↗</a></li></ul>
+      <ul v-else-if="showCitations[slot].value"><li v-for="item in citations[slot].value.slice(0,8)" :key="item.id"><a :href="item.url" target="_blank" rel="noopener noreferrer">{{item.title}} ↗</a></li></ul>
      </section>
     </template>
     <p v-else-if="!results[slot].value.length" class="genotype-empty">Choose a verified database variant to inspect its recorded nomenclature and sources.</p>

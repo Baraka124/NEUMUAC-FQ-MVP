@@ -11,14 +11,17 @@ export interface RealVariant {
   readonly aliases: readonly string[];
   /** Raw functional class label from the live catalog, not a clinical verdict. */
   readonly recordedClass?: string | null;
+  readonly validationCount?: number | null;
 }
 export type RecordedClassFilter = 'all'|'I'|'II'|'III'|'IV'|'V'|'VI'|'unclassified';
-export type VariantSort = 'name-asc'|'name-desc'|'recent-record';
+export type VariantSort = 'name-asc'|'name-desc'|'recent-record'|'fewest-validations'|'most-validations';
+export type VariantSearchMode = 'contains'|'exact-name';
 export interface VariantListOptions {
   readonly query:string;
   readonly page:number;
   readonly classFilter?:RecordedClassFilter;
   readonly sort?:VariantSort;
+  readonly searchMode?:VariantSearchMode;
   readonly signal?:AbortSignal;
 }
 export interface RealVariantPage {
@@ -102,7 +105,9 @@ export function decodeRealVariant(input: unknown): RealVariant {
   const legacyName=requiredText(raw.legacy_name);
   const proteinName=requiredText(raw.protein_name);
   const cdnaName=requiredText(raw.cdna_name);
-  return {id,legacyName,proteinName,cdnaName,aliases:decodeAliases(raw.alt_names),recordedClass:requiredText(raw.cftr_class)};
+  return {id,legacyName,proteinName,cdnaName,aliases:decodeAliases(raw.alt_names),
+    recordedClass:requiredText(raw.cftr_class),
+    validationCount:typeof raw.validation_count==='number'&&Number.isSafeInteger(raw.validation_count)&&raw.validation_count>=0?raw.validation_count:null};
 }
 export function variantDisplayName(value: RealVariant): string {
   return value.legacyName || value.proteinName || value.cdnaName || value.id;
@@ -174,19 +179,21 @@ export function createReadOnlyRepository(
     return data.map(decodeRealVariant);
   }
   return Object.freeze({
-    async list({query,page,classFilter='all',sort='name-asc',signal}: VariantListOptions) {
+    async list({query,page,classFilter='all',sort='name-asc',searchMode='contains',signal}: VariantListOptions) {
       const classes: readonly RecordedClassFilter[]=['all','I','II','III','IV','V','VI','unclassified'];
-      const sorts: readonly VariantSort[]=['name-asc','name-desc','recent-record'];
-      if(!classes.includes(classFilter)||!sorts.includes(sort))
+      const sorts: readonly VariantSort[]=['name-asc','name-desc','recent-record','fewest-validations','most-validations'];
+      if(!classes.includes(classFilter)||!sorts.includes(sort)||!['contains','exact-name'].includes(searchMode))
         throw new VariantConnectionError('invalid-configuration','Invalid research filters.');
-      if(table!=='variants'&&classFilter!=='all')
+      if(table!=='variants'&&(classFilter!=='all'||sort==='fewest-validations'||sort==='most-validations'))
         throw new VariantConnectionError('not-configured','Scientific class filters require the full authorized variant source.');
       if (!Number.isInteger(page)||page<0||page>10000) throw new VariantConnectionError('invalid-configuration','Invalid page.');
       const params=new URLSearchParams({
         select:table==='variants'
-          ? 'id,legacy_name,protein_name,cdna_name,alt_names,cftr_class'
+          ? 'id,legacy_name,protein_name,cdna_name,alt_names,cftr_class,validation_count'
           : 'id,legacy_name,protein_name,cdna_name,alt_names',
-        order:sort==='recent-record'?'id.desc':sort==='name-desc'?'legacy_name.desc,id.asc':'legacy_name.asc,id.asc',
+        order:sort==='recent-record'?'id.desc':sort==='name-desc'?'legacy_name.desc,id.asc':
+          sort==='fewest-validations'?'validation_count.asc.nullslast,id.asc':
+          sort==='most-validations'?'validation_count.desc.nullslast,id.asc':'legacy_name.asc,id.asc',
         limit:String(PAGE_SIZE+1),offset:String(page*PAGE_SIZE)
       });
       if(classFilter!=='all')params.set('cftr_class',classFilter==='unclassified'?'is.null':'eq.'+classFilter);
@@ -195,7 +202,9 @@ export function createReadOnlyRepository(
       if (text) {
         // PostgREST wildcard alias '*' and URLSearchParams encoding; no raw query construction.
         // Only PostgREST-safe identifier-style characters are permitted above.
-        params.set('or',`(legacy_name.ilike.*${text}*,protein_name.ilike.*${text}*,cdna_name.ilike.*${text}*,alt_names.ilike.*${text}*)`);
+        params.set('or',searchMode==='exact-name'
+          ? `(legacy_name.ilike.${text},protein_name.ilike.${text},cdna_name.ilike.${text})`
+          : `(legacy_name.ilike.*${text}*,protein_name.ilike.*${text}*,cdna_name.ilike.*${text}*,alt_names.ilike.*${text}*)`);
       }
       const result=await request(params,signal);
       return {records:result.slice(0,PAGE_SIZE),hasMore:result.length>PAGE_SIZE};
