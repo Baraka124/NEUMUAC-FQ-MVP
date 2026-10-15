@@ -345,8 +345,23 @@ test('Regional research link is quiet and shares no variant or location metadata
  await page.goto('/#/variants?q=G551D');
  const link=page.getByRole('link',{name:'Explore aggregated geographic research activity for Spain'});
  await expect(link).toBeVisible();
- await expect(link).toHaveAttribute('href','#/intelligence?view=geography&scope=spain');
+ await expect(link).toHaveAttribute('href','#/geography');
  await link.click();
- await expect(page).toHaveURL(/#\/intelligence\?view=geography&scope=spain$/);
- await expect(page.getByRole('heading',{name:'Research intelligence'})).toBeVisible();
+ await expect(page).toHaveURL(/#\/geography$/);
+ await expect(page.getByRole('heading',{name:'Geographic intelligence'})).toBeVisible();
+});
+
+test('public Spain map works without account and is accessible at mobile and desktop widths',async({page})=>{
+ for(const width of [320,390,768,1366]){
+  await page.setViewportSize({width,height:820});
+  await page.goto('/#/geography');
+  await expect(page.getByRole('heading',{name:'Geographic intelligence',exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Geographic search activity'})).toBeVisible();
+  await expect(page.getByText('Aggregate data pending verification')).toBeVisible();
+  await expect(page.locator('path.geo-region')).toHaveCount(19);
+  await page.getByRole('button',{name:'Browse all regions'}).click();
+  await page.locator('.geo-region-grid').getByRole('button',{name:/Andalucía/}).click();
+  await expect(page.getByRole('heading',{name:'Andalucía'})).toBeVisible();
+  await expect.poll(()=>page.locator('html').evaluate(e=>e.scrollWidth-e.clientWidth)).toBe(0);
+ }
 });
