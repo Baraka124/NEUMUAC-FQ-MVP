@@ -7,6 +7,7 @@ import {explainTextMatch,rankVisibleSearchPage} from '../domain/searchPresentati
 import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
 import {createScientificDossierSource,type ScientificDossier} from '../services/scientificDossier';
 import {clinVarVariationUrl} from '../domain/externalAuthority';
+import {retrieveClinVarSummary,type ClinVarAuthoritySummary} from '../services/liveClinVar';
 import {createVariantResearchBrief} from '../services/researchBrief';
 import {createLiveResearchHistorySource,type ResearchHistory} from '../services/liveResearchHistory';
 import { createReadOnlyRepository, readConfigFromEnvironment, variantDisplayName, formatReadStatus, type RealVariant, type RealVariantSource } from '../services/liveVariants';
@@ -19,6 +20,29 @@ const dossierSource=config?createScientificDossierSource(config):null;
 const dossier=ref<ScientificDossier|null>(null);
 const dossierError=ref('');
 let dossierAbort:AbortController|null=null;
+const clinVarSummary=ref<ClinVarAuthoritySummary|null>(null);
+const clinVarLoading=ref(false);
+const clinVarError=ref('');
+let clinVarAbort:AbortController|null=null;
+watch(selected,()=>{
+ clinVarAbort?.abort();
+ clinVarSummary.value=null;clinVarError.value='';clinVarLoading.value=false;
+});
+async function checkClinVar():Promise<void>{
+ const recordId=selected.value?.id,authorityId=dossier.value?.clinvarId;
+ if(!recordId||!authorityId||clinVarLoading.value||!clinVarVariationUrl(authorityId))return;
+ clinVarAbort?.abort();
+ const controller=new AbortController();clinVarAbort=controller;
+ clinVarSummary.value=null;clinVarError.value='';clinVarLoading.value=true;
+ try{
+  const summary=await retrieveClinVarSummary(authorityId,fetch,controller.signal);
+  if(!controller.signal.aborted&&selected.value?.id===recordId&&dossier.value?.clinvarId===authorityId)
+   clinVarSummary.value=summary;
+ }catch{
+  if(!controller.signal.aborted&&selected.value?.id===recordId)
+   clinVarError.value='Current ClinVar summary could not be verified. The recorded dossier remains unchanged.';
+ }finally{if(!controller.signal.aborted)clinVarLoading.value=false;}
+}
 
 const linkedEvidence=ref<readonly LiveEvidenceReference[]>([]);
 const evidenceError=ref('');
@@ -170,7 +194,7 @@ watch(()=>authController?.state.phase,()=>{current?.abort();detailRequest?.abort
 watch([search,page,classFilter,sort,searchMode],()=>{clearTimeout(timer);timer=setTimeout(()=>{void load();void resolveSearch();},search.value?250:0)},{immediate:true});
 watch([search,classFilter,sort,searchMode],()=>{page.value=0;});
 watch(()=>route.params.id,id=>{void loadDetail(id);},{immediate:true});
-onUnmounted(()=>{current?.abort();detailRequest?.abort();exactRequest?.abort();evidenceAbort?.abort();dossierAbort?.abort();briefAbort?.abort();historyAbort?.abort();clearTimeout(timer);});
+onUnmounted(()=>{current?.abort();detailRequest?.abort();exactRequest?.abort();evidenceAbort?.abort();dossierAbort?.abort();clinVarAbort?.abort();briefAbort?.abort();historyAbort?.abort();clearTimeout(timer);});
 function updateWorklistRoute():void {
  const query:Record<string,string>={};
  if(search.value.trim())query.q=search.value.trim();
@@ -283,6 +307,22 @@ function select(id:string):void{
        <div><dt>ClinVar authority</dt><dd><a v-if="clinVarVariationUrl(dossier.clinvarId)" :href="clinVarVariationUrl(dossier.clinvarId)!" target="_blank" rel="noopener noreferrer">Open recorded ClinVar entry ↗</a><span v-else>{{dossier.clinvarId?'Unrecognized recorded identifier':'Not recorded'}}</span></dd></div><div><dt>Recorded validations</dt><dd>{{dossier.validationCount??'Not recorded'}}</dd></div>
        <div><dt>Last validation</dt><dd>{{dossier.lastValidatedAt||'Not recorded'}}</dd></div>
       </dl>
+      <div v-if="dossier&&clinVarVariationUrl(dossier.clinvarId)" class="clinvar-verification" aria-label="On-demand external ClinVar verification">
+       <div class="clinvar-verification-head"><div><strong>External authority · ClinVar</strong><p class="rail-caption">Fetch the NCBI summary only when requested. Separate from recorded NeumuacFQ findings.</p></div><button type="button" :disabled="clinVarLoading" @click="checkClinVar">{{clinVarLoading?'Checking NCBI…':clinVarSummary?'Refresh ClinVar summary':'Check current ClinVar summary'}}</button></div>
+       <p v-if="clinVarLoading" role="status" class="rail-caption">Requesting the official ClinVar API…</p>
+       <p v-if="clinVarError" role="alert" class="rail-caption">{{clinVarError}}</p>
+       <template v-if="clinVarSummary">
+        <dl class="identity-grid">
+         <div><dt>Verified external accession</dt><dd>{{clinVarSummary.accession}}</dd></div>
+         <div><dt>Authority title</dt><dd>{{clinVarSummary.title}}</dd></div>
+         <div><dt>Germline classification · ClinVar</dt><dd>{{clinVarSummary.germlineDescription||'Not returned'}}</dd></div>
+         <div><dt>ClinVar review status</dt><dd>{{clinVarSummary.reviewStatus||'Not returned'}}</dd></div>
+         <div><dt>Last external evaluation</dt><dd>{{clinVarSummary.lastEvaluated||'Not returned'}}</dd></div>
+         <div><dt>Retrieved from NCBI</dt><dd>{{clinVarSummary.retrievedAt}}</dd></div>
+        </dl>
+        <p class="rail-caption">External aggregate classifications can concern multiple conditions. This is not a CFTR-specific clinical reconciliation, conflict determination or treatment recommendation. <a :href="clinVarSummary.sourceUrl" target="_blank" rel="noopener noreferrer">Review authority record ↗</a></p>
+       </template>
+      </div>
      </section>
      <section class="research-history-section" aria-label="Recorded research history">
       <button class="disclosure-button" type="button" :aria-expanded="historyOpen" aria-controls="variant-research-history" @click="toggleResearchHistory">
