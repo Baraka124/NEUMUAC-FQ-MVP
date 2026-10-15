@@ -288,3 +288,15 @@ test('UI foundation Phase 2: immediate search and visible selected state',async(
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+test('UI foundation Phase 3: scientific dossier remains source-gated and responsive',async({page})=>{
+ for(const width of [390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/variants');
+  await expect(page.getByRole('heading',{name:'Variants',exact:true})).toBeVisible();
+  await expect(page.locator('.nfq-dossier-primary')).toHaveCount(0);
+  await expect(page.locator('.nfq-dossier-expanded')).toHaveCount(0);
+  await expect(page.getByRole('heading',{name:'Select a variant'})).toBeVisible();
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
