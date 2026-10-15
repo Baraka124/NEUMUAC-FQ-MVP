@@ -23,7 +23,7 @@ const dossier=ref<ScientificDossier|null>(null);
 const dossierError=ref('');
 let dossierAbort:AbortController|null=null;
 const clinVarSummary=ref<ClinVarAuthoritySummary|null>(null);
-const evidenceComparison=computed(()=>dossier.value&&clinVarSummary.value&&!evidenceError.value?compareRecordedEvidence(dossier.value,clinVarSummary.value,linkedEvidence.value):null);
+const evidenceComparison=computed(()=>dossier.value&&clinVarSummary.value&&evidenceReady.value&&!evidenceError.value?compareRecordedEvidence(dossier.value,clinVarSummary.value,linkedEvidence.value):null);
 const clinVarLoading=ref(false);
 const clinVarError=ref('');
 let clinVarAbort:AbortController|null=null;
@@ -45,6 +45,7 @@ async function checkClinVar():Promise<void>{
 }
 
 const linkedEvidence=ref<readonly LiveEvidenceReference[]>([]);
+const evidenceReady=ref(false);
 const evidenceError=ref('');
 let evidenceAbort:AbortController|null=null;
 
@@ -103,11 +104,11 @@ watch(selected,async record=>{
  catch{if(!controller.signal.aborted)dossierError.value='Scientific fields could not be loaded.';}
 });
 watch(selected,async value=>{
- evidenceAbort?.abort(); linkedEvidence.value=[]; evidenceError.value='';
+ evidenceAbort?.abort(); linkedEvidence.value=[]; evidenceError.value='';evidenceReady.value=false;
  if(!value || !evidenceSource)return;
  const controller=new AbortController(); evidenceAbort=controller;
  try {const result=await evidenceSource.forVariant(value.id,controller.signal);
-   if(!controller.signal.aborted)linkedEvidence.value=result;
+   if(!controller.signal.aborted){linkedEvidence.value=result;evidenceReady.value=true;}
  } catch {if(!controller.signal.aborted)evidenceError.value='Current source links could not be loaded.';}
 });
 const search=ref(typeof route.query.q==='string'?route.query.q:'');
