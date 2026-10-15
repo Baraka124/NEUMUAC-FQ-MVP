@@ -478,3 +478,7 @@ main{background:#fbfcfa}
 .nfq-entry-page .staff-signin-form input{min-height:48px;width:100%;border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:var(--paper)}
 .nfq-entry-page .staff-signin-form button{min-height:48px;border:0;border-radius:8px;background:#126f6c;color:#fff;font-weight:700;margin-top:10px}
 @media(max-width:760px){.nfq-signin-brand{align-items:flex-start}.nfq-entry-page .research-entry{grid-template-columns:1fr}.nfq-signin-brand img{width:215px}}
+
+.nfq-home-lockup{display:flex;align-items:center;max-width:300px;margin-bottom:20px}
+.nfq-home-lockup img{display:block;width:100%;height:auto;max-height:190px;object-fit:contain;object-position:left center}
+@media(max-width:760px){.nfq-home-lockup{max-width:230px;margin-bottom:15px}}
