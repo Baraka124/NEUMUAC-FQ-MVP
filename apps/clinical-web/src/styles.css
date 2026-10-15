@@ -456,3 +456,8 @@ main{background:#fbfcfa}
 @media(max-width:600px){.clinvar-verification-head button{width:100%}}
 
 .discovery-notation-guidance{font-size:.78rem;line-height:1.5;color:var(--muted,#57696b);margin:.5rem 0 .3rem;max-width:65ch}
+
+/* Phase 3N: comparison remains subordinate to verified per-source disclosures. */
+.evidence-comparison{border-top:1px solid #dce7e0;margin-top:1rem;padding-top:1rem}
+.evidence-comparison h4{font-size:.9rem;margin:0 0 .4rem;color:#295442}
+.evidence-comparison .identity-grid{margin-top:.8rem}
