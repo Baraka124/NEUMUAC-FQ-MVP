@@ -6,14 +6,14 @@ const email=ref(''),password=ref(''),busy=ref(false),router=useRouter();
 async function submit(){if(!authController||busy.value)return;busy.value=true;try{if(await authController.signIn(email.value,password.value)){password.value='';await router.replace('/admin');}}finally{busy.value=false;}}
 </script>
 <template>
- <div class="page staff-signin">
-  <div class="eyebrow">NEUMUACFQ / STAFF ACCESS</div>
-  <h1>Research staff sign in</h1>
-  <p class="intro">The research catalog is public. Sign in only to access authorized scientific contributions, reviews or administration.</p>
+ <div class="page staff-signin nfq-entry-page">
+  <div class="nfq-signin-brand"><img src="/brand/neumuacfq-logo.png" alt="neumuacFQ · CFTR evidence, connected." /><span>STAFF ACCESS · SECURE RESEARCH ENVIRONMENT</span></div>
+  <h1>Continue your research.</h1>
+  <p class="intro">Sign in with your authorized research account. The public CFTR evidence workspace remains available without an account.</p>
   <section class="research-entry" aria-labelledby="staff-signin-title">
    <div class="research-entry-main">
     <div class="section-label">SECURE SESSION</div>
-    <h2 id="staff-signin-title">Your research account</h2>
+    <h2 id="staff-signin-title">Research account</h2>
     <p v-if="!authController" role="status">Staff authentication is not configured in this deployment. Public variant exploration remains available.</p>
     <form v-else class="staff-signin-form" @submit.prevent="submit">
      <label for="auth-email">Email address</label><input id="auth-email" v-model="email" type="email" autocomplete="username" required/>
