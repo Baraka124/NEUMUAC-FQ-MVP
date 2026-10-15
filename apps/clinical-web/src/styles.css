@@ -708,3 +708,17 @@ main{background:#fbfcfa}
  .variant-page .record-rail::-webkit-scrollbar{display:none}
 }
 @media(max-width:760px){.sidebar-scroll{display:contents}.variant-page .record-rail{position:static;max-height:none;overflow:visible;display:block}.variant-page .record-rail>.record-list{max-height:none;overflow:visible}}
+
+/* Independent search preferences: opening controls never displaces results. */
+.variant-page .discovery-utility-row{position:relative;z-index:5;align-items:center}
+.variant-filter-anchor{position:relative;display:inline-flex;align-items:center;min-width:0}
+.variant-filter-trigger{display:inline-flex;align-items:center;gap:8px;min-height:37px;padding:5px 4px;border:0;border-radius:6px;background:transparent;color:#376b52;font:inherit;cursor:pointer}
+.variant-filter-trigger:hover{background:#f3f8f3}
+.variant-filter-trigger:focus-visible{outline:3px solid #168468;outline-offset:2px}
+.variant-filter-trigger[aria-expanded="true"] .discovery-chevron{transform:rotate(180deg)}
+.variant-page .record-rail{overflow:visible}
+.variant-page .record-rail>.record-list{min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;scrollbar-width:none}
+.variant-page .record-rail>.record-list::-webkit-scrollbar{display:none}
+@media(min-width:1181px){.variant-page .record-layout{grid-template-columns:minmax(306px,336px) minmax(0,1fr)}}
+@media(min-width:761px) and (max-width:1180px){.variant-page .record-layout{grid-template-columns:minmax(260px,290px) minmax(0,1fr)}}
+@media(max-width:760px){.variant-page .record-rail{overflow:visible}.variant-page .record-rail>.record-list{overflow:visible;max-height:none}}
