@@ -110,3 +110,12 @@ it('queries multiple live variant terms in one safe OR search with database pagi
  expect(await source.resolveExact('F508del,G551D')).toBeNull();
  expect(calls).toHaveLength(1);
 });
+
+it('blocks unsupported scientific notation before the live query',async()=>{
+ const network=vi.fn();
+ const repo=createReadOnlyRepository({...config,readTable:'variants'},network as typeof fetch);
+ for(const query of ['p.(Phe508del)','p.[Phe508del;Gly551Asp]','c.?']){
+  await expect(repo.list({query,page:0})).rejects.toMatchObject({code:'request-failed'});
+ }
+ expect(network).not.toHaveBeenCalled();
+});
