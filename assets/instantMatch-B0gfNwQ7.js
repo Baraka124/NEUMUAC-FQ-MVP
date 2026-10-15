@@ -1,1 +1,0 @@
-function l(e){return e.normalize("NFKC").trim().toLocaleLowerCase("en").replace(/^([pc])\./,"")}function s(e,u,c){const a=l(e);if(a.length<2||c)return null;const o=u.filter(n=>[n.legacyName,n.proteinName,n.cdnaName,...n.aliases].some(i=>i&&l(i)===a)),t=new Map(o.map(n=>[n.id,n]));return t.size===1?[...t.values()][0]:null}export{l as canonicalIdentity,s as unambiguousExactMatch};
