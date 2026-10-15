@@ -2,9 +2,9 @@ import {validateReadOnlyConfig,type ReadOnlyConfig,VariantConnectionError} from 
 export interface ScientificDossier{
   id:string; functionalClass:string|null; subtype:string|null; confidence:string|null;
   recordedDetermination:string|null; sourceSummary:string|null; dataStatus:string|null;
-  validationCount:number|null; lastValidatedAt:string|null; lastEvidenceUpdate:string|null;
+  validationCount:number|null; lastValidatedAt:string|null; lastEvidenceUpdate:string|null; clinvarId:string|null;
 }
-const columns='id,cftr_class,class_subtype,class_confidence,final_determination,source_summary,data_status,validation_count,last_validated_at,last_evidence_update';
+const columns='id,cftr_class,class_subtype,class_confidence,final_determination,source_summary,data_status,validation_count,last_validated_at,last_evidence_update,clinvar_id';
 export function decodeScientificDossier(input:unknown):ScientificDossier{
  if(!input||typeof input!=='object'||Array.isArray(input))throw new VariantConnectionError('schema-mismatch','Invalid scientific profile');
  const x=input as Record<string,unknown>;
@@ -14,7 +14,7 @@ export function decodeScientificDossier(input:unknown):ScientificDossier{
  confidence:field('class_confidence'),recordedDetermination:field('final_determination'),
  sourceSummary:field('source_summary'),dataStatus:field('data_status'),
  validationCount:typeof x.validation_count==='number'&&Number.isSafeInteger(x.validation_count)?x.validation_count:null,
- lastValidatedAt:field('last_validated_at'),lastEvidenceUpdate:field('last_evidence_update')};
+ lastValidatedAt:field('last_validated_at'),lastEvidenceUpdate:field('last_evidence_update'),clinvarId:field('clinvar_id')};
 }
 export function createScientificDossierSource(config:ReadOnlyConfig,transport:typeof fetch=fetch){
  const root=validateReadOnlyConfig(config);
