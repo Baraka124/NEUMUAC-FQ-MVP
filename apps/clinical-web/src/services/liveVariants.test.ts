@@ -97,3 +97,16 @@ it('does not automatically resolve conflicting or incomplete exact identities',a
  const cap=vi.fn(async()=>new Response(JSON.stringify(Array.from({length:41},(_,i)=>({id:i+1,legacy_name:i===0?'R117H':'OTHER'+i,protein_name:null,cdna_name:null,alt_names:null}))),{status:200}));
  expect(await createReadOnlyRepository({...config,readTable:'variants'},cap as typeof fetch).resolveExact('R117H')).toBeNull();
 });
+
+it('queries multiple live variant terms in one safe OR search with database pagination',async()=>{
+ const calls:string[]=[];
+ const transport=vi.fn(async(url:string)=>{calls.push(url);return new Response('[]',{status:200})});
+ const source=createReadOnlyRepository({...config,readTable:'variants'},transport as typeof fetch);
+ await source.list({query:'F508del, G551D',page:1});
+ const q=new URL(calls[0]).searchParams;
+ expect(q.get('or')).toContain('legacy_name.ilike.*F508del*');
+ expect(q.get('or')).toContain('protein_name.ilike.*G551D*');
+ expect(q.get('offset')).toBe('40');
+ expect(await source.resolveExact('F508del,G551D')).toBeNull();
+ expect(calls).toHaveLength(1);
+});
