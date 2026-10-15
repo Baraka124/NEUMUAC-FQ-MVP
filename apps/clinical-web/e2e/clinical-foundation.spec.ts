@@ -328,3 +328,18 @@ test('institutional outer entry offers direct public and staff research paths',a
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+test('UI Phase 4 keeps collapse control outside the scrolling sidebar',async({page})=>{
+ for(const width of [768,1024,1366]){
+  await page.setViewportSize({width,height:740});
+  await page.goto('/#/variants');
+  const toggle=page.getByRole('button',{name:/Collapse sidebar|Expand sidebar/});
+  await expect(toggle).toBeVisible();
+  await expect(page.locator('.sidebar-scroll')).toHaveCount(1);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+  await toggle.click();
+  await expect(page.getByRole('button',{name:/Collapse sidebar|Expand sidebar/})).toBeVisible();
+  await page.getByRole('button',{name:/Collapse sidebar|Expand sidebar/}).click();
+  await expect(page.getByRole('button',{name:/Collapse sidebar|Expand sidebar/})).toBeVisible();
+ }
+});
