@@ -123,8 +123,9 @@ const showAdvanced=ref(classFilter.value!=='all'||sort.value!=='name-asc'||searc
 const activeFilterCount=computed(()=>Number(classFilter.value!=='all')+Number(sort.value!=='name-asc')+Number(searchMode.value!=='contains'));
 function resetAdvancedFilters():void{classFilter.value='all';sort.value='name-asc';searchMode.value='contains';}
 watch(search,()=>{exactMatchedId.value=null;});
+const scientificDetailsOpen=ref(false);
 const showReferences=ref(false);
-watch(selected,()=>{showReferences.value=false;});
+watch(selected,()=>{showReferences.value=false;scientificDetailsOpen.value=false;});
 const page=ref(typeof route.query.page==='string'&&/^\d{1,4}$/.test(route.query.page)?Number(route.query.page):0);
 const displayedRows=computed(()=>scientificInputAssessment.value.blocked?[]:
  (sort.value==='name-asc'&&page.value===0?rankVisibleSearchPage(rows.value,search.value):rows.value));
@@ -239,8 +240,7 @@ function select(id:string):void{
 </script>
 <template>
  <div class="page variant-page">
-  <div class="eyebrow">RESEARCH WORKSPACES / VARIANT INTELLIGENCE</div>
-  <div class="variant-heading"><div><h1>Variant workspace</h1><p class="intro">Search live CFTR records and explore their scientific evidence.</p></div><span class="fixture-stamp">{{liveMode ? "LIVE · READ ONLY" : "CONNECTION REQUIRED"}}</span></div>
+  <div class="variant-heading"><div><span class="eyebrow">CFTR RESEARCH / VARIANTS</span><h1>Variant workspace</h1><p class="intro">Find a recorded variant and review its scientific evidence.</p></div><span class="fixture-stamp">{{liveMode ? "LIVE · READ ONLY" : "CONNECTION REQUIRED"}}</span></div>
   <div class="record-layout">
    <section class="record-rail" aria-labelledby="record-list-title">
     <div class="rail-topline">
@@ -293,7 +293,7 @@ function select(id:string):void{
     <p v-if="busy" role="status" class="discovery-loading">Searching…</p>
     <p v-if="error" role="alert" class="empty-result">{{ error }} <RouterLink v-if="error.includes('Sign in')" to="/sign-in">Sign in</RouterLink></p>
     <p v-else-if="!busy&&!rows.length&&!scientificInputAssessment.blocked" role="status" class="empty-result">No matching variants.</p>
-    <div v-if="rows.length&&!scientificInputAssessment.blocked" class="record-list" aria-label="Search results"><button v-for="(record,index) in displayedRows" :key="record.id" type="button" @keydown="onResultKeydown($event,index)" @focus="activeResultIndex=index" @mouseenter="activeResultIndex=index" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span class="record-subline">{{ record.proteinName || record.cdnaName || 'Additional nomenclature not recorded' }}</span><span v-if="search.trim()" class="record-match-reason">{{matchExplanation(record)}}</span><span v-if="record.recordedClass" class="record-class">Class {{record.recordedClass}} · recorded</span><span v-if="record.validationCount!==null&&record.validationCount!==undefined" class="record-class">{{record.validationCount}} recorded validations</span><span class="record-bottom">Database record <span aria-hidden="true">→</span></span></button></div>
+    <div v-if="rows.length&&!scientificInputAssessment.blocked" class="record-list" aria-label="Search results"><button v-for="(record,index) in displayedRows" :key="record.id" type="button" @keydown="onResultKeydown($event,index)" @focus="activeResultIndex=index" @mouseenter="activeResultIndex=index" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span v-if="record.proteinName && !/^p\.\?$/.test(record.proteinName.trim())" class="record-subline">{{record.proteinName}}</span><span v-else-if="record.cdnaName" class="record-subline">{{record.cdnaName}}</span><span v-if="search.trim()" class="record-match-reason">{{matchExplanation(record)}}</span><span v-if="record.recordedClass" class="record-class">Class {{record.recordedClass}} · recorded</span></button></div>
     <nav class="pagination-controls discovery-pagination" aria-label="Variant result pages">
       <button type="button" :disabled="busy||page===0" aria-label="Previous variant page" @click="page--"><span aria-hidden="true">←</span> Previous</button>
       <span class="discovery-page-current" aria-current="page">Page {{page+1}}</span>
@@ -304,16 +304,17 @@ function select(id:string):void{
     <article class="record-overview" aria-labelledby="selected-title">
      <div class="section-label">DATABASE RECORD / READ ONLY</div>
      <p v-if="detailBusy" role="status">Loading record…</p>
-     <template v-else-if="selected"><div class="record-identity"><div><RouterLink class="record-return" :to="{path:'/variants',query:route.query}">← Back to worklist</RouterLink><h2 id="selected-title">{{variantDisplayName(selected)}}</h2><p>Recorded variant identity fields only. No scientific conclusions or clinical validation are inferred.</p></div><span v-if="selected.id===exactMatchedId" class="discovery-exact-chip"><svg aria-hidden="true" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 5 5L20 7"/></svg>Exact match</span><span v-else class="record-state">Recorded identity</span></div><dl class="identity-grid"><div><dt>Legacy name</dt><dd>{{selected.legacyName||'Not recorded'}}</dd></div><div><dt>Protein notation</dt><dd>{{selected.proteinName||'Not recorded'}}</dd></div><div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div><div><dt>Recorded aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div></dl><div class="variant-export-actions">
+     <template v-else-if="selected"><div class="record-identity"><div><RouterLink class="record-return" :to="{path:'/variants',query:route.query}">← Back to worklist</RouterLink><h2 id="selected-title">{{variantDisplayName(selected)}}</h2><p>Recorded variant identity fields only. No scientific conclusions or clinical validation are inferred.</p></div><span v-if="selected.id===exactMatchedId" class="discovery-exact-chip"><svg aria-hidden="true" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 5 5L20 7"/></svg>Exact match</span><span v-else class="record-state">Recorded identity</span></div><dl class="identity-grid"><div><dt>Legacy name</dt><dd>{{selected.legacyName||'Not recorded'}}</dd></div><div><dt>Protein notation</dt><dd>{{selected.proteinName||'Not recorded'}}</dd></div><div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div><div><dt>Recorded aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div></dl><div class="variant-export-actions" v-if="scientificDetailsOpen">
       <button type="button" :disabled="briefBusy" @click="copyResearchBrief">{{briefBusy?'Preparing full research brief…':'Copy scientific research brief'}}</button>
       <p role="status" v-if="briefStatus">{{briefStatus}}</p>
       <p class="rail-caption">Copies current scientific fields and recorded reference links. No patient data, clinical report or treatment recommendations.</p>
      </div><section class="dossier-science" aria-label="Recorded scientific classification">
-      <h3>Scientific record</h3>
-      <p class="rail-caption">Values below are recorded database fields, not independently adjudicated conclusions.</p>
+      <div class="nfq-primary-class"><span class="section-label">CFTR FUNCTIONAL CLASS · RECORDED</span><strong>{{dossier?.functionalClass||selected.recordedClass||'Not recorded'}}</strong></div>
       <p v-if="dossierError" role="alert">{{dossierError}}</p>
-      <dl v-else-if="dossier" class="identity-grid">
-       <div><dt>CFTR functional class</dt><dd>{{dossier.functionalClass||'Not recorded'}}</dd></div>
+      <button type="button" class="disclosure-button nfq-scientific-toggle" :aria-expanded="scientificDetailsOpen" aria-controls="nfq-secondary-science" @click="scientificDetailsOpen=!scientificDetailsOpen"><span>Scientific details & provenance</span><span aria-hidden="true">{{scientificDetailsOpen?'−':'⌄'}}</span></button>
+      <div v-if="scientificDetailsOpen" id="nfq-secondary-science">
+      <p class="rail-caption">Recorded scientific fields are source descriptions, not independently verified clinical determinations.</p>
+      <dl v-if="dossier" class="identity-grid">
        <div><dt>Class subtype</dt><dd>{{dossier.subtype||'Not recorded'}}</dd></div>
        <div><dt>Recorded determination</dt><dd>{{dossier.recordedDetermination||'Not recorded'}}</dd></div>
        <div><dt>Class confidence (recorded)</dt><dd>{{dossier.confidence||'Not recorded'}}</dd></div>
@@ -351,8 +352,9 @@ function select(id:string):void{
         <p class="rail-caption">External aggregate classifications can concern multiple conditions. This is not a CFTR-specific clinical reconciliation, conflict determination or treatment recommendation. <a :href="clinVarSummary.sourceUrl" target="_blank" rel="noopener noreferrer">Review authority record ↗</a></p>
        </template>
       </div>
+      </div>
      </section>
-     <section class="research-history-section" aria-label="Recorded research history">
+     <section v-if="scientificDetailsOpen" class="research-history-section" aria-label="Recorded research history">
       <button class="disclosure-button" type="button" :aria-expanded="historyOpen" aria-controls="variant-research-history" @click="toggleResearchHistory">
        <span>Validation & conflict history</span><span aria-hidden="true">{{historyOpen?'−':'+'}}</span>
       </button>
@@ -374,7 +376,7 @@ function select(id:string):void{
        </template>
       </div>
      </section>
-     <section class="variant-evidence-links" aria-label="Recorded source references">
+     <section v-if="scientificDetailsOpen" class="variant-evidence-links" aria-label="Recorded source references">
       <button class="disclosure-button" type="button" :aria-expanded="showReferences" aria-controls="variant-reference-list" @click="showReferences=!showReferences"><span>Recorded references · {{linkedEvidence.length}}</span><span aria-hidden="true">{{showReferences?'−':'+'}}</span></button>
       <p class="rail-caption">Current source links from the research database. A recorded link is not a clinical assessment or an independently verified claim.</p>
       <p v-if="evidenceError" role="alert" class="rail-caption">{{evidenceError}}</p><p v-else-if="!linkedEvidence.length" class="rail-caption">No source links currently returned for this variant. This does not establish an absence of published research.</p>
@@ -383,7 +385,7 @@ function select(id:string):void{
       </ul>
       <RouterLink class="variant-evidence-browse" to="/evidence">Browse the evidence register →</RouterLink>
      </section>
-     <p class="history-disclaimer">Clinical assessment, private annotations and review history are not available in this view.</p></template>
+     <p v-if="scientificDetailsOpen" class="history-disclaimer">Clinical assessment, private annotations and review history are not available in this view.</p></template>
      <template v-else-if="previewCandidate">
       <div class="research-preview" aria-label="Search result preview">
        <span class="section-label">SEARCH PREVIEW · NOT OPENED</span>
