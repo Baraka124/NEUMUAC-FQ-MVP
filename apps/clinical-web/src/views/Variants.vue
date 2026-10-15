@@ -83,11 +83,15 @@ watch(selected,async value=>{
 });
 const search=ref(typeof route.query.q==='string'?route.query.q:'');
 const inputActive=ref(false);
-const exactMatchState=ref('');
+const exactMatchedId=ref<string|null>(null);
+const showSearchInfo=ref(false);
 const classFilter=ref(typeof route.query.class==='string'&&['I','II','III','IV','V','VI','unclassified'].includes(route.query.class)?route.query.class:'all');
 const sort=ref(typeof route.query.sort==='string'&&['name-desc','recent-record','fewest-validations','most-validations'].includes(route.query.sort)?route.query.sort:'name-asc');
 const searchMode=ref(typeof route.query.mode==='string'&&route.query.mode==='exact-name'?'exact-name':'contains');
 const showAdvanced=ref(classFilter.value!=='all'||sort.value!=='name-asc'||searchMode.value!=='contains');
+const activeFilterCount=computed(()=>Number(classFilter.value!=='all')+Number(sort.value!=='name-asc')+Number(searchMode.value!=='contains'));
+function resetAdvancedFilters():void{classFilter.value='all';sort.value='name-asc';searchMode.value='contains';}
+watch(search,()=>{exactMatchedId.value=null;});
 const showReferences=ref(false);
 watch(selected,()=>{showReferences.value=false;});
 const page=ref(typeof route.query.page==='string'&&/^\d{1,4}$/.test(route.query.page)?Number(route.query.page):0);
@@ -135,7 +139,7 @@ async function load():Promise<void>{
 async function resolveSearch():Promise<void>{
  exactRequest?.abort();
  const run=++exactSequence;
- exactMatchState.value='';
+ exactMatchedId.value=null;
  if(!source||searchMode.value!=='contains'||page.value!==0||search.value.trim().length<2)return;
  const abort=new AbortController();exactRequest=abort;
  const text=search.value.trim();
@@ -144,10 +148,10 @@ async function resolveSearch():Promise<void>{
    if(run!==exactSequence||abort.signal.aborted||search.value.trim()!==text)return;
    if(hit && route.params.id!==hit.id){
      revealNextId=hit.id;
-     exactMatchState.value='Exact recorded identity found — dossier opened automatically.';
+     exactMatchedId.value=hit.id;
      void router.replace({path:'/variants/'+encodeURIComponent(hit.id),query:{...route.query,q:text}});
    }
- }catch{if(!abort.signal.aborted&&run===exactSequence)exactMatchState.value='';}
+ }catch{if(!abort.signal.aborted&&run===exactSequence)exactMatchedId.value=null;}
 }
 async function loadDetail(id:unknown):Promise<void>{
   detailRequest?.abort();const run=++detailSequence;
@@ -189,6 +193,7 @@ function onResultKeydown(event:KeyboardEvent,index:number):void{
  else if(event.key==='Escape'){event.preventDefault();document.getElementById('search')?.focus();activeResultIndex.value=-1;}
 }
 function select(id:string):void{
+ exactMatchedId.value=null;
  revealNextId=id;
  void router.push({path:'/variants/'+encodeURIComponent(id),query:{...route.query}});
 }
@@ -196,49 +201,59 @@ function select(id:string):void{
 <template>
  <div class="page variant-page">
   <div class="eyebrow">RESEARCH WORKSPACES / VARIANT INTELLIGENCE</div>
-  <div class="variant-heading"><div><h1>Variant workspace</h1><p class="intro">Read-only CFTR nomenclature from real research records. Scientific profiles and linked references are available for records where the source contains them. Clinical conclusions are not independently validated.</p></div><span class="fixture-stamp">{{liveMode ? "LIVE · READ ONLY" : "CONNECTION REQUIRED"}}</span></div>
+  <div class="variant-heading"><div><h1>Variant workspace</h1><p class="intro">Search live CFTR records and explore their scientific evidence.</p></div><span class="fixture-stamp">{{liveMode ? "LIVE · READ ONLY" : "CONNECTION REQUIRED"}}</span></div>
   <div class="record-layout">
    <section class="record-rail" aria-labelledby="record-list-title">
-    <div class="rail-topline"><div><span class="section-label">SCIENTIFIC DISCOVERY</span><h2 id="record-list-title">Find a CFTR variant</h2></div><span class="record-total">{{rows.length}} results</span></div>
-    <label for="search">Variant name, HGVS or recorded alias</label>
+    <div class="rail-topline">
+      <div><span class="section-label">SCIENTIFIC DISCOVERY</span><h2 id="record-list-title">Find a CFTR variant</h2></div>
+      <button type="button" class="discovery-info-button" aria-label="Search help and scientific data limitations" :aria-expanded="showSearchInfo" aria-controls="discovery-search-help" @click="showSearchInfo=!showSearchInfo">i</button>
+    </div>
+    <label for="search" class="discovery-accessible-label">Variant name, HGVS or recorded alias</label>
     <div class="discovery-input" :class="{'discovery-input-active':inputActive}">
       <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>
-      <input id="search" v-model="search" type="search" autocomplete="off" spellcheck="false" placeholder="F508del, c.1521_1523delCTT…" aria-describedby="discovery-hint" @focus="inputActive=true" @blur="inputActive=false" @keydown="onSearchKeydown"/>
+      <input id="search" v-model="search" type="search" autocomplete="off" spellcheck="false" placeholder="Variant name or HGVS…" @focus="inputActive=true" @blur="inputActive=false" @keydown="onSearchKeydown"/>
       <button v-if="search" type="button" class="discovery-clear" aria-label="Clear variant search" @click="search=''">×</button>
     </div>
-    <p id="discovery-hint" class="discovery-hint">Search updates as you type · unique exact matches open automatically</p>
-    <p v-if="exactMatchState" role="status" class="discovery-match">{{exactMatchState}}</p>
-    <details class="research-disclosure" :open="showAdvanced" @toggle="showAdvanced=($event.target as HTMLDetailsElement).open">
-     <summary>Advanced search & prioritization <span>{{classFilter==='all'&&sort==='name-asc'&&searchMode==='contains'?'Optional filters':'Filters active'}}</span></summary>
-     <div class="variant-worklist-filters" aria-label="Scientific worklist filters">
-      <label for="class-filter">Functional class (recorded)</label>
-      <label for="variant-sort">Order by</label>
-      <select id="class-filter" v-model="classFilter">
-       <option value="all">All classes</option>
-       <option v-for="item in ['I','II','III','IV','V','VI']" :key="item" :value="item">Class {{item}}</option>
-       <option value="unclassified">Unclassified in database</option>
-      </select>
-      <select id="variant-sort" v-model="sort">
-       <option value="name-asc">Name A–Z</option><option value="name-desc">Name Z–A</option>
-       <option value="recent-record">Record ID · newest first</option>
-       <option value="fewest-validations">Fewest recorded validations</option>
-       <option value="most-validations">Most recorded validations</option>
-      </select>
-      <label for="search-mode">Match mode</label><span></span>
-      <select id="search-mode" v-model="searchMode"><option value="contains">Contains name, HGVS or alias</option><option value="exact-name">Exact recorded name or notation</option></select>
-     </div>
-    </details><p class="rail-caption">Live server-side class filtering. Labels reflect existing research records, not independent scientific validation.</p>
-    <p v-if="busy" role="status">Loading public variant records…</p>
-    <p v-else-if="error" role="alert" class="empty-result">{{ error }} <RouterLink v-if="error.includes('Sign in')" to="/sign-in">Sign in</RouterLink></p>
-    <p v-else-if="!rows.length" role="status" class="empty-result">No variant records returned for this search. No demonstration records are substituted.</p>
-    <div v-else class="record-list" aria-label="Search results"><button v-for="(record,index) in displayedRows" :key="record.id" type="button" @keydown="onResultKeydown($event,index)" @focus="activeResultIndex=index" @mouseenter="activeResultIndex=index" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span class="record-subline">{{ record.proteinName || record.cdnaName || 'Additional nomenclature not recorded' }}</span><span v-if="search.trim()" class="record-match-reason">{{matchExplanation(record)}}</span><span v-if="record.recordedClass" class="record-class">Class {{record.recordedClass}} · recorded</span><span v-if="record.validationCount!==null&&record.validationCount!==undefined" class="record-class">{{record.validationCount}} recorded validations</span><span class="record-bottom">Database record <span aria-hidden="true">→</span></span></button></div>
+    <div class="discovery-utility-row">
+      <details class="research-disclosure discovery-filters" :open="showAdvanced" @toggle="showAdvanced=($event.target as HTMLDetailsElement).open">
+        <summary><svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M7 12h10M10 17h4"/></svg>Filters <span v-if="activeFilterCount" class="discovery-active-count">{{activeFilterCount}} active</span></summary>
+        <div class="variant-worklist-filters" aria-label="Scientific worklist filters">
+          <label for="class-filter">Functional class</label>
+          <label for="variant-sort">Sort</label>
+          <select id="class-filter" v-model="classFilter">
+            <option value="all">All classes</option>
+            <option v-for="item in ['I','II','III','IV','V','VI']" :key="item" :value="item">Class {{item}}</option>
+            <option value="unclassified">Unclassified in database</option>
+          </select>
+          <select id="variant-sort" v-model="sort">
+            <option value="name-asc">Name A–Z</option>
+            <option value="name-desc">Name Z–A</option>
+            <option value="recent-record">Record ID · newest first</option>
+            <option value="fewest-validations">Fewest recorded validations</option>
+            <option value="most-validations">Most recorded validations</option>
+          </select>
+          <label for="search-mode">Match mode</label><span></span>
+          <select id="search-mode" v-model="searchMode"><option value="contains">Contains name, HGVS or alias</option><option value="exact-name">Exact recorded name or notation</option></select>
+        </div>
+        <button v-if="activeFilterCount" type="button" class="discovery-reset" @click="resetAdvancedFilters">Reset filters</button>
+      </details>
+      <span class="record-total" aria-label="Results on this page">{{rows.length}} shown</span>
+    </div>
+    <div v-if="showSearchInfo" id="discovery-search-help" class="discovery-help" role="note">
+      Search updates while typing. One unambiguous exact recorded identity opens its dossier automatically. Filters and scientific labels reflect database records, not independently validated clinical conclusions.
+    </div>
+    <p v-if="exactMatchedId" role="status" class="discovery-sr-only">Exact recorded identity opened automatically.</p>
+    <p v-if="busy" role="status" class="discovery-loading">Searching…</p>
+    <p v-if="error" role="alert" class="empty-result">{{ error }} <RouterLink v-if="error.includes('Sign in')" to="/sign-in">Sign in</RouterLink></p>
+    <p v-else-if="!busy&&!rows.length" role="status" class="empty-result">No matching variants.</p>
+    <div v-if="rows.length" class="record-list" aria-label="Search results"><button v-for="(record,index) in displayedRows" :key="record.id" type="button" @keydown="onResultKeydown($event,index)" @focus="activeResultIndex=index" @mouseenter="activeResultIndex=index" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span class="record-subline">{{ record.proteinName || record.cdnaName || 'Additional nomenclature not recorded' }}</span><span v-if="search.trim()" class="record-match-reason">{{matchExplanation(record)}}</span><span v-if="record.recordedClass" class="record-class">Class {{record.recordedClass}} · recorded</span><span v-if="record.validationCount!==null&&record.validationCount!==undefined" class="record-class">{{record.validationCount}} recorded validations</span><span class="record-bottom">Database record <span aria-hidden="true">→</span></span></button></div>
     <div class="pagination-controls"><button type="button" :disabled="busy||page===0" @click="page--">Previous</button><span>Page {{page+1}}</span><button type="button" :disabled="busy||!hasMore" @click="page++">Next</button></div>
    </section>
    <div class="record-content">
     <article class="record-overview" aria-labelledby="selected-title">
      <div class="section-label">DATABASE RECORD / READ ONLY</div>
      <p v-if="detailBusy" role="status">Loading record…</p>
-     <template v-else-if="selected"><div class="record-identity"><div><RouterLink class="record-return" :to="{path:'/variants',query:route.query}">← Back to worklist</RouterLink><h2 id="selected-title">{{variantDisplayName(selected)}}</h2><p>Recorded variant identity fields only. No scientific conclusions or clinical validation are inferred.</p></div><span class="record-state">Nomenclature only</span></div><dl class="identity-grid"><div><dt>Legacy name</dt><dd>{{selected.legacyName||'Not recorded'}}</dd></div><div><dt>Protein notation</dt><dd>{{selected.proteinName||'Not recorded'}}</dd></div><div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div><div><dt>Recorded aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div></dl><div class="variant-export-actions">
+     <template v-else-if="selected"><div class="record-identity"><div><RouterLink class="record-return" :to="{path:'/variants',query:route.query}">← Back to worklist</RouterLink><h2 id="selected-title">{{variantDisplayName(selected)}}</h2><p>Recorded variant identity fields only. No scientific conclusions or clinical validation are inferred.</p></div><span v-if="selected.id===exactMatchedId" class="discovery-exact-chip"><svg aria-hidden="true" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 5 5L20 7"/></svg>Exact match</span><span v-else class="record-state">Recorded identity</span></div><dl class="identity-grid"><div><dt>Legacy name</dt><dd>{{selected.legacyName||'Not recorded'}}</dd></div><div><dt>Protein notation</dt><dd>{{selected.proteinName||'Not recorded'}}</dd></div><div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div><div><dt>Recorded aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div></dl><div class="variant-export-actions">
       <button type="button" :disabled="briefBusy" @click="copyResearchBrief">{{briefBusy?'Preparing full research brief…':'Copy scientific research brief'}}</button>
       <p role="status" v-if="briefStatus">{{briefStatus}}</p>
       <p class="rail-caption">Copies current scientific fields and recorded reference links. No patient data, clinical report or treatment recommendations.</p>
