@@ -3,6 +3,7 @@ import { computed, nextTick, ref, watch, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {authController,authSessionProvider} from '../services/authSession';
 import {explainTextMatch,rankVisibleSearchPage} from '../domain/searchPresentation';
+import {assessScientificDiscovery} from '../domain/compoundDiscovery';
 
 import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
 import {createScientificDossierSource,type ScientificDossier} from '../services/scientificDossier';
@@ -108,6 +109,7 @@ watch(selected,async value=>{
  } catch {if(!controller.signal.aborted)evidenceError.value='Current source links could not be loaded.';}
 });
 const search=ref(typeof route.query.q==='string'?route.query.q:'');
+const scientificInputAssessment=computed(()=>assessScientificDiscovery(search.value));
 const inputActive=ref(false);
 const exactMatchedId=ref<string|null>(null);
 const showSearchInfo=ref(false);
@@ -121,7 +123,8 @@ watch(search,()=>{exactMatchedId.value=null;});
 const showReferences=ref(false);
 watch(selected,()=>{showReferences.value=false;});
 const page=ref(typeof route.query.page==='string'&&/^\d{1,4}$/.test(route.query.page)?Number(route.query.page):0);
-const displayedRows=computed(()=>sort.value==='name-asc'&&page.value===0?rankVisibleSearchPage(rows.value,search.value):rows.value);
+const displayedRows=computed(()=>scientificInputAssessment.value.blocked?[]:
+ (sort.value==='name-asc'&&page.value===0?rankVisibleSearchPage(rows.value,search.value):rows.value));
 const activeResultIndex=ref(-1);
 const previewCandidate=computed(()=>selected.value||detailBusy.value||route.params.id?null:
     (displayedRows.value[activeResultIndex.value]??(search.value.trim()?displayedRows.value[0]:null)??null));
@@ -153,6 +156,7 @@ let detailSequence=0;
 async function load():Promise<void>{
   current?.abort();const run=++listSequence;const abort=new AbortController();current=abort;
   hasMore.value=false;error.value='';
+  if(scientificInputAssessment.value.blocked){rows.value=[];busy.value=false;return;}
   if(!source){error.value=configError||'The public variant catalog has not been connected yet.';return;}
   busy.value=true;
   try {const data=await source.list({query:search.value,page:page.value,classFilter:classFilter.value as 'all'|'I'|'II'|'III'|'IV'|'V'|'VI'|'unclassified',sort:sort.value as 'name-asc'|'name-desc'|'recent-record'|'fewest-validations'|'most-validations',searchMode:searchMode.value as 'contains'|'exact-name',signal:abort.signal});if(run===listSequence){
@@ -166,7 +170,7 @@ async function resolveSearch():Promise<void>{
  exactRequest?.abort();
  const run=++exactSequence;
  exactMatchedId.value=null;
- if(!source||searchMode.value!=='contains'||page.value!==0||search.value.trim().length<2)return;
+ if(!source||scientificInputAssessment.value.blocked||searchMode.value!=='contains'||page.value!==0||search.value.trim().length<2)return;
  const abort=new AbortController();exactRequest=abort;
  const text=search.value.trim();
  try{
@@ -240,6 +244,7 @@ function select(id:string):void{
       <input id="search" v-model="search" type="search" autocomplete="off" spellcheck="false" placeholder="Variant name or HGVS…" @focus="inputActive=true" @blur="inputActive=false" @keydown="onSearchKeydown"/>
       <button v-if="search" type="button" class="discovery-clear" aria-label="Clear variant search" @click="search=''">×</button>
     </div>
+    <p v-if="scientificInputAssessment.message" class="discovery-notation-guidance" role="status">{{scientificInputAssessment.message}}</p>
     <div class="discovery-utility-row">
       <details class="research-disclosure discovery-filters" :open="showAdvanced" @toggle="showAdvanced=($event.target as HTMLDetailsElement).open">
         <summary aria-label="Toggle scientific search filters">
@@ -278,8 +283,8 @@ function select(id:string):void{
     <p v-if="exactMatchedId" role="status" class="discovery-sr-only">Exact recorded identity opened automatically.</p>
     <p v-if="busy" role="status" class="discovery-loading">Searching…</p>
     <p v-if="error" role="alert" class="empty-result">{{ error }} <RouterLink v-if="error.includes('Sign in')" to="/sign-in">Sign in</RouterLink></p>
-    <p v-else-if="!busy&&!rows.length" role="status" class="empty-result">No matching variants.</p>
-    <div v-if="rows.length" class="record-list" aria-label="Search results"><button v-for="(record,index) in displayedRows" :key="record.id" type="button" @keydown="onResultKeydown($event,index)" @focus="activeResultIndex=index" @mouseenter="activeResultIndex=index" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span class="record-subline">{{ record.proteinName || record.cdnaName || 'Additional nomenclature not recorded' }}</span><span v-if="search.trim()" class="record-match-reason">{{matchExplanation(record)}}</span><span v-if="record.recordedClass" class="record-class">Class {{record.recordedClass}} · recorded</span><span v-if="record.validationCount!==null&&record.validationCount!==undefined" class="record-class">{{record.validationCount}} recorded validations</span><span class="record-bottom">Database record <span aria-hidden="true">→</span></span></button></div>
+    <p v-else-if="!busy&&!rows.length&&!scientificInputAssessment.blocked" role="status" class="empty-result">No matching variants.</p>
+    <div v-if="rows.length&&!scientificInputAssessment.blocked" class="record-list" aria-label="Search results"><button v-for="(record,index) in displayedRows" :key="record.id" type="button" @keydown="onResultKeydown($event,index)" @focus="activeResultIndex=index" @mouseenter="activeResultIndex=index" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span class="record-subline">{{ record.proteinName || record.cdnaName || 'Additional nomenclature not recorded' }}</span><span v-if="search.trim()" class="record-match-reason">{{matchExplanation(record)}}</span><span v-if="record.recordedClass" class="record-class">Class {{record.recordedClass}} · recorded</span><span v-if="record.validationCount!==null&&record.validationCount!==undefined" class="record-class">{{record.validationCount}} recorded validations</span><span class="record-bottom">Database record <span aria-hidden="true">→</span></span></button></div>
     <nav class="pagination-controls discovery-pagination" aria-label="Variant result pages">
       <button type="button" :disabled="busy||page===0" aria-label="Previous variant page" @click="page--"><span aria-hidden="true">←</span> Previous</button>
       <span class="discovery-page-current" aria-current="page">Page {{page+1}}</span>
