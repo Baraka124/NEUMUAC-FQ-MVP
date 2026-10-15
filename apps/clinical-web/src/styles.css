@@ -461,3 +461,20 @@ main{background:#fbfcfa}
 .evidence-comparison{border-top:1px solid #dce7e0;margin-top:1rem;padding-top:1rem}
 .evidence-comparison h4{font-size:.9rem;margin:0 0 .4rem;color:#295442}
 .evidence-comparison .identity-grid{margin-top:.8rem}
+
+/* Phase 3P · supplied brand artwork, restrained institutional entry. */
+.wordmark-icon{border:0;background:transparent;overflow:visible;width:43px;height:43px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.wordmark-icon img{display:block;width:100%;height:100%;object-fit:contain}
+.wordmark-text strong{font-weight:760;letter-spacing:-.055em}
+.nfq-entry-page{max-width:1100px;margin-inline:auto}
+.nfq-signin-brand{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:28px}
+.nfq-signin-brand img{display:block;width:clamp(180px,28vw,300px);height:auto;max-height:180px;object-fit:contain}
+.nfq-signin-brand span{font-size:10px;letter-spacing:.15em;font-weight:750;color:var(--muted)}
+.nfq-entry-page h1{font-size:clamp(34px,4vw,58px);letter-spacing:-.065em;max-width:850px}
+.nfq-entry-page .research-entry{align-items:start}
+.nfq-entry-page .research-entry-aside{background:transparent}
+.nfq-entry-page .staff-signin-form{max-width:470px;display:grid;gap:10px}
+.nfq-entry-page .staff-signin-form label{font-size:12px;font-weight:650;color:var(--ink)}
+.nfq-entry-page .staff-signin-form input{min-height:48px;width:100%;border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:var(--paper)}
+.nfq-entry-page .staff-signin-form button{min-height:48px;border:0;border-radius:8px;background:#126f6c;color:#fff;font-weight:700;margin-top:10px}
+@media(max-width:760px){.nfq-signin-brand{align-items:flex-start}.nfq-entry-page .research-entry{grid-template-columns:1fr}.nfq-signin-brand img{width:215px}}
