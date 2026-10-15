@@ -26,7 +26,7 @@ function openVariantSearch():void{
         </div>
         <span class="nfq-home-read-status">Public access</span>
       </div>
-      <form class="nfq-home-search-form" role="search" @submit.prevent="openVariantSearch">
+      <form class="nfq-home-search-form" role="search" aria-label="Search CFTR variants" @submit.prevent="openVariantSearch">
         <label for="nfq-home-search">Search CFTR variants</label>
         <div class="nfq-home-search-controls">
           <input id="nfq-home-search" v-model="query" type="search" autocomplete="off"
