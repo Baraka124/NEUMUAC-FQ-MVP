@@ -246,7 +246,7 @@ test('outer landing offers clearly distinct public and staff paths without appli
  for(const width of [320,390,768,1366]){
   await page.setViewportSize({width,height:850});
   await page.goto('/');
-  await expect(page.getByRole('heading',{name:/From variant records to/})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'CFTR variant research'})).toBeVisible();
   await expect(page.getByRole('link',{name:/Explore public research/})).toHaveAttribute('href','#/workspace');
   await expect(page.getByRole('link',{name:/Sign in as research staff/})).toHaveAttribute('href','#/sign-in');
   await expect(page.locator('.sidebar')).toHaveCount(0);
