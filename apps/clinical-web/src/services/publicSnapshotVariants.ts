@@ -49,9 +49,13 @@ function checkAbort(signal?: AbortSignal): void {
 }
 
 export function createPublicSnapshotSource(): RealVariantSource {
-  // Deliberately expose only list and get. No write methods, tokens, or
+  // Deliberately expose only read methods. No write methods, tokens, or
   // fallback to legacy public.variants REST endpoints.
   return Object.freeze({
+    async resolveExact():Promise<RealVariant|null>{
+      // Archived source is for rollback, never used for live auto-navigation.
+      return null;
+    },
     async list({query,page,signal}: {query:string;page:number;signal?:AbortSignal}) {
       if (!Number.isInteger(page) || page < 0 || page > 10000) throw new Error('Invalid catalog page');
       checkAbort(signal);
