@@ -5,7 +5,6 @@ import GeographicObservatory from '../components/GeographicObservatory.vue';
  <div class="page public-geography-page">
   <div class="eyebrow">CFTR RESEARCH / PUBLIC GEOGRAPHY</div>
   <h1>Geographic intelligence</h1>
-  <p class="intro">Explore Spanish regional boundaries and research geography. Search activity statistics are withheld until privacy-approved aggregation is available.</p>
   <GeographicObservatory/>
  </div>
 </template>
