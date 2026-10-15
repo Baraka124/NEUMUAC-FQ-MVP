@@ -35,13 +35,13 @@ watch([query,page],()=>{clearTimeout(debounce);debounce=setTimeout(()=>{void ref
 onUnmounted(()=>{abort?.abort();clearTimeout(debounce);});
 </script>
 <template>
- <div class="page evidence-page">
+ <div class="page evidence-page nfq-science-ui">
   <div class="eyebrow">CFTR RESEARCH / SOURCES</div>
   <h1>Evidence & provenance</h1>
-  <p class="intro">Browse current source links recorded for CFTR variants in NeumuacFQ. These are research references, not independently validated clinical interpretations.</p>
-  <div class="evidence-search-head">
+  <p class="intro">Explore recorded CFTR variant references and their source details.</p>
+  <div class="evidence-search-head" role="search" aria-label="Find recorded scientific sources">
    <label for="evidence-search">Find a source or reference</label>
-   <input id="evidence-search" v-model="query" type="search" placeholder="Title, source or PMID"/>
+   <div class="nfq-science-search-line"><input id="evidence-search" v-model="query" type="search" placeholder="Title, source or PMID"/><button v-if="query" type="button" class="nfq-science-clear" @click="query=''">Clear search</button></div>
   </div>
   <p v-if="loading" role="status">Loading current references…</p>
   <p v-else-if="error" role="alert" class="empty-result">{{error}}</p>
@@ -50,8 +50,8 @@ onUnmounted(()=>{abort?.abort();clearTimeout(debounce);});
   <div v-if="rows.length" class="evidence-register" aria-label="Recorded citations">
    <article v-for="item in rows" :key="item.id" class="evidence-row">
     <div class="evidence-row-meta"><span>{{item.source}}</span><span v-if="item.year">{{item.year}} (recorded)</span></div>
-    <h2><button type="button" class="evidence-row-disclosure" :aria-expanded="expandedRows.includes(item.id)" @click="toggleRow(item.id)"><span>{{item.title}}</span><span aria-hidden="true">{{expandedRows.includes(item.id)?'−':'+'}}</span></button></h2>
-    <div v-if="expandedRows.includes(item.id)" class="evidence-row-foot">
+    <h2><button type="button" class="evidence-row-disclosure" :aria-expanded="expandedRows.includes(item.id)" :aria-controls="'evidence-details-'+item.id" @click="toggleRow(item.id)"><span>{{item.title}}</span><span aria-hidden="true">{{expandedRows.includes(item.id)?'−':'+'}}</span></button></h2>
+    <div v-if="expandedRows.includes(item.id)" :id="'evidence-details-'+item.id" class="evidence-row-foot">
      <span>Recorded quality score: {{item.recordedQualityScore??'Not recorded'}}</span>
      <span>Recorded source weight: {{item.recordedSourceWeight??'Not recorded'}}</span>
      <span>Recorded citation count: {{item.recordedCitationCount??'Not recorded'}}</span><a :href="item.url" target="_blank" rel="noopener noreferrer">Open source ↗</a><RouterLink :to="'/variants/'+item.variantId">Variant record #{{item.variantId}}</RouterLink><span v-if="item.journal">{{item.journal}}</span><span v-if="item.pmid">PMID {{item.pmid}}</span></div>
