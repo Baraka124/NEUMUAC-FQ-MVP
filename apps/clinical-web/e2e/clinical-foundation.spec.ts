@@ -345,7 +345,7 @@ test('UI Phase 4 keeps collapse control outside the scrolling sidebar',async({pa
 test('Phase 4F Spain map is privacy gated, accessible and responsive',async({page})=>{
  for(const width of [320,390,768,1024,1366]){
   await page.setViewportSize({width,height:820});
-  await page.goto('/#/intelligence');
+  await page.goto('/#/geography');
   await expect(page.getByRole('heading',{name:'Geographic search activity'})).toBeVisible();
   await expect(page.getByRole('img',{name:/Selectable map of the autonomous communities/})).toBeVisible();
   await expect(page.getByText('Aggregate data pending verification')).toBeVisible();
@@ -360,4 +360,13 @@ test('Phase 4F Spain map is privacy gated, accessible and responsive',async({pag
   await page.getByRole('button',{name:'Evidence coverage'}).click();
   await expect(page.getByRole('button',{name:'Evidence coverage'})).toHaveAttribute('aria-pressed','true');
  }
+});
+
+test('public geographic route requires no sign-in and never displays raw search events',async({page})=>{
+ await page.goto('/#/geography');
+ await expect(page.getByRole('heading',{name:'Geographic intelligence',exact:true})).toBeVisible();
+ await expect(page.getByText('Aggregate data pending verification')).toBeVisible();
+ await expect(page.locator('input[type=password]')).toHaveCount(0);
+ await expect(page.locator('.geo-region')).toHaveCount(19);
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
