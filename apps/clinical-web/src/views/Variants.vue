@@ -133,15 +133,14 @@ const activeResultIndex=ref(-1);
 const previewCandidate=computed(()=>selected.value||detailBusy.value||route.params.id?null:
     (displayedRows.value[activeResultIndex.value]??(search.value.trim()?displayedRows.value[0]:null)??null));
 let revealNextId:string|null=null;
-async function revealSelectedOnMobile(id:string):Promise<void>{
+async function revealSelectedRecord(id:string):Promise<void>{
  if(revealNextId!==id)return;
- revealNextId=null;
  await nextTick();
- if(route.params.id!==id || !window.matchMedia('(max-width: 760px)').matches)return;
+ if(route.params.id!==id)return;
  const target=document.querySelector<HTMLElement>('.record-overview');
  if(!target)return;
- const prefersReducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
- target.scrollIntoView({behavior:prefersReducedMotion?'instant':'smooth',block:'start'});
+ revealNextId=null;
+ target.scrollIntoView({behavior:'instant',block:'start'});
 }
 watch(displayedRows,()=>{activeResultIndex.value=-1;});
 function matchExplanation(record:RealVariant):string{return explainTextMatch(record,search.value)?.label||'Recorded variant';}
@@ -200,7 +199,7 @@ async function loadDetail(id:unknown):Promise<void>{
   const abort=new AbortController();detailRequest=abort;detailBusy.value=true;
   try {const record=await source.get(id,abort.signal);if(run===detailSequence){
     selected.value=record;
-    if(record)void revealSelectedOnMobile(id);
+    if(record)void revealSelectedRecord(id);
   }}
   catch(e){if(!abort.signal.aborted&&run===detailSequence)error.value=formatReadStatus(e);}
   finally {if(run===detailSequence)detailBusy.value=false;}
@@ -235,6 +234,7 @@ function onResultKeydown(event:KeyboardEvent,index:number):void{
 function select(id:string):void{
  exactMatchedId.value=null;
  revealNextId=id;
+ if(route.params.id===id){void revealSelectedRecord(id);return;}
  void router.push({path:'/variants/'+encodeURIComponent(id),query:{...route.query}});
 }
 </script>
@@ -293,7 +293,7 @@ function select(id:string):void{
     <p v-if="busy" role="status" class="discovery-loading">Searching…</p>
     <p v-if="error" role="alert" class="empty-result">{{ error }} <RouterLink v-if="error.includes('Sign in')" to="/sign-in">Sign in</RouterLink></p>
     <p v-else-if="!busy&&!rows.length&&!scientificInputAssessment.blocked" role="status" class="empty-result">No matching variants.</p>
-    <div v-if="rows.length&&!scientificInputAssessment.blocked" class="record-list" aria-label="Search results"><button v-for="(record,index) in displayedRows" :key="record.id" type="button" @keydown="onResultKeydown($event,index)" @focus="activeResultIndex=index" @mouseenter="activeResultIndex=index" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span v-if="record.proteinName && !/^p\.\?$/.test(record.proteinName.trim())" class="record-subline">{{record.proteinName}}</span><span v-else-if="record.cdnaName" class="record-subline">{{record.cdnaName}}</span><span v-if="search.trim()" class="record-match-reason">{{matchExplanation(record)}}</span><span v-if="record.recordedClass" class="record-class">Class {{record.recordedClass}} · recorded</span></button></div>
+    <div v-if="rows.length&&!scientificInputAssessment.blocked" class="record-list" aria-label="Search results"><button v-for="(record,index) in displayedRows" :key="record.id" type="button" @keydown="onResultKeydown($event,index)" @focus="activeResultIndex=index" @mouseenter="activeResultIndex=index" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span v-if="record.proteinName && !/^p\.\?$/.test(record.proteinName.trim())" class="record-subline">{{record.proteinName}}</span><span v-else-if="record.cdnaName" class="record-subline">{{record.cdnaName}}</span><span v-if="search.trim()" class="record-match-reason">{{matchExplanation(record)}}</span><span v-if="record.recordedClass" class="record-class">Class {{record.recordedClass}}</span></button></div>
     <nav class="pagination-controls discovery-pagination" aria-label="Variant result pages">
       <button type="button" :disabled="busy||page===0" aria-label="Previous variant page" @click="page--"><span aria-hidden="true">←</span> Previous</button>
       <span class="discovery-page-current" aria-current="page">Page {{page+1}}</span>
@@ -302,14 +302,12 @@ function select(id:string):void{
    </section>
    <div class="record-content">
     <article class="record-overview" aria-labelledby="selected-title">
-     <div class="section-label">DATABASE RECORD / READ ONLY</div>
      <p v-if="detailBusy" role="status">Loading record…</p>
-     <template v-else-if="selected"><div class="record-identity"><div><RouterLink class="record-return" :to="{path:'/variants',query:route.query}">← Back to worklist</RouterLink><h2 id="selected-title">{{variantDisplayName(selected)}}</h2><p>Recorded variant identity fields only. No scientific conclusions or clinical validation are inferred.</p></div><span v-if="selected.id===exactMatchedId" class="discovery-exact-chip"><svg aria-hidden="true" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 5 5L20 7"/></svg>Exact match</span><span v-else class="record-state">Recorded identity</span></div><dl class="identity-grid"><div><dt>Legacy name</dt><dd>{{selected.legacyName||'Not recorded'}}</dd></div><div><dt>Protein notation</dt><dd>{{selected.proteinName||'Not recorded'}}</dd></div><div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div><div><dt>Recorded aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div></dl><div class="variant-export-actions" v-if="scientificDetailsOpen">
+     <template v-else-if="selected"><div class="record-identity"><div><RouterLink class="record-return" :to="{path:'/variants',query:route.query}">← Back to results</RouterLink><div class="nfq-identity-title"><h2 id="selected-title">{{variantDisplayName(selected)}}</h2><span class="nfq-class-pill" v-if="dossier?.functionalClass||selected.recordedClass">Class {{dossier?.functionalClass||selected.recordedClass}}</span></div></div><span v-if="selected.id===exactMatchedId" class="discovery-exact-chip">Exact match</span></div><dl class="identity-grid"><div><dt>Legacy name</dt><dd>{{selected.legacyName||'Not recorded'}}</dd></div><div><dt>Protein notation</dt><dd>{{selected.proteinName||'Not recorded'}}</dd></div><div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div><div><dt>Recorded aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div></dl><div class="variant-export-actions" v-if="scientificDetailsOpen">
       <button type="button" :disabled="briefBusy" @click="copyResearchBrief">{{briefBusy?'Preparing full research brief…':'Copy scientific research brief'}}</button>
       <p role="status" v-if="briefStatus">{{briefStatus}}</p>
       <p class="rail-caption">Copies current scientific fields and recorded reference links. No patient data, clinical report or treatment recommendations.</p>
      </div><section class="dossier-science" aria-label="Recorded scientific classification">
-      <div class="nfq-primary-class"><span class="section-label">CFTR FUNCTIONAL CLASS · RECORDED</span><strong>{{dossier?.functionalClass||selected.recordedClass||'Not recorded'}}</strong></div>
       <p v-if="dossierError" role="alert">{{dossierError}}</p>
       <div class="nfq-details-control">
        <button type="button" class="nfq-details-trigger" :aria-expanded="scientificDetailsOpen" aria-controls="nfq-secondary-science" @click="scientificDetailsOpen=!scientificDetailsOpen">

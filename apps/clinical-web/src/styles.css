@@ -588,3 +588,16 @@ main{background:#fbfcfa}
 .variant-page .nfq-details-trigger-icon svg{display:block;transition:transform .18s ease}
 .variant-page .nfq-details-trigger[aria-expanded="true"] .nfq-details-trigger-icon svg{transform:rotate(180deg)}
 @media(prefers-reduced-motion:reduce){.variant-page .nfq-details-trigger-icon svg{transition:none}}
+
+/* Phase 3U · connected identity header and restrained secondary control. */
+.variant-page .record-identity{align-items:center;gap:12px;margin-bottom:12px}
+.variant-page .nfq-identity-title{display:flex;align-items:baseline;flex-wrap:wrap;gap:10px 16px;margin-top:10px}
+.variant-page .nfq-identity-title h2{margin:0;overflow-wrap:anywhere}
+.variant-page .nfq-class-pill{display:inline-flex;align-items:center;border:1px solid #cce0d2;border-radius:5px;padding:5px 8px;background:#f2f8f3;color:#27664d;font-size:12px;font-weight:700;white-space:nowrap}
+.variant-page .dossier-science{border-top:0;margin-top:9px;padding-top:0}
+.variant-page .nfq-details-control{margin:10px 0 2px}
+.variant-page .nfq-details-trigger{font-size:12px;font-weight:600;gap:8px;min-height:38px;padding:5px 12px 5px 7px;background:#f8faf8;border-color:#d4e3d9;box-shadow:none}
+.variant-page .nfq-details-trigger-icon{width:25px;height:25px;background:transparent;border-color:#dce8df;border-radius:6px}
+.variant-page .nfq-details-trigger-icon svg{width:15px;height:15px}
+.variant-page .record-overview{scroll-margin-top:90px}
+@media(max-width:760px){.variant-page .record-overview{scroll-margin-top:76px}.variant-page .record-identity{align-items:flex-start}}
