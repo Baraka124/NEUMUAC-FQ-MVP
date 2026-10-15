@@ -300,3 +300,20 @@ test('UI foundation Phase 3: scientific dossier remains source-gated and respons
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+test('institutional outer entry offers direct public and staff research paths',async({page})=>{
+ for(const width of [320,390,768,1024,1440]){
+  await page.setViewportSize({width,height:820});
+  await page.goto('/');
+  await expect(page.getByRole('heading',{name:'CFTR variant research'})).toBeVisible();
+  await expect(page.locator('.nfq-portal-brand img')).toBeVisible();
+  await expect(page.locator('.nfq-entry-preview')).toHaveCount(0);
+  await expect(page.getByRole('navigation',{name:'Research workspace capabilities'})).toHaveCount(0);
+  await expect(page.getByRole('navigation',{name:'Research workspaces'})).toHaveCount(0);
+  await expect(page.getByRole('link',{name:/Explore public research/})).toHaveAttribute('href','#/workspace');
+  await expect(page.getByRole('link',{name:/Sign in as research staff/})).toHaveAttribute('href','#/sign-in');
+  await expect(page.getByRole('link',{name:/Variant records/})).toHaveAttribute('href','#/variants');
+  await expect(page.locator('.sidebar')).toHaveCount(0);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
