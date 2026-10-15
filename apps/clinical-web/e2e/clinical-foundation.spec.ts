@@ -189,7 +189,23 @@ test('Phase 3D scientific search stays primary across six widths',async({page})=
   await page.goto('/#/variants');
   await expect(page.getByRole('heading',{name:'Find a CFTR variant'})).toBeVisible();
   await expect(page.getByRole('searchbox',{name:'Variant name, HGVS or recorded alias'})).toBeVisible();
-  await expect(page.getByText('unique exact matches open automatically')).toBeVisible();
+  await expect(page.getByRole('button',{name:'Search help and scientific data limitations'})).toBeVisible();
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
+});
+
+test('Phase 3H compact variant rail hides instructions until requested',async({page})=>{
+ await page.goto('/#/variants');
+ await expect(page.getByText('Search updates while typing.')).toHaveCount(0);
+ const info=page.getByRole('button',{name:'Search help and scientific data limitations'});
+ await expect(info).toHaveAttribute('aria-expanded','false');
+ await info.click();
+ await expect(info).toHaveAttribute('aria-expanded','true');
+ await expect(page.getByText(/Search updates while typing/)).toBeVisible();
+ await info.click();
+ await expect(page.getByText(/Search updates while typing/)).toHaveCount(0);
+ await expect(page.locator('.discovery-filters')).not.toHaveAttribute('open', '');
+ await page.locator('.discovery-filters summary').click();
+ await expect(page.locator('#class-filter')).toBeVisible();
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
