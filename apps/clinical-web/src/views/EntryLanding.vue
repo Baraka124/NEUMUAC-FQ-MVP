@@ -82,7 +82,7 @@ function openLogin(){loginOpen.value=true;}
 <style scoped>
 .nfq-portal-landing{min-height:100dvh;display:flex;flex-direction:column;background:#fcfdfc;color:#173444}
 .nfq-portal-masthead,.nfq-portal-content,.nfq-portal-footer{width:min(1440px,100%);margin-inline:auto;padding-inline:clamp(23px,5vw,78px)}
-.nfq-portal-masthead{min-height:114px;border-bottom:1px solid #dce6e2;display:flex;align-items:center;justify-content:space-between;gap:28px}
+.nfq-portal-masthead{min-height:114px;display:flex;align-items:center;justify-content:space-between;gap:28px}
 .nfq-portal-brand{display:flex;width:246px;height:108px;flex-shrink:0;align-items:center;justify-content:flex-start;overflow:hidden}
 .nfq-portal-brand img{display:block;width:246px;height:108px;object-fit:contain;object-position:left center}
 .nfq-portal-masthead-right{display:flex;align-items:center;gap:clamp(24px,3vw,42px)}
@@ -102,7 +102,7 @@ function openLogin(){loginOpen.value=true;}
 .nfq-portal-staff{background:#fff;color:#1d5549;border:1px solid #cddfd5}
 .nfq-portal-staff:hover{background:#f3f9f5;border-color:#8caf9b}
 .nfq-portal-access-note{font-size:12px;line-height:1.65;color:#758984;max-width:550px;margin:15px 0 0}
-.nfq-portal-index{min-width:0;border-top:2px solid #1a4c5a;padding-top:18px}
+.nfq-portal-index{min-width:0;padding-top:0}
 .nfq-portal-index-top{margin:0 0 15px}
 .nfq-portal-index-top h2{font-size:clamp(22px,2vw,29px);font-weight:640;letter-spacing:-.04em;color:#153949;margin:8px 0 0}
 .nfq-portal-index-link{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:78px;padding:15px 3px;border-top:1px solid #dce6e2;color:#193e4a;text-decoration:none}
@@ -112,12 +112,12 @@ function openLogin(){loginOpen.value=true;}
 .nfq-portal-index-arrow{flex-shrink:0;font-size:18px;color:#4c8679;transition:transform .16s}
 .nfq-portal-index-link:hover strong{color:#087977}
 .nfq-portal-index-link:hover .nfq-portal-index-arrow{transform:translate(2px,-2px)}
-.nfq-portal-account{align-self:stretch;min-width:0;border-top:2px solid #1a4c5a;padding-top:20px}
+.nfq-portal-account{align-self:stretch;min-width:0;padding-top:0}
 .nfq-portal-account h2{font-size:clamp(25px,2.3vw,31px);margin:9px 0 11px;letter-spacing:-.035em}
 .nfq-portal-account-description{font-size:13px;color:#62777d;line-height:1.65;margin:0 0 21px;max-width:450px}
 .nfq-portal-back{border:0;background:transparent;padding:13px 0;margin-top:13px;color:#286c63;font:inherit;font-size:12px;cursor:pointer}
 .nfq-portal-back:hover{text-decoration:underline}
-.nfq-portal-research-notice{border-top:1px solid #dce6e2;margin-top:clamp(42px,5vw,74px);padding:19px 0 0;display:flex;gap:11px;align-items:flex-start;color:#6d8382;max-width:none}
+.nfq-portal-research-notice{margin-top:clamp(30px,4vw,54px);padding:0;display:flex;gap:11px;align-items:flex-start;color:#6d8382;max-width:none}
 .nfq-portal-research-notice svg{flex:none;margin-top:1px;color:#63887f}
 .nfq-portal-research-notice p{font-size:12px;line-height:1.6;margin:0}
 .nfq-portal-footer{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;border-top:1px solid #dce6e2;padding-block:17px;font-size:11px;color:#71837f}
