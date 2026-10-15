@@ -27,11 +27,7 @@ let evidenceAbort:AbortController|null=null;
 let configError='';
 try { if(config) source=createReadOnlyRepository(config,fetch,authSessionProvider); } catch(e){configError=formatReadStatus(e);}
 const rows=ref<readonly RealVariant[]>([]);
-const displayedRows=computed(()=>sort.value==='name-asc'&&page.value===0?rankVisibleSearchPage(rows.value,search.value):rows.value);
-const activeResultIndex=ref(-1);
-watch(displayedRows,()=>{activeResultIndex.value=-1;});
-function matchExplanation(record:RealVariant):string{return explainTextMatch(record,search.value)?.label||'Recorded variant';}
-function focusResult(index:number):void{const items=document.querySelectorAll<HTMLButtonElement>('.record-list button');if(!items.length)return;const next=(index+items.length)%items.length;activeResultIndex.value=next;items[next]?.focus();}
+
 const selected=ref<RealVariant|null>(null);
 const researchHistory=ref<ResearchHistory|null>(null);
 const historyError=ref('');
@@ -95,6 +91,11 @@ const showAdvanced=ref(classFilter.value!=='all'||sort.value!=='name-asc'||searc
 const showReferences=ref(false);
 watch(selected,()=>{showReferences.value=false;});
 const page=ref(typeof route.query.page==='string'&&/^\d{1,4}$/.test(route.query.page)?Number(route.query.page):0);
+const displayedRows=computed(()=>sort.value==='name-asc'&&page.value===0?rankVisibleSearchPage(rows.value,search.value):rows.value);
+const activeResultIndex=ref(-1);
+watch(displayedRows,()=>{activeResultIndex.value=-1;});
+function matchExplanation(record:RealVariant):string{return explainTextMatch(record,search.value)?.label||'Recorded variant';}
+function focusResult(index:number):void{const items=document.querySelectorAll<HTMLButtonElement>('.record-list button');if(!items.length)return;const next=(index+items.length)%items.length;activeResultIndex.value=next;items[next]?.focus();}
 const hasMore=ref(false);
 const busy=ref(false);
 const detailBusy=ref(false);
