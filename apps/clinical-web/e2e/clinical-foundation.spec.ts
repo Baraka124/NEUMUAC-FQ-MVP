@@ -412,3 +412,23 @@ test('Phase 4F-5 regional picker is available at desktop and narrow phone widths
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+test('Phase 4F-6 public geography is consistently discoverable across workspace navigation',async({page})=>{
+ await page.setViewportSize({width:1366,height:850});
+ await page.goto('/#/workspace');
+ await expect(page.getByRole('link',{name:/Explore geographic intelligence/})).toHaveAttribute('href','#/geography');
+ const nav=page.getByRole('navigation',{name:'Workspaces'});
+ await expect(nav.getByRole('link',{name:'Geographic intelligence'})).toBeVisible();
+ await nav.getByRole('link',{name:'Geographic intelligence'}).click();
+ await expect(page.getByRole('heading',{name:'Geographic intelligence',exact:true})).toBeVisible();
+ await expect(page.locator('.header-path')).toContainText('Geographic intelligence');
+ await page.getByRole('button',{name:'Open workspace switcher'}).click();
+ const launcher=page.getByRole('dialog',{name:'Research workspace switcher'});
+ await launcher.getByRole('searchbox',{name:'Find a research workspace'}).fill('regional');
+ await expect(launcher.getByRole('button',{name:/Geographic intelligence/})).toBeVisible();
+ await page.setViewportSize({width:390,height:844});
+ await page.goto('/#/workspace');
+ await page.getByRole('button',{name:/workspaces/i}).click();
+ await expect(page.getByRole('navigation',{name:'Mobile workspaces'}).getByRole('link',{name:'Geographic intelligence'})).toBeVisible();
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
