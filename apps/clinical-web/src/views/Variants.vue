@@ -240,11 +240,11 @@ function select(id:string):void{
 </script>
 <template>
  <div class="page variant-page">
-  <div class="variant-heading"><div><span class="eyebrow">CFTR RESEARCH / VARIANTS</span><h1>Variant workspace</h1><p class="intro">Find a recorded variant and review its scientific evidence.</p></div><span class="fixture-stamp">{{liveMode ? "LIVE · READ ONLY" : "CONNECTION REQUIRED"}}</span></div>
+  <div class="variant-heading"><h1>Variants</h1><span class="fixture-stamp">{{liveMode ? "PUBLIC · READ ONLY" : "CONNECTION REQUIRED"}}</span></div>
   <div class="record-layout">
    <section class="record-rail" aria-labelledby="record-list-title">
     <div class="rail-topline">
-      <div><span class="section-label">SCIENTIFIC DISCOVERY</span><h2 id="record-list-title">Find a CFTR variant</h2></div>
+      <h2 id="record-list-title">Search variants</h2>
       <button type="button" class="discovery-info-button" aria-label="Search help and scientific data limitations" :aria-expanded="showSearchInfo" aria-controls="discovery-search-help" @click="showSearchInfo=!showSearchInfo">i</button>
     </div>
     <label for="search" class="discovery-accessible-label">Variant name, HGVS or recorded alias</label>
@@ -284,7 +284,7 @@ function select(id:string):void{
         </div>
         <button v-if="activeFilterCount" type="button" class="discovery-reset" @click="resetAdvancedFilters">Reset filters</button>
       </details>
-      <span class="record-total" aria-label="Results on this page">{{rows.length}} shown</span>
+      <span class="record-total" aria-label="Results on this page">{{rows.length}} results</span>
     </div>
     <div v-if="showSearchInfo" id="discovery-search-help" class="discovery-help" role="note">
       Search updates while typing. Separate up to four recorded variant identifiers with commas or semicolons for OR search. A single unambiguous exact identity opens its dossier automatically. Filters and scientific labels reflect database records, not independently validated clinical conclusions.
@@ -293,7 +293,7 @@ function select(id:string):void{
     <p v-if="busy" role="status" class="discovery-loading">Searching…</p>
     <p v-if="error" role="alert" class="empty-result">{{ error }} <RouterLink v-if="error.includes('Sign in')" to="/sign-in">Sign in</RouterLink></p>
     <p v-else-if="!busy&&!rows.length&&!scientificInputAssessment.blocked" role="status" class="empty-result">No matching variants.</p>
-    <div v-if="rows.length&&!scientificInputAssessment.blocked" class="record-list" aria-label="Search results"><button v-for="(record,index) in displayedRows" :key="record.id" type="button" @keydown="onResultKeydown($event,index)" @focus="activeResultIndex=index" @mouseenter="activeResultIndex=index" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span v-if="record.proteinName && !/^p\.\?$/.test(record.proteinName.trim())" class="record-subline">{{record.proteinName}}</span><span v-else-if="record.cdnaName" class="record-subline">{{record.cdnaName}}</span><span v-if="search.trim()" class="record-match-reason">{{matchExplanation(record)}}</span><span v-if="record.recordedClass" class="record-class">Class {{record.recordedClass}}</span></button></div>
+    <div v-if="rows.length&&!scientificInputAssessment.blocked" class="record-list" aria-label="Search results"><button v-for="(record,index) in displayedRows" :key="record.id" type="button" @keydown="onResultKeydown($event,index)" @focus="activeResultIndex=index" @mouseenter="activeResultIndex=index" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span v-if="record.proteinName && !/^p\.\?$/.test(record.proteinName.trim())" class="record-subline">{{record.proteinName}}</span><span v-else-if="record.cdnaName" class="record-subline">{{record.cdnaName}}</span><span v-if="search.trim()" class="record-match-reason">{{matchExplanation(record)}}</span><span v-if="record.recordedClass" class="record-class">Class {{record.recordedClass}}</span><span v-if="selected?.id===record.id" class="record-current-label">Selected</span></button></div>
     <nav class="pagination-controls discovery-pagination" aria-label="Variant result pages">
       <button type="button" :disabled="busy||page===0" aria-label="Previous variant page" @click="page--"><span aria-hidden="true">←</span> Previous</button>
       <span class="discovery-page-current" aria-current="page">Page {{page+1}}</span>
