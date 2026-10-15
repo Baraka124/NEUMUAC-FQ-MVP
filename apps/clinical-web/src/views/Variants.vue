@@ -247,7 +247,7 @@ function select(id:string):void{
       <span class="record-total" aria-label="Results on this page">{{rows.length}} shown</span>
     </div>
     <div v-if="showSearchInfo" id="discovery-search-help" class="discovery-help" role="note">
-      Search updates while typing. One unambiguous exact recorded identity opens its dossier automatically. Filters and scientific labels reflect database records, not independently validated clinical conclusions.
+      Search updates while typing. Separate up to four recorded variant identifiers with commas or semicolons for OR search. A single unambiguous exact identity opens its dossier automatically. Filters and scientific labels reflect database records, not independently validated clinical conclusions.
     </div>
     <p v-if="exactMatchedId" role="status" class="discovery-sr-only">Exact recorded identity opened automatically.</p>
     <p v-if="busy" role="status" class="discovery-loading">Searching…</p>
