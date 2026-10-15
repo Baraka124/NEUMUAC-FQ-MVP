@@ -1,3 +1,4 @@
+import {parseDiscoveryTerms,buildDiscoveryExpression} from '../domain/compoundDiscovery';
 /**
  * Real database records only. No fixture fallback, local persistent cache or writes.
  * Public/publishable API key is NOT an authorization mechanism: actual read access
@@ -200,14 +201,9 @@ export function createReadOnlyRepository(
         limit:String(PAGE_SIZE+1),offset:String(page*PAGE_SIZE)
       });
       if(classFilter!=='all')params.set('cftr_class',classFilter==='unclassified'?'is.null':'eq.'+classFilter);
-      const text=safeSearchTerm(query);
-      if (query.trim() && !text) throw new VariantConnectionError('request-failed','Search contains unsupported characters.');
-      if (text) {
-        // PostgREST wildcard alias '*' and URLSearchParams encoding; no raw query construction.
-        // Only PostgREST-safe identifier-style characters are permitted above.
-        params.set('or',searchMode==='exact-name'
-          ? `(legacy_name.ilike.${text},protein_name.ilike.${text},cdna_name.ilike.${text})`
-          : `(legacy_name.ilike.*${text}*,protein_name.ilike.*${text}*,cdna_name.ilike.*${text}*,alt_names.ilike.*${text}*)`);
+      if(query.trim()){
+        const terms=parseDiscoveryTerms(query);
+        params.set('or',buildDiscoveryExpression(terms,searchMode==='exact-name'));
       }
       const result=await request(params,signal);
       return {records:result.slice(0,PAGE_SIZE),hasMore:result.length>PAGE_SIZE};
@@ -215,6 +211,7 @@ export function createReadOnlyRepository(
     async resolveExact(query:string,filter:RecordedClassFilter='all',signal?:AbortSignal){
       // A dedicated request prevents alphabetic pages and user sorting from
       // hiding one exact variant among many substring matches.
+      if(query.includes(',')||query.includes(';'))return null;
       const text=safeSearchTerm(query);
       if(!text || text.length<2)return null;
       const filters:readonly RecordedClassFilter[]=['all','I','II','III','IV','V','VI','unclassified'];
