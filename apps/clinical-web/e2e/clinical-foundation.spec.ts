@@ -362,6 +362,8 @@ test('public Spain map works without account and is accessible at mobile and des
   await page.getByRole('button',{name:'Browse all regions'}).click();
   await page.locator('.geo-region-grid').getByRole('button',{name:/Andalucía/}).click();
   await expect(page.getByRole('heading',{name:'Andalucía'})).toBeVisible();
+  await page.locator('.geo-region-grid').getByRole('button',{name:/Andalucía/}).click();
+  await expect(page.getByRole('heading',{name:'Andalucía'})).toBeVisible();
   await page.getByRole('button',{name:/Hide region list/}).click();
   await expect(page.getByRole('button',{name:/Browse all regions/})).toBeVisible();
   await expect.poll(()=>page.locator('html').evaluate(e=>e.scrollWidth-e.clientWidth)).toBe(0);
@@ -379,4 +381,18 @@ test('regional map offers a direct accessible region selector on small screens',
  await expect(page.getByText('International overview',{exact:true}).first()).toBeVisible();
  await page.getByRole('button',{name:'Return to Spain'}).click();
  await expect(page.getByRole('heading',{name:'Choose a region'})).toBeVisible();
+});
+
+
+test('explicit clearing and repeated region selection do not lose selection',async({page})=>{
+ await page.goto('/#/geography');
+ await page.getByRole('button',{name:'Browse all regions'}).click();
+ const galicia=page.locator('.geo-region-grid').getByRole('button',{name:/Galicia/});
+ await galicia.click();
+ await galicia.click();
+ await expect(page.getByRole('heading',{name:'Galicia'})).toBeVisible();
+ await expect(galicia).toHaveAttribute('aria-pressed','true');
+ await page.getByRole('button',{name:'Clear selection'}).click();
+ await expect(page.getByRole('heading',{name:'Choose a region'})).toBeVisible();
+ await expect(galicia).toHaveAttribute('aria-pressed','false');
 });
