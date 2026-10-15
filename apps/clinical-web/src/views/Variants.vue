@@ -6,6 +6,7 @@ import {explainTextMatch,rankVisibleSearchPage} from '../domain/searchPresentati
 
 import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
 import {createScientificDossierSource,type ScientificDossier} from '../services/scientificDossier';
+import {clinVarVariationUrl} from '../domain/externalAuthority';
 import {createVariantResearchBrief} from '../services/researchBrief';
 import {createLiveResearchHistorySource,type ResearchHistory} from '../services/liveResearchHistory';
 import { createReadOnlyRepository, readConfigFromEnvironment, variantDisplayName, formatReadStatus, type RealVariant, type RealVariantSource } from '../services/liveVariants';
@@ -279,7 +280,7 @@ function select(id:string):void{
        <div><dt>Class confidence (recorded)</dt><dd>{{dossier.confidence||'Not recorded'}}</dd></div>
        <div><dt>Source summary</dt><dd>{{dossier.sourceSummary||'Not recorded'}}</dd></div>
        <div><dt>Data status</dt><dd>{{dossier.dataStatus||'Not recorded'}}</dd></div>
-       <div><dt>Recorded validations</dt><dd>{{dossier.validationCount??'Not recorded'}}</dd></div>
+       <div><dt>ClinVar authority</dt><dd><a v-if="clinVarVariationUrl(dossier.clinvarId)" :href="clinVarVariationUrl(dossier.clinvarId)!" target="_blank" rel="noopener noreferrer">Open recorded ClinVar entry ↗</a><span v-else>{{dossier.clinvarId?'Unrecognized recorded identifier':'Not recorded'}}</span></dd></div><div><dt>Recorded validations</dt><dd>{{dossier.validationCount??'Not recorded'}}</dd></div>
        <div><dt>Last validation</dt><dd>{{dossier.lastValidatedAt||'Not recorded'}}</dd></div>
       </dl>
      </section>
