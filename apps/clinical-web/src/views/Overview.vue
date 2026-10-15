@@ -4,7 +4,8 @@ import {researchWorkspaces,researchShortcuts} from '../domain/researchWorkspaces
 <template>
   <div class="page research-home">
     <header class="research-home-intro">
-      <div class="eyebrow">NEUMUACFQ / CFTR RESEARCH</div>
+      <div class="nfq-home-lockup"><img src="/brand/neumuacfq-logo.png" alt="neumuacFQ · CFTR evidence, connected." @error="($event.target as HTMLImageElement).style.display='none'" /></div>
+      <div class="eyebrow">CFTR RESEARCH / PUBLIC WORKSPACE</div>
       <h1>CFTR variant research</h1>
       <p class="intro">A governed environment for examining recorded variant identities and, as verified services become available, their scientific evidence. The public workspace supports live read-only variant exploration, linked source references, variant-pair comparison, and research evidence-coverage review.</p>
     </header>
