@@ -108,6 +108,9 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
             <template v-else-if="section.path === '/intelligence'">
               <path d="M4 20V11M10 20V5M16 20V14M22 20V9"/>
             </template>
+            <template v-else-if="section.path === '/geography'">
+              <circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-5 5-5 13 0 18M12 3c5 5 5 13 0 18"/>
+            </template>
             <template v-else><path d="M6 5h12M6 10h12M6 15h8M6 20h12"/></template>
           </svg>
           <span v-if="!sidebarCollapsed" class="nav-name">{{ section.name }}</span>
