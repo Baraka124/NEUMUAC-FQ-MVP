@@ -67,8 +67,8 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
 
     <aside class="sidebar" aria-label="Application navigation">
       <RouterLink class="wordmark" to="/" aria-label="NeumuacFQ overview" title="NeumuacFQ overview">
-        <span class="wordmark-icon" aria-hidden="true"><span class="mark-line"></span><span class="mark-line"></span><span class="mark-line"></span></span>
-        <span v-if="!sidebarCollapsed" class="wordmark-text"><strong>NeumuacFQ</strong><small>CFTR research intelligence</small></span>
+        <span class="wordmark-icon" aria-hidden="true"><img src="/brand/neumuacfq-icon.png" alt="" @error="($event.target as HTMLImageElement).style.display='none'"/></span>
+        <span v-if="!sidebarCollapsed" class="wordmark-text"><strong>neumuacFQ</strong><small>CFTR evidence, connected.</small></span>
       </RouterLink>
       <button class="sidebar-toggle" type="button" aria-controls="primary-workspace-nav"
         :aria-expanded="!sidebarCollapsed"
