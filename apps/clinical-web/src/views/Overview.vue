@@ -37,6 +37,7 @@ function openVariantSearch():void{
       <div class="nfq-home-links">
         <RouterLink to="/variants">Explore variant records <span aria-hidden="true">→</span></RouterLink>
         <RouterLink to="/variants?class=I">Open Class I variant worklist <span aria-hidden="true">→</span></RouterLink>
+        <RouterLink to="/geography">Explore geographic intelligence <span aria-hidden="true">→</span></RouterLink>
       </div>
     </section>
 
