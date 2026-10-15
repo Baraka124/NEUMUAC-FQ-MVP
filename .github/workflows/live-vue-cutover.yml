@@ -45,6 +45,10 @@ jobs:
           test -s CNAME
           test -s apps/clinical-web/dist/index.html
           test -d apps/clinical-web/dist/assets
+          test -s apps/clinical-web/dist/brand/neumuacfq-icon.png
+          test -s apps/clinical-web/dist/brand/neumuacfq-logo.png
+          cmp apps/clinical-web/public/brand/neumuacfq-icon.png apps/clinical-web/dist/brand/neumuacfq-icon.png
+          cmp apps/clinical-web/public/brand/neumuacfq-logo.png apps/clinical-web/dist/brand/neumuacfq-logo.png
           if [[ ! -f index.1.html ]]; then
             cp index.html index.1.html
           fi
@@ -53,6 +57,11 @@ jobs:
           mkdir -p assets
           rm -rf assets
           cp -R apps/clinical-web/dist/assets assets
+          mkdir -p brand
+          cp apps/clinical-web/dist/brand/neumuacfq-icon.png brand/neumuacfq-icon.png
+          cp apps/clinical-web/dist/brand/neumuacfq-logo.png brand/neumuacfq-logo.png
+          cmp apps/clinical-web/public/brand/neumuacfq-icon.png brand/neumuacfq-icon.png
+          cmp apps/clinical-web/public/brand/neumuacfq-logo.png brand/neumuacfq-logo.png
           touch .nojekyll
           node tools/phase0b-baseline.mjs
           node --test tools/phase0b-baseline.test.mjs
@@ -64,7 +73,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.html index.1.html .nojekyll assets/
+          git add index.html index.1.html .nojekyll assets/ brand/neumuacfq-icon.png brand/neumuacfq-logo.png
           if ! git diff --cached --quiet; then
             git commit -m "Deploy Vue clinical-web at root, preserve verified legacy index.1.html"
             git push origin HEAD:main
