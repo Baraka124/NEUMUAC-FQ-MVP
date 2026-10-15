@@ -722,3 +722,10 @@ main{background:#fbfcfa}
 @media(min-width:1181px){.variant-page .record-layout{grid-template-columns:minmax(306px,336px) minmax(0,1fr)}}
 @media(min-width:761px) and (max-width:1180px){.variant-page .record-layout{grid-template-columns:minmax(260px,290px) minmax(0,1fr)}}
 @media(max-width:760px){.variant-page .record-rail{overflow:visible}.variant-page .record-rail>.record-list{overflow:visible;max-height:none}}
+
+/* Phase 4C: low-emphasis linked external reference group. */
+.variant-page .nfq-external-register{border-left:2px solid #a2c7b2;padding:5px 0 5px 13px;margin:9px 0 16px;max-width:720px}
+.variant-page .nfq-external-register p{font-size:12px;line-height:1.55;color:#607969;margin:5px 0 7px}
+.variant-page .nfq-external-register ul{margin:0;padding-left:17px}
+.variant-page .nfq-external-register li{margin:4px 0;font-size:12px;overflow-wrap:anywhere}
+.variant-page .nfq-external-register a{color:#27664e;text-underline-offset:3px}
