@@ -130,7 +130,7 @@ test('Phase 3A responsive navigation and scientific layout at additional widths'
  for(const width of [320,390,768,1024,1366,1600]){
   await page.setViewportSize({width,height:850});
   await page.goto('/#/variants');
-  await expect(page.getByRole('heading',{name:'Variant workspace'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Variants',exact:true})).toBeVisible();
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
   if(width<=760){
    await page.getByRole('button',{name:/workspaces/i}).click();
@@ -160,7 +160,7 @@ test('Phase 3B light institutional shell stays legible and usable across viewpor
     // The overview is now reached from the outer entry; assert mobile
     // workspace navigation on a stable internal route before opening it.
     await page.goto('/#/variants');
-    await expect(page.getByRole('heading',{name:'Variant workspace'})).toBeVisible();
+    await expect(page.getByRole('heading',{name:'Variants',exact:true})).toBeVisible();
     await expect(page.getByRole('button',{name:/workspaces/i})).toBeVisible();
     await page.getByRole('button',{name:/workspaces/i}).click();
     await expect(page.getByRole('navigation',{name:'Mobile workspaces'})).toBeVisible();
@@ -262,7 +262,7 @@ test('UI foundation Phase 1: single brand identity and restrained workspace navi
  for(const width of [390,768,1024,1366,1600]){
   await page.setViewportSize({width,height:850});
   await page.goto('/#/variants');
-  await expect(page.getByRole('heading',{name:'Variant workspace'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Variants',exact:true})).toBeVisible();
   // The sidebar remains in the DOM on mobile but is visually hidden.
   await expect(page.locator('.sidebar .wordmark img')).toHaveCount(1);
   if(width>760)await expect(page.locator('.sidebar .wordmark img')).toBeVisible();
@@ -274,5 +274,17 @@ test('UI foundation Phase 1: single brand identity and restrained workspace navi
    await expect(page.getByRole('navigation',{name:'Workspaces'}).getByRole('link',{name:'Variants'})).toBeVisible();
    await expect(page.getByRole('button',{name:'Open workspace switcher'})).toBeVisible();
   }
+ }
+});
+
+test('UI foundation Phase 2: immediate search and visible selected state',async({page})=>{
+ for(const width of [390,768,1366]){
+  await page.setViewportSize({width,height:860});
+  await page.goto('/#/variants');
+  await expect(page.getByRole('heading',{name:'Variants',exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Search variants'})).toBeVisible();
+  await expect(page.getByRole('searchbox',{name:/Variant name, HGVS or recorded alias/})).toBeVisible();
+  await expect(page.getByText('SCIENTIFIC DISCOVERY')).toHaveCount(0);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
