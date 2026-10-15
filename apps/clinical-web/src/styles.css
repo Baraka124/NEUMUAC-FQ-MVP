@@ -426,3 +426,23 @@ main{background:#fbfcfa}
 .discovery-loading{font-size:11px;color:#67806f;margin:5px 0 8px}
 .discovery-exact-chip{display:inline-flex;align-items:center;gap:4px;border:1px solid #b7d6c1;background:#e9f6eb;color:#1f714c;border-radius:5px;padding:5px 8px;font-size:11px;font-weight:700;white-space:nowrap}
 @media(max-width:420px){.discovery-utility-row{gap:7px}.discovery-filters summary{font-size:12px}}
+
+/* Phase 3I: one attached disclosure and visually integrated pagination */
+.discovery-filters summary{display:inline-flex;align-items:center;gap:9px;min-height:40px;padding:8px 9px 8px 3px;max-width:100%;cursor:pointer;white-space:nowrap}
+.discovery-filters summary::after,.discovery-filters[open] summary::after{content:none!important;display:none!important}
+.discovery-filters summary::marker{content:'';font-size:0}
+.discovery-filter-control{display:inline-flex;align-items:center;gap:8px;flex-shrink:0;line-height:1}
+.discovery-filter-control>svg:first-child{flex-shrink:0;color:#47866b}
+.discovery-filter-label{font-size:13px;font-weight:700;line-height:1.2;color:#285b42}
+.discovery-chevron{flex:none;display:block;color:#286f50;transition:transform .15s ease}
+.discovery-filters[open] .discovery-chevron{transform:rotate(180deg)}
+.discovery-filters summary:hover .discovery-filter-label{text-decoration:underline;text-underline-offset:3px}
+.discovery-utility-row{align-items:center}
+.discovery-utility-row .record-total{margin:0;align-self:center}
+.discovery-pagination{display:flex;align-items:center;justify-content:space-between;gap:5px;min-width:0;margin:13px 0 1px;padding:12px 0 0;border-top:1px solid #e2ece5;font-variant-numeric:tabular-nums}
+.discovery-pagination button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;min-width:0;padding:7px 9px;border:1px solid #d5e4d9;border-radius:6px;background:#fff;color:#20634a;font:600 12px/1.3 inherit;white-space:nowrap;cursor:pointer}
+.discovery-pagination button:hover:not(:disabled){background:#eaf5ed;border-color:#a6cdb1}
+.discovery-pagination button:disabled{opacity:.4;cursor:not-allowed;background:#f6f8f6}
+.discovery-page-current{flex:0 1 auto;font-size:12px;font-weight:650;white-space:nowrap;color:#476b55;text-align:center}
+@media(max-width:380px){.discovery-pagination button{padding-inline:6px;font-size:11px}.discovery-pagination{gap:3px}}
+@media(prefers-reduced-motion:reduce){.discovery-chevron{transition:none}}

@@ -216,7 +216,14 @@ function select(id:string):void{
     </div>
     <div class="discovery-utility-row">
       <details class="research-disclosure discovery-filters" :open="showAdvanced" @toggle="showAdvanced=($event.target as HTMLDetailsElement).open">
-        <summary><svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M7 12h10M10 17h4"/></svg>Filters <span v-if="activeFilterCount" class="discovery-active-count">{{activeFilterCount}} active</span></summary>
+        <summary aria-label="Toggle scientific search filters">
+          <span class="discovery-filter-control">
+            <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M7 12h10M10 17h4"/></svg>
+            <span class="discovery-filter-label">Filters</span>
+            <svg class="discovery-chevron" aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg>
+          </span>
+          <span v-if="activeFilterCount" class="discovery-active-count">{{activeFilterCount}} active</span>
+        </summary>
         <div class="variant-worklist-filters" aria-label="Scientific worklist filters">
           <label for="class-filter">Functional class</label>
           <label for="variant-sort">Sort</label>
@@ -247,7 +254,11 @@ function select(id:string):void{
     <p v-if="error" role="alert" class="empty-result">{{ error }} <RouterLink v-if="error.includes('Sign in')" to="/sign-in">Sign in</RouterLink></p>
     <p v-else-if="!busy&&!rows.length" role="status" class="empty-result">No matching variants.</p>
     <div v-if="rows.length" class="record-list" aria-label="Search results"><button v-for="(record,index) in displayedRows" :key="record.id" type="button" @keydown="onResultKeydown($event,index)" @focus="activeResultIndex=index" @mouseenter="activeResultIndex=index" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span class="record-subline">{{ record.proteinName || record.cdnaName || 'Additional nomenclature not recorded' }}</span><span v-if="search.trim()" class="record-match-reason">{{matchExplanation(record)}}</span><span v-if="record.recordedClass" class="record-class">Class {{record.recordedClass}} · recorded</span><span v-if="record.validationCount!==null&&record.validationCount!==undefined" class="record-class">{{record.validationCount}} recorded validations</span><span class="record-bottom">Database record <span aria-hidden="true">→</span></span></button></div>
-    <div class="pagination-controls"><button type="button" :disabled="busy||page===0" @click="page--">Previous</button><span>Page {{page+1}}</span><button type="button" :disabled="busy||!hasMore" @click="page++">Next</button></div>
+    <nav class="pagination-controls discovery-pagination" aria-label="Variant result pages">
+      <button type="button" :disabled="busy||page===0" aria-label="Previous variant page" @click="page--"><span aria-hidden="true">←</span> Previous</button>
+      <span class="discovery-page-current" aria-current="page">Page {{page+1}}</span>
+      <button type="button" :disabled="busy||!hasMore" aria-label="Next variant page" @click="page++">Next <span aria-hidden="true">→</span></button>
+    </nav>
    </section>
    <div class="record-content">
     <article class="record-overview" aria-labelledby="selected-title">
