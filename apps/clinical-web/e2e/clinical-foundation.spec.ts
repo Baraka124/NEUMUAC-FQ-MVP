@@ -162,6 +162,11 @@ test('Phase 3B light institutional shell stays legible and usable across viewpor
     expect(Math.min(...channels)).toBeGreaterThan(225);
     await expect(page.getByRole('navigation',{name:'Workspaces'})).toBeVisible();
   }else{
+    // The overview is now reached from the outer entry; assert mobile
+    // workspace navigation on a stable internal route before opening it.
+    await page.goto('/#/variants');
+    await expect(page.getByRole('heading',{name:'Variant workspace'})).toBeVisible();
+    await expect(page.getByRole('button',{name:/workspaces/i})).toBeVisible();
     await page.getByRole('button',{name:/workspaces/i}).click();
     await expect(page.getByRole('navigation',{name:'Mobile workspaces'})).toBeVisible();
   }
