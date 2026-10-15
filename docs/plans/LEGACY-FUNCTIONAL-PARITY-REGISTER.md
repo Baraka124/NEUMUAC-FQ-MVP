@@ -76,3 +76,7 @@
 ## Working rules
 
 Treat original references as historical source evidence, not proof a remote endpoint is currently functional. Record test reports and actual live state per feature; do not confuse database-recorded labels with independently adjudicated clinical facts.
+
+## Phase 3M-A — exact notation identity guard
+
+NFQ-004 remains **Partial**. Exact automatic dossier opening and search-result explanation now preserve the molecular namespace prefixes `p.` and `c.` rather than treating them as equivalent to each other or to a bare alias. This is an engineering safety correction, not HGVS validation or source-backed synonym equivalence. No production data, database permissions or legacy search engine changed. Scientific notation characterization, transcript version review and negative controls remain required before broader normalization or fuzzy lookup can be enabled.

@@ -18,6 +18,11 @@ describe('explainable scientific text matching',()=>{
   expect(explainTextMatch(r,'508del')?.label).toContain('Contains');
   expect(explainTextMatch(r,'G551D')).toBeNull();
  });
+ it('does not claim an exact protein match for coding DNA or a bare name',()=>{
+  const record=make('41','Arg123Ser',null,'c.Arg123Ser');
+  expect(explainTextMatch(record,'p.Arg123Ser')).toBeNull();
+  expect(explainTextMatch(record,'c.Arg123Ser')?.label).toBe('Exact · cDNA notation');
+ });
  it('keeps stable server order for equal rank and empty search',()=>{
   const rows=[make('1','X100A'),make('2','X200A')];
   expect(rankVisibleSearchPage(rows,'X').map(x=>x.id)).toEqual(['1','2']);
