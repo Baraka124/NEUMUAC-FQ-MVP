@@ -14,9 +14,9 @@ import {RouterLink} from 'vue-router';
     <main id="main" tabindex="-1" class="nfq-entry-main">
       <div class="nfq-entry-hero">
         <section class="nfq-entry-copy" aria-labelledby="nfq-entry-heading">
-          <div class="nfq-entry-eyebrow"><span class="nfq-entry-dot" aria-hidden="true"></span> CFTR RESEARCH · EVIDENCE & PROVENANCE</div>
-          <h1 id="nfq-entry-heading">From variant records to <em>traceable evidence.</em></h1>
-          <p class="nfq-entry-lead">An independent research workspace for exploring recorded CFTR variant identities, scientific references and the evidence available behind them.</p>
+          <div class="nfq-entry-eyebrow"><span class="nfq-entry-dot" aria-hidden="true"></span> CFTR RESEARCH</div>
+          <h1 id="nfq-entry-heading">CFTR variant research</h1>
+          <p class="nfq-entry-lead">Search recorded CFTR variants, review linked references, compare variant records and examine research coverage.</p>
           <div class="nfq-entry-paths" aria-label="Choose how to enter">
             <RouterLink to="/workspace" class="nfq-entry-primary">
               <span><strong>Explore public research</strong><small>No account required</small></span>
@@ -27,19 +27,19 @@ import {RouterLink} from 'vue-router';
               <span aria-hidden="true">→</span>
             </RouterLink>
           </div>
-          <p class="nfq-entry-assurance">Public exploration is read-only. Scientific labels reflect recorded sources, not independent clinical validation.</p>
+          <p class="nfq-entry-assurance">Public access is read-only. Recorded classifications are not independent clinical assessments.</p>
         </section>
 
         <aside class="nfq-entry-preview" aria-label="Research workspace capabilities">
           <div class="nfq-entry-preview-top">
-            <span class="nfq-entry-preview-kicker">THE RESEARCH WORKSPACE</span>
+            <span class="nfq-entry-preview-kicker">PUBLIC RESEARCH TOOLS</span>
             <img src="/brand/neumuacfq-icon.png" alt="" class="nfq-entry-preview-mark" />
           </div>
           <div class="nfq-entry-preview-bottom">
-            <h2>Evidence in context.</h2>
-            <div class="nfq-entry-capability"><span>01</span><div><strong>Variant identities</strong><p>Explore recorded CFTR nomenclature and source fields.</p></div></div>
-            <div class="nfq-entry-capability"><span>02</span><div><strong>Scientific references</strong><p>Follow recorded publications and source provenance.</p></div></div>
-            <div class="nfq-entry-capability"><span>03</span><div><strong>Research coverage</strong><p>Examine documented evidence gaps without inferred clinical conclusions.</p></div></div>
+            <h2>Available research tools</h2>
+            <div class="nfq-entry-capability"><span>01</span><div><strong>Variant search</strong><p>Recorded names, HGVS notation and aliases.</p></div></div>
+            <div class="nfq-entry-capability"><span>02</span><div><strong>References</strong><p>Linked publications and recorded source information.</p></div></div>
+            <div class="nfq-entry-capability"><span>03</span><div><strong>Research coverage</strong><p>Recorded evidence links and missing documentation.</p></div></div>
           </div>
         </aside>
       </div>

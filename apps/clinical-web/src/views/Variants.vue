@@ -311,7 +311,7 @@ function select(id:string):void{
      </div><section class="dossier-science" aria-label="Recorded scientific classification">
       <div class="nfq-primary-class"><span class="section-label">CFTR FUNCTIONAL CLASS · RECORDED</span><strong>{{dossier?.functionalClass||selected.recordedClass||'Not recorded'}}</strong></div>
       <p v-if="dossierError" role="alert">{{dossierError}}</p>
-      <button type="button" class="disclosure-button nfq-scientific-toggle" :aria-expanded="scientificDetailsOpen" aria-controls="nfq-secondary-science" @click="scientificDetailsOpen=!scientificDetailsOpen"><span>Scientific details & provenance</span><span aria-hidden="true">{{scientificDetailsOpen?'−':'⌄'}}</span></button>
+      <button type="button" class="disclosure-button nfq-scientific-toggle" :aria-expanded="scientificDetailsOpen" aria-controls="nfq-secondary-science" @click="scientificDetailsOpen=!scientificDetailsOpen"><span>More record details</span><svg class="nfq-more-chevron" viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
       <div v-if="scientificDetailsOpen" id="nfq-secondary-science">
       <p class="rail-caption">Recorded scientific fields are source descriptions, not independently verified clinical determinations.</p>
       <dl v-if="dossier" class="identity-grid">

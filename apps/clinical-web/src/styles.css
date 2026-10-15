@@ -555,3 +555,26 @@ main{background:#fbfcfa}
 .variant-page .variant-export-actions{margin-top:13px}
 @media(min-width:761px){.variant-page .record-layout{align-items:start}.variant-page .record-rail{min-width:0}}
 @media(max-width:760px){.variant-page{padding-top:8px}.variant-page .variant-heading{margin-bottom:12px}.variant-page .variant-heading h1{font-size:29px}.variant-page .record-list{max-height:none;overflow:visible}.variant-page .record-rail{padding:14px}}
+
+/* Phase 3S · concise, functional public entry and internal overview. */
+.research-home{padding-top:clamp(12px,2vw,26px)}
+.research-home-intro{max-width:850px}
+.research-home h1{font-size:clamp(30px,3vw,46px);margin:7px 0 10px}
+.research-home .intro{max-width:700px;font-size:14px;line-height:1.55;margin:0 0 22px}
+.research-home .research-entry{padding-block:clamp(18px,2.2vw,29px)}
+.research-home .research-workbench-index{padding-top:clamp(18px,2.2vw,30px)}
+.nfq-entry-copy h1{font-size:clamp(39px,4.6vw,66px);max-width:760px;letter-spacing:-.055em}
+.nfq-entry-hero{gap:clamp(25px,5vw,85px)}
+@media(max-width:760px){.research-home{padding-top:9px}.research-home h1{font-size:32px}.nfq-entry-copy h1{font-size:clamp(36px,9vw,47px)}}
+
+/* Compact disclosure: secondary metadata should not act as a full-width section heading. */
+.variant-page .nfq-scientific-toggle{
+  display:inline-flex;width:auto;max-width:100%;align-items:center;justify-content:flex-start;
+  gap:12px;min-height:42px;margin:13px 0 3px;padding:9px 14px;
+  border:1px solid #cfdfd3;border-radius:8px;background:#f8fbf8;
+  color:#245944;font-size:13px;font-weight:650;text-align:left;
+}
+.variant-page .nfq-scientific-toggle:hover{background:#edf5ef;border-color:#a6c8b3}
+.variant-page .nfq-more-chevron{flex-shrink:0;transition:transform .18s ease}
+.variant-page .nfq-scientific-toggle[aria-expanded="true"] .nfq-more-chevron{transform:rotate(180deg)}
+@media(prefers-reduced-motion:reduce){.variant-page .nfq-more-chevron{transition:none}}
