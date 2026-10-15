@@ -96,25 +96,38 @@ const detailBusy=ref(false);
 const error=ref(configError);
 let current:AbortController|null=null;
 let detailRequest:AbortController|null=null;
+let exactRequest:AbortController|null=null;
+let exactSequence=0;
 let timer:ReturnType<typeof setTimeout>|undefined;
 let listSequence=0;
 let detailSequence=0;
 async function load():Promise<void>{
   current?.abort();const run=++listSequence;const abort=new AbortController();current=abort;
-  rows.value=[];hasMore.value=false;error.value='';
+  hasMore.value=false;error.value='';
   if(!source){error.value=configError||'The public variant catalog has not been connected yet.';return;}
   busy.value=true;
   try {const data=await source.list({query:search.value,page:page.value,classFilter:classFilter.value as 'all'|'I'|'II'|'III'|'IV'|'V'|'VI'|'unclassified',sort:sort.value as 'name-asc'|'name-desc'|'recent-record'|'fewest-validations'|'most-validations',searchMode:searchMode.value as 'contains'|'exact-name',signal:abort.signal});if(run===listSequence){
     rows.value=data.records;hasMore.value=data.hasMore;
-    const exact=page.value===0&&searchMode.value==='contains'
-      ?unambiguousExactMatch(search.value,data.records,data.hasMore):null;
-    if(exact && route.params.id!==exact.id){
-      exactMatchState.value='Exact identity found — dossier opened automatically.';
-      void router.replace({path:'/variants/'+encodeURIComponent(exact.id),query:{...route.query,q:search.value}});
-    }else if(!exact)exactMatchState.value='';
+
   }}
   catch(e){if(!abort.signal.aborted&&run===listSequence)error.value=formatReadStatus(e);}
   finally {if(run===listSequence)busy.value=false;}
+}
+async function resolveSearch():Promise<void>{
+ exactRequest?.abort();
+ const run=++exactSequence;
+ exactMatchState.value='';
+ if(!source||searchMode.value!=='contains'||page.value!==0||search.value.trim().length<2)return;
+ const abort=new AbortController();exactRequest=abort;
+ const text=search.value.trim();
+ try{
+   const hit=await source.resolveExact(text,classFilter.value as 'all'|'I'|'II'|'III'|'IV'|'V'|'VI'|'unclassified',abort.signal);
+   if(run!==exactSequence||abort.signal.aborted||search.value.trim()!==text)return;
+   if(hit && route.params.id!==hit.id){
+     exactMatchState.value='Exact recorded identity found — dossier opened automatically.';
+     void router.replace({path:'/variants/'+encodeURIComponent(hit.id),query:{...route.query,q:text}});
+   }
+ }catch{if(!abort.signal.aborted&&run===exactSequence)exactMatchState.value='';}
 }
 async function loadDetail(id:unknown):Promise<void>{
   detailRequest?.abort();const run=++detailSequence;
@@ -126,10 +139,10 @@ async function loadDetail(id:unknown):Promise<void>{
   finally {if(run===detailSequence)detailBusy.value=false;}
 }
 watch(()=>authController?.state.phase,()=>{current?.abort();detailRequest?.abort();rows.value=[];selected.value=null;page.value=0;void load();});
-watch([search,page,classFilter,sort,searchMode],()=>{clearTimeout(timer);timer=setTimeout(()=>{void load();},search.value?250:0)},{immediate:true});
+watch([search,page,classFilter,sort,searchMode],()=>{clearTimeout(timer);timer=setTimeout(()=>{void load();void resolveSearch();},search.value?250:0)},{immediate:true});
 watch([search,classFilter,sort,searchMode],()=>{page.value=0;});
 watch(()=>route.params.id,id=>{void loadDetail(id);},{immediate:true});
-onUnmounted(()=>{current?.abort();detailRequest?.abort();evidenceAbort?.abort();dossierAbort?.abort();briefAbort?.abort();historyAbort?.abort();clearTimeout(timer);});
+onUnmounted(()=>{current?.abort();detailRequest?.abort();exactRequest?.abort();evidenceAbort?.abort();dossierAbort?.abort();briefAbort?.abort();historyAbort?.abort();clearTimeout(timer);});
 function updateWorklistRoute():void {
  const query:Record<string,string>={};
  if(search.value.trim())query.q=search.value.trim();

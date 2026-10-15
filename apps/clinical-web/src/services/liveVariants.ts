@@ -31,6 +31,8 @@ export interface RealVariantPage {
 export interface RealVariantSource {
   list(options: VariantListOptions): Promise<RealVariantPage>;
   get(id: string, signal?: AbortSignal): Promise<RealVariant | null>;
+  /** Separate narrow candidate lookup; may return null for ambiguity or a capped query. */
+  resolveExact(query:string,filter?:RecordedClassFilter,signal?:AbortSignal):Promise<RealVariant|null>;
 }
 export type ConnectionIssue = 'not-configured' | 'invalid-configuration' | 'authentication-required' | 'access-denied' | 'schema-mismatch' | 'request-failed';
 export class VariantConnectionError extends Error {
@@ -128,6 +130,7 @@ function safeSearchTerm(query: string): string {
   return trim;
 }
 export const PAGE_SIZE=40;
+const EXACT_CANDIDATE_LIMIT=41;
 export function createReadOnlyRepository(
   config: ReadOnlyConfig,
   transport: typeof fetch = fetch,
@@ -208,6 +211,29 @@ export function createReadOnlyRepository(
       }
       const result=await request(params,signal);
       return {records:result.slice(0,PAGE_SIZE),hasMore:result.length>PAGE_SIZE};
+    },
+    async resolveExact(query:string,filter:RecordedClassFilter='all',signal?:AbortSignal){
+      // A dedicated request prevents alphabetic pages and user sorting from
+      // hiding one exact variant among many substring matches.
+      const text=safeSearchTerm(query);
+      if(!text || text.length<2)return null;
+      const filters:readonly RecordedClassFilter[]=['all','I','II','III','IV','V','VI','unclassified'];
+      if(!filters.includes(filter))throw new VariantConnectionError('invalid-configuration','Invalid class filter');
+      if(table!=='variants'&&filter!=='all')return null;
+      const params=new URLSearchParams({
+        select:table==='variants'?'id,legacy_name,protein_name,cdna_name,alt_names,cftr_class,validation_count':
+          'id,legacy_name,protein_name,cdna_name,alt_names',
+        order:'id.asc',
+        limit:String(EXACT_CANDIDATE_LIMIT)
+      });
+      if(filter!=='all')params.set('cftr_class',filter==='unclassified'?'is.null':'eq.'+filter);
+      // Aliases are stored in legacy text, so fetch possible alias-containing
+      // records, then validate full recorded aliases locally. No guessed synonym.
+      params.set('or',`(legacy_name.ilike.${text},protein_name.ilike.${text},cdna_name.ilike.${text},alt_names.ilike.*${text}*)`);
+      const candidates=await request(params,signal);
+      if(candidates.length>=EXACT_CANDIDATE_LIMIT)return null; // Not proven complete.
+      const {unambiguousExactMatch}=await import('../domain/instantMatch');
+      return unambiguousExactMatch(text,candidates,false);
     },
     async get(id:string,signal?:AbortSignal) {
       if (!/^[a-zA-Z0-9_-]{1,128}$/.test(id)) return null;

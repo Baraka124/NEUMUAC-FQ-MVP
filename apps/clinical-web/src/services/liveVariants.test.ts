@@ -77,3 +77,23 @@ it('uses exact-name matching and stable server-side validation priorities',async
  expect(b.searchParams.get('order')).toBe('validation_count.desc.nullslast,id.asc');
  expect(b.searchParams.get('offset')).toBe('40');
 });
+
+it('resolves an exact identity independently of alphabetic list pagination',async()=>{
+ const calls:string[]=[];
+ const transport=vi.fn(async(url:string)=>{calls.push(url);return new Response(JSON.stringify([{id:18,legacy_name:'F508del',protein_name:'p.Phe508del',cdna_name:'c.1521_1523delCTT',alt_names:'DF508',cftr_class:'II',validation_count:2}]),{status:200})});
+ const source=createReadOnlyRepository({...config,readTable:'variants'},transport as typeof fetch);
+ const result=await source.resolveExact('DF508','all');
+ expect(result?.id).toBe('18');
+ const params=new URL(calls[0]).searchParams;
+ expect(params.get('offset')).toBeNull();
+ expect(params.get('or')).toContain('alt_names.ilike.*DF508*');
+ expect(params.get('limit')).toBe('41');
+});
+it('does not automatically resolve conflicting or incomplete exact identities',async()=>{
+ const duplicate=[{id:18,legacy_name:'R117H',protein_name:null,cdna_name:null,alt_names:null},{id:21,legacy_name:'R117H',protein_name:null,cdna_name:null,alt_names:null}];
+ const network=vi.fn(async()=>new Response(JSON.stringify(duplicate),{status:200}));
+ const source=createReadOnlyRepository({...config,readTable:'variants'},network as typeof fetch);
+ expect(await source.resolveExact('R117H')).toBeNull();
+ const cap=vi.fn(async()=>new Response(JSON.stringify(Array.from({length:41},(_,i)=>({id:i+1,legacy_name:i===0?'R117H':'OTHER'+i,protein_name:null,cdna_name:null,alt_names:null}))),{status:200}));
+ expect(await createReadOnlyRepository({...config,readTable:'variants'},cap as typeof fetch).resolveExact('R117H')).toBeNull();
+});
