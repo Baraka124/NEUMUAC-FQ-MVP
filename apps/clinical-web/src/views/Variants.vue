@@ -153,6 +153,12 @@ let exactSequence=0;
 let timer:ReturnType<typeof setTimeout>|undefined;
 let listSequence=0;
 let detailSequence=0;
+watch(scientificInputAssessment,assessment=>{
+ if(!assessment.blocked)return;
+ current?.abort();exactRequest?.abort();
+ ++listSequence;++exactSequence;
+ rows.value=[];hasMore.value=false;busy.value=false;exactMatchedId.value=null;
+});
 async function load():Promise<void>{
   current?.abort();const run=++listSequence;const abort=new AbortController();current=abort;
   hasMore.value=false;error.value='';
@@ -175,7 +181,7 @@ async function resolveSearch():Promise<void>{
  const text=search.value.trim();
  try{
    const hit=await source.resolveExact(text,classFilter.value as 'all'|'I'|'II'|'III'|'IV'|'V'|'VI'|'unclassified',abort.signal);
-   if(run!==exactSequence||abort.signal.aborted||search.value.trim()!==text)return;
+   if(run!==exactSequence||abort.signal.aborted||scientificInputAssessment.value.blocked||search.value.trim()!==text)return;
    if(hit && route.params.id!==hit.id){
      revealNextId=hit.id;
      exactMatchedId.value=hit.id;
