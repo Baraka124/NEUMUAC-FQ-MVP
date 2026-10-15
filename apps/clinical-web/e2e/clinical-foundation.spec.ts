@@ -345,8 +345,8 @@ test('Regional research link is quiet and shares no variant or location metadata
  await page.goto('/#/variants?q=G551D');
  const link=page.getByRole('link',{name:'Explore aggregated geographic research activity for Spain'});
  await expect(link).toBeVisible();
- await expect(link).toHaveAttribute('href','#/intelligence?view=geography&scope=spain');
+ await expect(link).toHaveAttribute('href','#/geography');
  await link.click();
- await expect(page).toHaveURL(/#\/intelligence\?view=geography&scope=spain$/);
- await expect(page.getByRole('heading',{name:'Research intelligence'})).toBeVisible();
+ await expect(page).toHaveURL(/#\/geography$/);
+ await expect(page.getByRole('heading',{name:'Geographic intelligence'})).toBeVisible();
 });
