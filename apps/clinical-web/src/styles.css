@@ -578,3 +578,13 @@ main{background:#fbfcfa}
 .variant-page .nfq-more-chevron{flex-shrink:0;transition:transform .18s ease}
 .variant-page .nfq-scientific-toggle[aria-expanded="true"] .nfq-more-chevron{transform:rotate(180deg)}
 @media(prefers-reduced-motion:reduce){.variant-page .nfq-more-chevron{transition:none}}
+
+/* Visible secondary-record disclosure; no full-width invisible click region. */
+.variant-page .nfq-details-control{display:flex;justify-content:flex-start;align-items:center;margin:15px 0 5px}
+.variant-page .nfq-details-trigger{appearance:none;display:inline-flex;width:auto;max-width:100%;min-height:46px;align-items:center;justify-content:flex-start;gap:11px;padding:8px 17px 8px 10px;border:1px solid #b2cabd;border-radius:9px;background:#eff6f1;box-shadow:0 1px 2px #1647320a;color:#164a36;font-size:13px;font-weight:700;line-height:1.3;cursor:pointer}
+.variant-page .nfq-details-trigger:hover{background:#e4f0e8;border-color:#6fa18a}
+.variant-page .nfq-details-trigger:focus-visible{outline:3px solid #198366;outline-offset:3px}
+.variant-page .nfq-details-trigger-icon{display:grid;place-items:center;width:29px;height:29px;flex:none;background:#fff;border:1px solid #c1d7c7;border-radius:7px}
+.variant-page .nfq-details-trigger-icon svg{display:block;transition:transform .18s ease}
+.variant-page .nfq-details-trigger[aria-expanded="true"] .nfq-details-trigger-icon svg{transform:rotate(180deg)}
+@media(prefers-reduced-motion:reduce){.variant-page .nfq-details-trigger-icon svg{transition:none}}
