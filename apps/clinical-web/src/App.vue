@@ -68,10 +68,6 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
     <a class="skip-link" href="#main">Skip to main content</a>
 
     <aside class="sidebar" aria-label="Application navigation">
-      <RouterLink class="wordmark" to="/workspace" aria-label="NeumuacFQ overview" title="NeumuacFQ overview">
-        <span class="wordmark-icon" aria-hidden="true"><img src="/brand/neumuacfq-icon.png" alt="" @error="($event.target as HTMLImageElement).style.display='none'"/></span>
-        <span v-if="!sidebarCollapsed" class="wordmark-text"><strong>neumuacFQ</strong><small>CFTR research</small></span>
-      </RouterLink>
       <button class="sidebar-toggle" type="button" aria-controls="primary-workspace-nav"
         :aria-expanded="!sidebarCollapsed"
         :aria-label="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
@@ -83,6 +79,12 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
           <path v-else d="m15 5-7 7 7 7"/>
         </svg>
       </button>
+      <div class="sidebar-scroll">
+      <RouterLink class="wordmark" to="/workspace" aria-label="NeumuacFQ overview" title="NeumuacFQ overview">
+        <span class="wordmark-icon" aria-hidden="true"><img src="/brand/neumuacfq-icon.png" alt="" @error="($event.target as HTMLImageElement).style.display='none'"/></span>
+        <span v-if="!sidebarCollapsed" class="wordmark-text"><strong>neumuacFQ</strong><small>CFTR research</small></span>
+      </RouterLink>
+
       <div v-if="!sidebarCollapsed" class="sidebar-caption">WORKSPACES</div>
       <nav id="primary-workspace-nav" class="workspace-nav" aria-label="Workspaces">
         <RouterLink v-for="section in availableSections" :key="section.path" :to="section.path"
@@ -123,6 +125,7 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
       <div v-if="!sidebarCollapsed" class="sidebar-base">
         <span class="sidebar-rule" aria-hidden="true"></span>
         <span>Public research · Read only</span>
+      </div>
       </div>
     </aside>
 
