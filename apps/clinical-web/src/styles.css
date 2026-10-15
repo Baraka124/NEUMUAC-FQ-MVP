@@ -735,3 +735,42 @@ main{background:#fbfcfa}
 .variant-page .regional-research-link:hover{color:#25634a;text-decoration:underline;text-underline-offset:3px}
 .variant-page .regional-research-link:focus-visible{outline:3px solid #17866c;outline-offset:3px;border-radius:3px}
 .variant-page .regional-research-link svg{flex-shrink:0}
+
+/* Phase 4F-6B · shared scientific workspace reading and control rhythm. */
+.nfq-science-ui{max-width:1160px;min-width:0}
+.nfq-science-ui>.intro{max-width:760px;line-height:1.55;margin-bottom:clamp(18px,2.2vw,25px)}
+.nfq-science-ui .evidence-search-head{max-width:670px;margin-bottom:12px}
+.nfq-science-ui .nfq-science-search-line{display:flex;align-items:center;gap:9px;min-width:0}
+.nfq-science-ui .nfq-science-search-line input{flex:1 1 auto;min-width:0}
+.nfq-science-ui .nfq-science-clear{flex:0 0 auto;min-height:42px;padding:8px 12px;background:#fff;border:1px solid #d5e4d9;border-radius:6px;color:#296448;font-size:12px;font-weight:650}
+.nfq-science-ui .evidence-row{padding:16px 0}
+.nfq-science-ui .evidence-row h2{margin:5px 0}
+.nfq-science-ui .evidence-row-disclosure{min-height:44px;gap:15px}
+.nfq-science-ui .evidence-row-disclosure>span:last-child{flex:0 0 auto;width:25px;height:25px;display:grid;place-items:center;border:1px solid #dce8df;border-radius:5px;font-size:16px;line-height:1;color:#3e7054}
+.nfq-science-ui .evidence-row-foot{gap:9px 22px;line-height:1.6}
+.nfq-science-ui .pagination-controls{display:flex;align-items:center;flex-wrap:wrap;gap:10px 15px}
+.nfq-science-ui .pagination-controls button{min-height:42px}
+.nfq-science-ui .genotype-comparison{gap:clamp(16px,2.5vw,32px);margin:25px 0}
+.nfq-science-ui .genotype-locus{padding-top:14px}
+.nfq-science-ui .genotype-locus label{margin:17px 0 8px}
+.nfq-science-ui .genotype-suggestions{max-height:290px;overscroll-behavior:contain;border-radius:6px}
+.nfq-science-ui .genotype-suggestions button{min-height:48px}
+.nfq-science-ui .genotype-fields{margin:15px 0}
+.nfq-science-ui .intelligence-metrics{margin:21px 0 28px;gap:clamp(12px,2vw,20px);padding:18px 0}
+.nfq-science-ui .intelligence-filters{margin-bottom:14px}
+.nfq-science-ui .intelligence-record{padding:12px 0}
+.nfq-science-ui .evidence-row-disclosure:focus-visible,.nfq-science-ui .nfq-science-clear:focus-visible,.nfq-science-ui .genotype-suggestions button:focus-visible{outline:3px solid #218466;outline-offset:3px}
+@media(max-width:760px){
+ .nfq-science-ui .genotype-comparison{margin:18px 0}
+ .nfq-science-ui .intelligence-metrics{gap:12px;padding:14px 0}
+ .nfq-science-ui .intelligence-record{align-items:start;gap:10px}
+ .nfq-science-ui .intelligence-record>span{max-width:38%}
+}
+@media(max-width:430px){
+ .nfq-science-ui .nfq-science-search-line{flex-wrap:wrap}
+ .nfq-science-ui .nfq-science-search-line input{flex-basis:100%}
+ .nfq-science-ui .nfq-science-clear{margin-left:auto}
+ .nfq-science-ui .pagination-controls{justify-content:space-between}
+ .nfq-science-ui .pagination-controls>span{order:-1;width:100%;text-align:left}
+ .nfq-science-ui .intelligence-metrics strong{font-size:clamp(19px,5vw,25px)}
+}
