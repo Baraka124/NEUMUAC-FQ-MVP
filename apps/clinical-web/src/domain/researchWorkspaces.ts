@@ -9,7 +9,7 @@ export interface ResearchWorkspace {
   readonly keywords:readonly string[];
 }
 export const researchWorkspaces:readonly ResearchWorkspace[]=Object.freeze([
-  {id:'overview',name:'Overview',path:'/',description:'Research entry and available tools',keywords:['home','start']},
+  {id:'overview',name:'Overview',path:'/workspace',description:'Research entry and available tools',keywords:['home','start']},
   {id:'variants',name:'Variants',path:'/variants',description:'Live CFTR nomenclature, classification and evidence',keywords:['search','hgvs','class','f508del']},
   {id:'evidence',name:'Evidence & Curation',path:'/evidence',description:'Recorded source links and scientific provenance',keywords:['literature','references','pubmed','sources']},
   {id:'genotype',name:'Genotype',path:'/genotype',description:'Exploratory comparison of two recorded variants',keywords:['pair','compare','compound']},
