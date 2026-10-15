@@ -216,7 +216,14 @@ function select(id:string):void{
     </div>
     <div class="discovery-utility-row">
       <details class="research-disclosure discovery-filters" :open="showAdvanced" @toggle="showAdvanced=($event.target as HTMLDetailsElement).open">
-        <summary><svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M7 12h10M10 17h4"/></svg>Filters <span v-if="activeFilterCount" class="discovery-active-count">{{activeFilterCount}} active</span></summary>
+        <summary aria-label="Toggle scientific search filters">
+          <span class="discovery-filter-control">
+            <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M7 12h10M10 17h4"/></svg>
+            <span class="discovery-filter-label">Filters</span>
+            <svg class="discovery-chevron" aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg>
+          </span>
+          <span v-if="activeFilterCount" class="discovery-active-count">{{activeFilterCount}} active</span>
+        </summary>
         <div class="variant-worklist-filters" aria-label="Scientific worklist filters">
           <label for="class-filter">Functional class</label>
           <label for="variant-sort">Sort</label>
