@@ -527,3 +527,14 @@ main{background:#fbfcfa}
 @media(max-width:900px){.nfq-entry-hero{grid-template-columns:1fr}.nfq-entry-preview{min-height:400px}.nfq-entry-copy{padding:0}.nfq-entry-signin .research-entry{grid-template-columns:1fr}.nfq-entry-signin .research-entry-aside{border-left:0;border-top:1px solid #e0eae9;padding:25px 0 0}}
 @media(max-width:560px){.nfq-entry-header{min-height:78px}.nfq-entry-logo img{height:63px;width:165px}.nfq-entry-header-access{font-size:11px}.nfq-entry-main{padding-top:34px;padding-bottom:44px}.nfq-entry-copy h1{font-size:clamp(38px,11vw,51px)}.nfq-entry-paths{margin-top:29px}.nfq-entry-preview{padding:24px;min-height:360px}.nfq-entry-preview-mark{width:118px}.nfq-entry-footer{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.nfq-entry-paths a{transition:none}.nfq-entry-paths a:hover{transform:none}}
+
+/* Phase 3S · concise, functional public entry and internal overview. */
+.research-home{padding-top:clamp(12px,2vw,26px)}
+.research-home-intro{max-width:850px}
+.research-home h1{font-size:clamp(30px,3vw,46px);margin:7px 0 10px}
+.research-home .intro{max-width:700px;font-size:14px;line-height:1.55;margin:0 0 22px}
+.research-home .research-entry{padding-block:clamp(18px,2.2vw,29px)}
+.research-home .research-workbench-index{padding-top:clamp(18px,2.2vw,30px)}
+.nfq-entry-copy h1{font-size:clamp(39px,4.6vw,66px);max-width:760px;letter-spacing:-.055em}
+.nfq-entry-hero{gap:clamp(25px,5vw,85px)}
+@media(max-width:760px){.research-home{padding-top:9px}.research-home h1{font-size:32px}.nfq-entry-copy h1{font-size:clamp(36px,9vw,47px)}}
