@@ -6,7 +6,7 @@ const email=ref(''),password=ref(''),busy=ref(false),router=useRouter();
 async function submit(){if(!authController||busy.value)return;busy.value=true;try{if(await authController.signIn(email.value,password.value)){password.value='';await router.replace('/admin');}}finally{busy.value=false;}}
 </script>
 <template>
- <div class="page staff-signin nfq-entry-page">
+ <div class="nfq-entry-landing nfq-entry-signin"><header class="nfq-entry-header"><RouterLink to="/" class="nfq-entry-logo" aria-label="neumuacFQ home"><img src="/brand/neumuacfq-logo.png" alt="neumuacFQ · CFTR evidence, connected." /></RouterLink><RouterLink class="nfq-entry-header-access" to="/workspace">Explore research ↗</RouterLink></header><main id="main" tabindex="-1" class="nfq-entry-main"><div class="page staff-signin nfq-entry-page">
   <div class="nfq-signin-brand"><img src="/brand/neumuacfq-logo.png" alt="neumuacFQ · CFTR evidence, connected." /><span>STAFF ACCESS · SECURE RESEARCH ENVIRONMENT</span></div>
   <h1>Continue your research.</h1>
   <p class="intro">Sign in with your authorized research account. The public CFTR evidence workspace remains available without an account.</p>
@@ -29,5 +29,5 @@ async function submit(){if(!authController||busy.value)return;busy.value=true;tr
     <p>There is no public registration or self-assigned administrator role.</p>
    </aside>
   </section>
- </div>
+ </div></main><footer class="nfq-entry-footer"><span>neumuacFQ · Authorized research access</span><RouterLink to="/">Back to home</RouterLink></footer></div>
 </template>
