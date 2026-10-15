@@ -601,3 +601,42 @@ main{background:#fbfcfa}
 .variant-page .nfq-details-trigger-icon svg{width:15px;height:15px}
 .variant-page .record-overview{scroll-margin-top:90px}
 @media(max-width:760px){.variant-page .record-overview{scroll-margin-top:76px}.variant-page .record-identity{align-items:flex-start}}
+
+/* UI foundation · Phase 1: intentional institutional shell, original art unchanged */
+@media(min-width:761px){
+ .app-frame{grid-template-columns:clamp(220px,16vw,244px) minmax(0,1fr)}
+ .app-frame.sidebar-collapsed{grid-template-columns:70px minmax(0,1fr)}
+ .sidebar{padding:21px 14px 20px}
+ .wordmark{gap:10px;min-height:68px;margin:0 0 31px;padding:5px 8px 15px;border-bottom:1px solid #d7e4da}
+ .wordmark-icon{width:42px;height:42px}
+ .wordmark-text{min-width:0}
+ .wordmark-text strong{font-size:18px;letter-spacing:-.035em}
+ .wordmark-text small{font-size:11px;color:#647d6e;letter-spacing:.015em}
+ .sidebar-caption{font-size:10px;margin:0 0 11px;padding-left:10px}
+ .workspace-nav{gap:3px}
+ .workspace-nav a{min-height:43px;padding:9px 10px;gap:12px;font-size:13px;font-weight:570}
+ .workspace-nav .nav-glyph{flex-shrink:0;width:19px;height:19px}
+ .workspace-nav .nav-name{min-width:0}
+ .staff-access-link{padding:13px 10px;margin-top:16px;font-size:12px}
+ .sidebar-base{padding:0 10px 2px;margin-top:auto;font-size:11px;color:#657f70}
+ .sidebar-rule{margin:0 0 14px}
+ .sidebar-collapsed .sidebar{padding:20px 10px}
+ .sidebar-collapsed .wordmark{margin-bottom:31px;min-height:68px;padding:4px 0 15px}
+ .sidebar-toggle{top:86px;width:30px;height:30px;right:-15px}
+ .sidebar-collapsed .sidebar-toggle{right:-15px}
+ .institution-header{height:62px;padding-inline:clamp(20px,2.6vw,42px)}
+ .header-path{font-size:12px;letter-spacing:0}
+ .header-path-context{color:#748b7b;font-weight:520}
+ .header-path .header-separator{padding:0 10px}
+ .header-path strong{font-size:13px;font-weight:690}
+ .workspace-launcher-trigger{flex-basis:194px;min-height:36px;font-size:12px}
+ .workspace-frame main{padding-inline:clamp(20px,2.6vw,42px)}
+ .page-footer{padding-inline:clamp(20px,2.6vw,42px)}
+}
+@media(min-width:761px) and (max-width:1180px){
+ .app-frame:not(.sidebar-collapsed){grid-template-columns:220px minmax(0,1fr)}
+}
+@media(max-width:760px){
+ .institution-header{min-height:60px;height:60px}
+ .header-environment{font-size:11px}
+}
