@@ -254,7 +254,11 @@ function select(id:string):void{
     <p v-if="error" role="alert" class="empty-result">{{ error }} <RouterLink v-if="error.includes('Sign in')" to="/sign-in">Sign in</RouterLink></p>
     <p v-else-if="!busy&&!rows.length" role="status" class="empty-result">No matching variants.</p>
     <div v-if="rows.length" class="record-list" aria-label="Search results"><button v-for="(record,index) in displayedRows" :key="record.id" type="button" @keydown="onResultKeydown($event,index)" @focus="activeResultIndex=index" @mouseenter="activeResultIndex=index" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span class="record-subline">{{ record.proteinName || record.cdnaName || 'Additional nomenclature not recorded' }}</span><span v-if="search.trim()" class="record-match-reason">{{matchExplanation(record)}}</span><span v-if="record.recordedClass" class="record-class">Class {{record.recordedClass}} · recorded</span><span v-if="record.validationCount!==null&&record.validationCount!==undefined" class="record-class">{{record.validationCount}} recorded validations</span><span class="record-bottom">Database record <span aria-hidden="true">→</span></span></button></div>
-    <div class="pagination-controls"><button type="button" :disabled="busy||page===0" @click="page--">Previous</button><span>Page {{page+1}}</span><button type="button" :disabled="busy||!hasMore" @click="page++">Next</button></div>
+    <nav class="pagination-controls discovery-pagination" aria-label="Variant result pages">
+      <button type="button" :disabled="busy||page===0" aria-label="Previous variant page" @click="page--"><span aria-hidden="true">←</span> Previous</button>
+      <span class="discovery-page-current" aria-current="page">Page {{page+1}}</span>
+      <button type="button" :disabled="busy||!hasMore" aria-label="Next variant page" @click="page++">Next <span aria-hidden="true">→</span></button>
+    </nav>
    </section>
    <div class="record-content">
     <article class="record-overview" aria-labelledby="selected-title">
