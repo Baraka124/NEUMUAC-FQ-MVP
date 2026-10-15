@@ -9,6 +9,7 @@ import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/l
 import {createScientificDossierSource,type ScientificDossier} from '../services/scientificDossier';
 import {clinVarVariationUrl} from '../domain/externalAuthority';
 import {retrieveClinVarSummary,type ClinVarAuthoritySummary} from '../services/liveClinVar';
+import {compareRecordedEvidence} from '../domain/evidenceComparison';
 import {createVariantResearchBrief} from '../services/researchBrief';
 import {createLiveResearchHistorySource,type ResearchHistory} from '../services/liveResearchHistory';
 import { createReadOnlyRepository, readConfigFromEnvironment, variantDisplayName, formatReadStatus, type RealVariant, type RealVariantSource } from '../services/liveVariants';
@@ -22,6 +23,7 @@ const dossier=ref<ScientificDossier|null>(null);
 const dossierError=ref('');
 let dossierAbort:AbortController|null=null;
 const clinVarSummary=ref<ClinVarAuthoritySummary|null>(null);
+const evidenceComparison=computed(()=>dossier.value&&clinVarSummary.value&&!evidenceError.value?compareRecordedEvidence(dossier.value,clinVarSummary.value,linkedEvidence.value):null);
 const clinVarLoading=ref(false);
 const clinVarError=ref('');
 let clinVarAbort:AbortController|null=null;
@@ -323,6 +325,19 @@ function select(id:string):void{
        <div class="clinvar-verification-head"><div><strong>External authority · ClinVar</strong><p class="rail-caption">Fetch the NCBI summary only when requested. Separate from recorded NeumuacFQ findings.</p></div><button type="button" :disabled="clinVarLoading" @click="checkClinVar">{{clinVarLoading?'Checking NCBI…':clinVarSummary?'Refresh ClinVar summary':'Check current ClinVar summary'}}</button></div>
        <p v-if="clinVarLoading" role="status" class="rail-caption">Requesting the official ClinVar API…</p>
        <p v-if="clinVarError" role="alert" class="rail-caption">{{clinVarError}}</p>
+       <section v-if="evidenceComparison" class="evidence-comparison" aria-label="Source-attributed scientific evidence comparison">
+        <h4>Evidence comparison · source-attributed</h4>
+        <p class="rail-caption">Descriptions are not normalized or ranked. Source context and review scope can differ.</p>
+        <dl class="identity-grid">
+         <div><dt>NeumuacFQ · recorded determination</dt><dd>{{evidenceComparison.localClaim||'Not recorded'}}</dd></div>
+         <div><dt>Local source summary</dt><dd>{{evidenceComparison.localSource||'Not recorded'}}</dd></div>
+         <div><dt>NCBI ClinVar · germline aggregate</dt><dd>{{evidenceComparison.externalClaim||'Not returned'}}</dd></div>
+         <div><dt>External review status</dt><dd>{{evidenceComparison.externalReview||'Not returned'}}</dd></div>
+         <div><dt>Linked local references</dt><dd>{{evidenceComparison.referencesCount}} recorded</dd></div>
+         <div><dt>Recorded source names</dt><dd>{{evidenceComparison.sourceNames.join(', ')||'None returned'}}</dd></div>
+        </dl>
+        <p class="rail-caption">{{evidenceComparison.interpretation}}</p>
+       </section>
        <template v-if="clinVarSummary">
         <dl class="identity-grid">
          <div><dt>Verified external accession</dt><dd>{{clinVarSummary.accession}}</dd></div>
