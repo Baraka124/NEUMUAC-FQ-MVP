@@ -1,122 +1,223 @@
 <script setup lang="ts">
 import {computed,ref} from 'vue';
 import {SPAIN_REGIONS} from '../domain/spainRegionalBoundaries';
+
 type Lens='geography'|'institutions'|'gaps';
 type Scope='spain'|'international';
-const lens=ref<Lens>('geography'),scope=ref<Scope>('spain'),selected=ref<string|null>(null),period=ref('historical'),metric=ref('volume'),listMode=ref(false);
-const selectedRegion=computed(()=>SPAIN_REGIONS.find(r=>r.code===selected.value)||null);
+const lens=ref<Lens>('geography');
+const scope=ref<Scope>('spain');
+const selected=ref<string|null>(null);
+const listMode=ref(false);
+const selectedRegion=computed(()=>SPAIN_REGIONS.find(region=>region.code===selected.value)||null);
+const alphabeticalRegions=[...SPAIN_REGIONS].sort((a,b)=>a.name.localeCompare(b.name,'es'));
+const lensDescription=computed(()=>lens.value==='geography'
+ ? 'Search-event geography is separate from professional affiliation.'
+ : lens.value==='institutions'
+ ? 'Only explicitly verified institutional activity will be attributed.'
+ : 'An unmatched search is not evidence of a novel CFTR variant.');
 function choose(code:string){selected.value=selected.value===code?null:code;}
-function setScope(next:Scope){scope.value=next;selected.value=null;}
+function chooseFromPicker(code:string){selected.value=code||null;}
+function changeScope(value:Scope){scope.value=value;selected.value=null;listMode.value=false;}
 </script>
+
 <template>
  <section class="geo-observatory" aria-label="Geographic research intelligence">
   <header class="geo-head">
-   <div><p class="geo-kicker">RESEARCH INTELLIGENCE · GEOGRAPHY</p><h2>Geographic search activity</h2><p>Regional research activity and catalog coverage. Personal locations are not displayed.</p></div>
-   <span class="geo-access-status">Aggregate data pending verification</span>
-  </header>
-  <div class="geo-toolbar">
-   <div class="geo-tabs" role="group" aria-label="Analysis mode">
-    <button v-for="item in [{id:'geography',label:'Geography'},{id:'institutions',label:'Institutions'},{id:'gaps',label:'Research gaps'}] as const" :key="item.id" type="button" :aria-pressed="lens===item.id" @click="lens=item.id">{{item.label}}</button>
+   <div class="geo-head-copy">
+    <p class="geo-kicker">RESEARCH ATLAS · SPAIN FIRST</p>
+    <h2>Regional exploration</h2>
+    <p>Explore Spain by autonomous community. Geographic activity remains separate from the identity of researchers or patients.</p>
    </div>
-   <label class="geo-select-label">Scope <select :value="scope" @change="setScope(($event.target as HTMLSelectElement).value as Scope)"><option value="spain">Spain</option><option value="international">International</option></select></label>
+   <span class="geo-access-status" role="status"><span aria-hidden="true" class="geo-status-dot"></span>Aggregate data pending verification</span>
+  </header>
+
+  <div class="geo-toolbar" aria-label="Geographic research controls">
+   <div class="geo-tabs" role="group" aria-label="Analysis mode">
+    <button type="button" :aria-pressed="lens==='geography'" @click="lens='geography'">Geography</button>
+    <button type="button" :aria-pressed="lens==='institutions'" @click="lens='institutions'">Institutions</button>
+    <button type="button" :aria-pressed="lens==='gaps'" @click="lens='gaps'">Research gaps</button>
+   </div>
+   <label class="geo-select-label" for="geo-scope">Scope
+    <select id="geo-scope" :value="scope" @change="changeScope(($event.target as HTMLSelectElement).value as Scope)">
+     <option value="spain">Spain</option><option value="international">International</option>
+    </select>
+   </label>
   </div>
-  <div class="geo-context">
-   <span>{{lens==='geography'?'Search-event geography':lens==='institutions'?'Verified research affiliation':'Unmatched search analysis'}}</span>
-   <span>Historical register · March–June 2026 · Includes tests</span>
+
+  <div class="geo-context" aria-live="polite">
+   <span>{{lensDescription}}</span>
+   <span>Historical searches include testing · Statistics not published</span>
   </div>
+
   <div class="geo-layout">
-   <div class="geo-map-surface">
-    <div class="geo-map-heading"><span>{{scope==='spain'?'Spain · Autonomous communities':'International overview'}}</span><span>Regional boundaries · No individual pins</span></div>
+   <section class="geo-map-surface" aria-label="Regional atlas">
+    <div class="geo-map-heading">
+     <div><strong>{{scope==='spain'?'Spain':'International overview'}}</strong><span>{{scope==='spain'?'17 communities · 2 autonomous cities':'Country-level data pending'}}</span></div>
+     <span class="geo-map-hint">{{scope==='spain'?'Select a region':'No activity map yet'}}</span>
+    </div>
+
     <div v-if="scope==='spain'" class="geo-map-inner">
-     <svg viewBox="0 0 690 560" role="img" aria-label="Selectable map of the autonomous communities and cities of Spain; boundaries only, no activity values" preserveAspectRatio="xMidYMid meet">
-      <title>Spain regional reference map</title>
-      <rect x="0" y="0" width="690" height="560" fill="#f8faf8"/>
-      <g fill="#e7eee8" stroke="#a5b9aa" stroke-width=".9" stroke-linejoin="round">
-       <path v-for="region in SPAIN_REGIONS" :key="region.code" :d="region.path" class="geo-region" :class="{'geo-region-selected':selected===region.code}" role="button" tabindex="0" :aria-label="region.name+' · regional boundary, activity unavailable'" @click="choose(region.code)" @keydown.enter.prevent="choose(region.code)" @keydown.space.prevent="choose(region.code)" />
+     <label for="geo-region-picker" class="geo-region-picker">Choose a region
+      <select id="geo-region-picker" :value="selected||''" @change="chooseFromPicker(($event.target as HTMLSelectElement).value)">
+       <option value="">All Spain</option>
+       <option v-for="region in alphabeticalRegions" :key="region.code" :value="region.code">{{region.name}}</option>
+      </select>
+     </label>
+     <svg viewBox="0 0 690 525" role="img" aria-label="Selectable map of Spain, its autonomous communities and cities. Administrative boundaries only, without individual searches or activity statistics." preserveAspectRatio="xMidYMid meet">
+      <title>Spain · autonomous communities and cities</title>
+      <rect x="0" y="0" width="690" height="525" fill="#f9fbf9"/>
+      <g fill="#e7eee8" stroke="#abc0ae" stroke-width="1.05" stroke-linejoin="round">
+       <path v-for="region in SPAIN_REGIONS" :key="region.code" :d="region.path" class="geo-region"
+         :class="{'geo-region-selected':selected===region.code}"
+         role="button" tabindex="0" :aria-pressed="selected===region.code"
+         :aria-label="region.name+' · region, activity unavailable'"
+         aria-controls="geo-region-detail"
+         @click="choose(region.code)" @keydown.enter.prevent="choose(region.code)" @keydown.space.prevent="choose(region.code)"><title>{{region.name}}</title></path>
       </g>
-      <rect x="459" y="388" width="204" height="123" rx="7" class="geo-inset-outline"/>
-      <text x="476" y="406" class="geo-map-label">CANARY ISLANDS · INSET</text>
-      <text x="236" y="410" class="geo-map-label">CEUTA</text><text x="353" y="470" class="geo-map-label">MELILLA</text>
-      <text x="54" y="541" class="geo-map-caption">Boundaries for navigation only · Not shaded by search intensity</text>
+      <rect x="460" y="386" width="204" height="126" rx="6" class="geo-inset-outline" aria-hidden="true"/>
+      <text x="477" y="405" class="geo-map-label">CANARIAS · INSET</text>
+      <text x="228" y="412" class="geo-map-label geo-city-label">CEUTA</text>
+      <text x="362" y="459" class="geo-map-label geo-city-label">MELILLA</text>
      </svg>
     </div>
+
     <div v-else class="geo-international">
-     <div class="geo-world-symbol"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="47" fill="none" stroke="currentColor" stroke-width="1.5"/><ellipse cx="60" cy="60" rx="22" ry="47" fill="none" stroke="currentColor"/><path d="M13 60h94M25 32h70M25 88h70" fill="none" stroke="currentColor"/></svg></div>
-     <strong>International geographic aggregates</strong>
-     <p>Country-level mapping will become available when approved, privacy-protected geographic data are connected.</p>
-     <button type="button" @click="setScope('spain')">Return to Spain</button>
+     <svg viewBox="0 0 100 100" width="74" height="74" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+      <circle cx="50" cy="50" r="38"/><ellipse cx="50" cy="50" rx="18" ry="38"/><path d="M12 50h76M22 30h56M22 70h56"/>
+     </svg>
+     <strong>International overview</strong>
+     <p>Country-level research aggregates are not available yet. This view will not infer individuals' locations.</p>
+     <button type="button" @click="changeScope('spain')">Return to Spain</button>
     </div>
-    <footer class="geo-map-foot"><span><i class="geo-legend-shape"/> Boundaries only</span><span>Activity values unavailable</span></footer>
-   </div>
-   <aside class="geo-region-insight" aria-label="Selected geographic detail">
-    <p class="geo-kicker">{{lens==='geography'?'REGIONAL ACTIVITY':lens==='institutions'?'INSTITUTIONAL CONTEXT':'RESEARCH GAP CONTEXT'}}</p>
-    <h3>{{selectedRegion?.name|| (scope==='spain'?'Select a region':'International overview')}}</h3>
-    <p v-if="selectedRegion">Region selected. Validated search counts and location confidence have not yet been connected.</p>
-    <p v-else>Select a region on the map or from the list to inspect its source and coverage status.</p>
-    <div class="geo-insight-line"><span>Search events</span><strong>Unavailable</strong></div>
-    <div class="geo-insight-line"><span>Matches / misses</span><strong>Unavailable</strong></div>
-    <div class="geo-insight-line"><span>Location confidence</span><strong>Not assessed</strong></div>
-    <div class="geo-insight-note"><strong>Data interpretation</strong><p>An unmatched query is not evidence of a novel CFTR variant. Device geography and institutional affiliation are separate dimensions.</p></div>
+    <footer class="geo-map-foot">
+     <span class="geo-legend"><span class="geo-legend-swatch" aria-hidden="true"></span>Regional boundaries</span>
+     <span>No search coordinates displayed</span>
+    </footer>
+   </section>
+
+   <aside id="geo-region-detail" class="geo-region-insight" aria-label="Selected geographic detail" aria-live="polite">
+    <p class="geo-kicker">{{lens==='geography'?'GEOGRAPHIC VIEW':lens==='institutions'?'INSTITUTIONAL VIEW':'RESEARCH GAP VIEW'}}</p>
+    <h3>{{selectedRegion?.name||(scope==='spain'?'Choose a region':'International overview')}}</h3>
+    <p class="geo-insight-intro">{{selectedRegion?'Selected region · '+selectedRegion.name:scope==='spain'?'Select on the map or use the region selector.':'Data will be displayed by country when available.'}}</p>
+    <dl class="geo-insight-data">
+     <div><dt>Qualified searches</dt><dd>—</dd></div>
+     <div><dt>Matches / misses</dt><dd>—</dd></div>
+     <div><dt>Location confidence</dt><dd>Not assessed</dd></div>
+    </dl>
+    <div class="geo-insight-note">
+     <strong>What the map represents</strong>
+     <p>Regions are reference boundaries, not patient locations. Scientific demand cannot be inferred from unverified search events.</p>
+    </div>
    </aside>
   </div>
-  <div class="geo-regions-section">
-   <div class="geo-regions-heading"><div><h3>Regional index</h3><p>Accessible alternative to selecting regions on the map.</p></div><button type="button" :aria-expanded="listMode" @click="listMode=!listMode">{{listMode?'Hide region list':'Browse all regions'}}</button></div>
-   <div v-if="listMode" class="geo-region-grid">
-    <button v-for="region in SPAIN_REGIONS" :key="region.code" type="button" :aria-pressed="selected===region.code" @click="choose(region.code)">{{region.name}}<span>{{selected===region.code?'Selected':'→'}}</span></button>
+
+  <section v-if="scope==='spain'" class="geo-regions-section" aria-label="Spain regions">
+   <div class="geo-regions-heading">
+    <div><h3>Region index</h3><p>Find a community without navigating the map.</p></div>
+    <button type="button" :aria-expanded="listMode" aria-controls="geo-region-list" @click="listMode=!listMode">{{listMode?'Hide region list':'Browse all regions'}} <span aria-hidden="true">{{listMode?'−':'+'}}</span></button>
    </div>
-  </div>
-  <p class="geo-safety-note">Data access has not passed the geographic privacy release gate. This map displays real administrative boundary shapes only—no actual search locations, hospital associations or fabricated hit/miss statistics. The existing Evidence Coverage view remains available separately.</p>
+   <div v-if="listMode" id="geo-region-list" class="geo-region-grid">
+    <button v-for="region in alphabeticalRegions" :key="region.code" type="button" :aria-pressed="selected===region.code" aria-controls="geo-region-detail" @click="choose(region.code)">
+     <span>{{region.name}}</span><span aria-hidden="true">{{selected===region.code?'✓':'↗'}}</span>
+    </button>
+   </div>
+  </section>
+  <p class="geo-safety-note">Public map · Administrative boundaries only. Validated geographic aggregates are not yet connected.</p>
  </section>
 </template>
+
 <style scoped>
-.geo-observatory{color:#203c34;min-width:0}
-.geo-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin:0 0 22px}
-.geo-kicker{font-size:10px;font-weight:760;letter-spacing:.105em;color:#658174;margin:0 0 7px}
-.geo-head h2{font-size:clamp(23px,2.3vw,32px);margin:0 0 8px;letter-spacing:-.045em}
-.geo-head p:not(.geo-kicker){font-size:13px;color:#6b8175;margin:0;line-height:1.6}
-.geo-access-status{font-size:11px;color:#617e70;border:1px solid #d6e6db;border-radius:5px;padding:7px 10px;white-space:nowrap;background:#f7faf8}
-.geo-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:0 0 16px}
-.geo-tabs{display:flex;gap:3px;border:1px solid #d9e6dd;border-radius:7px;background:#f8faf8;padding:3px;flex-wrap:wrap}
-.geo-tabs button{border:0;border-radius:5px;background:transparent;padding:9px 13px;font-size:12px;font-weight:600;color:#6b8474}
-.geo-tabs button[aria-pressed="true"]{background:#fff;color:#20553d;box-shadow:0 1px 5px #244a3615}
-.geo-select-label{display:flex;align-items:center;gap:10px;font-size:12px;color:#647d70}
-.geo-select-label select{min-height:38px;padding:7px 11px;border:1px solid #d1e0d5;border-radius:6px;color:#244e37;background:white}
-.geo-context{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid #e1eae3;padding-bottom:12px;margin-bottom:16px;font-size:11px;color:#789083}
-.geo-layout{display:grid;grid-template-columns:minmax(0,1.85fr) minmax(245px,1fr);gap:15px;align-items:stretch}
-.geo-map-surface,.geo-region-insight{min-width:0;border:1px solid #dce8de;border-radius:9px;background:#fff;overflow:hidden}
-.geo-map-heading{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:17px 19px 7px;font-size:12px;font-weight:700}
-.geo-map-heading span:last-child{font-size:10px;color:#89a093;font-weight:500}
-.geo-map-inner{padding:0 10px}
-.geo-map-inner svg{display:block;width:100%;max-height:540px;aspect-ratio:690/560}
-.geo-region{cursor:pointer;transition:fill .14s}
-.geo-region:hover,.geo-region:focus{fill:#bfd6c6;stroke:#316d53;stroke-width:1.8;outline:none}
-.geo-region-selected{fill:#9dc4ae;stroke:#276a4d;stroke-width:2}
-.geo-inset-outline{fill:none;stroke:#d3e0d8;stroke-dasharray:3 4}
-.geo-map-label{fill:#5d7b6b;font-size:10px;font-weight:700;letter-spacing:.07em}
-.geo-map-caption{fill:#7e9788;font-size:10px}
-.geo-map-foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;border-top:1px solid #e8eee9;padding:12px 17px;color:#738b7b;font-size:11px}
-.geo-legend-shape{display:inline-block;width:11px;height:11px;background:#e7eee8;border:1px solid #a5b9aa;border-radius:2px;margin-right:6px;vertical-align:-1px}
-.geo-region-insight{padding:clamp(17px,2vw,25px)}
-.geo-region-insight h3{font-size:clamp(19px,1.8vw,25px);line-height:1.25;letter-spacing:-.03em;margin:5px 0 10px}
-.geo-region-insight>p:not(.geo-kicker){font-size:13px;color:#647f70;line-height:1.65;margin:0 0 24px}
-.geo-insight-line{display:flex;justify-content:space-between;gap:13px;padding:12px 0;border-top:1px solid #e5ede7;font-size:12px}
-.geo-insight-line span{color:#718b79}.geo-insight-line strong{font-size:12px;font-weight:650;text-align:right}
-.geo-insight-note{margin-top:23px;background:#f5f9f5;padding:14px;border-radius:6px}
-.geo-insight-note strong{font-size:12px}.geo-insight-note p{font-size:12px;line-height:1.65;color:#617968;margin:5px 0 0}
-.geo-international{min-height:390px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:11px;text-align:center;padding:25px;color:#547465}
-.geo-world-symbol{width:85px;height:85px;opacity:.45}.geo-world-symbol svg{width:100%;height:100%}
-.geo-international strong{font-size:17px}.geo-international p{max-width:345px;font-size:13px;line-height:1.65}
-.geo-international button{border:1px solid #c5d8cc;border-radius:6px;padding:8px 15px;background:white;color:#31664d;font-weight:650}
-.geo-regions-section{margin-top:22px}
+.geo-observatory{color:#233d32;min-width:0;container-type:inline-size}
+.geo-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:18px}
+.geo-head-copy{min-width:0;max-width:640px}
+.geo-kicker{font-size:10px;font-weight:750;letter-spacing:.11em;color:#658575;margin:0 0 6px}
+.geo-head h2{font-size:clamp(19px,2.15vw,27px);font-weight:680;letter-spacing:-.032em;line-height:1.2;margin:0 0 6px}
+.geo-head-copy>p:last-child{font-size:13px;line-height:1.55;color:#6b8073;margin:0}
+.geo-access-status{display:inline-flex;align-items:center;gap:8px;flex:0 0 auto;border:1px solid #dbe6dd;border-radius:5px;background:#f8faf8;padding:8px 10px;color:#577462;font-size:11px;line-height:1.35}
+.geo-status-dot{width:6px;height:6px;border-radius:50%;background:#8daa96;flex:0 0 auto}
+.geo-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:12px}
+.geo-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;border:1px solid #dae6dd;background:#f5f8f5;border-radius:7px;padding:3px;min-width:min(100%,360px)}
+.geo-tabs button{appearance:none;border:0;border-radius:5px;min-height:40px;padding:7px 12px;background:transparent;color:#5b7464;font-size:12px;font-weight:625;white-space:nowrap}
+.geo-tabs button[aria-pressed="true"]{background:#fff;color:#1e5c3e;box-shadow:0 1px 4px #214b3418}
+.geo-tabs button:hover:not([aria-pressed="true"]){background:#eaf2eb}
+.geo-select-label{display:flex;gap:9px;align-items:center;color:#657f6e;font-size:12px;font-weight:600}
+.geo-select-label select{min-height:40px;padding:8px 30px 8px 12px;border:1px solid #cbdbce;border-radius:6px;background:#fff;color:#28553d;font-size:12px}
+.geo-context{display:flex;justify-content:space-between;align-items:center;gap:8px 20px;flex-wrap:wrap;padding:0 0 12px;border-bottom:1px solid #e0eae3;margin:0 0 14px;font-size:11px;line-height:1.5;color:#738b79}
+.geo-context span:first-child{color:#456b55}
+.geo-layout{display:grid;grid-template-columns:minmax(0,1.85fr) minmax(250px,1fr);gap:14px;align-items:start}
+.geo-map-surface,.geo-region-insight{min-width:0;border:1px solid #dbe7dd;border-radius:8px;background:#fff;overflow:hidden}
+.geo-map-heading{display:flex;align-items:start;justify-content:space-between;gap:12px;padding:16px 17px 4px}
+.geo-map-heading div{display:grid;gap:3px}.geo-map-heading strong{font-size:14px;font-weight:670;line-height:1.2}.geo-map-heading div span{font-size:11px;color:#82998a}
+.geo-map-hint{font-size:11px;color:#69826f}
+.geo-map-inner{padding:0 7px}.geo-map-inner svg{display:block;width:100%;height:auto;max-height:545px}
+.geo-region{cursor:pointer;transition:fill .15s,stroke .15s}
+.geo-region:hover,.geo-region:focus{fill:#c6daca;stroke:#357554;stroke-width:1.85;outline:none}
+.geo-region-selected{fill:#a6cdb1;stroke:#225d42;stroke-width:2}
+.geo-inset-outline{fill:none;stroke:#b9cdbc;stroke-dasharray:3 5}
+.geo-map-label{fill:#557460;font-size:10px;letter-spacing:.065em;font-weight:700}
+.geo-map-foot{display:flex;align-items:center;justify-content:space-between;gap:8px 14px;flex-wrap:wrap;border-top:1px solid #e7efe9;padding:10px 16px;color:#668371;font-size:11px;line-height:1.45}
+.geo-legend{display:inline-flex;align-items:center;gap:7px}
+.geo-legend-swatch{width:12px;height:12px;background:#e7eee8;border:1px solid #abc0ae;border-radius:2px}
+.geo-region-picker{display:none}
+.geo-region-insight{padding:clamp(16px,2vw,24px)}
+.geo-region-insight h3{font-size:clamp(18px,1.7vw,24px);letter-spacing:-.035em;line-height:1.25;margin:0 0 8px;font-weight:690}
+.geo-insight-intro{margin:0 0 17px;color:#688374;font-size:12px;line-height:1.6}
+.geo-insight-data{margin:0}
+.geo-insight-data>div{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid #e5ece6;padding:12px 0;font-size:12px}
+.geo-insight-data dt{color:#688373}.geo-insight-data dd{margin:0;color:#3a5c46;font-weight:650;text-align:right}
+.geo-insight-note{border-top:1px solid #e4ece6;padding-top:15px;margin-top:8px}
+.geo-insight-note strong{font-size:12px;font-weight:675}.geo-insight-note p{margin:5px 0 0;color:#718878;font-size:12px;line-height:1.6}
+.geo-international{min-height:370px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;text-align:center;padding:22px;color:#668473}
+.geo-international strong{font-size:15px;color:#385f47}.geo-international p{max-width:360px;font-size:12px;line-height:1.6;margin:0}
+.geo-international button{min-height:40px;border:1px solid #cbdccd;border-radius:5px;background:white;color:#2a6445;padding:8px 13px;font-size:12px;font-weight:650}
+.geo-regions-section{margin-top:19px;border-top:1px solid #e1ebe4;padding-top:14px}
 .geo-regions-heading{display:flex;justify-content:space-between;align-items:center;gap:12px}
-.geo-regions-heading h3{font-size:16px;margin:0 0 5px}
-.geo-regions-heading p{font-size:12px;color:#778d7e;margin:0}
-.geo-regions-heading button{background:transparent;border:1px solid #d8e4dc;border-radius:6px;padding:9px 12px;font-size:12px;font-weight:650;color:#306d50}
-.geo-region-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:14px}
-.geo-region-grid button{display:flex;justify-content:space-between;gap:7px;text-align:left;background:#fff;border:1px solid #e1e9e2;border-radius:6px;min-height:42px;padding:10px;font-size:12px;color:#476652}
-.geo-region-grid button[aria-pressed="true"]{background:#eaf4ec;border-color:#99beaa}
-.geo-safety-note{font-size:11px;line-height:1.7;color:#728879;margin:21px 0 0;max-width:850px}
-@media(max-width:1050px){.geo-layout{grid-template-columns:minmax(0,1fr)}.geo-map-inner svg{max-height:450px}.geo-region-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:620px){.geo-head{display:block}.geo-access-status{display:inline-block;margin-top:12px;white-space:normal}.geo-toolbar{align-items:stretch}.geo-tabs{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.geo-tabs button{padding:9px 4px;font-size:11px}.geo-map-heading{padding:14px 12px 6px}.geo-map-inner{padding:0 4px}.geo-map-inner svg{max-height:360px}.geo-region-grid{grid-template-columns:minmax(0,1fr)}.geo-context{display:grid}}
+.geo-regions-heading h3{font-size:15px;font-weight:660;margin:0 0 3px}
+.geo-regions-heading p{font-size:12px;color:#798f7f;margin:0}
+.geo-regions-heading button{background:#fff;border:1px solid #d7e3d9;border-radius:6px;min-height:40px;padding:8px 12px;color:#2e6749;font-size:12px;font-weight:650;white-space:nowrap}
+.geo-regions-heading button span{font-size:16px;margin-left:7px}
+.geo-region-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:12px}
+.geo-region-grid button{display:flex;align-items:center;justify-content:space-between;text-align:left;gap:9px;min-width:0;min-height:44px;border:1px solid #e0e9e1;border-radius:6px;background:#fff;padding:10px 11px;font-size:12px;color:#456a52}
+.geo-region-grid button:hover{border-color:#a9c4b0}
+.geo-region-grid button[aria-pressed="true"]{background:#eaf4ec;border-color:#8ab99a;color:#1e5638}
+.geo-safety-note{margin:16px 0 0;color:#7a9180;font-size:11px;line-height:1.6}
+.geo-tabs button:focus-visible,.geo-regions-heading button:focus-visible,.geo-region-grid button:focus-visible,.geo-select-label select:focus-visible,.geo-region-picker select:focus-visible,.geo-international button:focus-visible{outline:2px solid #2b8866;outline-offset:3px}
+@container(max-width:850px){
+ .geo-layout{grid-template-columns:minmax(0,1fr)}
+ .geo-map-inner svg{max-height:440px}
+ .geo-region-insight{padding:18px}
+ .geo-insight-data{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+ .geo-insight-data>div{display:grid;gap:5px;align-content:start;padding:11px;border:1px solid #e5ece6;border-radius:5px}
+ .geo-insight-data dd{text-align:left}
+ .geo-insight-note{margin-top:16px}
+}
+@container(max-width:585px){
+ .geo-head{display:grid;gap:10px}
+ .geo-access-status{justify-self:start}
+ .geo-toolbar{display:grid;gap:10px}
+ .geo-tabs{width:100%;min-width:0}
+ .geo-tabs button{font-size:11px;padding:7px 4px}
+ .geo-select-label{justify-content:space-between}
+ .geo-select-label select{min-width:145px}
+ .geo-context{display:grid;gap:4px}
+ .geo-map-heading{padding:14px 13px 3px}
+ .geo-map-hint{display:none}
+ .geo-map-inner{padding:0 2px 2px}
+ .geo-map-inner svg{max-height:355px}
+ .geo-region-picker{display:grid;gap:6px;margin:10px 11px 6px;color:#5b7965;font-size:12px;font-weight:650}
+ .geo-region-picker select{min-width:0;width:100%;min-height:44px;border:1px solid #c8dacd;border-radius:6px;background:#fff;padding:9px 11px;color:#27583f;font-size:13px}
+ .geo-city-label{font-size:12px}
+ .geo-insight-data{grid-template-columns:minmax(0,1fr);gap:0}
+ .geo-insight-data>div{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border:0;border-top:1px solid #e5ece6;border-radius:0}
+ .geo-insight-data dd{text-align:right}
+ .geo-regions-heading{align-items:start}
+ .geo-regions-heading p{display:none}
+ .geo-region-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .geo-map-foot{font-size:10px}
+}
+@container(max-width:370px){
+ .geo-region-grid{grid-template-columns:minmax(0,1fr)}
+ .geo-regions-heading button{font-size:11px;padding:7px}
+}
 @media(prefers-reduced-motion:reduce){.geo-region{transition:none}}
 </style>
