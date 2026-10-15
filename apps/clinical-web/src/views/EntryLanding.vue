@@ -1,5 +1,9 @@
 <script setup lang="ts">
+import {ref} from 'vue';
 import {RouterLink} from 'vue-router';
+import ResearchSignInForm from '../components/ResearchSignInForm.vue';
+const loginOpen=ref(false);
+function openLogin(){loginOpen.value=true;}
 </script>
 
 <template>
@@ -10,9 +14,7 @@ import {RouterLink} from 'vue-router';
       </RouterLink>
       <div class="nfq-portal-masthead-right">
         <span class="nfq-portal-header-context">CFTR research platform</span>
-        <RouterLink to="/sign-in" class="nfq-portal-header-link">Staff access
-          <svg viewBox="0 0 24 24" aria-hidden="true" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
-        </RouterLink>
+        <button type="button" class="nfq-portal-header-link" :aria-expanded="loginOpen" aria-controls="nfq-portal-account" @click="loginOpen=!loginOpen">{{loginOpen?'Research tools':'Sign in'}} <span aria-hidden="true">→</span></button>
       </div>
     </header>
 
@@ -28,14 +30,19 @@ import {RouterLink} from 'vue-router';
               <span>Explore public research</span>
               <svg viewBox="0 0 24 24" aria-hidden="true" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
             </RouterLink>
-            <RouterLink to="/sign-in" class="nfq-portal-staff">Sign in as research staff
-              <svg viewBox="0 0 24 24" aria-hidden="true" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
-            </RouterLink>
+            
           </div>
-          <p class="nfq-portal-access-note">Public access requires no account. Staff access is restricted to authorized users.</p>
+          <p class="nfq-portal-access-note">Public research is available without an account.</p>
         </section>
 
-        <nav class="nfq-portal-index" aria-labelledby="nfq-portal-index-heading">
+        <section v-if="loginOpen" id="nfq-portal-account" class="nfq-portal-account" aria-labelledby="nfq-portal-account-title">
+          <p class="nfq-portal-kicker">AUTHORIZED RESEARCH ACCOUNT</p>
+          <h2 id="nfq-portal-account-title">Sign in</h2>
+          <p class="nfq-portal-account-description">Use your assigned research account. Signing in does not automatically grant editing or approval privileges.</p>
+          <ResearchSignInForm id-prefix="entry-account"/>
+          <button type="button" class="nfq-portal-back" @click="loginOpen=false">← Return to research tools</button>
+        </section>
+        <nav v-else class="nfq-portal-index" aria-labelledby="nfq-portal-index-heading">
           <div class="nfq-portal-index-top">
             <p class="nfq-portal-kicker">RESEARCH WORKSPACES</p>
             <h2 id="nfq-portal-index-heading">Explore by task</h2>
@@ -80,7 +87,7 @@ import {RouterLink} from 'vue-router';
 .nfq-portal-brand img{display:block;width:246px;height:108px;object-fit:contain;object-position:left center}
 .nfq-portal-masthead-right{display:flex;align-items:center;gap:clamp(24px,3vw,42px)}
 .nfq-portal-header-context{font-size:12px;color:#60766f;letter-spacing:.01em}
-.nfq-portal-header-link{display:inline-flex;align-items:center;gap:10px;border:1px solid #ceded7;border-radius:7px;padding:11px 15px;white-space:nowrap;color:#1b5345;background:#fff;text-decoration:none;font-size:13px;font-weight:690;transition:border-color .16s,background .16s}
+.nfq-portal-header-link{cursor:pointer;display:inline-flex;align-items:center;gap:10px;border:1px solid #ceded7;border-radius:7px;padding:11px 15px;white-space:nowrap;color:#1b5345;background:#fff;text-decoration:none;font-size:13px;font-weight:690;transition:border-color .16s,background .16s}
 .nfq-portal-header-link:hover{border-color:#7aa997;background:#f1f8f4}
 .nfq-portal-content{flex:1;display:flex;flex-direction:column;justify-content:center;padding-block:clamp(34px,5vw,64px) 26px}
 .nfq-portal-layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(330px,.88fr);gap:clamp(46px,6vw,102px);align-items:center}
@@ -105,6 +112,11 @@ import {RouterLink} from 'vue-router';
 .nfq-portal-index-arrow{flex-shrink:0;font-size:18px;color:#4c8679;transition:transform .16s}
 .nfq-portal-index-link:hover strong{color:#087977}
 .nfq-portal-index-link:hover .nfq-portal-index-arrow{transform:translate(2px,-2px)}
+.nfq-portal-account{align-self:stretch;min-width:0;border-top:2px solid #1a4c5a;padding-top:20px}
+.nfq-portal-account h2{font-size:clamp(25px,2.3vw,31px);margin:9px 0 11px;letter-spacing:-.035em}
+.nfq-portal-account-description{font-size:13px;color:#62777d;line-height:1.65;margin:0 0 21px;max-width:450px}
+.nfq-portal-back{border:0;background:transparent;padding:13px 0;margin-top:13px;color:#286c63;font:inherit;font-size:12px;cursor:pointer}
+.nfq-portal-back:hover{text-decoration:underline}
 .nfq-portal-research-notice{border-top:1px solid #dce6e2;margin-top:clamp(42px,5vw,74px);padding:19px 0 0;display:flex;gap:11px;align-items:flex-start;color:#6d8382;max-width:none}
 .nfq-portal-research-notice svg{flex:none;margin-top:1px;color:#63887f}
 .nfq-portal-research-notice p{font-size:12px;line-height:1.6;margin:0}
