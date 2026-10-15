@@ -4,14 +4,9 @@ test('real-data-only boundary, navigation and horizontal containment', async ({ 
   await page.goto('/#/workspace');
   await expect(page.getByRole('heading', { name: 'CFTR variant research', exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Explore variant records' })).toHaveAttribute('href', '#/variants');
-  const capabilities = page.getByRole('complementary', { name: 'Current capability' });
-  await expect(capabilities).toContainText('Variant identities');
-  await expect(capabilities).toContainText('Live read-only lookup');
-  await expect(capabilities).toContainText('Sources and evidence');
-  await expect(capabilities).toContainText('Recorded references; claims unverified');
-  await expect(capabilities).toContainText('Variant-pair research');
-  await expect(capabilities).toContainText('Editing and curation');
-  await expect(capabilities).toContainText('Not yet available');
+  await expect(page.getByRole('search',{name:'Search CFTR variants'})).toBeVisible();
+  await expect(page.getByRole('searchbox',{name:'Search CFTR variants'})).toBeVisible();
+  await expect(page.getByText(/database-recorded fields/)).toBeVisible();
   await expect(page.getByText('Live CFTR research interface')).toBeVisible();
   await expect(page.getByRole('status').getByText('Live variant source · configuration pending')).toBeVisible();
   if (page.viewportSize()!.width <= 760) {
@@ -175,8 +170,12 @@ test('Phase 3B light institutional shell stays legible and usable across viewpor
 
 test('Phase 3C research workbench exposes shortcuts and preserves variant worklist',async({page})=>{
  await page.goto('/#/workspace');
- await expect(page.getByRole('heading',{name:'Continue your research'})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Search recorded variants'})).toBeVisible();
  await expect(page.getByRole('link',{name:/Open Class I variant worklist/})).toHaveAttribute('href','#/variants?class=I');
+ await page.getByRole('searchbox',{name:'Search CFTR variants'}).fill('R117H');
+ await page.getByRole('button',{name:/Search variants/}).click();
+ await expect(page).toHaveURL(/#\/variants\?q=R117H/);
+ await page.goto('/#/workspace');
  await page.getByRole('button',{name:'Open workspace switcher'}).click();
  await expect(page.getByRole('dialog',{name:'Research workspace switcher'})).toBeVisible();
  await page.getByRole('searchbox',{name:'Find a research workspace'}).fill('genotype');
