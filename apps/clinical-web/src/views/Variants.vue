@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import VariantFilterPanel from '../components/VariantFilterPanel.vue';
 import {authController,authSessionProvider} from '../services/authSession';
 import {explainTextMatch,rankVisibleSearchPage} from '../domain/searchPresentation';
 import {assessScientificDiscovery} from '../domain/compoundDiscovery';
@@ -119,7 +120,7 @@ const showSearchInfo=ref(false);
 const classFilter=ref(typeof route.query.class==='string'&&['I','II','III','IV','V','VI','unclassified'].includes(route.query.class)?route.query.class:'all');
 const sort=ref(typeof route.query.sort==='string'&&['name-desc','recent-record','fewest-validations','most-validations'].includes(route.query.sort)?route.query.sort:'name-asc');
 const searchMode=ref(typeof route.query.mode==='string'&&route.query.mode==='exact-name'?'exact-name':'contains');
-const showAdvanced=ref(classFilter.value!=='all'||sort.value!=='name-asc'||searchMode.value!=='contains');
+const showAdvanced=ref(false);
 const activeFilterCount=computed(()=>Number(classFilter.value!=='all')+Number(sort.value!=='name-asc')+Number(searchMode.value!=='contains'));
 function resetAdvancedFilters():void{classFilter.value='all';sort.value='name-asc';searchMode.value='contains';}
 watch(search,()=>{exactMatchedId.value=null;});
@@ -255,35 +256,15 @@ function select(id:string):void{
     </div>
     <p v-if="scientificInputAssessment.message" class="discovery-notation-guidance" role="status">{{scientificInputAssessment.message}}</p>
     <div class="discovery-utility-row">
-      <details class="research-disclosure discovery-filters" :open="showAdvanced" @toggle="showAdvanced=($event.target as HTMLDetailsElement).open">
-        <summary aria-label="Toggle scientific search filters">
-          <span class="discovery-filter-control">
-            <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M7 12h10M10 17h4"/></svg>
-            <span class="discovery-filter-label">Filters</span>
-            <svg class="discovery-chevron" aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg>
-          </span>
-          <span v-if="activeFilterCount" class="discovery-active-count">{{activeFilterCount}} active</span>
-        </summary>
-        <div class="variant-worklist-filters" aria-label="Scientific worklist filters">
-          <label for="class-filter">Functional class</label>
-          <label for="variant-sort">Sort</label>
-          <select id="class-filter" v-model="classFilter">
-            <option value="all">All classes</option>
-            <option v-for="item in ['I','II','III','IV','V','VI']" :key="item" :value="item">Class {{item}}</option>
-            <option value="unclassified">Unclassified in database</option>
-          </select>
-          <select id="variant-sort" v-model="sort">
-            <option value="name-asc">Name A–Z</option>
-            <option value="name-desc">Name Z–A</option>
-            <option value="recent-record">Record ID · newest first</option>
-            <option value="fewest-validations">Fewest recorded validations</option>
-            <option value="most-validations">Most recorded validations</option>
-          </select>
-          <label for="search-mode">Match mode</label><span></span>
-          <select id="search-mode" v-model="searchMode"><option value="contains">Contains name, HGVS or alias</option><option value="exact-name">Exact recorded name or notation</option></select>
-        </div>
-        <button v-if="activeFilterCount" type="button" class="discovery-reset" @click="resetAdvancedFilters">Reset filters</button>
-      </details>
+      <div class="variant-filter-anchor">
+       <button type="button" class="variant-filter-trigger" :aria-expanded="showAdvanced" aria-controls="variant-filter-panel" @click="showAdvanced=!showAdvanced">
+        <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M7 12h10M10 17h4"/></svg>
+        <span class="discovery-filter-label">Filters</span>
+        <svg class="discovery-chevron" aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+        <span v-if="activeFilterCount" class="discovery-active-count">{{activeFilterCount}} active</span>
+       </button>
+       <VariantFilterPanel v-if="showAdvanced" v-model:class-filter="classFilter" v-model:sort="sort" v-model:search-mode="searchMode" @close="showAdvanced=false" @reset="resetAdvancedFilters"/>
+      </div>
       <span class="record-total" aria-label="Results on this page">{{rows.length}} results</span>
     </div>
     <div v-if="showSearchInfo" id="discovery-search-help" class="discovery-help" role="note">
