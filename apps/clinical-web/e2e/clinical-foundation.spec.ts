@@ -257,3 +257,22 @@ test('outer landing offers clearly distinct public and staff paths without appli
   await expect(page.getByRole('link',{name:/Continue without signing in/})).toHaveAttribute('href','#/variants');
  }
 });
+
+test('UI foundation Phase 1: single brand identity and restrained workspace navigation',async({page})=>{
+ for(const width of [390,768,1024,1366,1600]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/variants');
+  await expect(page.getByRole('heading',{name:'Variant workspace'})).toBeVisible();
+  // The sidebar remains in the DOM on mobile but is visually hidden.
+  await expect(page.locator('.sidebar .wordmark img')).toHaveCount(1);
+  if(width>760)await expect(page.locator('.sidebar .wordmark img')).toBeVisible();
+  else await expect(page.locator('.sidebar .wordmark img')).toBeHidden();
+  await expect(page.locator('.sidebar-roadmap')).toHaveCount(0);
+  await expect(page.locator('.nav-index')).toHaveCount(0);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+  if(width>760){
+   await expect(page.getByRole('navigation',{name:'Workspaces'}).getByRole('link',{name:'Variants'})).toBeVisible();
+   await expect(page.getByRole('button',{name:'Open workspace switcher'})).toBeVisible();
+  }
+ }
+});

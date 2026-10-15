@@ -70,7 +70,7 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
     <aside class="sidebar" aria-label="Application navigation">
       <RouterLink class="wordmark" to="/workspace" aria-label="NeumuacFQ overview" title="NeumuacFQ overview">
         <span class="wordmark-icon" aria-hidden="true"><img src="/brand/neumuacfq-icon.png" alt="" @error="($event.target as HTMLImageElement).style.display='none'"/></span>
-        <span v-if="!sidebarCollapsed" class="wordmark-text"><strong>neumuacFQ</strong><small>CFTR evidence, connected.</small></span>
+        <span v-if="!sidebarCollapsed" class="wordmark-text"><strong>neumuacFQ</strong><small>CFTR research</small></span>
       </RouterLink>
       <button class="sidebar-toggle" type="button" aria-controls="primary-workspace-nav"
         :aria-expanded="!sidebarCollapsed"
@@ -85,12 +85,12 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
       </button>
       <div v-if="!sidebarCollapsed" class="sidebar-caption">WORKSPACES</div>
       <nav id="primary-workspace-nav" class="workspace-nav" aria-label="Workspaces">
-        <RouterLink v-for="(section, index) in availableSections" :key="section.path" :to="section.path"
+        <RouterLink v-for="section in availableSections" :key="section.path" :to="section.path"
           :aria-label="section.name" :title="sidebarCollapsed ? section.name : undefined"
           :class="{ 'variant-route-active': section.path === '/variants' && route.path.startsWith('/variants/') }">
           <svg class="nav-glyph" viewBox="0 0 24 24" width="21" height="21" fill="none"
             stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <template v-if="section.path === '/'">
+            <template v-if="section.path === '/workspace'">
               <rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/>
               <rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/>
               <rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/>
@@ -100,9 +100,14 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
               <path d="M7 3c11 5 11 13 0 18M17 3C6 8 6 16 17 21"/>
               <path d="M9 6h6M7.5 10h9M7.5 14h9M9 18h6"/>
             </template>
-            <template v-else><path d="M5 4h14M5 9h14M5 14h10M5 19h14"/></template>
+            <template v-else-if="section.path === '/genotype'">
+              <circle cx="8.5" cy="12" r="5.5"/><circle cx="15.5" cy="12" r="5.5"/>
+            </template>
+            <template v-else-if="section.path === '/intelligence'">
+              <path d="M4 20V11M10 20V5M16 20V14M22 20V9"/>
+            </template>
+            <template v-else><path d="M6 5h12M6 10h12M6 15h8M6 20h12"/></template>
           </svg>
-          <span v-if="!sidebarCollapsed" class="nav-index" aria-hidden="true">{{ String(index + 1).padStart(2, '0') }}</span>
           <span v-if="!sidebarCollapsed" class="nav-name">{{ section.name }}</span>
         </RouterLink>
       </nav>
@@ -115,12 +120,9 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
         </svg>
         <span v-if="!sidebarCollapsed" class="staff-link-name">Research administration <span aria-hidden="true">→</span></span>
       </RouterLink>
-      <p v-if="!sidebarCollapsed" class="sidebar-roadmap">Clinical review and reporting tools are in development.</p>
       <div v-if="!sidebarCollapsed" class="sidebar-base">
         <span class="sidebar-rule" aria-hidden="true"></span>
-        <strong>Research environment</strong>
-        <span>Modernization · read-only access</span>
-        <span>Clinical interpretation not migrated</span>
+        <span>Public research · Read only</span>
       </div>
     </aside>
 
@@ -132,9 +134,9 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
             <span class="hamburger" aria-hidden="true">☰</span>
             <span>{{ mobileMenuOpen ? 'Close menu' : 'Workspaces' }}</span>
           </button>
-          <span class="header-path">NEUMUACFQ <span aria-hidden="true">/</span> <strong>{{routeName}}</strong></span>
+          <span class="header-path"><span class="header-path-context">Research</span><span class="header-separator" aria-hidden="true">/</span><strong>{{routeName}}</strong></span>
         </div>
-        <button type="button" class="workspace-launcher-trigger" @click="openLauncher" aria-label="Open workspace switcher"><span>Search workspaces</span><kbd>Ctrl K</kbd></button>
+        <button type="button" class="workspace-launcher-trigger" @click="openLauncher" aria-label="Open workspace switcher"><span>Switch workspace</span><kbd>Ctrl K</kbd></button>
         <div class="header-environment" :class="{ 'preview-environment': !sourceConfigured }" role="status">
           <span class="environment-dot" aria-hidden="true"></span>
           <template v-if="!sourceConfigured"><span>Live variant source · configuration pending</span></template>
@@ -175,8 +177,8 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
         <RouterView />
       </main>
       <footer class="page-footer">
-        <span>NeumuacFQ · Research software architecture</span>
-        <span>{{ sourceConfigured ? 'Controlled research access · under verification' : 'Public catalog · snapshot available' }}</span>
+        <span>neumuacFQ · CFTR research</span>
+        <span>{{ sourceConfigured ? 'Research information · not clinically validated' : 'Research access · source configuration pending' }}</span>
       </footer>
     </div>
   </div>
