@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, onUnmounted } from 'vue';
+import { computed, nextTick, ref, watch, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {authController,authSessionProvider} from '../services/authSession';
 import {explainTextMatch,rankVisibleSearchPage} from '../domain/searchPresentation';
@@ -93,6 +93,19 @@ watch(selected,()=>{showReferences.value=false;});
 const page=ref(typeof route.query.page==='string'&&/^\d{1,4}$/.test(route.query.page)?Number(route.query.page):0);
 const displayedRows=computed(()=>sort.value==='name-asc'&&page.value===0?rankVisibleSearchPage(rows.value,search.value):rows.value);
 const activeResultIndex=ref(-1);
+const previewCandidate=computed(()=>selected.value||detailBusy.value||route.params.id?null:
+    (displayedRows.value[activeResultIndex.value]??(search.value.trim()?displayedRows.value[0]:null)??null));
+let revealNextId:string|null=null;
+async function revealSelectedOnMobile(id:string):Promise<void>{
+ if(revealNextId!==id)return;
+ revealNextId=null;
+ await nextTick();
+ if(route.params.id!==id || !window.matchMedia('(max-width: 760px)').matches)return;
+ const target=document.querySelector<HTMLElement>('.record-overview');
+ if(!target)return;
+ const prefersReducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ target.scrollIntoView({behavior:prefersReducedMotion?'instant':'smooth',block:'start'});
+}
 watch(displayedRows,()=>{activeResultIndex.value=-1;});
 function matchExplanation(record:RealVariant):string{return explainTextMatch(record,search.value)?.label||'Recorded variant';}
 function focusResult(index:number):void{const items=document.querySelectorAll<HTMLButtonElement>('.record-list button');if(!items.length)return;const next=(index+items.length)%items.length;activeResultIndex.value=next;items[next]?.focus();}
@@ -130,6 +143,7 @@ async function resolveSearch():Promise<void>{
    const hit=await source.resolveExact(text,classFilter.value as 'all'|'I'|'II'|'III'|'IV'|'V'|'VI'|'unclassified',abort.signal);
    if(run!==exactSequence||abort.signal.aborted||search.value.trim()!==text)return;
    if(hit && route.params.id!==hit.id){
+     revealNextId=hit.id;
      exactMatchState.value='Exact recorded identity found — dossier opened automatically.';
      void router.replace({path:'/variants/'+encodeURIComponent(hit.id),query:{...route.query,q:text}});
    }
@@ -140,7 +154,10 @@ async function loadDetail(id:unknown):Promise<void>{
   selected.value=null;
   if(typeof id!=='string'||!source)return;
   const abort=new AbortController();detailRequest=abort;detailBusy.value=true;
-  try {const record=await source.get(id,abort.signal);if(run===detailSequence)selected.value=record;}
+  try {const record=await source.get(id,abort.signal);if(run===detailSequence){
+    selected.value=record;
+    if(record)void revealSelectedOnMobile(id);
+  }}
   catch(e){if(!abort.signal.aborted&&run===detailSequence)error.value=formatReadStatus(e);}
   finally {if(run===detailSequence)detailBusy.value=false;}
 }
@@ -171,7 +188,10 @@ function onResultKeydown(event:KeyboardEvent,index:number):void{
  else if(event.key==='End'){event.preventDefault();focusResult(displayedRows.value.length-1);}
  else if(event.key==='Escape'){event.preventDefault();document.getElementById('search')?.focus();activeResultIndex.value=-1;}
 }
-function select(id:string):void{void router.push({path:'/variants/'+encodeURIComponent(id),query:{...route.query}});}
+function select(id:string):void{
+ revealNextId=id;
+ void router.push({path:'/variants/'+encodeURIComponent(id),query:{...route.query}});
+}
 </script>
 <template>
  <div class="page variant-page">
@@ -211,7 +231,7 @@ function select(id:string):void{void router.push({path:'/variants/'+encodeURICom
     <p v-if="busy" role="status">Loading public variant records…</p>
     <p v-else-if="error" role="alert" class="empty-result">{{ error }} <RouterLink v-if="error.includes('Sign in')" to="/sign-in">Sign in</RouterLink></p>
     <p v-else-if="!rows.length" role="status" class="empty-result">No variant records returned for this search. No demonstration records are substituted.</p>
-    <div v-else class="record-list" aria-label="Search results"><button v-for="(record,index) in displayedRows" :key="record.id" type="button" @keydown="onResultKeydown($event,index)" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span class="record-subline">{{ record.proteinName || record.cdnaName || 'Additional nomenclature not recorded' }}</span><span v-if="search.trim()" class="record-match-reason">{{matchExplanation(record)}}</span><span v-if="record.recordedClass" class="record-class">Class {{record.recordedClass}} · recorded</span><span v-if="record.validationCount!==null&&record.validationCount!==undefined" class="record-class">{{record.validationCount}} recorded validations</span><span class="record-bottom">Database record <span aria-hidden="true">→</span></span></button></div>
+    <div v-else class="record-list" aria-label="Search results"><button v-for="(record,index) in displayedRows" :key="record.id" type="button" @keydown="onResultKeydown($event,index)" @focus="activeResultIndex=index" @mouseenter="activeResultIndex=index" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span class="record-subline">{{ record.proteinName || record.cdnaName || 'Additional nomenclature not recorded' }}</span><span v-if="search.trim()" class="record-match-reason">{{matchExplanation(record)}}</span><span v-if="record.recordedClass" class="record-class">Class {{record.recordedClass}} · recorded</span><span v-if="record.validationCount!==null&&record.validationCount!==undefined" class="record-class">{{record.validationCount}} recorded validations</span><span class="record-bottom">Database record <span aria-hidden="true">→</span></span></button></div>
     <div class="pagination-controls"><button type="button" :disabled="busy||page===0" @click="page--">Previous</button><span>Page {{page+1}}</span><button type="button" :disabled="busy||!hasMore" @click="page++">Next</button></div>
    </section>
    <div class="record-content">
@@ -269,6 +289,21 @@ function select(id:string):void{void router.push({path:'/variants/'+encodeURICom
       <RouterLink class="variant-evidence-browse" to="/evidence">Browse the evidence register →</RouterLink>
      </section>
      <p class="history-disclaimer">Clinical assessment, private annotations and review history are not available in this view.</p></template>
+     <template v-else-if="previewCandidate">
+      <div class="research-preview" aria-label="Search result preview">
+       <span class="section-label">SEARCH PREVIEW · NOT OPENED</span>
+       <h2 id="selected-title">{{variantDisplayName(previewCandidate)}}</h2>
+       <p class="research-preview-intro">Recorded identity preview. Open the dossier for its scientific fields, references and history.</p>
+       <dl class="identity-grid">
+        <div><dt>Protein</dt><dd>{{previewCandidate.proteinName||'Not recorded'}}</dd></div>
+        <div><dt>cDNA</dt><dd>{{previewCandidate.cdnaName||'Not recorded'}}</dd></div>
+        <div><dt>Class (recorded)</dt><dd>{{previewCandidate.recordedClass||'Not recorded'}}</dd></div>
+        <div><dt>Recorded validations</dt><dd>{{previewCandidate.validationCount??'Not recorded'}}</dd></div>
+       </dl>
+       <button class="preview-open" type="button" @click="select(previewCandidate.id)">Open scientific dossier <span aria-hidden="true">→</span></button>
+       <p class="rail-caption">Textual match is not a clinical interpretation. Use ↑/↓ to explore results, Enter to open.</p>
+      </div>
+     </template>
      <template v-else><h2 id="selected-title">{{route.params.id?'Record unavailable':'Select a variant'}}</h2><p>{{route.params.id?'No accessible record was returned for this identifier.':'Choose a database record to view its available nomenclature.'}}</p></template>
     </article>
    </div>
