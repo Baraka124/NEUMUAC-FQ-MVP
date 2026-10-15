@@ -9,7 +9,8 @@ const route = useRoute();
 const router=useRouter();
 function goToShortcut(path:string){closeLauncher();void router.push(path);}
 const routeName = computed(() => availableSections.find(section => section.path===route.path || (section.path==='/variants'&&route.path.startsWith('/variants/')))?.name || (route.path==='/admin'?'Administration':route.path==='/sign-in'?'Staff sign-in':'Research workspace'));
-const isHome = computed(() => route.path==='/');
+const isHome = computed(() => route.path==='/workspace');
+const isOuterEntry = computed(() => route.path==='/' || route.path==='/sign-in');
 const mobileMenuOpen = ref(false);
 const launcherOpen=ref(false);
 const launcherQuery=ref('');
@@ -62,11 +63,12 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
 </script>
 
 <template>
-  <div class="app-frame" :class="{ 'sidebar-collapsed': sidebarCollapsed }" @keydown.esc="closeNavigation">
+  <div v-if="isOuterEntry" class="nfq-outer-shell"><a class="skip-link" href="#main">Skip to main content</a><RouterView /></div>
+  <div v-else class="app-frame" :class="{ 'sidebar-collapsed': sidebarCollapsed }" @keydown.esc="closeNavigation">
     <a class="skip-link" href="#main">Skip to main content</a>
 
     <aside class="sidebar" aria-label="Application navigation">
-      <RouterLink class="wordmark" to="/" aria-label="NeumuacFQ overview" title="NeumuacFQ overview">
+      <RouterLink class="wordmark" to="/workspace" aria-label="NeumuacFQ overview" title="NeumuacFQ overview">
         <span class="wordmark-icon" aria-hidden="true"><img src="/brand/neumuacfq-icon.png" alt="" @error="($event.target as HTMLImageElement).style.display='none'"/></span>
         <span v-if="!sidebarCollapsed" class="wordmark-text"><strong>neumuacFQ</strong><small>CFTR evidence, connected.</small></span>
       </RouterLink>
