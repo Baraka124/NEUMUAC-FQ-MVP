@@ -4,17 +4,16 @@ import {researchWorkspaces,researchShortcuts} from '../domain/researchWorkspaces
 <template>
   <div class="page research-home">
     <header class="research-home-intro">
-      <div class="nfq-home-lockup"><img src="/brand/neumuacfq-logo.png" alt="neumuacFQ · CFTR evidence, connected." @error="($event.target as HTMLImageElement).style.display='none'" /></div>
-      <div class="eyebrow">CFTR RESEARCH / PUBLIC WORKSPACE</div>
+      <div class="eyebrow">PUBLIC RESEARCH WORKSPACE</div>
       <h1>CFTR variant research</h1>
-      <p class="intro">A governed environment for examining recorded variant identities and, as verified services become available, their scientific evidence. The public workspace supports live read-only variant exploration, linked source references, variant-pair comparison, and research evidence-coverage review.</p>
+      <p class="intro">Search recorded variants, review linked references, compare two variant records and examine evidence coverage. Public access is read-only.</p>
     </header>
 
     <section class="research-entry" aria-labelledby="research-entry-title">
       <div class="research-entry-main">
         <div class="section-label">RESEARCH INDEX</div>
         <h2 id="research-entry-title">Variant records</h2>
-        <p>Search recorded CFTR variant identities from the live source. No example or synthetic records are substituted.</p>
+        <p>Search recorded variant names, HGVS notation and aliases.</p>
         <RouterLink class="research-entry-link" to="/variants">Explore variant records <span aria-hidden="true">→</span></RouterLink>
       </div>
       <aside class="research-entry-aside" aria-label="Current capability">
@@ -24,7 +23,7 @@ import {researchWorkspaces,researchShortcuts} from '../domain/researchWorkspaces
           <div><dt>Sources and evidence</dt><dd>Recorded references; claims unverified</dd></div>
           <div><dt>Variant-pair research</dt><dd>Exploratory; no clinical predictions</dd></div><div><dt>Editing and curation</dt><dd>Not yet available</dd></div>
         </dl>
-        <p>These availability statements describe the modern workspace, not the existing legacy application.</p>
+        <p></p>
       </aside>
     </section>
     <section class="research-workbench-index" aria-labelledby="workbench-title">
