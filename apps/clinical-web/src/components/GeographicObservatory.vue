@@ -27,7 +27,7 @@ function changeScope(value:Scope){scope.value=value;selected.value=null;listMode
    <div class="geo-head-copy">
     <p class="geo-kicker">RESEARCH ATLAS · SPAIN FIRST</p>
     <h2>Regional exploration</h2>
-    <p>Explore Spain by autonomous community. Geographic activity remains separate from the identity of researchers or patients.</p>
+    <p>Explore Spain's autonomous communities and cities.</p>
    </div>
    <span class="geo-access-status" role="status"><span aria-hidden="true" class="geo-status-dot"></span>Aggregate data pending verification</span>
   </header>
@@ -47,14 +47,14 @@ function changeScope(value:Scope){scope.value=value;selected.value=null;listMode
 
   <div class="geo-context" aria-live="polite">
    <span>{{lensDescription}}</span>
-   <span>Historical searches include testing · Statistics not published</span>
+   <span>Historical records include tests · No statistics published</span>
   </div>
 
   <div class="geo-layout">
    <section class="geo-map-surface" aria-label="Regional atlas">
     <div class="geo-map-heading">
      <div><strong>{{scope==='spain'?'Spain':'International overview'}}</strong><span>{{scope==='spain'?'17 communities · 2 autonomous cities':'Country-level data pending'}}</span></div>
-     <span class="geo-map-hint">{{scope==='spain'?'Select a region':'No activity map yet'}}</span>
+     <span class="geo-map-hint">{{selectedRegion?selectedRegion.name+' selected':scope==='spain'?'Select a region':'Country-level data unavailable'}}</span>
     </div>
 
     <div v-if="scope==='spain'" class="geo-map-inner">
@@ -64,7 +64,7 @@ function changeScope(value:Scope){scope.value=value;selected.value=null;listMode
        <option v-for="region in alphabeticalRegions" :key="region.code" :value="region.code">{{region.name}}</option>
       </select>
      </label>
-     <svg viewBox="0 0 690 525" role="img" aria-label="Selectable map of Spain, its autonomous communities and cities. Administrative boundaries only, without individual searches or activity statistics." preserveAspectRatio="xMidYMid meet">
+     <svg viewBox="0 0 690 525" role="group" aria-label="Selectable map of Spain, its autonomous communities and cities. Administrative boundaries only, without individual searches or activity statistics." preserveAspectRatio="xMidYMid meet">
       <title>Spain · autonomous communities and cities</title>
       <rect x="0" y="0" width="690" height="525" fill="#f9fbf9"/>
       <g fill="#e7eee8" stroke="#abc0ae" stroke-width="1.05" stroke-linejoin="round">
@@ -92,14 +92,14 @@ function changeScope(value:Scope){scope.value=value;selected.value=null;listMode
     </div>
     <footer class="geo-map-foot">
      <span class="geo-legend"><span class="geo-legend-swatch" aria-hidden="true"></span>Regional boundaries</span>
-     <span>No search coordinates displayed</span>
+     <span>Individual search locations are never shown</span>
     </footer>
    </section>
 
-   <aside id="geo-region-detail" class="geo-region-insight" aria-label="Selected geographic detail" aria-live="polite">
+   <aside id="geo-region-detail" class="geo-region-insight" aria-label="Selected geographic detail">
     <p class="geo-kicker">{{lens==='geography'?'GEOGRAPHIC VIEW':lens==='institutions'?'INSTITUTIONAL VIEW':'RESEARCH GAP VIEW'}}</p>
-    <div class="geo-insight-heading"><h3>{{selectedRegion?.name||(scope==='spain'?'Choose a region':'International overview')}}</h3><button v-if="selectedRegion" class="geo-clear-selection" type="button" @click="clearSelection">Clear selection</button></div>
-    <p class="geo-insight-intro">{{selectedRegion?'Selected region · '+selectedRegion.name:scope==='spain'?'Select on the map or use the region selector.':'Data will be displayed by country when available.'}}</p>
+    <div class="geo-insight-heading"><h3 aria-live="polite">{{selectedRegion?.name||(scope==='spain'?'Choose a region':'International overview')}}</h3><button v-if="selectedRegion" class="geo-clear-selection" type="button" @click="clearSelection">Clear selection</button></div>
+    <p class="geo-insight-intro">{{selectedRegion?'Regional research activity is not yet available.':scope==='spain'?'Select a region to inspect its research-data status.':'Data will be displayed by country when available.'}}</p>
     <dl class="geo-insight-data">
      <div><dt>Qualified searches</dt><dd>—</dd></div>
      <div><dt>Matches / misses</dt><dd>—</dd></div>
@@ -107,7 +107,7 @@ function changeScope(value:Scope){scope.value=value;selected.value=null;listMode
     </dl>
     <div class="geo-insight-note">
      <strong>What the map represents</strong>
-     <p>Regions are reference boundaries, not patient locations. Scientific demand cannot be inferred from unverified search events.</p>
+     <p>Boundaries do not identify patients or institutions. Unverified searches cannot establish clinical demand.</p>
     </div>
    </aside>
   </div>
@@ -123,7 +123,7 @@ function changeScope(value:Scope){scope.value=value;selected.value=null;listMode
     </button>
    </div>
   </section>
-  <p class="geo-safety-note">Public map · Administrative boundaries only. Validated geographic aggregates are not yet connected.</p>
+  <p class="geo-safety-note">Public geographic reference · Research aggregates are not yet published.</p>
  </section>
 </template>
 
