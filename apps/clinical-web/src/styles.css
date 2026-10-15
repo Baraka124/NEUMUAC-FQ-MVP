@@ -684,3 +684,27 @@ main{background:#fbfcfa}
 .variant-page .research-history-section,.variant-page .variant-evidence-links{border-top:1px solid #e2ebe5;margin-top:18px;padding-top:17px}
 .variant-page .nfq-details-trigger{min-height:40px}
 @media(max-width:760px){.variant-page .nfq-mobile-return{display:inline-flex;margin:0 0 5px}.variant-page .nfq-dossier-identity{gap:8px}.variant-page .nfq-dossier-primary{padding-bottom:12px}}
+
+/* UI Phase 4 · fixed navigation controls, quiet internal scroll, no horizontal bleed */
+@media(min-width:761px){
+ .app-frame>.sidebar{position:sticky;top:0;height:100dvh;min-height:0;overflow:visible;padding:0;display:block;z-index:11}
+ .sidebar-scroll{display:flex;flex-direction:column;height:100%;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;scrollbar-width:none;padding:21px 14px 20px}
+ .sidebar-scroll::-webkit-scrollbar{display:none}
+ .sidebar>.sidebar-toggle{position:absolute;top:86px;right:-15px;z-index:15;flex-shrink:0}
+ .sidebar-collapsed .sidebar-scroll{padding:20px 10px}
+ .sidebar-collapsed .sidebar>.sidebar-toggle{right:-15px}
+ .sidebar .wordmark{flex-shrink:0}
+ .sidebar .workspace-nav,.sidebar .staff-access-link{flex-shrink:0}
+ .sidebar .sidebar-base{margin-top:auto;flex-shrink:0}
+ .app-frame{min-width:0}
+ .workspace-frame{min-width:0}
+}
+@media(min-width:761px){
+ .variant-page .record-rail{position:sticky;top:76px;max-height:calc(100dvh - 94px);min-height:0;overflow:hidden;display:flex;flex-direction:column}
+ .variant-page .record-rail>.record-list{min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;scrollbar-width:none}
+ .variant-page .record-rail>.record-list::-webkit-scrollbar{display:none}
+ .variant-page .record-rail .rail-topline,.variant-page .record-rail .discovery-input,.variant-page .record-rail .discovery-filters{flex-shrink:0}
+ .variant-page .record-rail{scrollbar-width:none}
+ .variant-page .record-rail::-webkit-scrollbar{display:none}
+}
+@media(max-width:760px){.sidebar-scroll{display:contents}.variant-page .record-rail{position:static;max-height:none;overflow:visible;display:block}.variant-page .record-rail>.record-list{max-height:none;overflow:visible}}
