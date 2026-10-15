@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, watch, onUnmounted } from 'vue';
+import { computed, ref, watch, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {authController,authSessionProvider} from '../services/authSession';
-import {unambiguousExactMatch} from '../domain/instantMatch';
+import {explainTextMatch,rankVisibleSearchPage} from '../domain/searchPresentation';
 
 import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
 import {createScientificDossierSource,type ScientificDossier} from '../services/scientificDossier';
@@ -27,6 +27,7 @@ let evidenceAbort:AbortController|null=null;
 let configError='';
 try { if(config) source=createReadOnlyRepository(config,fetch,authSessionProvider); } catch(e){configError=formatReadStatus(e);}
 const rows=ref<readonly RealVariant[]>([]);
+
 const selected=ref<RealVariant|null>(null);
 const researchHistory=ref<ResearchHistory|null>(null);
 const historyError=ref('');
@@ -90,6 +91,11 @@ const showAdvanced=ref(classFilter.value!=='all'||sort.value!=='name-asc'||searc
 const showReferences=ref(false);
 watch(selected,()=>{showReferences.value=false;});
 const page=ref(typeof route.query.page==='string'&&/^\d{1,4}$/.test(route.query.page)?Number(route.query.page):0);
+const displayedRows=computed(()=>sort.value==='name-asc'&&page.value===0?rankVisibleSearchPage(rows.value,search.value):rows.value);
+const activeResultIndex=ref(-1);
+watch(displayedRows,()=>{activeResultIndex.value=-1;});
+function matchExplanation(record:RealVariant):string{return explainTextMatch(record,search.value)?.label||'Recorded variant';}
+function focusResult(index:number):void{const items=document.querySelectorAll<HTMLButtonElement>('.record-list button');if(!items.length)return;const next=(index+items.length)%items.length;activeResultIndex.value=next;items[next]?.focus();}
 const hasMore=ref(false);
 const busy=ref(false);
 const detailBusy=ref(false);
@@ -155,8 +161,15 @@ function updateWorklistRoute():void {
 watch([search,classFilter,sort,searchMode,page],updateWorklistRoute);
 function onSearchKeydown(event:KeyboardEvent):void{
  if(event.key==='Escape'){search.value='';return;}
- if(event.key==='ArrowDown'){event.preventDefault();document.querySelector<HTMLButtonElement>('.record-list button')?.focus();}
- if(event.key==='Enter'&&rows.value.length){event.preventDefault();select(rows.value[0].id);}
+ if(event.key==='ArrowDown'){event.preventDefault();focusResult(0);}
+ if(event.key==='Enter'&&displayedRows.value.length){event.preventDefault();select(displayedRows.value[0].id);}
+}
+function onResultKeydown(event:KeyboardEvent,index:number):void{
+ if(event.key==='ArrowDown'){event.preventDefault();focusResult(index+1);}
+ else if(event.key==='ArrowUp'){event.preventDefault();if(index===0){document.getElementById('search')?.focus();activeResultIndex.value=-1;}else focusResult(index-1);}
+ else if(event.key==='Home'){event.preventDefault();focusResult(0);}
+ else if(event.key==='End'){event.preventDefault();focusResult(displayedRows.value.length-1);}
+ else if(event.key==='Escape'){event.preventDefault();document.getElementById('search')?.focus();activeResultIndex.value=-1;}
 }
 function select(id:string):void{void router.push({path:'/variants/'+encodeURIComponent(id),query:{...route.query}});}
 </script>
@@ -198,7 +211,7 @@ function select(id:string):void{void router.push({path:'/variants/'+encodeURICom
     <p v-if="busy" role="status">Loading public variant records…</p>
     <p v-else-if="error" role="alert" class="empty-result">{{ error }} <RouterLink v-if="error.includes('Sign in')" to="/sign-in">Sign in</RouterLink></p>
     <p v-else-if="!rows.length" role="status" class="empty-result">No variant records returned for this search. No demonstration records are substituted.</p>
-    <div v-else class="record-list" aria-label="Search results"><button v-for="record in rows" :key="record.id" type="button" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span class="record-subline">{{ record.proteinName || record.cdnaName || 'Additional nomenclature not recorded' }}</span><span v-if="record.recordedClass" class="record-class">Class {{record.recordedClass}} · recorded</span><span v-if="record.validationCount!==null&&record.validationCount!==undefined" class="record-class">{{record.validationCount}} recorded validations</span><span class="record-bottom">Database record <span aria-hidden="true">→</span></span></button></div>
+    <div v-else class="record-list" aria-label="Search results"><button v-for="(record,index) in displayedRows" :key="record.id" type="button" @keydown="onResultKeydown($event,index)" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span class="record-subline">{{ record.proteinName || record.cdnaName || 'Additional nomenclature not recorded' }}</span><span v-if="search.trim()" class="record-match-reason">{{matchExplanation(record)}}</span><span v-if="record.recordedClass" class="record-class">Class {{record.recordedClass}} · recorded</span><span v-if="record.validationCount!==null&&record.validationCount!==undefined" class="record-class">{{record.validationCount}} recorded validations</span><span class="record-bottom">Database record <span aria-hidden="true">→</span></span></button></div>
     <div class="pagination-controls"><button type="button" :disabled="busy||page===0" @click="page--">Previous</button><span>Page {{page+1}}</span><button type="button" :disabled="busy||!hasMore" @click="page++">Next</button></div>
    </section>
    <div class="record-content">
