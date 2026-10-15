@@ -454,3 +454,5 @@ main{background:#fbfcfa}
 .clinvar-verification-head button{min-height:38px}
 .clinvar-verification .identity-grid{margin-top:1rem}
 @media(max-width:600px){.clinvar-verification-head button{width:100%}}
+
+.discovery-notation-guidance{font-size:.78rem;line-height:1.5;color:var(--muted,#57696b);margin:.5rem 0 .3rem;max-width:65ch}
