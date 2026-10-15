@@ -15,6 +15,19 @@ Historic production schema observed 2026-10-15:
 
 Never quietly attribute a traveller's device position to their home institution or conflate a hospital coordinate with the search event's coordinate.
 
+## Spain-first geographic framing
+
+**Primary map geography: Spain.** This is the platform's design/home focus and default viewport; it is **not** evidence that all searchers or institutions are Spanish, nor authorization to geolocate the visitor.
+
+- On first arrival to the Geography tab, open a calm **Spain map** with its **17 autonomous communities**, plus **Ceuta and Melilla**, rather than a world map at maximum zoom. Include the **Canary Islands in a clearly identified inset** so they remain selectable; ensure Balearic Islands remain readable. No invented point locations.
+- Each autonomous community is an aggregate region, not a pin. Clicking Andalucía, Galicia, Madrid, etc. updates the same insight panel and linked accessible region table. Do not divide communities into provinces/cities unless independently validated, privacy-safe data and adequate denominators warrant that detail.
+- Keep a modest **Spain / International** geographic-scope control. International should show a country-level world overview; preserve unknown country as its own explicit group. Users must not have to hunt through the sidebar to change scope.
+- Do not hardcode national population, institution distribution or research prevalence assumptions. Use official territorial boundaries, stable country/region codes, and consistent treatment of autonomous cities and islands.
+- For Institution mode, Spain can be the default *filter*, but only verified institutional membership establishes affiliation. A clinician from Andalucía searching while travelling in Galicia contributes, at most, one event to appropriately qualified event geography and a separately attributed institutional view; no double-counting in the total.
+- Historic country fields currently contain **816 Spain-labeled search events, 2 Tanzania-labeled and 213 unclassified**. Those counts are not the same as verified country-of-origin, hospital affiliation or clinical demand, and historical internal tests must not be promoted into real-world demand statistics.
+- Do not pre-center a globe on a user's IP-derived location. Spain is a product default, not a personally inferred user location.
+- Desktop: Spain choropleth and a contextual region panel. Mobile: Spanish regions accessible through an equivalent sortable/selectable list plus a compact map. The selected metric, period and privacy controls apply consistently to both.
+
 ## 2. Primary user question and information hierarchy
 
 The primary question is **where are users encountering gaps in the platform's recorded CFTR variant coverage, and how is that changing?** Secondary questions: what proportion of queries match the catalog, whether data are representative, and which unresolved queries warrant curator investigation.
