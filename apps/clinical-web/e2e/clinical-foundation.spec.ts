@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test('real-data-only boundary, navigation and horizontal containment', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/#/workspace');
   await expect(page.getByRole('heading', { name: 'CFTR variant research', exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Explore variant records' })).toHaveAttribute('href', '#/variants');
   const capabilities = page.getByRole('complementary', { name: 'Current capability' });
@@ -50,7 +50,7 @@ test('reserved workspaces do not imply clinical functionality', async ({ page })
 });
 
 test('keyboard skip target remains accessible', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/#/workspace');
   await page.keyboard.press('Tab');
   await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused();
   await page.keyboard.press('Enter');
@@ -152,7 +152,7 @@ test('Phase 3A responsive navigation and scientific layout at additional widths'
 test('Phase 3B light institutional shell stays legible and usable across viewports',async({page})=>{
  for(const width of [320,390,768,1366]){
   await page.setViewportSize({width,height:860});
-  await page.goto('/');
+  await page.goto('/#/workspace');
   await expect(page.getByRole('heading',{name:'CFTR variant research',exact:true})).toBeVisible();
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
   if(width>760){
@@ -169,7 +169,7 @@ test('Phase 3B light institutional shell stays legible and usable across viewpor
 });
 
 test('Phase 3C research workbench exposes shortcuts and preserves variant worklist',async({page})=>{
- await page.goto('/');
+ await page.goto('/#/workspace');
  await expect(page.getByRole('heading',{name:'Continue your research'})).toBeVisible();
  await expect(page.getByRole('link',{name:/Open Class I variant worklist/})).toHaveAttribute('href','#/variants?class=I');
  await page.getByRole('button',{name:'Open workspace switcher'}).click();
@@ -234,5 +234,22 @@ test('Phase 3I filter chevron stays attached and pager is integrated',async({pag
   const buttons=await pager.locator('button').all();
   for(const button of buttons){const rect=await button.boundingBox();expect(rect?.height).toBeGreaterThanOrEqual(35);}
   await expect.poll(()=>page.locator('html').evaluate(e=>e.scrollWidth-e.clientWidth)).toBe(0);
+ }
+});
+
+test('outer landing offers clearly distinct public and staff paths without application navigation',async({page})=>{
+ for(const width of [320,390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/');
+  await expect(page.getByRole('heading',{name:/From variant records to/})).toBeVisible();
+  await expect(page.getByRole('link',{name:/Explore public research/})).toHaveAttribute('href','#/workspace');
+  await expect(page.getByRole('link',{name:/Sign in as research staff/})).toHaveAttribute('href','#/sign-in');
+  await expect(page.locator('.sidebar')).toHaveCount(0);
+  await expect(page.locator('.workspace-launcher-trigger')).toHaveCount(0);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+  await page.getByRole('link',{name:/Sign in as research staff/}).click();
+  await expect(page.getByRole('heading',{name:'Continue your research.'})).toBeVisible();
+  await expect(page.locator('.sidebar')).toHaveCount(0);
+  await expect(page.getByRole('link',{name:/Continue without signing in/})).toHaveAttribute('href','#/variants');
  }
 });
