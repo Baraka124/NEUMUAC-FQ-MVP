@@ -20,13 +20,13 @@
 | NFQ-002 | Application & identity | Institutional masthead and user context | Partial | Legacy masthead, curator/clinical/jurisdiction modes | Preserve context, responsive navigation and role-specific views |
 | NFQ-003 | Variant search | Variant list, paging and class filter | Partial | Legacy variant worklist; Vue live reads | Sort, class, data status, treatment references and paging reconcile with database |
 | NFQ-004 | Variant search | Nomenclature, HGVS and alias resolution | Partial | searchVariants, normalization, 52-case differential suite | Scientifically reviewed aliases, accurate ordering and negative controls |
-| NFQ-005 | Variant search | Compound, positional and fuzzy search | Not migrated | Legacy search scoring and structured queries | Independent differential and ambiguity tests across real nonidentifying variants |
+| NFQ-005 | Variant search | Compound, positional and fuzzy search | Partial | Phase 3J comma/semicolon OR discovery; positional and fuzzy unresolved | Independent differential and ambiguity tests across real nonidentifying variants |
 | NFQ-006 | Variant search | Search-miss feedback and queue | Not migrated | search_miss_queue, search logging | Bounded miss logging, privacy gates, triage and deduplicated queue |
 | NFQ-007 | Variant detail | Scientific variant dossier | Partial | Legacy detail; Vue field projection | Provenance, class, status, external authorities and completeness visible |
 | NFQ-008 | Variant detail | Nomenclature correction and history | Not migrated | Legacy editing and corrections | Approval, immutable before/after and rollback permission tests |
 | NFQ-009 | Scientific evidence | Reference list and provenance | Partial | evidence_links; Vue live source register | Full evidence types, provenance and source-link reliability verified |
 | NFQ-010 | Scientific evidence | Evidence scoring and confidence explanation | Not migrated | scoreEvidenceQuality / explanation | Versioned independent scientific rubric; no misleading probabilities |
-| NFQ-011 | Scientific evidence | ClinVar live federation and conflict display | Not migrated | Legacy fetchClinVarData | Authority, refresh date, outage and conflicts verified |
+| NFQ-011 | Scientific evidence | ClinVar live federation and conflict display | Partial | Phase 3K recorded ID links; Phase 3L on-demand official ESummary, no automated conflict reconciliation | Authority, refresh date, outage and conflicts verified |
 | NFQ-012 | Scientific evidence | CFTR2 curated authority and reference context | Not migrated | Legacy CFTR2/proxy integration | Licensing/provenance and authoritative variant linking approved |
 | NFQ-013 | Scientific evidence | Additional external scientific sources | Not migrated | NCBI, gnomAD, LOVD, trials and DOI links | Bounded connectors, rate-limits, source versions and safe fallbacks |
 | NFQ-014 | Classification | CFTR functional-class rules and subtype | Partial | variants class fields, cftr_class_rules | Versioned class interpretation and negative controls validated |
@@ -70,7 +70,8 @@
 - **2M-S:** live read-only quality metadata and historical validation/conflict summaries implemented as partial **NFQ-009, NFQ-010, NFQ-020, NFQ-021**; independent scoring and immutable audit verification remain outstanding.
 - **2M-T:** source-supported nomenclature/structured search parity **NFQ-004, NFQ-005**, resolving outstanding differential exceptions with review.
 - **2M-U:** approved contributor submission and validation workflow **NFQ-018..023, NFQ-036** (requires deployed server-side authorization).
-- **Later:** Helios, external federation, genotype interpretation, batch import, offline replay, trend analytics, ethics reporting, and background monitors remain explicit open requirements. None are dropped.
+- **3L:** ClinVar ESummary on-demand retrieval with recorded-ID and CFTR gene verification, explicit external provenance, no classification reconciliation or local writes; browser CORS/live acceptance still required.
+- **Later:** Helios, CFTR2/other external federation, condition-specific ClinVar reconciliation, genotype interpretation, batch import, offline replay, trend analytics, ethics reporting, and background monitors remain explicit open requirements. None are dropped.
 
 ## Working rules
 

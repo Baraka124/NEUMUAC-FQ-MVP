@@ -446,3 +446,11 @@ main{background:#fbfcfa}
 .discovery-page-current{flex:0 1 auto;font-size:12px;font-weight:650;white-space:nowrap;color:#476b55;text-align:center}
 @media(max-width:380px){.discovery-pagination button{padding-inline:6px;font-size:11px}.discovery-pagination{gap:3px}}
 @media(prefers-reduced-motion:reduce){.discovery-chevron{transition:none}}
+
+/* Phase 3L: external authority is visually distinct from locally recorded claims. */
+.clinvar-verification{margin-top:1rem;padding:1rem;border:1px solid var(--line, #d8e0df);border-radius:14px;background:rgba(235,245,244,.42)}
+.clinvar-verification-head{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}
+.clinvar-verification-head p{margin:.3rem 0 0}
+.clinvar-verification-head button{min-height:38px}
+.clinvar-verification .identity-grid{margin-top:1rem}
+@media(max-width:600px){.clinvar-verification-head button{width:100%}}
