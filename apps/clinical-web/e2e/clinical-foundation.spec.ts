@@ -356,12 +356,27 @@ test('public Spain map works without account and is accessible at mobile and des
   await page.setViewportSize({width,height:820});
   await page.goto('/#/geography');
   await expect(page.getByRole('heading',{name:'Geographic intelligence',exact:true})).toBeVisible();
-  await expect(page.getByRole('heading',{name:'Geographic search activity'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Regional exploration'})).toBeVisible();
   await expect(page.getByText('Aggregate data pending verification')).toBeVisible();
   await expect(page.locator('path.geo-region')).toHaveCount(19);
   await page.getByRole('button',{name:'Browse all regions'}).click();
   await page.locator('.geo-region-grid').getByRole('button',{name:/Andalucía/}).click();
   await expect(page.getByRole('heading',{name:'Andalucía'})).toBeVisible();
+  await page.getByRole('button',{name:/Hide region list/}).click();
+  await expect(page.getByRole('button',{name:/Browse all regions/})).toBeVisible();
   await expect.poll(()=>page.locator('html').evaluate(e=>e.scrollWidth-e.clientWidth)).toBe(0);
  }
+});
+
+test('regional map offers a direct accessible region selector on small screens',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await page.goto('/#/geography');
+ const selector=page.getByLabel('Choose a region');
+ await expect(selector).toBeVisible();
+ await selector.selectOption('12');
+ await expect(page.getByRole('heading',{name:'Galicia'})).toBeVisible();
+ await page.getByLabel('Scope').selectOption('international');
+ await expect(page.getByText('International overview',{exact:true}).first()).toBeVisible();
+ await page.getByRole('button',{name:'Return to Spain'}).click();
+ await expect(page.getByRole('heading',{name:'Choose a region'})).toBeVisible();
 });
