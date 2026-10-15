@@ -122,6 +122,7 @@ test('genotype is a real-record two-variant research workflow with no clinical i
 test('intelligence never substitutes partial or fabricated coverage data',async({page})=>{
  await page.goto('/#/intelligence');
  await expect(page.getByRole('heading',{name:'Research intelligence'})).toBeVisible();
+ await page.getByRole('button',{name:'Evidence coverage'}).click();
  await expect(page.getByRole('alert')).toContainText('Live research coverage connection is not configured');
  await expect(page.locator('.intelligence-record')).toHaveCount(0);
  await expect(page.locator('html')).toHaveJSProperty('scrollWidth',await page.locator('html').evaluate(e=>e.clientWidth));
@@ -352,8 +353,8 @@ test('Phase 4F Spain map is privacy gated, accessible and responsive',async({pag
   await expect(page.getByRole('region',{name:'Geographic research intelligence'})).toBeVisible();
   await expect(page.getByText('Activity values unavailable')).toBeVisible();
   await page.getByRole('button',{name:'Browse all regions'}).click();
-  await expect(page.getByRole('button',{name:/Andalucía/})).toBeVisible();
-  await page.getByRole('button',{name:/Andalucía/}).click();
+  await expect(page.locator('.geo-region-grid').getByRole('button',{name:/Andalucía/})).toBeVisible();
+  await page.locator('.geo-region-grid').getByRole('button',{name:/Andalucía/}).click();
   await expect(page.getByRole('heading',{name:'Andalucía'})).toBeVisible();
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
   await page.getByRole('button',{name:'Evidence coverage'}).click();
