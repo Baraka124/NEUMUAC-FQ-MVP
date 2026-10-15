@@ -247,11 +247,15 @@ test('outer landing offers clearly distinct public and staff paths without appli
   await page.goto('/');
   await expect(page.getByRole('heading',{name:'CFTR variant research'})).toBeVisible();
   await expect(page.getByRole('link',{name:/Explore public research/})).toHaveAttribute('href','#/workspace');
-  await expect(page.getByRole('link',{name:/Sign in as research staff/})).toHaveAttribute('href','#/sign-in');
+  await expect(page.getByRole('link',{name:/Sign in as research staff/})).toHaveCount(0);
+  await page.getByRole('button',{name:/Sign in/}).click();
+  await expect(page.getByRole('heading',{name:'Sign in',exact:true})).toBeVisible();
+  await expect(page.getByRole('status').getByText(/Account sign-in is not configured/)).toBeVisible();
+  await page.getByRole('button',{name:/Return to research tools/}).click();
   await expect(page.locator('.sidebar')).toHaveCount(0);
   await expect(page.locator('.workspace-launcher-trigger')).toHaveCount(0);
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
-  await page.getByRole('link',{name:/Sign in as research staff/}).click();
+  await page.goto('/#/sign-in');
   await expect(page.getByRole('heading',{name:'Continue your research.'})).toBeVisible();
   await expect(page.locator('.sidebar')).toHaveCount(0);
   await expect(page.getByRole('link',{name:/Continue without signing in/})).toHaveAttribute('href','#/variants');
@@ -311,8 +315,15 @@ test('institutional outer entry offers direct public and staff research paths',a
   await expect(page.getByRole('navigation',{name:'Research workspace capabilities'})).toHaveCount(0);
   await expect(page.getByRole('navigation',{name:'Research workspaces'})).toHaveCount(0);
   await expect(page.getByRole('link',{name:/Explore public research/})).toHaveAttribute('href','#/workspace');
-  await expect(page.getByRole('link',{name:/Sign in as research staff/})).toHaveAttribute('href','#/sign-in');
+  await expect(page.getByRole('button',{name:'Sign in',exact:true})).toHaveCount(1);
+  await expect(page.getByRole('link',{name:/Sign in as research staff/})).toHaveCount(0);
   await expect(page.getByRole('link',{name:/Variant records/})).toHaveAttribute('href','#/variants');
+  await page.getByRole('button',{name:'Sign in',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'Sign in',exact:true})).toBeVisible();
+  await expect(page.locator('#nfq-portal-account')).toBeVisible();
+  await expect(page.getByRole('button',{name:'Research tools',exact:true})).toHaveAttribute('aria-expanded','true');
+  await page.getByRole('button',{name:/Return to research tools/}).click();
+  await expect(page.getByRole('link',{name:/Variant records/})).toBeVisible();
   await expect(page.locator('.sidebar')).toHaveCount(0);
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
