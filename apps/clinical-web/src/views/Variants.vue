@@ -2,6 +2,7 @@
 import { computed, nextTick, ref, watch, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import VariantFilterPanel from '../components/VariantFilterPanel.vue';
+import {cftr2LinkedReferences} from '../domain/externalReferenceTypes';
 import {authController,authSessionProvider} from '../services/authSession';
 import {explainTextMatch,rankVisibleSearchPage} from '../domain/searchPresentation';
 import {assessScientificDiscovery} from '../domain/compoundDiscovery';
@@ -47,6 +48,7 @@ async function checkClinVar():Promise<void>{
 
 const linkedEvidence=ref<readonly LiveEvidenceReference[]>([]);
 const evidenceReady=ref(false);
+const cftr2References=computed(()=>cftr2LinkedReferences(linkedEvidence.value));
 const evidenceError=ref('');
 let evidenceAbort:AbortController|null=null;
 
@@ -363,6 +365,11 @@ function select(id:string):void{
      </section>
      <section v-if="scientificDetailsOpen" class="variant-evidence-links" aria-label="Scientific references">
       <h3 class="nfq-dossier-group-title">References</h3>
+      <div v-if="evidenceReady&&cftr2References.length" class="nfq-external-register" aria-label="CFTR2 source links">
+       <span class="section-label">CFTR2 · LINKED REFERENCES</span>
+       <p>External CFTR2 links exist for this variant. Their contents and scientific conclusions have not been verified here.</p>
+       <ul><li v-for="item in cftr2References" :key="item.id"><a :href="item.url" rel="noopener noreferrer" target="_blank">{{item.title}} ↗</a></li></ul>
+      </div>
       <button class="disclosure-button" type="button" :disabled="!evidenceReady" :aria-expanded="showReferences" aria-controls="variant-reference-list" @click="showReferences=!showReferences"><span>{{showReferences?'Hide references':'Show references'}} · {{evidenceReady?linkedEvidence.length:evidenceError?'Unavailable':'Loading…'}}</span><span aria-hidden="true">{{showReferences?'−':'+'}}</span></button>
       <p v-if="evidenceError" role="alert" class="rail-caption">{{evidenceError}}</p>
       <p v-else-if="evidenceReady&&!linkedEvidence.length" class="rail-caption">No source links returned from this register; published evidence has not been assessed.</p>
