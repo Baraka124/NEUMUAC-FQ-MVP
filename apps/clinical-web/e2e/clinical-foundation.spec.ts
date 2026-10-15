@@ -209,3 +209,30 @@ test('Phase 3H compact variant rail hides instructions until requested',async({p
  await expect(page.locator('#class-filter')).toBeVisible();
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
+
+test('Phase 3I filter chevron stays attached and pager is integrated',async({page})=>{
+ for(const width of [320,390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/variants');
+  const summary=page.locator('.discovery-filters summary');
+  const label=summary.locator('.discovery-filter-label');
+  const chevron=summary.locator('.discovery-chevron');
+  await expect(summary).toBeVisible();
+  await expect(chevron).toBeVisible();
+  const a=await label.boundingBox(),b=await chevron.boundingBox();
+  expect(a).not.toBeNull();expect(b).not.toBeNull();
+  expect(Math.abs((a!.y+a!.height/2)-(b!.y+b!.height/2))).toBeLessThan(6);
+  expect(b!.x).toBeGreaterThanOrEqual(a!.x+a!.width);
+  await summary.click();
+  await expect(page.locator('#class-filter')).toBeVisible();
+  await summary.click();
+  await expect(page.locator('#class-filter')).not.toBeVisible();
+  const pager=page.getByRole('navigation',{name:'Variant result pages'});
+  await expect(pager).toBeVisible();
+  await expect(pager.getByText('Page 1')).toBeVisible();
+  await expect(pager.getByRole('button',{name:'Previous variant page'})).toBeDisabled();
+  const buttons=await pager.locator('button').all();
+  for(const button of buttons){const rect=await button.boundingBox();expect(rect?.height).toBeGreaterThanOrEqual(35);}
+  await expect.poll(()=>page.locator('html').evaluate(e=>e.scrollWidth-e.clientWidth)).toBe(0);
+ }
+});
