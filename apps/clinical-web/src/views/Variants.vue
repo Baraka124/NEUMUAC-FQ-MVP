@@ -269,6 +269,10 @@ function select(id:string):void{
       </div>
       <span class="record-total" aria-label="Results on this page">{{rows.length}} results</span>
     </div>
+    <RouterLink class="regional-research-link" to="/intelligence?view=geography&scope=spain" aria-label="Explore aggregated geographic research activity for Spain">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m3 6 6-2 6 2 6-2v14l-6 2-6-2-6 2zM9 4v14M15 6v14"/></svg>
+      <span>Regional research activity</span><span aria-hidden="true">↗</span>
+    </RouterLink>
     <div v-if="showSearchInfo" id="discovery-search-help" class="discovery-help" role="note">
       Search updates while typing. Separate up to four recorded variant identifiers with commas or semicolons for OR search. A single unambiguous exact identity opens its dossier automatically. Filters and scientific labels reflect database records, not independently validated clinical conclusions.
     </div>
