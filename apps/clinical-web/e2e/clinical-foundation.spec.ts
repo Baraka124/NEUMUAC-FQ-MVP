@@ -340,3 +340,13 @@ test('UI Phase 4 keeps collapse control outside the scrolling sidebar',async({pa
   await expect(page.getByRole('button',{name:/Collapse sidebar|Expand sidebar/})).toBeVisible();
  }
 });
+
+test('Regional research link is quiet and shares no variant or location metadata',async({page})=>{
+ await page.goto('/#/variants?q=G551D');
+ const link=page.getByRole('link',{name:'Explore aggregated geographic research activity for Spain'});
+ await expect(link).toBeVisible();
+ await expect(link).toHaveAttribute('href','#/intelligence?view=geography&scope=spain');
+ await link.click();
+ await expect(page).toHaveURL(/#\/intelligence\?view=geography&scope=spain$/);
+ await expect(page.getByRole('heading',{name:'Research intelligence'})).toBeVisible();
+});
