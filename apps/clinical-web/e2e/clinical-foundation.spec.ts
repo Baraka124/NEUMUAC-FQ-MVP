@@ -340,3 +340,23 @@ test('UI Phase 4 keeps collapse control outside the scrolling sidebar',async({pa
   await expect(page.getByRole('button',{name:/Collapse sidebar|Expand sidebar/})).toBeVisible();
  }
 });
+
+test('Phase 4F Spain map is privacy gated, accessible and responsive',async({page})=>{
+ for(const width of [320,390,768,1024,1366]){
+  await page.setViewportSize({width,height:820});
+  await page.goto('/#/intelligence');
+  await expect(page.getByRole('heading',{name:'Geographic search activity'})).toBeVisible();
+  await expect(page.getByRole('img',{name:/Selectable map of the autonomous communities/})).toBeVisible();
+  await expect(page.getByText('Aggregate data pending verification')).toBeVisible();
+  await expect(page.getByRole('button',{name:'Geographic intelligence'})).toHaveAttribute('aria-pressed','true');
+  await expect(page.getByRole('region',{name:'Geographic research intelligence'})).toBeVisible();
+  await expect(page.getByText('Activity values unavailable')).toBeVisible();
+  await page.getByRole('button',{name:'Browse all regions'}).click();
+  await expect(page.getByRole('button',{name:/Andalucía/})).toBeVisible();
+  await page.getByRole('button',{name:/Andalucía/}).click();
+  await expect(page.getByRole('heading',{name:'Andalucía'})).toBeVisible();
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+  await page.getByRole('button',{name:'Evidence coverage'}).click();
+  await expect(page.getByRole('button',{name:'Evidence coverage'})).toHaveAttribute('aria-pressed','true');
+ }
+});
