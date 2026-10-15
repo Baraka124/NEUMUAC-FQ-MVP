@@ -80,3 +80,7 @@ Treat original references as historical source evidence, not proof a remote endp
 ## Phase 3M-A — exact notation identity guard
 
 NFQ-004 remains **Partial**. Exact automatic dossier opening and search-result explanation now preserve the molecular namespace prefixes `p.` and `c.` rather than treating them as equivalent to each other or to a bare alias. This is an engineering safety correction, not HGVS validation or source-backed synonym equivalence. No production data, database permissions or legacy search engine changed. Scientific notation characterization, transcript version review and negative controls remain required before broader normalization or fuzzy lookup can be enabled.
+
+## Phase 3M-B — scientific input boundary
+
+NFQ-004 and NFQ-005 remain **Partial**. User-facing live discovery now rejects unsafe allele/phase and predicted or uncertain HGVS syntax with contextual guidance before querying Supabase, while retaining supported comma/semicolon OR worklists and literal transcript-version-qualified searches. This is deliberately **not** an HGVS parser, a conversion or a clinical equivalence decision. No synthetic production data, database write or authorization change. Scientific-review and real endpoint acceptance are outstanding.
