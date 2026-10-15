@@ -528,6 +528,34 @@ main{background:#fbfcfa}
 @media(max-width:560px){.nfq-entry-header{min-height:78px}.nfq-entry-logo img{height:63px;width:165px}.nfq-entry-header-access{font-size:11px}.nfq-entry-main{padding-top:34px;padding-bottom:44px}.nfq-entry-copy h1{font-size:clamp(38px,11vw,51px)}.nfq-entry-paths{margin-top:29px}.nfq-entry-preview{padding:24px;min-height:360px}.nfq-entry-preview-mark{width:118px}.nfq-entry-footer{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.nfq-entry-paths a{transition:none}.nfq-entry-paths a:hover{transform:none}}
 
+/* Phase 3R · clinical-first variant hierarchy and compact discovery */
+.variant-page{padding-top:12px}
+.variant-page .variant-heading{align-items:center;margin:0 0 18px}
+.variant-page .variant-heading h1{font-size:clamp(27px,2.4vw,38px);margin:5px 0 5px;line-height:1.15}
+.variant-page .variant-heading .intro{font-size:13px;line-height:1.5;margin:0}
+.variant-page .fixture-stamp{margin:0;font-size:10px}
+.variant-page .record-rail{padding:clamp(14px,1.7vw,20px);max-height:none;overflow:visible;position:static}
+.variant-page .record-rail .rail-topline h2{font-size:19px;margin:5px 0}
+.variant-page .record-rail .rail-topline{margin-bottom:9px}
+.variant-page .record-list{gap:4px}
+.variant-page .record-list button{padding:10px 12px;min-height:0}
+.variant-page .record-list .record-subline{margin-top:3px}
+.variant-page .record-list .record-class{display:block;font-size:11px;margin-top:5px}
+.variant-page .record-list .record-match-reason{font-size:10px}
+.variant-page .record-overview{padding:clamp(18px,2.2vw,30px)}
+.variant-page .record-identity h2{margin:6px 0;font-size:clamp(26px,2.7vw,38px)}
+.variant-page .record-identity p{font-size:12px;line-height:1.55;margin:5px 0 10px}
+.variant-page .record-overview>.identity-grid{margin-top:16px}
+.nfq-primary-class{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:15px 0;border-bottom:1px solid var(--line)}
+.nfq-primary-class strong{font-size:18px;color:#174c3c}
+.variant-page .dossier-science{padding-top:8px;margin-top:17px}
+.nfq-scientific-toggle{font-size:14px;min-height:47px;color:#27634f}
+.nfq-scientific-toggle span:last-child{font-size:21px;font-weight:500}
+#nfq-secondary-science{padding:8px 0 10px}
+.variant-page .variant-export-actions{margin-top:13px}
+@media(min-width:761px){.variant-page .record-layout{align-items:start}.variant-page .record-rail{min-width:0}}
+@media(max-width:760px){.variant-page{padding-top:8px}.variant-page .variant-heading{margin-bottom:12px}.variant-page .variant-heading h1{font-size:29px}.variant-page .record-list{max-height:none;overflow:visible}.variant-page .record-rail{padding:14px}}
+
 /* Phase 3S · concise, functional public entry and internal overview. */
 .research-home{padding-top:clamp(12px,2vw,26px)}
 .research-home-intro{max-width:850px}
@@ -538,3 +566,15 @@ main{background:#fbfcfa}
 .nfq-entry-copy h1{font-size:clamp(39px,4.6vw,66px);max-width:760px;letter-spacing:-.055em}
 .nfq-entry-hero{gap:clamp(25px,5vw,85px)}
 @media(max-width:760px){.research-home{padding-top:9px}.research-home h1{font-size:32px}.nfq-entry-copy h1{font-size:clamp(36px,9vw,47px)}}
+
+/* Compact disclosure: secondary metadata should not act as a full-width section heading. */
+.variant-page .nfq-scientific-toggle{
+  display:inline-flex;width:auto;max-width:100%;align-items:center;justify-content:flex-start;
+  gap:12px;min-height:42px;margin:13px 0 3px;padding:9px 14px;
+  border:1px solid #cfdfd3;border-radius:8px;background:#f8fbf8;
+  color:#245944;font-size:13px;font-weight:650;text-align:left;
+}
+.variant-page .nfq-scientific-toggle:hover{background:#edf5ef;border-color:#a6c8b3}
+.variant-page .nfq-more-chevron{flex-shrink:0;transition:transform .18s ease}
+.variant-page .nfq-scientific-toggle[aria-expanded="true"] .nfq-more-chevron{transform:rotate(180deg)}
+@media(prefers-reduced-motion:reduce){.variant-page .nfq-more-chevron{transition:none}}

@@ -23,7 +23,7 @@ import {researchWorkspaces,researchShortcuts} from '../domain/researchWorkspaces
           <div><dt>Sources and evidence</dt><dd>Recorded references; claims unverified</dd></div>
           <div><dt>Variant-pair research</dt><dd>Exploratory; no clinical predictions</dd></div><div><dt>Editing and curation</dt><dd>Not yet available</dd></div>
         </dl>
-        <p></p>
+
       </aside>
     </section>
     <section class="research-workbench-index" aria-labelledby="workbench-title">
