@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import {computed,ref,onMounted,onUnmounted} from 'vue';
 import {RouterLink} from 'vue-router';
+import GeographicObservatory from '../components/GeographicObservatory.vue';
 import {readConfigFromEnvironment,variantDisplayName} from '../services/liveVariants';
 import {loadLiveCoverage,type CoverageReport} from '../services/liveCoverage';
+const intelligenceView=ref<'geography'|'coverage'>('geography');
 const report=ref<CoverageReport|null>(null),loading=ref(true),error=ref(''),filter=ref('unlinked'),query=ref(''),visible=ref(40);
 let abort:AbortController|null=null;
 const filtered=computed(()=>{
@@ -22,14 +24,21 @@ async function refresh(){
  catch{if(!abort.signal.aborted)error.value='The full coverage register could not be retrieved. No partial figures are displayed.';}
  finally{if(!abort.signal.aborted)loading.value=false;}
 }
-onMounted(()=>void refresh());
+onMounted(()=>{if(intelligenceView.value==='coverage')void refresh();});
+function activateCoverage(){intelligenceView.value='coverage';if(!report.value&&!loading.value)void refresh();else if(!report.value&&loading.value)void refresh();}
 onUnmounted(()=>abort?.abort());
 </script>
 <template>
  <div class="page intelligence-page">
-  <div class="eyebrow">CFTR RESEARCH / EVIDENCE COVERAGE</div>
+  <div class="eyebrow">CFTR RESEARCH / INTELLIGENCE</div>
   <h1>Research intelligence</h1>
-  <p class="intro">Assess the completeness of NeumuacFQ's recorded source links across the live variant catalog. This identifies documentation priorities, not gaps in published science or clinical evidence.</p>
+  <nav class="intelligence-lenses" aria-label="Research intelligence views">
+   <button type="button" :aria-pressed="intelligenceView==='geography'" @click="intelligenceView='geography'">Geographic intelligence</button>
+   <button type="button" :aria-pressed="intelligenceView==='coverage'" @click="activateCoverage">Evidence coverage</button>
+  </nav>
+  <GeographicObservatory v-if="intelligenceView==='geography'"/>
+  <div v-else class="intelligence-coverage-workspace">
+  <p class="intro">Assess the completeness of recorded source links across the live variant catalog. Missing links are documentation priorities, not proof of a gap in scientific literature.</p>
   <p v-if="loading" role="status">Retrieving the full live variant and source registers…</p>
   <p v-else-if="error" role="alert" class="empty-result">{{error}} <button type="button" @click="refresh">Retry</button></p>
   <template v-else-if="report">
@@ -57,5 +66,12 @@ onUnmounted(()=>abort?.abort());
    <section class="intelligence-sources"><h2>Recorded source distribution</h2><div v-for="source in report.bySource" :key="source.name"><span>{{source.name}}</span><strong>{{source.count}}</strong></div></section>
    <p class="history-disclaimer">A missing database link does not imply a lack of research, a negative finding, or a classification of a variant. Figures reflect a completed live fetch of the variant and evidence_links registers at the time this view loaded. Refresh to update.</p>
   </template>
+  </div>
  </div>
 </template>
+<style scoped>
+.intelligence-lenses{display:flex;align-items:center;gap:6px;margin:19px 0 24px;border-bottom:1px solid #dce7de;padding-bottom:10px;flex-wrap:wrap}
+.intelligence-lenses button{border:1px solid transparent;background:transparent;border-radius:6px;padding:9px 15px;font-size:13px;font-weight:650;color:#648071}
+.intelligence-lenses button[aria-pressed="true"]{background:#edf5ee;border-color:#cfe0d3;color:#235b43}
+.intelligence-coverage-workspace{min-width:0}
+</style>
