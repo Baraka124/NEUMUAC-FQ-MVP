@@ -303,11 +303,25 @@ function select(id:string):void{
    <div class="record-content">
     <article class="record-overview" aria-labelledby="selected-title">
      <p v-if="detailBusy" role="status">Loading record…</p>
-     <template v-else-if="selected"><div class="record-identity"><div><RouterLink class="record-return" :to="{path:'/variants',query:route.query}">← Back to results</RouterLink><div class="nfq-identity-title"><h2 id="selected-title">{{variantDisplayName(selected)}}</h2><span class="nfq-class-pill" v-if="dossier?.functionalClass||selected.recordedClass">Class {{dossier?.functionalClass||selected.recordedClass}}</span></div></div><span v-if="selected.id===exactMatchedId" class="discovery-exact-chip">Exact match</span></div><dl class="identity-grid"><div><dt>Legacy name</dt><dd>{{selected.legacyName||'Not recorded'}}</dd></div><div><dt>Protein notation</dt><dd>{{selected.proteinName||'Not recorded'}}</dd></div><div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div><div><dt>Recorded aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div></dl><div class="variant-export-actions" v-if="scientificDetailsOpen">
-      <button type="button" :disabled="briefBusy" @click="copyResearchBrief">{{briefBusy?'Preparing full research brief…':'Copy scientific research brief'}}</button>
-      <p role="status" v-if="briefStatus">{{briefStatus}}</p>
-      <p class="rail-caption">Copies current scientific fields and recorded reference links. No patient data, clinical report or treatment recommendations.</p>
-     </div><section class="dossier-science" aria-label="Recorded scientific classification">
+     <template v-else-if="selected">
+      <div class="nfq-dossier-primary">
+       <div class="record-identity">
+        <div>
+         <RouterLink class="record-return nfq-mobile-return" :to="{path:'/variants',query:route.query}">← Back to results</RouterLink>
+         <div class="nfq-identity-title">
+          <h2 id="selected-title">{{variantDisplayName(selected)}}</h2>
+          <span v-if="dossier?.functionalClass||selected.recordedClass" class="nfq-class-pill">Class {{dossier?.functionalClass||selected.recordedClass}}</span>
+         </div>
+        </div>
+        <span v-if="selected.id===exactMatchedId" class="discovery-exact-chip">Exact match</span>
+       </div>
+       <dl class="identity-grid nfq-dossier-identity" aria-label="Variant nomenclature">
+        <div><dt>Legacy name</dt><dd>{{selected.legacyName||'Not recorded'}}</dd></div>
+        <div><dt>Protein notation</dt><dd>{{selected.proteinName||'Not recorded'}}<small v-if="selected.proteinName?.trim()==='p.?'" class="nfq-unknown-consequence">Protein consequence unknown</small></dd></div>
+        <div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div>
+        <div><dt>Aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div>
+       </dl>
+      </div><section class="dossier-science" aria-label="Additional scientific record details">
       <p v-if="dossierError" role="alert">{{dossierError}}</p>
       <div class="nfq-details-control">
        <button type="button" class="nfq-details-trigger" :aria-expanded="scientificDetailsOpen" aria-controls="nfq-secondary-science" @click="scientificDetailsOpen=!scientificDetailsOpen">
@@ -315,17 +329,26 @@ function select(id:string):void{
         <span class="nfq-details-trigger-label">{{scientificDetailsOpen?'Hide additional details':'Show additional details'}}</span>
        </button>
       </div>
-      <div v-if="scientificDetailsOpen" id="nfq-secondary-science">
-      <p class="rail-caption">Recorded scientific fields are source descriptions, not independently verified clinical determinations.</p>
-      <dl v-if="dossier" class="identity-grid">
-       <div><dt>Class subtype</dt><dd>{{dossier.subtype||'Not recorded'}}</dd></div>
-       <div><dt>Recorded determination</dt><dd>{{dossier.recordedDetermination||'Not recorded'}}</dd></div>
-       <div><dt>Class confidence (recorded)</dt><dd>{{dossier.confidence||'Not recorded'}}</dd></div>
-       <div><dt>Source summary</dt><dd>{{dossier.sourceSummary||'Not recorded'}}</dd></div>
-       <div><dt>Data status</dt><dd>{{dossier.dataStatus||'Not recorded'}}</dd></div>
-       <div><dt>ClinVar authority</dt><dd><a v-if="clinVarVariationUrl(dossier.clinvarId)" :href="clinVarVariationUrl(dossier.clinvarId)!" target="_blank" rel="noopener noreferrer">Open recorded ClinVar entry ↗</a><span v-else>{{dossier.clinvarId?'Unrecognized recorded identifier':'Not recorded'}}</span></dd></div><div><dt>Recorded validations</dt><dd>{{dossier.validationCount??'Not recorded'}}</dd></div>
-       <div><dt>Last validation</dt><dd>{{dossier.lastValidatedAt||'Not recorded'}}</dd></div>
-      </dl>
+      <div v-show="scientificDetailsOpen" id="nfq-secondary-science" class="nfq-dossier-expanded">
+       <section aria-labelledby="nfq-dossier-classification">
+        <h3 id="nfq-dossier-classification" class="nfq-dossier-group-title">Classification</h3>
+        <p v-if="!dossier&&!dossierError" class="rail-caption" role="status">Loading classification fields…</p>
+        <dl v-if="dossier" class="identity-grid nfq-supporting-fields">
+         <div><dt>Subtype</dt><dd>{{dossier.subtype||'Not recorded'}}</dd></div>
+         <div><dt>Determination · database</dt><dd>{{dossier.recordedDetermination||'Not recorded'}}</dd></div>
+         <div><dt>Confidence · database</dt><dd>{{dossier.confidence||'Not recorded'}}</dd></div>
+         <div><dt>Data status</dt><dd>{{dossier.dataStatus||'Not recorded'}}</dd></div>
+        </dl>
+       </section>
+       <section aria-labelledby="nfq-dossier-sources">
+        <h3 id="nfq-dossier-sources" class="nfq-dossier-group-title">Sources and validation</h3>
+        <dl v-if="dossier" class="identity-grid nfq-supporting-fields">
+         <div><dt>Source summary</dt><dd>{{dossier.sourceSummary||'Not recorded'}}</dd></div>
+         <div><dt>ClinVar</dt><dd><a v-if="clinVarVariationUrl(dossier.clinvarId)" :href="clinVarVariationUrl(dossier.clinvarId)!" target="_blank" rel="noopener noreferrer">Open ClinVar record ↗</a><span v-else>{{dossier.clinvarId?'Identifier not recognized':'Not recorded'}}</span></dd></div>
+         <div><dt>Validation entries</dt><dd>{{dossier.validationCount??'Not recorded'}}</dd></div>
+         <div><dt>Latest validation</dt><dd>{{dossier.lastValidatedAt||'Not recorded'}}</dd></div>
+        </dl>
+       </section>
       <div v-if="dossier&&clinVarVariationUrl(dossier.clinvarId)" class="clinvar-verification" aria-label="On-demand external ClinVar verification">
        <div class="clinvar-verification-head"><div><strong>External authority · ClinVar</strong><p class="rail-caption">Fetch the NCBI summary only when requested. Separate from recorded NeumuacFQ findings.</p></div><button type="button" :disabled="clinVarLoading" @click="checkClinVar">{{clinVarLoading?'Checking NCBI…':clinVarSummary?'Refresh ClinVar summary':'Check current ClinVar summary'}}</button></div>
        <p v-if="clinVarLoading" role="status" class="rail-caption">Requesting the official ClinVar API…</p>
@@ -357,7 +380,20 @@ function select(id:string):void{
       </div>
       </div>
      </section>
-     <section v-if="scientificDetailsOpen" class="research-history-section" aria-label="Recorded research history">
+     <section v-if="scientificDetailsOpen" class="variant-evidence-links" aria-label="Scientific references">
+      <h3 class="nfq-dossier-group-title">References</h3>
+      <button class="disclosure-button" type="button" :disabled="!evidenceReady" :aria-expanded="showReferences" aria-controls="variant-reference-list" @click="showReferences=!showReferences"><span>{{showReferences?'Hide references':'Show references'}} · {{evidenceReady?linkedEvidence.length:evidenceError?'Unavailable':'Loading…'}}</span><span aria-hidden="true">{{showReferences?'−':'+'}}</span></button>
+      <p v-if="evidenceError" role="alert" class="rail-caption">{{evidenceError}}</p>
+      <p v-else-if="evidenceReady&&!linkedEvidence.length" class="rail-caption">No source links returned from this register; published evidence has not been assessed.</p>
+      <div id="variant-reference-list" v-show="showReferences">
+       <ul v-if="linkedEvidence.length" class="variant-evidence-list">
+        <li v-for="entry in linkedEvidence" :key="entry.id"><a :href="entry.url" target="_blank" rel="noopener noreferrer">{{entry.title}} ↗</a><span>{{entry.source}}</span></li>
+       </ul>
+      </div>
+      <RouterLink class="variant-evidence-browse" to="/evidence">Browse the evidence register →</RouterLink>
+     </section>
+     <section v-if="scientificDetailsOpen" class="research-history-section" aria-label="Research history">
+      <h3 class="nfq-dossier-group-title">Review history</h3>
       <button class="disclosure-button" type="button" :aria-expanded="historyOpen" aria-controls="variant-research-history" @click="toggleResearchHistory">
        <span>Validation & conflict history</span><span aria-hidden="true">{{historyOpen?'−':'+'}}</span>
       </button>
@@ -379,16 +415,14 @@ function select(id:string):void{
        </template>
       </div>
      </section>
-     <section v-if="scientificDetailsOpen" class="variant-evidence-links" aria-label="Recorded source references">
-      <button class="disclosure-button" type="button" :aria-expanded="showReferences" aria-controls="variant-reference-list" @click="showReferences=!showReferences"><span>Recorded references · {{linkedEvidence.length}}</span><span aria-hidden="true">{{showReferences?'−':'+'}}</span></button>
-      <p class="rail-caption">Current source links from the research database. A recorded link is not a clinical assessment or an independently verified claim.</p>
-      <p v-if="evidenceError" role="alert" class="rail-caption">{{evidenceError}}</p><p v-else-if="!linkedEvidence.length" class="rail-caption">No source links currently returned for this variant. This does not establish an absence of published research.</p>
-      <ul v-else-if="showReferences" id="variant-reference-list" class="variant-evidence-list">
-        <li v-for="entry in linkedEvidence" :key="entry.id"><a :href="entry.url" target="_blank" rel="noopener noreferrer">{{entry.title}} ↗</a><span>{{entry.source}}</span></li>
-      </ul>
-      <RouterLink class="variant-evidence-browse" to="/evidence">Browse the evidence register →</RouterLink>
-     </section>
-     <p v-if="scientificDetailsOpen" class="history-disclaimer">Clinical assessment, private annotations and review history are not available in this view.</p></template>
+     <div v-if="scientificDetailsOpen" class="nfq-dossier-report">
+      <div class="variant-export-actions" v-if="scientificDetailsOpen">
+      <button type="button" :disabled="briefBusy" @click="copyResearchBrief">{{briefBusy?'Preparing full research brief…':'Copy scientific research brief'}}</button>
+      <p role="status" v-if="briefStatus">{{briefStatus}}</p>
+      <p class="rail-caption">Copies current scientific fields and recorded reference links. No patient data, clinical report or treatment recommendations.</p>
+     </div>
+     </div>
+     <p v-if="scientificDetailsOpen" class="history-disclaimer">Database classifications and reference links are research information, not independently validated clinical conclusions.</p></template>
      <template v-else-if="previewCandidate">
       <div class="research-preview" aria-label="Search result preview">
        <span class="section-label">SEARCH PREVIEW · NOT OPENED</span>
