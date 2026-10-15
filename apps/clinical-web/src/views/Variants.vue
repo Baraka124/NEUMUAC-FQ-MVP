@@ -24,10 +24,7 @@ const clinVarSummary=ref<ClinVarAuthoritySummary|null>(null);
 const clinVarLoading=ref(false);
 const clinVarError=ref('');
 let clinVarAbort:AbortController|null=null;
-watch(selected,()=>{
- clinVarAbort?.abort();
- clinVarSummary.value=null;clinVarError.value='';clinVarLoading.value=false;
-});
+
 async function checkClinVar():Promise<void>{
  const recordId=selected.value?.id,authorityId=dossier.value?.clinvarId;
  if(!recordId||!authorityId||clinVarLoading.value||!clinVarVariationUrl(authorityId))return;
@@ -54,6 +51,10 @@ try { if(config) source=createReadOnlyRepository(config,fetch,authSessionProvide
 const rows=ref<readonly RealVariant[]>([]);
 
 const selected=ref<RealVariant|null>(null);
+watch(selected,()=>{
+ clinVarAbort?.abort();
+ clinVarSummary.value=null;clinVarError.value='';clinVarLoading.value=false;
+});
 const researchHistory=ref<ResearchHistory|null>(null);
 const historyError=ref('');
 const historyLoading=ref(false);
