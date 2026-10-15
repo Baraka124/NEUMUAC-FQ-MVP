@@ -16,7 +16,7 @@ test('real-data-only boundary, navigation and horizontal containment', async ({ 
   } else {
     await page.getByRole('navigation', { name: 'Workspaces' }).getByRole('link', { name: /Variants/ }).click();
   }
-  await expect(page.getByRole('heading', { name: 'Variant workspace' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Variants', exact:true })).toBeVisible();
   if (page.viewportSize()!.width > 760) {
     await expect(page.getByRole('navigation', { name: 'Workspaces' }).getByRole('link', { name: 'Evidence & Curation' })).toBeVisible();
   } else {
@@ -55,7 +55,7 @@ test('keyboard skip target remains accessible', async ({ page }) => {
 
 test('public research needs no sign-in and admin never exposes unapproved writes', async ({ page }) => {
   await page.goto('/#/variants');
-  await expect(page.getByRole('heading', { name: 'Variant workspace' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Variants', exact:true })).toBeVisible();
   // CI intentionally has no Supabase credentials. The public Explorer must
   // remain accessible without signing in and must not fabricate records.
   await expect(page.getByRole('alert')).toContainText('public variant catalog has not been connected yet');
@@ -191,7 +191,7 @@ test('Phase 3D scientific search stays primary across six widths',async({page})=
  for(const width of [320,390,768,1024,1366,1600]){
   await page.setViewportSize({width,height:860});
   await page.goto('/#/variants');
-  await expect(page.getByRole('heading',{name:'Find a CFTR variant'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Search variants',exact:true})).toBeVisible();
   await expect(page.getByRole('searchbox',{name:'Variant name, HGVS or recorded alias'})).toBeVisible();
   await expect(page.getByRole('button',{name:'Search help and scientific data limitations'})).toBeVisible();
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
