@@ -4,7 +4,8 @@ import type {RealVariant} from '../services/liveVariants';
  * No positional guesses, fuzzy normalization, or clinical classification used.
  */
 export function canonicalIdentity(term:string):string{
- return term.normalize('NFKC').trim().toLocaleLowerCase('en').replace(/^([pc])\./,'');
+ // HGVS namespaces carry meaning. Never conflate p., c. and bare aliases.
+ return term.normalize('NFKC').trim().toLocaleLowerCase('en');
 }
 export function unambiguousExactMatch(term:string,records:readonly RealVariant[],hasMore:boolean):RealVariant|null{
  const q=canonicalIdentity(term);
