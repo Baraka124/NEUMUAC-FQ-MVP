@@ -350,3 +350,18 @@ test('Regional research link is quiet and shares no variant or location metadata
  await expect(page).toHaveURL(/#\/geography$/);
  await expect(page.getByRole('heading',{name:'Geographic intelligence'})).toBeVisible();
 });
+
+test('public Spain map works without account and is accessible at mobile and desktop widths',async({page})=>{
+ for(const width of [320,390,768,1366]){
+  await page.setViewportSize({width,height:820});
+  await page.goto('/#/geography');
+  await expect(page.getByRole('heading',{name:'Geographic intelligence',exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Geographic search activity'})).toBeVisible();
+  await expect(page.getByText('Aggregate data pending verification')).toBeVisible();
+  await expect(page.locator('path.geo-region')).toHaveCount(19);
+  await page.getByRole('button',{name:'Browse all regions'}).click();
+  await page.locator('.geo-region-grid').getByRole('button',{name:/Andalucía/}).click();
+  await expect(page.getByRole('heading',{name:'Andalucía'})).toBeVisible();
+  await expect.poll(()=>page.locator('html').evaluate(e=>e.scrollWidth-e.clientWidth)).toBe(0);
+ }
+});
