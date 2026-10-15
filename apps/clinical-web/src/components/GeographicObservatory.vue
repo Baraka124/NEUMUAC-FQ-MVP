@@ -27,7 +27,7 @@ function changeScope(value:Scope){scope.value=value;selected.value=null;listMode
    <div class="geo-head-copy">
     <p class="geo-kicker">RESEARCH ATLAS · SPAIN FIRST</p>
     <h2>Regional exploration</h2>
-    <p>Explore Spain by autonomous community. Geographic activity remains separate from the identity of researchers or patients.</p>
+    <p>Explore Spain's autonomous communities and cities.</p>
    </div>
    <span class="geo-access-status" role="status"><span aria-hidden="true" class="geo-status-dot"></span>Aggregate data pending verification</span>
   </header>
@@ -47,14 +47,14 @@ function changeScope(value:Scope){scope.value=value;selected.value=null;listMode
 
   <div class="geo-context" aria-live="polite">
    <span>{{lensDescription}}</span>
-   <span>Historical searches include testing · Statistics not published</span>
+   <span>Historical records include tests · No statistics published</span>
   </div>
 
   <div class="geo-layout">
    <section class="geo-map-surface" aria-label="Regional atlas">
     <div class="geo-map-heading">
      <div><strong>{{scope==='spain'?'Spain':'International overview'}}</strong><span>{{scope==='spain'?'17 communities · 2 autonomous cities':'Country-level data pending'}}</span></div>
-     <span class="geo-map-hint">{{scope==='spain'?'Select a region':'No activity map yet'}}</span>
+     <span class="geo-map-hint">{{selectedRegion?selectedRegion.name+' selected':scope==='spain'?'Select a region':'Country-level data unavailable'}}</span>
     </div>
 
     <div v-if="scope==='spain'" class="geo-map-inner">
@@ -64,7 +64,7 @@ function changeScope(value:Scope){scope.value=value;selected.value=null;listMode
        <option v-for="region in alphabeticalRegions" :key="region.code" :value="region.code">{{region.name}}</option>
       </select>
      </label>
-     <svg viewBox="0 0 690 525" role="img" aria-label="Selectable map of Spain, its autonomous communities and cities. Administrative boundaries only, without individual searches or activity statistics." preserveAspectRatio="xMidYMid meet">
+     <svg viewBox="0 0 690 525" role="group" aria-label="Selectable map of Spain, its autonomous communities and cities. Administrative boundaries only, without individual searches or activity statistics." preserveAspectRatio="xMidYMid meet">
       <title>Spain · autonomous communities and cities</title>
       <rect x="0" y="0" width="690" height="525" fill="#f9fbf9"/>
       <g fill="#e7eee8" stroke="#abc0ae" stroke-width="1.05" stroke-linejoin="round">
@@ -92,14 +92,14 @@ function changeScope(value:Scope){scope.value=value;selected.value=null;listMode
     </div>
     <footer class="geo-map-foot">
      <span class="geo-legend"><span class="geo-legend-swatch" aria-hidden="true"></span>Regional boundaries</span>
-     <span>No search coordinates displayed</span>
+     <span>Individual search locations are never shown</span>
     </footer>
    </section>
 
-   <aside id="geo-region-detail" class="geo-region-insight" aria-label="Selected geographic detail" aria-live="polite">
+   <aside id="geo-region-detail" class="geo-region-insight" aria-label="Selected geographic detail">
     <p class="geo-kicker">{{lens==='geography'?'GEOGRAPHIC VIEW':lens==='institutions'?'INSTITUTIONAL VIEW':'RESEARCH GAP VIEW'}}</p>
-    <div class="geo-insight-heading"><h3>{{selectedRegion?.name||(scope==='spain'?'Choose a region':'International overview')}}</h3><button v-if="selectedRegion" class="geo-clear-selection" type="button" @click="clearSelection">Clear selection</button></div>
-    <p class="geo-insight-intro">{{selectedRegion?'Selected region · '+selectedRegion.name:scope==='spain'?'Select on the map or use the region selector.':'Data will be displayed by country when available.'}}</p>
+    <div class="geo-insight-heading"><h3 aria-live="polite">{{selectedRegion?.name||(scope==='spain'?'Choose a region':'International overview')}}</h3><button v-if="selectedRegion" class="geo-clear-selection" type="button" @click="clearSelection">Clear selection</button></div>
+    <p class="geo-insight-intro">{{selectedRegion?'Regional research activity is not yet available.':scope==='spain'?'Select a region to inspect its research-data status.':'Data will be displayed by country when available.'}}</p>
     <dl class="geo-insight-data">
      <div><dt>Qualified searches</dt><dd>—</dd></div>
      <div><dt>Matches / misses</dt><dd>—</dd></div>
@@ -107,7 +107,7 @@ function changeScope(value:Scope){scope.value=value;selected.value=null;listMode
     </dl>
     <div class="geo-insight-note">
      <strong>What the map represents</strong>
-     <p>Regions are reference boundaries, not patient locations. Scientific demand cannot be inferred from unverified search events.</p>
+     <p>Boundaries do not identify patients or institutions. Unverified searches cannot establish clinical demand.</p>
     </div>
    </aside>
   </div>
@@ -123,7 +123,7 @@ function changeScope(value:Scope){scope.value=value;selected.value=null;listMode
     </button>
    </div>
   </section>
-  <p class="geo-safety-note">Public map · Administrative boundaries only. Validated geographic aggregates are not yet connected.</p>
+  <p class="geo-safety-note">Public geographic reference · Research aggregates are not yet published.</p>
  </section>
 </template>
 
@@ -145,21 +145,22 @@ function changeScope(value:Scope){scope.value=value;selected.value=null;listMode
 .geo-select-label select{min-height:40px;padding:8px 30px 8px 12px;border:1px solid #cbdbce;border-radius:6px;background:#fff;color:#28553d;font-size:12px}
 .geo-context{display:flex;justify-content:space-between;align-items:center;gap:8px 20px;flex-wrap:wrap;padding:0 0 12px;border-bottom:1px solid #e0eae3;margin:0 0 14px;font-size:11px;line-height:1.5;color:#738b79}
 .geo-context span:first-child{color:#456b55}
-.geo-layout{display:grid;grid-template-columns:minmax(0,1.85fr) minmax(250px,1fr);gap:14px;align-items:start}
+.geo-layout{display:grid;grid-template-columns:minmax(0,2.05fr) minmax(250px,1fr);gap:14px;align-items:start}
 .geo-map-surface,.geo-region-insight{min-width:0;border:1px solid #dbe7dd;border-radius:8px;background:#fff;overflow:hidden}
 .geo-map-heading{display:flex;align-items:start;justify-content:space-between;gap:12px;padding:16px 17px 4px}
 .geo-map-heading div{display:grid;gap:3px}.geo-map-heading strong{font-size:14px;font-weight:670;line-height:1.2}.geo-map-heading div span{font-size:11px;color:#82998a}
 .geo-map-hint{font-size:11px;color:#69826f}
 .geo-map-inner{padding:0 7px}.geo-map-inner svg{display:block;width:100%;height:auto;max-height:545px}
 .geo-region{cursor:pointer;transition:fill .15s,stroke .15s}
-.geo-region:hover,.geo-region:focus{fill:#c6daca;stroke:#357554;stroke-width:1.85;outline:none}
+.geo-region:hover,.geo-region:focus-visible{fill:#c6daca;stroke:#357554;stroke-width:1.85;outline:none}
 .geo-region-selected{fill:#a6cdb1;stroke:#225d42;stroke-width:2}
 .geo-inset-outline{fill:none;stroke:#b9cdbc;stroke-dasharray:3 5}
 .geo-map-label{fill:#557460;font-size:10px;letter-spacing:.065em;font-weight:700}
 .geo-map-foot{display:flex;align-items:center;justify-content:space-between;gap:8px 14px;flex-wrap:wrap;border-top:1px solid #e7efe9;padding:10px 16px;color:#668371;font-size:11px;line-height:1.45}
 .geo-legend{display:inline-flex;align-items:center;gap:7px}
 .geo-legend-swatch{width:12px;height:12px;background:#e7eee8;border:1px solid #abc0ae;border-radius:2px}
-.geo-region-picker{display:none}
+.geo-region-picker{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin:5px 12px 0;color:#58725f;font-size:11px;font-weight:650}
+.geo-region-picker select{width:min(240px,68%);min-height:38px;border:1px solid #c8dacd;border-radius:6px;background:#fff;padding:7px 10px;color:#27583f;font-size:12px}
 .geo-region-insight{padding:clamp(16px,2vw,24px)}
 .geo-insight-heading{display:flex;justify-content:space-between;align-items:start;gap:8px;flex-wrap:wrap;margin-bottom:8px}
 .geo-region-insight h3{font-size:clamp(18px,1.7vw,24px);letter-spacing:-.035em;line-height:1.25;margin:0;font-weight:690}
@@ -205,12 +206,13 @@ function changeScope(value:Scope){scope.value=value;selected.value=null;listMode
  .geo-select-label select{min-width:145px}
  .geo-context{display:grid;gap:4px}
  .geo-map-heading{padding:14px 13px 3px}
- .geo-map-hint{display:none}
+ .geo-map-hint{font-size:10px;max-width:46%;text-align:right}
  .geo-map-inner{padding:0 2px 2px}
  .geo-map-inner svg{max-height:355px}
- .geo-region-picker{display:grid;gap:6px;margin:10px 11px 6px;color:#5b7965;font-size:12px;font-weight:650}
+ .geo-region-picker{display:grid;justify-content:stretch;gap:6px;margin:10px 11px 6px;color:#5b7965;font-size:12px;font-weight:650}
  .geo-region-picker select{min-width:0;width:100%;min-height:44px;border:1px solid #c8dacd;border-radius:6px;background:#fff;padding:9px 11px;color:#27583f;font-size:13px}
- .geo-city-label{font-size:12px}
+ .geo-map-label{font-size:15px}
+ .geo-city-label{font-size:16px}
  .geo-insight-data{grid-template-columns:minmax(0,1fr);gap:0}
  .geo-insight-data>div{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border:0;border-top:1px solid #e5ece6;border-radius:0}
  .geo-insight-data dd{text-align:right}

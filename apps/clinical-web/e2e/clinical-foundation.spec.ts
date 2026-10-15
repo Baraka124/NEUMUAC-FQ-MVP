@@ -396,3 +396,19 @@ test('explicit clearing and repeated region selection do not lose selection',asy
  await expect(page.getByRole('heading',{name:'Choose a region'})).toBeVisible();
  await expect(galicia).toHaveAttribute('aria-pressed','false');
 });
+
+
+test('Phase 4F-5 regional picker is available at desktop and narrow phone widths',async({page})=>{
+ for(const width of [320,390,768,1024,1366,1600]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/geography');
+  const picker=page.locator('#geo-region-picker');
+  await expect(picker).toBeVisible();
+  await picker.selectOption('12');
+  await expect(page.getByRole('heading',{name:'Galicia'})).toBeVisible();
+  await expect(page.getByText('Galicia selected')).toBeVisible();
+  await page.getByRole('button',{name:'Clear selection'}).click();
+  await expect(picker).toHaveValue('');
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
