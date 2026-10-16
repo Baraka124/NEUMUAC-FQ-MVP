@@ -513,3 +513,17 @@ test('Phase 4F-6E collapsed navigation retains readable layout and focusable con
  await page.getByRole('button',{name:'Expand sidebar'}).click();
  await expect(page.locator('.app-frame')).not.toHaveClass(/sidebar-collapsed/);
 });
+
+test('Phase 4F-6F landing editorial hierarchy and unselected research results stay responsive',async({page})=>{
+ for(const width of [320,390,768,1024,1366,1600]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/');
+  await expect(page.getByRole('heading',{name:'CFTR variant research'})).toBeVisible();
+  await expect(page.getByRole('navigation',{name:'Research tools'})).toBeVisible();
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+  await page.goto('/#/variants');
+  await expect(page.getByRole('heading',{name:'Select a variant'})).toBeVisible();
+  await expect(page.locator('.nfq-mobile-results-toggle')).toHaveCount(0);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
