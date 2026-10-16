@@ -658,3 +658,22 @@ test('4F-7F atlas does not advertise unavailable analysis modes and guides regio
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+test('4F-7G contextual coverage information is discreet and keyboard accessible',async({page})=>{
+ for(const width of [320,390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/intelligence');
+  await expect(page.getByRole('heading',{name:'Research coverage'})).toBeVisible();
+  await expect(page.getByRole('note',{name:'Understanding research coverage'})).toHaveCount(0);
+  const trigger=page.locator('.nfq-coverage-heading summary');
+  await expect(trigger).toBeVisible();
+  await trigger.click();
+  await expect(page.getByRole('note',{name:'Understanding research coverage'})).toBeVisible();
+  await expect(page.getByRole('note',{name:'Understanding research coverage'})).toContainText('not a measure of scientific strength');
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('note',{name:'Understanding research coverage'})).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  await expect(page.getByRole('alert')).toContainText('Live research coverage connection is not configured');
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
