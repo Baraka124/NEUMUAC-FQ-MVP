@@ -66,8 +66,8 @@ import ContextHelp from '../components/ContextHelp.vue';
 .nfq-signin-header-link{display:inline-flex;gap:9px;align-items:center;min-height:44px;text-decoration:none;color:#39634b;font-size:12px;font-weight:650;white-space:nowrap}
 .nfq-signin-header-link:hover{text-decoration:underline;text-underline-offset:3px}
 .nfq-signin-header-link:focus-visible,.nfq-signin-public-link:focus-visible{outline:3px solid #25886a;outline-offset:3px}
-.nfq-signin-institutional .nfq-signin-main{width:min(1180px,100%);padding:8px clamp(15px,3vw,42px) 15px;min-height:0}
-.nfq-signin-stage{position:relative;isolation:isolate;display:grid;place-items:center;overflow:hidden;min-height:425px;padding:27px 18px;border-radius:17px;background:radial-gradient(ellipse 84% 110% at 50% 34%,#1e4a3c 0%,#123a2f 41%,#0b241e 100%);box-shadow:0 12px 35px -20px rgba(8,30,23,.3)}
+.nfq-signin-institutional .nfq-signin-main{width:min(880px,100%);padding:8px clamp(15px,3vw,42px) 15px;min-height:0}
+.nfq-signin-stage{position:relative;isolation:isolate;display:grid;place-items:center;overflow:hidden;min-height:0;padding:24px 18px;border-radius:17px;background:radial-gradient(ellipse 84% 110% at 50% 34%,#1e4a3c 0%,#123a2f 41%,#0b241e 100%);box-shadow:0 12px 35px -20px rgba(8,30,23,.3)}
 .nfq-signin-art{position:absolute;inset:0;width:100%;height:100%;opacity:.67;pointer-events:none;user-select:none}
 .nfq-login-card{position:relative;z-index:1;width:min(100%,390px);min-width:0;padding:clamp(21px,2.8vw,28px);border-radius:12px;border:1px solid rgba(255,255,255,.72);background:rgba(240,247,242,.93);box-shadow:0 16px 42px rgba(2,19,12,.26),inset 0 1px rgba(255,255,255,.9);-webkit-backdrop-filter:blur(15px);backdrop-filter:blur(15px)}
 .nfq-login-card-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
@@ -87,7 +87,7 @@ import ContextHelp from '../components/ContextHelp.vue';
  .nfq-signin-masthead{min-height:72px;gap:10px}
  .nfq-signin-masthead .nfq-entry-logo img{height:59px;width:155px}
  .nfq-signin-header-link{white-space:normal;max-width:110px;line-height:1.35;text-align:right;font-size:11px}
- .nfq-signin-stage{min-height:0;padding:32px 11px;border-radius:11px}
+ .nfq-signin-stage{min-height:0;padding:18px 11px;border-radius:11px}
  .nfq-login-card{width:min(100%,390px);padding:22px 19px}
  .nfq-signin-institutional .nfq-signin-main{padding-top:4px;padding-bottom:8px}
 }
