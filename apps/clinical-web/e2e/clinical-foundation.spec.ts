@@ -478,7 +478,7 @@ test('institutional entry and scientific workbench retain usable controls across
   await page.setViewportSize({width,height:850});
   await page.goto('/#/');
   await expect(page.getByRole('heading',{name:'CFTR variant research'})).toBeVisible();
-  await expect(page.getByRole('navigation',{name:'Research tools'})).toHaveCount(0);
+  await expect(page.getByRole('navigation',{name:'Research tools'})).toBeVisible();
   await expect(page.getByRole('link',{name:/Variant records/})).toBeVisible();
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
   await page.goto('/#/variants');
