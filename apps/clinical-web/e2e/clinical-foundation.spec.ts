@@ -247,7 +247,7 @@ test('outer landing offers clearly distinct public and staff paths without appli
   await expect(page.getByRole('link',{name:/Explore public research/})).toHaveAttribute('href','#/workspace');
   await expect(page.getByRole('link',{name:/Sign in as research staff/})).toHaveCount(0);
   await page.getByRole('button',{name:/Sign in/}).click();
-  await expect(page.getByRole('heading',{name:'Sign in',exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Research sign-in',exact:true})).toBeVisible();
   await expect(page.getByRole('status').getByText(/Account sign-in is not configured/)).toBeVisible();
   await page.getByRole('button',{name:/Return to research tools/}).click();
   await expect(page.locator('.sidebar')).toHaveCount(0);
@@ -317,7 +317,7 @@ test('institutional outer entry offers direct public and staff research paths',a
   await expect(page.getByRole('link',{name:/Sign in as research staff/})).toHaveCount(0);
   await expect(page.getByRole('link',{name:/Variant records/})).toHaveAttribute('href','#/variants');
   await page.getByRole('button',{name:'Sign in',exact:true}).click();
-  await expect(page.getByRole('heading',{name:'Sign in',exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Research sign-in',exact:true})).toBeVisible();
   await expect(page.locator('#nfq-portal-account')).toBeVisible();
   await expect(page.getByRole('button',{name:'Research tools',exact:true})).toHaveAttribute('aria-expanded','true');
   await page.getByRole('button',{name:/Return to research tools/}).click();
