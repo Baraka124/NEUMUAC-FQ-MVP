@@ -313,7 +313,10 @@ function select(id:string):void{
       <div class="nfq-details-control">
        <button type="button" class="nfq-details-trigger" :aria-expanded="scientificDetailsOpen" aria-controls="nfq-secondary-science" @click="scientificDetailsOpen=!scientificDetailsOpen">
         <span class="nfq-details-trigger-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
-        <span class="nfq-details-trigger-label">{{scientificDetailsOpen?'Hide additional details':'Show additional details'}}</span>
+        <span class="nfq-details-trigger-copy">
+         <span class="nfq-details-trigger-label">{{scientificDetailsOpen?'Hide additional details':'Show additional details'}}</span>
+         <small class="nfq-details-hint">Classification · Sources · References · Review history</small>
+        </span>
        </button>
       </div>
       <div v-show="scientificDetailsOpen" id="nfq-secondary-science" class="nfq-dossier-expanded">
