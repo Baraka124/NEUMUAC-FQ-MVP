@@ -3,8 +3,7 @@ import GeographicObservatory from '../components/GeographicObservatory.vue';
 </script>
 <template>
  <div class="page public-geography-page">
-  <div class="eyebrow">CFTR RESEARCH / PUBLIC GEOGRAPHY</div>
-  <h1>Geographic intelligence</h1>
+  <header class="geo-page-title"><h1>Geographic atlas</h1><span>Spain · Regional boundaries</span></header>
   <GeographicObservatory/>
  </div>
 </template>
