@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import VariantFilterPanel from '../components/VariantFilterPanel.vue';
 import {cftr2LinkedReferences} from '../domain/externalReferenceTypes';
 import {referenceMetadata} from '../domain/referencePresentation';
+import {safeResearchReturnPath,variantJourneyPath} from '../domain/researchJourney';
 import {authController,authSessionProvider} from '../services/authSession';
 import {explainTextMatch,rankVisibleSearchPage} from '../domain/searchPresentation';
 import {assessScientificDiscovery} from '../domain/compoundDiscovery';
@@ -18,6 +19,8 @@ import {createVariantResearchBrief} from '../services/researchBrief';
 import {createLiveResearchHistorySource,type ResearchHistory} from '../services/liveResearchHistory';
 import { createReadOnlyRepository, readConfigFromEnvironment, variantDisplayName, formatReadStatus, type RealVariant, type RealVariantSource } from '../services/liveVariants';
 const route=useRoute(),router=useRouter();
+const sourceWorkspace=computed(()=>safeResearchReturnPath(route.query.from,'workspace'));
+const dossierReturn=computed(()=>variantJourneyPath(String(route.params.id||''),route.query));
 const config=readConfigFromEnvironment();
 let source:RealVariantSource|null=null;
 const liveMode = Boolean(config);
@@ -245,7 +248,8 @@ function updateWorklistRoute():void {
  if(sort.value!=='name-asc')query.sort=sort.value;
  if(searchMode.value!=='contains')query.mode=searchMode.value;
  if(page.value>0)query.page=String(page.value);
- void router.replace({path:route.params.id&&selected.value?route.path:'/variants',query});
+ // Retain deep-link identity even during asynchronous detail loading.
+ void router.replace({path:route.params.id?route.path:'/variants',query});
 }
 watch([search,classFilter,sort,searchMode,page],updateWorklistRoute);
 function onSearchKeydown(event:KeyboardEvent):void{
@@ -355,6 +359,7 @@ function select(id:string):void{
         </div>
         <span v-if="selected.id===exactMatchedId" class="discovery-exact-chip">Exact match</span>
        </div>
+       <RouterLink v-if="sourceWorkspace" class="nfq-journey-return" :to="sourceWorkspace">← Return to {{sourceWorkspace.startsWith("/evidence")?"evidence":"research intelligence"}}</RouterLink>
        <dl class="identity-grid nfq-dossier-identity" aria-label="Variant nomenclature">
         <div><dt>Legacy name</dt><dd>{{selected.legacyName||'Not recorded'}}</dd></div>
         <div><dt>Protein notation</dt><dd>{{selected.proteinName||'Not recorded'}}<small v-if="selected.proteinName?.trim()==='p.?'" class="nfq-unknown-consequence">Protein consequence unknown</small></dd></div>
@@ -438,7 +443,8 @@ function select(id:string):void{
         <li v-for="entry in linkedEvidence" :key="entry.id"><a :href="entry.url" target="_blank" rel="noopener noreferrer">{{entry.title}} ↗</a><span class="nfq-reference-meta">{{referenceMetadata(entry).join(" · ")}}</span></li>
        </ul>
       </div>
-      <RouterLink class="variant-evidence-browse" to="/evidence">Browse the evidence register →</RouterLink>
+      <RouterLink class="variant-evidence-browse" :to="{path:'/evidence',query:dossierReturn?{from:dossierReturn}:{}}">Browse the evidence register →</RouterLink>
+       <RouterLink class="variant-evidence-browse nfq-journey-secondary" :to="{path:'/intelligence',query:dossierReturn?{from:dossierReturn}:{}}">Inspect documentation coverage →</RouterLink>
      </section>
      <section v-if="scientificDetailsOpen" class="research-history-section" aria-label="Research history">
       <h3 class="nfq-dossier-group-title">Review history</h3>
