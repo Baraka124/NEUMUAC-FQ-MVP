@@ -3,24 +3,33 @@ import {computed,ref,onMounted,onUnmounted} from 'vue';
 import {RouterLink} from 'vue-router';
 import {readConfigFromEnvironment,variantDisplayName} from '../services/liveVariants';
 import {loadLiveCoverage,type CoverageReport} from '../services/liveCoverage';
-const report=ref<CoverageReport|null>(null),loading=ref(true),error=ref(''),filter=ref('unlinked'),query=ref(''),visible=ref(40);
+import {filterDocumentation,summarizeDocumentation,type DocumentationGroup} from '../domain/documentationCoverage';
+
+const report=ref<CoverageReport|null>(null);
+const loading=ref(true),error=ref(''),filter=ref<DocumentationGroup>('none'),query=ref(''),visible=ref(40);
+const groups=[
+ {id:'none',label:'No links recorded'},
+ {id:'single',label:'One recorded link'},
+ {id:'multiple',label:'Two or more links'},
+ {id:'all',label:'All variants'}
+] as const;
 let abort:AbortController|null=null;
-const filtered=computed(()=>{
- const q=query.value.trim().toLocaleLowerCase();
- return (report.value?.variants||[]).filter(item=>(filter.value==='all'||(filter.value==='unlinked'?item.links===0:item.links>0))&&
- (!q||[item.variant.legacyName,item.variant.proteinName,item.variant.cdnaName,...item.variant.aliases].some(v=>v?.toLocaleLowerCase().includes(q))))
- .sort((a,b)=>a.links-b.links||variantDisplayName(a.variant).localeCompare(variantDisplayName(b.variant)));
-});
+const summary=computed(()=>summarizeDocumentation(report.value?.variants||[]));
+const filtered=computed(()=>filterDocumentation(report.value?.variants||[],filter.value,query.value));
 const shown=computed(()=>filtered.value.slice(0,visible.value));
-const pct=computed(()=>report.value?.variants.length?Math.round(1000*report.value.linkedVariants/report.value.variants.length)/10:0);
+const pct=computed(()=>report.value?.variants.length
+  ?Math.round(1000*report.value.linkedVariants/report.value.variants.length)/10+'%':'—');
 function reset(){visible.value=40;}
+function chooseGroup(group:DocumentationGroup){filter.value=group;reset();}
+function clearFilters(){filter.value='all';query.value='';reset();}
 async function refresh(){
- abort?.abort();abort=new AbortController();loading.value=true;error.value='';report.value=null;
+ abort?.abort();const request=new AbortController();abort=request;
+ loading.value=true;error.value='';report.value=null;
  const cfg=readConfigFromEnvironment();
  if(!cfg){error.value='Live research coverage connection is not configured.';loading.value=false;return;}
- try{report.value=await loadLiveCoverage(cfg,abort.signal);}
- catch{if(!abort.signal.aborted)error.value='The full coverage register could not be retrieved. No partial figures are displayed.';}
- finally{if(!abort.signal.aborted)loading.value=false;}
+ try{const value=await loadLiveCoverage(cfg,request.signal);if(!request.signal.aborted)report.value=value;}
+ catch{if(!request.signal.aborted)error.value='The full coverage register could not be retrieved. No partial figures are displayed.';}
+ finally{if(!request.signal.aborted)loading.value=false;}
 }
 onMounted(()=>void refresh());
 onUnmounted(()=>abort?.abort());
@@ -29,33 +38,57 @@ onUnmounted(()=>abort?.abort());
  <div class="page intelligence-page nfq-science-ui">
   <div class="eyebrow">CFTR RESEARCH / EVIDENCE COVERAGE</div>
   <h1>Research intelligence</h1>
-  <p class="intro">Examine recorded reference coverage across the CFTR variant catalog. Unlinked records identify documentation priorities, not gaps in scientific evidence.</p>
-  <p v-if="loading" role="status">Retrieving the full live variant and source registers…</p>
+  <p class="intro">Review which variant records have reference links in the research catalog. Link counts describe documentation coverage only—not scientific evidence strength or clinical priority.</p>
+  <p v-if="loading" role="status">Retrieving the complete live variant and reference-link registers…</p>
   <p v-else-if="error" role="alert" class="empty-result">{{error}} <button type="button" @click="refresh">Retry</button></p>
   <template v-else-if="report">
    <section class="intelligence-metrics" aria-label="Recorded evidence coverage">
-    <div><strong>{{report.variants.length.toLocaleString()}}</strong><span>Live variant records</span></div>
+    <div><strong>{{summary.all.toLocaleString()}}</strong><span>Live variant records</span></div>
     <div><strong>{{report.totalLinks.toLocaleString()}}</strong><span>Recorded reference links</span></div>
     <div><strong>{{report.linkedVariants.toLocaleString()}}</strong><span>Variants with links</span></div>
-    <div><strong>{{pct}}%</strong><span>Catalog with recorded links</span></div>
+    <div><strong>{{pct}}</strong><span>Catalog with recorded links</span></div>
    </section>
-   <h2>Explore documentation coverage</h2>
-   <div class="intelligence-filters">
-    <label for="coverage-filter">Reference status</label>
-    <select id="coverage-filter" v-model="filter" @change="reset"><option value="unlinked">No links recorded</option><option value="linked">With recorded links</option><option value="all">All variants</option></select>
-    <label for="coverage-search">Find variant</label>
-    <input id="coverage-search" v-model="query" type="search" placeholder="Name, HGVS or alias" @input="reset"/>
+   <div class="nfq-coverage-section-head">
+    <div>
+     <h2>Documentation coverage</h2>
+     <p>Explore records by the number of references linked in this catalog.</p>
+    </div>
+    <button type="button" class="nfq-coverage-refresh" :disabled="loading" @click="refresh">Refresh coverage</button>
    </div>
-   <p class="rail-caption" role="status">{{filtered.length.toLocaleString()}} matching variants · linked records are not a scientific quality assessment</p>
-   <div class="intelligence-register" aria-label="Variant coverage results">
+   <nav class="nfq-coverage-groups" aria-label="Documentation coverage groups">
+    <button v-for="group in groups" :key="group.id" type="button"
+      :aria-pressed="filter===group.id" :class="{'nfq-coverage-active':filter===group.id}"
+      @click="chooseGroup(group.id)">
+      <span>{{group.label}}</span><strong>{{summary[group.id].toLocaleString()}}</strong>
+    </button>
+   </nav>
+   <div class="intelligence-filters nfq-coverage-search">
+    <label for="coverage-search">Find a recorded variant</label>
+    <input id="coverage-search" v-model="query" type="search" placeholder="Recorded name, HGVS or alias" @input="reset"/>
+    <button v-if="query" type="button" class="nfq-coverage-clear" @click="query='';reset()">Clear search</button>
+   </div>
+   <p class="rail-caption" role="status">{{filtered.length.toLocaleString()}} matching {{filtered.length===1?'record':'records'}} · Link counts are not a scientific quality assessment.</p>
+   <div v-if="!filtered.length" class="nfq-coverage-empty" role="status">
+    <p>No recorded variants match the current documentation view.</p>
+    <button type="button" @click="clearFilters">Show all recorded variants</button>
+   </div>
+   <div v-else class="intelligence-register" aria-label="Variant coverage results">
     <article v-for="item in shown" :key="item.variant.id" class="intelligence-record">
-     <div><RouterLink :to="'/variants/'+item.variant.id">{{variantDisplayName(item.variant)}}</RouterLink><p>{{item.variant.proteinName||item.variant.cdnaName||'Additional notation not recorded'}}</p></div>
-     <span>{{item.links}} {{item.links===1?'reference':'references'}} recorded</span>
+     <div>
+      <RouterLink :to="'/variants/'+encodeURIComponent(item.variant.id)">{{variantDisplayName(item.variant)}}</RouterLink>
+      <p>{{item.variant.proteinName&&!/^p\.\?$/.test(item.variant.proteinName.trim())?item.variant.proteinName:item.variant.cdnaName||'Additional notation not recorded'}}</p>
+     </div>
+     <span v-if="item.links===0">No reference links recorded</span>
+     <span v-else>{{item.links.toLocaleString()}} recorded {{item.links===1?'reference link':'reference links'}}</span>
     </article>
    </div>
    <button v-if="visible<filtered.length" class="evidence-more" type="button" @click="visible+=40">Show more variants</button>
-   <section class="intelligence-sources"><h2>Recorded source distribution</h2><div v-for="source in report.bySource" :key="source.name"><span>{{source.name}}</span><strong>{{source.count}}</strong></div></section>
-   <p class="history-disclaimer">A missing database link does not imply a lack of research, a negative finding, or a classification of a variant. Figures reflect a completed live fetch of the variant and evidence_links registers at the time this view loaded. Refresh to update.</p>
+   <section class="intelligence-sources" aria-label="Reference source distribution">
+    <h2>Recorded source distribution</h2>
+    <p v-if="!report.bySource.length" class="rail-caption">No source links recorded in the retrieved register.</p>
+    <div v-for="source in report.bySource" :key="source.name"><span>{{source.name}}</span><strong>{{source.count.toLocaleString()}}</strong></div>
+   </section>
+   <p class="history-disclaimer">Figures reflect a complete, successful live read of the accessible variant and evidence_links registers when this view loaded. Missing links are documentation follow-up candidates, never proof of missing research, a negative finding or a classification. This view does not use individual search histories or geographic locations.</p>
   </template>
  </div>
 </template>
