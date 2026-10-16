@@ -4,9 +4,11 @@ import {RouterLink} from 'vue-router';
 import {readConfigFromEnvironment,variantDisplayName} from '../services/liveVariants';
 import {loadLiveCoverage,type CoverageReport} from '../services/liveCoverage';
 import {filterDocumentation,summarizeDocumentation,type DocumentationGroup} from '../domain/documentationCoverage';
+import {recordedNomenclature,unspecifiedSourceLinks} from '../domain/documentationTrace';
 
 const report=ref<CoverageReport|null>(null);
 const loading=ref(true),error=ref(''),filter=ref<DocumentationGroup>('none'),query=ref(''),visible=ref(40);
+const expandedId=ref<string|null>(null);
 const groups=[
  {id:'none',label:'No links recorded'},
  {id:'single',label:'One recorded link'},
@@ -19,7 +21,7 @@ const filtered=computed(()=>filterDocumentation(report.value?.variants||[],filte
 const shown=computed(()=>filtered.value.slice(0,visible.value));
 const pct=computed(()=>report.value?.variants.length
   ?Math.round(1000*report.value.linkedVariants/report.value.variants.length)/10+'%':'—');
-function reset(){visible.value=40;}
+function reset(){visible.value=40;expandedId.value=null;}
 function chooseGroup(group:DocumentationGroup){filter.value=group;reset();}
 function clearFilters(){filter.value='all';query.value='';reset();}
 async function refresh(){
@@ -73,13 +75,39 @@ onUnmounted(()=>abort?.abort());
     <button type="button" @click="clearFilters">Show all recorded variants</button>
    </div>
    <div v-else class="intelligence-register" aria-label="Variant coverage results">
-    <article v-for="item in shown" :key="item.variant.id" class="intelligence-record">
-     <div>
-      <RouterLink :to="'/variants/'+encodeURIComponent(item.variant.id)">{{variantDisplayName(item.variant)}}</RouterLink>
-      <p>{{item.variant.proteinName&&!/^p\.\?$/.test(item.variant.proteinName.trim())?item.variant.proteinName:item.variant.cdnaName||'Additional notation not recorded'}}</p>
+    <article v-for="item in shown" :key="item.variant.id" class="intelligence-record nfq-coverage-record">
+     <div class="nfq-coverage-record-line">
+      <div>
+       <RouterLink :to="'/variants/'+encodeURIComponent(item.variant.id)">{{variantDisplayName(item.variant)}}</RouterLink>
+       <p>{{item.variant.proteinName&&!/^p\.\?$/.test(item.variant.proteinName.trim())?item.variant.proteinName:item.variant.cdnaName||'Additional notation not recorded'}}</p>
+      </div>
+      <span class="nfq-coverage-link-count">{{item.links===0?'No links recorded':item.links.toLocaleString()+(item.links===1?' reference link':' reference links')}}</span>
      </div>
-     <span v-if="item.links===0">No reference links recorded</span>
-     <span v-else>{{item.links.toLocaleString()}} recorded {{item.links===1?'reference link':'reference links'}}</span>
+     <button type="button" class="nfq-coverage-record-toggle" :aria-expanded="expandedId===item.variant.id" :aria-controls="'coverage-detail-'+item.variant.id" @click="expandedId=expandedId===item.variant.id?null:item.variant.id">
+      {{expandedId===item.variant.id?'Hide record details':'Record details'}}
+      <svg aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+     </button>
+     <div v-if="expandedId===item.variant.id" :id="'coverage-detail-'+item.variant.id" class="nfq-coverage-record-detail">
+      <section aria-label="Recorded nomenclature">
+       <h3>Recorded nomenclature</h3>
+       <dl class="nfq-coverage-fields">
+        <div v-for="field in recordedNomenclature(item.variant)" :key="field.label">
+         <dt>{{field.label}}</dt><dd :class="{'nfq-coverage-unrecorded':!field.value}">{{field.value||'Not recorded'}}</dd>
+        </div>
+       </dl>
+      </section>
+      <section aria-label="Reference source summary">
+       <h3>Reference source summary</h3>
+       <p v-if="item.links===0" class="nfq-coverage-unrecorded">No links recorded for this variant in the retrieved register.</p>
+       <template v-else>
+        <ul class="nfq-coverage-sources">
+         <li v-for="(source,index) in item.sources" :key="index"><span>{{source.name||'Source not specified'}}</span><span>{{source.count.toLocaleString()}} {{source.count===1?'link':'links'}}</span></li>
+        </ul>
+        <p v-if="unspecifiedSourceLinks(item)>0" class="nfq-coverage-unrecorded">{{unspecifiedSourceLinks(item)}} {{unspecifiedSourceLinks(item)===1?'link has':'links have'}} no source name recorded.</p>
+       </template>
+       <p class="nfq-coverage-detail-note">Source names are recorded metadata, not independent verification. Open the variant dossier to inspect available references.</p>
+      </section>
+     </div>
     </article>
    </div>
    <button v-if="visible<filtered.length" class="evidence-more" type="button" @click="visible+=40">Show more variants</button>
