@@ -217,10 +217,11 @@ async function resolveSearch():Promise<void>{
  try{
    const hit=await source.resolveExact(text,classFilter.value as 'all'|'I'|'II'|'III'|'IV'|'V'|'VI'|'unclassified',abort.signal);
    if(run!==exactSequence||abort.signal.aborted||scientificInputAssessment.value.blocked||search.value.trim()!==text)return;
-   if(hit && route.params.id!==hit.id){
+   if(hit && (route.params.id!==hit.id || selected.value?.id!==hit.id)){
      revealNextId=hit.id;
      exactMatchedId.value=hit.id;
-     void router.replace({path:'/variants/'+encodeURIComponent(hit.id),query:{...route.query,q:text}});
+     if(route.params.id===hit.id)void loadDetail(hit.id);
+     else void router.replace({path:'/variants/'+encodeURIComponent(hit.id),query:{...route.query,q:text}});
    }
  }catch{if(!abort.signal.aborted&&run===exactSequence)exactMatchedId.value=null;}
 }
