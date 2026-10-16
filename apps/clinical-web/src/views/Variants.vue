@@ -142,7 +142,7 @@ const showReferences=ref(false);
 // A selected dossier takes visual priority over the long result list on phones.
 // Desktop worklists remain fully visible, and users can expand results at any time.
 const mobileResultsExpanded=ref(false);
-watch(selected,()=>{showReferences.value=false;scientificDetailsOpen.value=false;mobileResultsExpanded.value=false;});
+watch(selected,value=>{showReferences.value=false;scientificDetailsOpen.value=false;mobileResultsExpanded.value=false;if(value)showSearchInfo.value=false;});
 const page=ref(typeof route.query.page==='string'&&/^\d{1,4}$/.test(route.query.page)?Number(route.query.page):0);
 const displayedRows=computed(()=>scientificInputAssessment.value.blocked?[]:
  (sort.value==='name-asc'&&page.value===0?rankVisibleSearchPage(rows.value,search.value):rows.value));
@@ -282,6 +282,7 @@ function select(id:string):void{
       <button v-if="search" type="button" class="discovery-clear" aria-label="Clear variant search" @click="search=''">×</button>
     </div>
     <p v-if="scientificInputAssessment.message" class="discovery-notation-guidance" role="status">{{scientificInputAssessment.message}}</p>
+    <button v-if="scientificInputAssessment.blocked" type="button" class="nfq-guidance-link nfq-blocked-guidance" :aria-expanded="showSearchInfo" aria-controls="discovery-search-help" @click="showSearchInfo=!showSearchInfo">{{showSearchInfo?'Hide search guidance':'Search guidance'}}</button>
     <div class="discovery-utility-row">
       <div class="variant-filter-anchor">
        <button type="button" class="variant-filter-trigger" :aria-expanded="showAdvanced" aria-controls="variant-filter-panel" @click="showAdvanced=!showAdvanced">
@@ -293,9 +294,6 @@ function select(id:string):void{
        <VariantFilterPanel v-if="showAdvanced" v-model:class-filter="classFilter" v-model:sort="sort" v-model:search-mode="searchMode" @close="showAdvanced=false" @reset="resetAdvancedFilters"/>
       </div>
       <span v-if="!busy&&!error&&displayedRows.length" class="record-total" aria-live="polite" aria-label="Visible results on this page">{{displayedRows.length}} on page</span>
-    </div>
-    <div v-if="showSearchInfo" id="discovery-search-help" class="discovery-help" role="note">
-      Search updates while typing. Separate up to four recorded variant identifiers with commas or semicolons for OR search. A single unambiguous exact identity opens its dossier automatically. Filters and scientific labels reflect database records, not independently validated clinical conclusions.
     </div>
     <p v-if="exactMatchedId" role="status" class="discovery-sr-only">Exact recorded identity opened automatically.</p>
     <p v-if="pending||busy" role="status" class="discovery-loading">{{busy?'Searching recorded variants…':'Preparing search…'}}</p>
@@ -309,9 +307,22 @@ function select(id:string):void{
       <p v-else-if="emptyReason==='restricted'">No results under the current search preferences.</p>
       <p v-else-if="emptyReason==='empty-page'">There are no records on this page.</p>
       <p v-else>No variant records are available from this source.</p>
-      <button v-if="emptyReason==='restricted'" type="button" @click="broadenSearch">Clear restrictive filters</button>
-      <button v-else-if="emptyReason==='empty-page'" type="button" @click="page=0">Return to first page</button>
-      <button v-else-if="emptyReason==='no-match'" type="button" @click="search=''">Clear search</button>
+      <div class="nfq-search-actions">
+        <button v-if="emptyReason==='restricted'" type="button" @click="broadenSearch">Clear restrictive filters</button>
+        <button v-else-if="emptyReason==='empty-page'" type="button" @click="page=0">Return to first page</button>
+        <button v-else-if="emptyReason==='no-match'" type="button" @click="search=''">Clear search</button>
+        <button v-if="emptyReason==='no-match'||emptyReason==='restricted'" type="button" class="nfq-guidance-link" :aria-expanded="showSearchInfo" aria-controls="discovery-search-help" @click="showSearchInfo=!showSearchInfo">{{showSearchInfo?'Hide search guidance':'Search guidance'}}</button>
+      </div>
+    </div>
+    <div v-if="showSearchInfo" id="discovery-search-help" class="discovery-help nfq-search-guide" role="note" aria-label="Search guidance">
+      <strong>Search guidance</strong>
+      <p>Search updates while typing. A single unambiguous recorded identity may open automatically.</p>
+      <ul>
+        <li>Use a name, protein or cDNA notation, or an alias already recorded in the catalog. Letter case is ignored; retain punctuation.</li>
+        <li>For example, <code>1001+11C/T</code> and <code>c.869+11C&gt;T</code> are different written forms. This search does not translate or assume equivalence between them.</li>
+        <li>Filters and exact-name mode narrow results. Separate up to four identifiers with commas or semicolons for an OR search, not a genotype interpretation.</li>
+      </ul>
+      <p class="nfq-search-guide-note">Unsupported or uncertain notation is not automatically corrected. No match means no accessible recorded result for this search, not proof that a variant does not exist or is novel.</p>
     </div>
     <button v-if="!pending&&!busy&&!error&&selected&&rows.length&&!scientificInputAssessment.blocked" type="button" class="nfq-mobile-results-toggle" :aria-expanded="mobileResultsExpanded" aria-controls="variant-results" @click="mobileResultsExpanded=!mobileResultsExpanded">
       <span>{{mobileResultsExpanded?'Hide other results':'View other results'}} <small>({{displayedRows.length}} on page)</small></span>

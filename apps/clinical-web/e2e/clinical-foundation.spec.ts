@@ -539,3 +539,31 @@ test('search guidance distinguishes unsafe notation and never shows stale no-mat
  await expect(page.getByText(/No recorded variant matches this search/)).toHaveCount(0);
  await expect(page.getByRole('alert')).toContainText('public variant catalog has not been connected yet');
 });
+
+test('Phase 4F-6I search guidance is optional, literal and accessible across widths',async({page})=>{
+ for(const width of [320,390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/variants');
+  const input=page.getByRole('searchbox',{name:'Variant name, HGVS or recorded alias'});
+  const guide=page.getByRole('note',{name:'Search guidance'});
+  await expect(guide).toHaveCount(0);
+  const info=page.getByRole('button',{name:'Search help and scientific data limitations'});
+  await info.click();
+  await expect(guide).toBeVisible();
+  await expect(guide).toContainText('1001+11C/T');
+  await expect(guide).toContainText('does not translate or assume equivalence');
+  await info.click();
+  await expect(guide).toHaveCount(0);
+  await input.fill('c.123/124');
+  const guidance=page.getByRole('button',{name:'Search guidance'});
+  await expect(guidance).toBeVisible();
+  await guidance.click();
+  await expect(guide).toBeVisible();
+  await expect(guidance).toHaveAttribute('aria-expanded','true');
+  await guidance.click();
+  await expect(guide).toHaveCount(0);
+  await input.fill('1001+11C/T');
+  await expect(page.getByRole('button',{name:'Search guidance'})).toHaveCount(0);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
