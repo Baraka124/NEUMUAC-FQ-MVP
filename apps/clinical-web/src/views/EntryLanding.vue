@@ -58,7 +58,7 @@ function openLogin(){loginOpen.value=true;}
             <span><strong>Variant-pair research</strong><small>Exploratory comparison of two recorded variants</small></span>
             <span class="nfq-portal-index-arrow" aria-hidden="true">↗</span>
           </RouterLink>
-          <RouterLink to="/geography" class="nfq-portal-index-link"><span><strong>Geographic intelligence</strong><small>Spain-first regional map · public access</small></span><span class="nfq-portal-index-arrow" aria-hidden="true">↗</span></RouterLink>
+          <RouterLink to="/geography" class="nfq-portal-index-link"><span><strong>Geographic atlas</strong><small>Spain-first regional map · public access</small></span><span class="nfq-portal-index-arrow" aria-hidden="true">↗</span></RouterLink>
           <RouterLink to="/intelligence" class="nfq-portal-index-link">
             <span><strong>Research coverage</strong><small>Recorded evidence links and documentation gaps</small></span>
             <span class="nfq-portal-index-arrow" aria-hidden="true">↗</span>
