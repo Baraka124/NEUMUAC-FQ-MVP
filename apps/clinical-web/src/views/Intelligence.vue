@@ -1,14 +1,18 @@
 <script setup lang="ts">
 import {computed,ref,onMounted,onUnmounted} from 'vue';
-import {RouterLink} from 'vue-router';
+import {RouterLink,useRoute} from 'vue-router';
+import {safeResearchReturnPath,workspaceJourneyPath} from '../domain/researchJourney';
 import {readConfigFromEnvironment,variantDisplayName} from '../services/liveVariants';
 import {loadLiveCoverage,type CoverageReport} from '../services/liveCoverage';
 import {filterDocumentation,summarizeDocumentation,type DocumentationGroup} from '../domain/documentationCoverage';
 import {recordedNomenclature,unspecifiedSourceLinks} from '../domain/documentationTrace';
 
+const route=useRoute();
+const returnToVariant=computed(()=>safeResearchReturnPath(route.query.from,'variant'));
+const workspaceReturn=computed(()=>workspaceJourneyPath('/intelligence',{q:query.value,group:filter.value,shown:String(visible.value),expanded:expandedId.value||undefined}));
 const report=ref<CoverageReport|null>(null);
-const loading=ref(true),error=ref(''),filter=ref<DocumentationGroup>('none'),query=ref(''),visible=ref(40);
-const expandedId=ref<string|null>(null);
+const loading=ref(true),error=ref(''),filter=ref<DocumentationGroup>(['none','single','multiple','all'].includes(String(route.query.group))?route.query.group as DocumentationGroup:'none'),query=ref(typeof route.query.q==='string'&&route.query.q.length<=75?route.query.q:''),visible=ref(typeof route.query.shown==='string'&&/^\d{2,4}$/.test(route.query.shown)&&Number(route.query.shown)%40===0?Math.min(Number(route.query.shown),4000):40);
+const expandedId=ref<string|null>(typeof route.query.expanded==='string'&&/^\d{1,18}$/.test(route.query.expanded)?route.query.expanded:null);
 const groups=[
  {id:'none',label:'No links recorded'},
  {id:'single',label:'One recorded link'},
@@ -40,6 +44,7 @@ onUnmounted(()=>abort?.abort());
  <div class="page intelligence-page nfq-science-ui">
   <div class="eyebrow">CFTR RESEARCH / EVIDENCE COVERAGE</div>
   <h1>Research intelligence</h1>
+  <RouterLink v-if="returnToVariant" class="nfq-journey-return" :to="returnToVariant">← Return to variant dossier</RouterLink>
   <p class="intro">Review which variant records have reference links in the research catalog. Link counts describe documentation coverage only—not scientific evidence strength or clinical priority.</p>
   <p v-if="loading" role="status">Retrieving the complete live variant and reference-link registers…</p>
   <p v-else-if="error" role="alert" class="empty-result">{{error}} <button type="button" @click="refresh">Retry</button></p>
@@ -78,7 +83,7 @@ onUnmounted(()=>abort?.abort());
     <article v-for="item in shown" :key="item.variant.id" class="intelligence-record nfq-coverage-record">
      <div class="nfq-coverage-record-line">
       <div>
-       <RouterLink :to="'/variants/'+encodeURIComponent(item.variant.id)">{{variantDisplayName(item.variant)}}</RouterLink>
+       <RouterLink :to="{path:'/variants/'+encodeURIComponent(item.variant.id),query:workspaceReturn?{from:workspaceReturn}:{}}">{{variantDisplayName(item.variant)}}</RouterLink>
        <p>{{item.variant.proteinName&&!/^p\.\?$/.test(item.variant.proteinName.trim())?item.variant.proteinName:item.variant.cdnaName||'Additional notation not recorded'}}</p>
       </div>
       <span class="nfq-coverage-link-count">{{item.links===0?'No links recorded':item.links.toLocaleString()+(item.links===1?' reference link':' reference links')}}</span>

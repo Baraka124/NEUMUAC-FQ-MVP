@@ -989,3 +989,11 @@ main{background:#fbfcfa}
 @media(max-width:760px){.nfq-coverage-record-detail{grid-template-columns:minmax(0,1fr);gap:20px}.nfq-coverage-record-line{gap:10px}}
 @media(max-width:430px){.variant-page .nfq-class-annotation{padding-left:8px;gap:5px}.variant-page .nfq-class-caption{font-size:10px}.nfq-coverage-fields>div{grid-template-columns:105px minmax(0,1fr)}}
 @media(prefers-reduced-motion:reduce){.nfq-coverage-record-toggle svg{transition:none}}
+
+/* 4F-7D: restrained continuity links without extra interface chrome. */
+.nfq-journey-return{display:inline-flex;align-items:center;gap:5px;min-height:34px;margin:0 0 12px;color:#346c51;font-size:12px;font-weight:600;text-decoration:none;text-underline-offset:3px}
+.nfq-journey-return:hover{text-decoration:underline}
+.nfq-journey-return:focus-visible{outline:3px solid #218466;outline-offset:3px}
+.variant-page .nfq-journey-return{margin:0 0 12px}
+.variant-page .variant-evidence-browse.nfq-journey-secondary{margin-left:18px}
+@media(max-width:600px){.variant-page .variant-evidence-browse.nfq-journey-secondary{display:block;margin:9px 0 0}}

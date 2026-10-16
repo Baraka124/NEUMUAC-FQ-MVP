@@ -1,13 +1,18 @@
 <script setup lang="ts">
 import {ref,watch,onUnmounted} from 'vue';
-import {RouterLink} from 'vue-router';
+import {RouterLink,useRoute} from 'vue-router';
+import {computed} from 'vue';
+import {safeResearchReturnPath,workspaceJourneyPath} from '../domain/researchJourney';
 import {createLiveEvidenceSource, EVIDENCE_PAGE_SIZE, type LiveEvidenceReference} from '../services/liveEvidence';
 import {readConfigFromEnvironment} from '../services/liveVariants';
 import {referenceMetadata} from '../domain/referencePresentation';
+const route=useRoute();
+const returnToVariant=computed(()=>safeResearchReturnPath(route.query.from,'variant'));
+const savedWorkspace=computed(()=>workspaceJourneyPath('/evidence',{q:query.value,page:String(page.value)}));
 const config=readConfigFromEnvironment();
 const source=config?createLiveEvidenceSource(config):null;
-const query=ref('');
-const page=ref(0);
+const query=ref(typeof route.query.q==='string'&&/^[a-zA-Z0-9 _-]{0,70}$/.test(route.query.q)?route.query.q:'');
+const page=ref(typeof route.query.page==='string'&&/^\d{1,4}$/.test(route.query.page)?Math.min(Number(route.query.page),10000):0);
 const expandedRows=ref<readonly number[]>([]);
 function toggleRow(id:number){expandedRows.value=expandedRows.value.includes(id)?expandedRows.value.filter(x=>x!==id):[...expandedRows.value,id];}
 const rows=ref<readonly LiveEvidenceReference[]>([]);
@@ -39,6 +44,7 @@ onUnmounted(()=>{abort?.abort();clearTimeout(debounce);});
  <div class="page evidence-page nfq-science-ui">
   <div class="eyebrow">CFTR RESEARCH / SOURCES</div>
   <h1>Evidence & provenance</h1>
+  <RouterLink v-if="returnToVariant" class="nfq-journey-return" :to="returnToVariant">← Return to variant dossier</RouterLink>
   <p class="intro">Explore recorded CFTR variant references and their source details.</p>
   <div class="evidence-search-head" role="search" aria-label="Find recorded scientific sources">
    <label for="evidence-search">Find a source or reference</label>
@@ -55,7 +61,7 @@ onUnmounted(()=>{abort?.abort();clearTimeout(debounce);});
     <div v-if="expandedRows.includes(item.id)" :id="'evidence-details-'+item.id" class="evidence-row-foot">
      <span>Recorded quality score: {{item.recordedQualityScore??'Not recorded'}}</span>
      <span>Recorded source weight: {{item.recordedSourceWeight??'Not recorded'}}</span>
-     <span>Recorded citation count: {{item.recordedCitationCount??'Not recorded'}}</span><a :href="item.url" target="_blank" rel="noopener noreferrer">Open source ↗</a><RouterLink :to="'/variants/'+item.variantId">Variant record #{{item.variantId}}</RouterLink><span v-if="item.journal">{{item.journal}}</span><span v-if="item.pmid">PMID {{item.pmid}}</span></div>
+     <span>Recorded citation count: {{item.recordedCitationCount??'Not recorded'}}</span><a :href="item.url" target="_blank" rel="noopener noreferrer">Open source ↗</a><RouterLink :to="{path:'/variants/'+encodeURIComponent(item.variantId),query:savedWorkspace?{from:savedWorkspace}:{}}">Variant record #{{item.variantId}}</RouterLink><span v-if="item.journal">{{item.journal}}</span><span v-if="item.pmid">PMID {{item.pmid}}</span></div>
    </article>
   </div>
   <nav class="pagination-controls" aria-label="Evidence pages">

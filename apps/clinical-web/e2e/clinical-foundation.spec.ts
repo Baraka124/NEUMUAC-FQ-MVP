@@ -594,3 +594,19 @@ test('4F-7B keeps record traceability and scientific class labels grounded in li
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+test('4F-7D internal return links survive workspace changes without live or invented records',async({page})=>{
+ for(const width of [390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/evidence?from='+encodeURIComponent('/variants/12?q=1001%2B11C%2FT'));
+  const back=page.getByRole('link',{name:'Return to variant dossier'});
+  await expect(back).toHaveAttribute('href',/#\/variants\/12\?/);
+  await back.click();
+  await expect(page).toHaveURL(/#\/variants\/12\?/);
+  await page.goto('/#/intelligence?from='+encodeURIComponent('/variants/12'));
+  await expect(page.getByRole('link',{name:'Return to variant dossier'})).toBeVisible();
+  await page.goto('/#/evidence?from='+encodeURIComponent('https://outside.example'));
+  await expect(page.getByRole('link',{name:'Return to variant dossier'})).toHaveCount(0);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
