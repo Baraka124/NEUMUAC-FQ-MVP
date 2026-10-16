@@ -108,8 +108,15 @@ export function createLiveEvidenceSource(config: ReadOnlyConfig, transport: type
     },
     async forVariant(variantId:string,signal?:AbortSignal):Promise<readonly LiveEvidenceReference[]>{
       if(!/^\d{1,18}$/.test(variantId))return [];
-      const params=new URLSearchParams({select:LINK_COLUMNS,variant_id:'eq.'+variantId,order:'id.asc',limit:'200'});
-      return request(params,signal);
+      // Request one beyond the supported full-view limit. If the response
+      // reaches the boundary, do not present a truncated list as complete.
+      const params=new URLSearchParams({select:LINK_COLUMNS,variant_id:'eq.'+variantId,order:'id.asc',limit:'201'});
+      const records=await request(params,signal);
+      if(records.length>=201)
+        throw new VariantConnectionError('request-failed','Linked references exceed the supported complete view.');
+      if(records.some(record=>record.variantId!==variantId))
+        throw new VariantConnectionError('schema-mismatch','The reference response included another variant.');
+      return records;
     }
   });
 }
