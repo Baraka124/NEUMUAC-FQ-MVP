@@ -579,3 +579,18 @@ test('Phase 4F-7A coverage lens never invents counts when live register is unava
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+test('4F-7B keeps record traceability and scientific class labels grounded in live data',async({page})=>{
+ for(const width of [320,390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/variants');
+  await expect(page.getByText('Public access · Read only')).toBeVisible().catch(async()=>{
+   await expect(page.getByText('Data connection required')).toBeVisible();
+  });
+  await expect(page.locator('.nfq-class-pill')).toHaveCount(0);
+  await page.goto('/#/intelligence');
+  await expect(page.getByRole('alert')).toContainText('Live research coverage connection is not configured');
+  await expect(page.locator('.nfq-coverage-record-toggle')).toHaveCount(0);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
