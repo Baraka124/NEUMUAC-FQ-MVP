@@ -254,7 +254,7 @@ test('outer landing offers clearly distinct public and staff paths without appli
   await expect(page.locator('.workspace-launcher-trigger')).toHaveCount(0);
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
   await page.goto('/#/sign-in');
-  await expect(page.getByRole('heading',{name:'Continue your research.'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Research sign-in'})).toBeVisible();
   await expect(page.locator('.sidebar')).toHaveCount(0);
   await expect(page.getByRole('link',{name:/Continue without signing in/})).toHaveAttribute('href','#/variants');
  }
@@ -728,6 +728,29 @@ test('4F-8B scoped research navigation stays reversible and does not invent reco
   await expect(page.getByRole('heading',{name:'Research coverage'})).toHaveCount(1);
   await expect(page.getByRole('alert')).toContainText('Live research coverage connection is not configured');
   await expect(page.getByRole('link',{name:'Return to variant dossier'})).toBeVisible();
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
+
+test('4F-9A sign-in stays compact, functional and accessible at all widths',async({page})=>{
+ for(const width of [320,390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/sign-in');
+  const card=page.locator('.nfq-login-card');
+  await expect(page.getByRole('heading',{name:'Research sign-in'})).toHaveCount(1);
+  await expect(card).toBeVisible();
+  const box=await card.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.width).toBeLessThanOrEqual(392);
+  expect(box!.height).toBeLessThan(410);
+  await expect(page.locator('.nfq-signin-masthead img')).toHaveCount(1);
+  await expect(page.getByRole('status')).toContainText('Account sign-in is not configured');
+  const help=page.locator('.nfq-login-card .nfq-context-help summary');
+  await help.click();
+  await expect(page.getByRole('note',{name:'Research account access'})).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('note',{name:'Research account access'})).toHaveCount(0);
+  await expect(page.getByRole('link',{name:/Continue without signing in/})).toHaveAttribute('href','#/variants');
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
