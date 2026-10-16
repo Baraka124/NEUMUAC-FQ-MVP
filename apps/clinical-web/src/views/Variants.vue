@@ -268,7 +268,7 @@ function select(id:string):void{
 </script>
 <template>
  <div class="page variant-page">
-  <div class="variant-heading"><h1>Variants</h1><span class="fixture-stamp">{{liveMode ? "PUBLIC · READ ONLY" : "CONNECTION REQUIRED"}}</span></div>
+  <div class="variant-heading"><h1>Variants</h1><span class="nfq-access-note">{{liveMode ? "Public access · Read only" : "Data connection required"}}</span></div>
   <div class="record-layout">
    <section class="record-rail" aria-labelledby="record-list-title">
     <div class="rail-topline">
@@ -349,7 +349,7 @@ function select(id:string):void{
          <RouterLink class="record-return nfq-mobile-return" :to="{path:'/variants',query:route.query}">← Back to results</RouterLink>
          <div class="nfq-identity-title">
           <h2 id="selected-title">{{variantDisplayName(selected)}}</h2>
-          <span v-if="dossier?.functionalClass||selected.recordedClass" class="nfq-class-pill">Class {{dossier?.functionalClass||selected.recordedClass}}</span>
+          <span v-if="dossier?.functionalClass||selected.recordedClass" class="nfq-class-annotation"><span class="nfq-class-caption">Recorded class</span><strong>{{dossier?.functionalClass||selected.recordedClass}}</strong></span>
          </div>
         </div>
         <span v-if="selected.id===exactMatchedId" class="discovery-exact-chip">Exact match</span>
