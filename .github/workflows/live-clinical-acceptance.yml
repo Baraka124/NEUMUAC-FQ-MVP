@@ -1,0 +1,40 @@
+name: NeumuacFQ live read-only acceptance
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type RUN to check the deployed public research catalog without writes'
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  live-read:
+    if: inputs.confirmation == 'RUN'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/clinical-web
+    env:
+      NFQ_LIVE_ACCEPTANCE: '1'
+      NFQ_LIVE_BASE_URL: https://fq.neumact.org
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e:live
+      - name: Preserve visual and request evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: clinical-live-acceptance
+          path: |
+            apps/clinical-web/test-results/
+          if-no-files-found: ignore
+          retention-days: 7
