@@ -432,3 +432,21 @@ test('Phase 4F-6 public geography is consistently discoverable across workspace 
  await expect(page.getByRole('navigation',{name:'Mobile workspaces'}).getByRole('link',{name:'Geographic intelligence'})).toBeVisible();
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
+
+test('Phase 4F-6B scientific workspaces retain responsive controls and empty states',async({page})=>{
+ for(const width of [320,390,768,1366]){
+  await page.setViewportSize({width,height:820});
+  for(const route of ['/evidence','/genotype','/intelligence']){
+   await page.goto('/#'+route);
+   await expect(page.locator('.nfq-science-ui')).toBeVisible();
+   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+  }
+  await page.goto('/#/evidence');
+  const query=page.getByRole('searchbox',{name:'Find a source or reference'});
+  await query.fill('CFTR2');
+  await expect(page.getByRole('button',{name:'Clear search'})).toBeVisible();
+  await page.getByRole('button',{name:'Clear search'}).click();
+  await expect(query).toHaveValue('');
+  await expect(page.getByRole('alert')).toContainText('Live evidence access is not configured');
+ }
+});

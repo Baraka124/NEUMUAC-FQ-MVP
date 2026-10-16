@@ -26,10 +26,10 @@ onMounted(()=>void refresh());
 onUnmounted(()=>abort?.abort());
 </script>
 <template>
- <div class="page intelligence-page">
+ <div class="page intelligence-page nfq-science-ui">
   <div class="eyebrow">CFTR RESEARCH / EVIDENCE COVERAGE</div>
   <h1>Research intelligence</h1>
-  <p class="intro">Assess the completeness of NeumuacFQ's recorded source links across the live variant catalog. This identifies documentation priorities, not gaps in published science or clinical evidence.</p>
+  <p class="intro">Examine recorded reference coverage across the CFTR variant catalog. Unlinked records identify documentation priorities, not gaps in scientific evidence.</p>
   <p v-if="loading" role="status">Retrieving the full live variant and source registers…</p>
   <p v-else-if="error" role="alert" class="empty-result">{{error}} <button type="button" @click="refresh">Retry</button></p>
   <template v-else-if="report">
