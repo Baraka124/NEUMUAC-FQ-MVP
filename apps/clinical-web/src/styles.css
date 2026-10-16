@@ -997,3 +997,10 @@ main{background:#fbfcfa}
 .variant-page .nfq-journey-return{margin:0 0 12px}
 .variant-page .variant-evidence-browse.nfq-journey-secondary{margin-left:18px}
 @media(max-width:600px){.variant-page .variant-evidence-browse.nfq-journey-secondary{display:block;margin:9px 0 0}}
+
+/* 4F-7E: selected row remains clear; small text is one metadata line. */
+.variant-page .nfq-record-meta{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 9px;margin-top:7px}
+.variant-page .nfq-record-meta .record-match-reason,.variant-page .nfq-record-meta .record-class,.variant-page .nfq-record-meta .record-current-label{margin:0;font-size:10px;line-height:1.5}
+.variant-page .nfq-record-meta .record-match-reason{padding:0;background:none;border:0;color:#597b65;font-weight:560}
+.variant-page .nfq-record-meta .record-class{color:#6a7d71;font-weight:550}
+.variant-page .nfq-record-meta .record-current-label{font-weight:700;color:#246747}
