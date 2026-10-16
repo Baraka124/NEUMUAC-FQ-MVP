@@ -138,7 +138,10 @@ watch(search,()=>{
 });
 const scientificDetailsOpen=ref(false);
 const showReferences=ref(false);
-watch(selected,()=>{showReferences.value=false;scientificDetailsOpen.value=false;});
+// A selected dossier takes visual priority over the long result list on phones.
+// Desktop worklists remain fully visible, and users can expand results at any time.
+const mobileResultsExpanded=ref(false);
+watch(selected,()=>{showReferences.value=false;scientificDetailsOpen.value=false;mobileResultsExpanded.value=false;});
 const page=ref(typeof route.query.page==='string'&&/^\d{1,4}$/.test(route.query.page)?Number(route.query.page):0);
 const displayedRows=computed(()=>scientificInputAssessment.value.blocked?[]:
  (sort.value==='name-asc'&&page.value===0?rankVisibleSearchPage(rows.value,search.value):rows.value));
@@ -153,7 +156,13 @@ async function revealSelectedRecord(id:string):Promise<void>{
  const target=document.querySelector<HTMLElement>('.record-overview');
  if(!target)return;
  revealNextId=null;
- target.scrollIntoView({behavior:'instant',block:'start'});
+ const bounds=target.getBoundingClientRect();
+ const headerOffset=window.matchMedia('(max-width: 760px)').matches?82:74;
+ // Do not jump the page when the dossier is already within the reading area.
+ if(bounds.top<headerOffset || bounds.top>window.innerHeight-140){
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  target.scrollIntoView({behavior:reduced?'instant':'smooth',block:'start'});
+ }
 }
 watch(displayedRows,()=>{activeResultIndex.value=-1;});
 function matchExplanation(record:RealVariant):string{return explainTextMatch(record,search.value)?.label||'Recorded variant';}
@@ -286,8 +295,12 @@ function select(id:string):void{
     <p v-if="busy" role="status" class="discovery-loading">Searching…</p>
     <p v-if="error" role="alert" class="empty-result">{{ error }} <RouterLink v-if="error.includes('Sign in')" to="/sign-in">Sign in</RouterLink></p>
     <p v-else-if="search.trim()&&!busy&&!rows.length&&!scientificInputAssessment.blocked" role="status" class="empty-result">No matching variants.</p>
-    <div v-if="rows.length&&!scientificInputAssessment.blocked" class="record-list" aria-label="Search results"><button v-for="(record,index) in displayedRows" :key="record.id" type="button" @keydown="onResultKeydown($event,index)" @focus="activeResultIndex=index" @mouseenter="activeResultIndex=index" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span v-if="record.proteinName && !/^p\.\?$/.test(record.proteinName.trim())" class="record-subline">{{record.proteinName}}</span><span v-else-if="record.cdnaName" class="record-subline">{{record.cdnaName}}</span><span v-if="search.trim()" class="record-match-reason">{{matchExplanation(record)}}</span><span v-if="record.recordedClass" class="record-class">Class {{record.recordedClass}}</span><span v-if="selected?.id===record.id" class="record-current-label">Selected</span></button></div>
-    <nav v-if="rows.length||page>0||hasMore" class="pagination-controls discovery-pagination" aria-label="Variant result pages">
+    <button v-if="selected&&rows.length&&!scientificInputAssessment.blocked" type="button" class="nfq-mobile-results-toggle" :aria-expanded="mobileResultsExpanded" aria-controls="variant-results" @click="mobileResultsExpanded=!mobileResultsExpanded">
+      <span>{{mobileResultsExpanded?'Hide other results':'View other results'}} <small>({{displayedRows.length}} on page)</small></span>
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <div v-if="rows.length&&!scientificInputAssessment.blocked" id="variant-results" class="record-list" :class="{'nfq-mobile-results-hidden':selected&&!mobileResultsExpanded}" aria-label="Search results"><button v-for="(record,index) in displayedRows" :key="record.id" type="button" @keydown="onResultKeydown($event,index)" @focus="activeResultIndex=index" @mouseenter="activeResultIndex=index" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span v-if="record.proteinName && !/^p\.\?$/.test(record.proteinName.trim())" class="record-subline">{{record.proteinName}}</span><span v-else-if="record.cdnaName" class="record-subline">{{record.cdnaName}}</span><span v-if="search.trim()" class="record-match-reason">{{matchExplanation(record)}}</span><span v-if="record.recordedClass" class="record-class">Class {{record.recordedClass}}</span><span v-if="selected?.id===record.id" class="record-current-label">Selected</span></button></div>
+    <nav v-if="rows.length||page>0||hasMore" class="pagination-controls discovery-pagination" :class="{'nfq-mobile-results-hidden':selected&&!mobileResultsExpanded}" aria-label="Variant result pages">
       <button type="button" :disabled="busy||page===0" aria-label="Previous variant page" @click="page--"><span aria-hidden="true">←</span> Previous</button>
       <span class="discovery-page-current" aria-current="page">Page {{page+1}}</span>
       <button type="button" :disabled="busy||!hasMore" aria-label="Next variant page" @click="page++">Next <span aria-hidden="true">→</span></button>
