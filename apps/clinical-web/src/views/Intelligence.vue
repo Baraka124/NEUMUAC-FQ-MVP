@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import {computed,ref,onMounted,onUnmounted} from 'vue';
 import ContextHelp from '../components/ContextHelp.vue';
-import {RouterLink,useRoute} from 'vue-router';
+import {RouterLink,useRoute,useRouter} from 'vue-router';
 import {safeResearchReturnPath,workspaceJourneyPath} from '../domain/researchJourney';
 import {readConfigFromEnvironment,variantDisplayName} from '../services/liveVariants';
 import {loadLiveCoverage,type CoverageReport} from '../services/liveCoverage';
 import {filterDocumentation,summarizeDocumentation,type DocumentationGroup} from '../domain/documentationCoverage';
 import {recordedNomenclature,unspecifiedSourceLinks} from '../domain/documentationTrace';
 
-const route=useRoute();
+const route=useRoute(),router=useRouter();
 const returnToVariant=computed(()=>safeResearchReturnPath(route.query.from,'variant'));
-const workspaceReturn=computed(()=>workspaceJourneyPath('/intelligence',{q:query.value,group:filter.value,shown:String(visible.value),expanded:expandedId.value||undefined}));
+const focusId=computed(()=>typeof route.query.variant==='string'&&/^[1-9]\d{0,17}$/.test(route.query.variant)?route.query.variant:null);
+const focusedRecord=computed(()=>report.value?.variants.find(row=>row.variant.id===focusId.value)||null);
+function clearScope(){void router.replace({path:'/intelligence'});}
+const workspaceReturn=computed(()=>workspaceJourneyPath('/intelligence',{q:query.value,group:filter.value,shown:String(visible.value),expanded:expandedId.value||undefined,variant:focusId.value||undefined}));
 const report=ref<CoverageReport|null>(null);
 const loading=ref(true),error=ref(''),filter=ref<DocumentationGroup>(['none','single','multiple','all'].includes(String(route.query.group))?route.query.group as DocumentationGroup:'none'),query=ref(typeof route.query.q==='string'&&route.query.q.length<=75?route.query.q:''),visible=ref(typeof route.query.shown==='string'&&/^\d{2,4}$/.test(route.query.shown)&&Number(route.query.shown)%40===0?Math.min(Number(route.query.shown),4000):40);
 const expandedId=ref<string|null>(typeof route.query.expanded==='string'&&/^\d{1,18}$/.test(route.query.expanded)?route.query.expanded:null);
@@ -22,7 +25,7 @@ const groups=[
 ] as const;
 let abort:AbortController|null=null;
 const summary=computed(()=>summarizeDocumentation(report.value?.variants||[]));
-const filtered=computed(()=>filterDocumentation(report.value?.variants||[],filter.value,query.value));
+const filtered=computed(()=>focusId.value?(focusedRecord.value?[focusedRecord.value]:[]):filterDocumentation(report.value?.variants||[],filter.value,query.value));
 const shown=computed(()=>filtered.value.slice(0,visible.value));
 const pct=computed(()=>report.value?.variants.length
   ?Math.round(1000*report.value.linkedVariants/report.value.variants.length)/10+'%':'—');
@@ -55,6 +58,7 @@ onUnmounted(()=>abort?.abort());
   <p v-if="loading" role="status">Retrieving the complete live variant and reference-link registers…</p>
   <p v-else-if="error" role="alert" class="empty-result">{{error}} <button type="button" @click="refresh">Retry</button></p>
   <template v-else-if="report">
+   <div v-if="focusId" class="nfq-variant-scope" role="status"><span>{{focusedRecord?variantDisplayName(focusedRecord.variant):"Variant record not in accessible coverage catalog"}}</span><button type="button" @click="clearScope">All records</button></div>
    <section class="intelligence-metrics" aria-label="Recorded evidence coverage">
     <div><strong>{{summary.all.toLocaleString()}}</strong><span>Live variant records</span></div>
     <div><strong>{{report.totalLinks.toLocaleString()}}</strong><span>Reference links</span></div>
@@ -73,14 +77,14 @@ onUnmounted(()=>abort?.abort());
     </div>
     <button type="button" class="nfq-coverage-refresh" :disabled="loading" @click="refresh">Refresh</button>
    </div>
-   <nav class="nfq-coverage-groups" aria-label="Documentation coverage groups">
+   <nav v-if="!focusId" class="nfq-coverage-groups" aria-label="Documentation coverage groups">
     <button v-for="group in groups" :key="group.id" type="button"
       :aria-pressed="filter===group.id" :class="{'nfq-coverage-active':filter===group.id}"
       @click="chooseGroup(group.id)">
       <span>{{group.label}}</span><strong>{{summary[group.id].toLocaleString()}}</strong>
     </button>
    </nav>
-   <div class="intelligence-filters nfq-coverage-search">
+   <div v-if="!focusId" class="intelligence-filters nfq-coverage-search">
     <label for="coverage-search">Find a recorded variant</label>
     <input id="coverage-search" v-model="query" type="search" placeholder="Recorded name, HGVS or alias" @input="reset"/>
     <button v-if="query" type="button" class="nfq-coverage-clear" @click="query='';reset()">Clear search</button>
@@ -127,7 +131,7 @@ onUnmounted(()=>abort?.abort());
     </article>
    </div>
    <button v-if="visible<filtered.length" class="evidence-more" type="button" @click="visible+=40">Show more variants</button>
-   <section class="intelligence-sources" aria-label="Reference source distribution">
+   <section v-if="!focusId" class="intelligence-sources" aria-label="Reference source distribution">
     <h2>Recorded source distribution</h2>
     <p v-if="!report.bySource.length" class="rail-caption">No source links recorded in the retrieved register.</p>
     <div v-for="source in report.bySource" :key="source.name"><span>{{source.name}}</span><strong>{{source.count.toLocaleString()}}</strong></div>
