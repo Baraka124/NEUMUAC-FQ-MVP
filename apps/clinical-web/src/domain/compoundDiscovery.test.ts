@@ -27,3 +27,16 @@ it('rejects uncertain, predicted or allele-level notation without making up equi
  expect(assessScientificDiscovery('F508del, G551D')).toMatchObject({blocked:false});
 });
 function requireAssessment(){return {assessScientificDiscovery};}
+
+it('searches recorded legacy nucleotide slash names literally without claiming HGVS equivalence',()=>{
+ for(const term of ['1001+11C/T','621+1G/T','c.869+11C/T','1001+11c/t']){
+  expect(assessScientificDiscovery(term).blocked).toBe(false);
+  expect(parseDiscoveryTerms(term)).toEqual([term]);
+  expect(buildDiscoveryExpression([term],false)).toContain('legacy_name.ilike.*'+term+'*');
+ }
+ for(const term of ['c.123/124','1001+11C/T/G','C/T','1001+11C/','c.123/124;R117H']){
+  expect(assessScientificDiscovery(term).blocked).toBe(true);
+ }
+ expect(assessScientificDiscovery('1001+11C/T, R117H').blocked).toBe(false);
+ expect(buildDiscoveryExpression(['1001+11C/T'],true)).toContain('legacy_name.ilike.1001+11C/T');
+});
