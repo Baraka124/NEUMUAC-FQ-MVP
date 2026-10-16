@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {computed,ref,onMounted,onUnmounted} from 'vue';
+import ContextHelp from '../components/ContextHelp.vue';
 import {RouterLink,useRoute} from 'vue-router';
 import {safeResearchReturnPath,workspaceJourneyPath} from '../domain/researchJourney';
 import {readConfigFromEnvironment,variantDisplayName} from '../services/liveVariants';
@@ -42,25 +43,35 @@ onUnmounted(()=>abort?.abort());
 </script>
 <template>
  <div class="page intelligence-page nfq-science-ui">
-  <div class="eyebrow">CFTR RESEARCH / EVIDENCE COVERAGE</div>
-  <h1>Research coverage</h1>
-  <RouterLink v-if="returnToVariant" class="nfq-journey-return" :to="returnToVariant">← Return to variant dossier</RouterLink>
-  <p class="intro">Review which variant records have reference links in the research catalog. Link counts describe documentation coverage only—not scientific evidence strength or clinical priority.</p>
+  <header class="nfq-coverage-heading">
+   <div><h1>Research coverage</h1><RouterLink v-if="returnToVariant" class="nfq-journey-return" :to="returnToVariant">← Return to variant dossier</RouterLink></div>
+   <ContextHelp label="About research coverage" title="Understanding research coverage">
+    <p>This view counts links stored between accessible CFTR variant records and reference entries.</p>
+    <p>A link is a catalog association, not a measure of scientific strength, validity, pathogenicity or clinical priority.</p>
+    <p>Totals come from a complete successful read of the available registers. Missing links do not mean that research is absent.</p>
+    <p>No individual search history or geographic location is used.</p>
+   </ContextHelp>
+  </header>
   <p v-if="loading" role="status">Retrieving the complete live variant and reference-link registers…</p>
   <p v-else-if="error" role="alert" class="empty-result">{{error}} <button type="button" @click="refresh">Retry</button></p>
   <template v-else-if="report">
    <section class="intelligence-metrics" aria-label="Recorded evidence coverage">
     <div><strong>{{summary.all.toLocaleString()}}</strong><span>Live variant records</span></div>
-    <div><strong>{{report.totalLinks.toLocaleString()}}</strong><span>Recorded reference links</span></div>
+    <div><strong>{{report.totalLinks.toLocaleString()}}</strong><span>Reference links</span></div>
     <div><strong>{{report.linkedVariants.toLocaleString()}}</strong><span>Variants with links</span></div>
     <div><strong>{{pct}}</strong><span>Catalog with recorded links</span></div>
    </section>
    <div class="nfq-coverage-section-head">
-    <div>
-     <h2>Documentation coverage</h2>
-     <p>Explore records by the number of references linked in this catalog.</p>
+    <div class="nfq-coverage-section-title"><h2>Documentation coverage</h2>
+     <ContextHelp label="About documentation groups" title="How the groups work">
+      <dl>
+       <div><dt>No links recorded</dt><dd>There are no reference associations for this variant in the retrieved catalog.</dd></div>
+       <div><dt>One recorded link</dt><dd>Exactly one reference association exists in the catalog.</dd></div>
+       <div><dt>Two or more links</dt><dd>Multiple reference associations exist; this does not establish independent studies or evidence quality.</dd></div>
+      </dl>
+     </ContextHelp>
     </div>
-    <button type="button" class="nfq-coverage-refresh" :disabled="loading" @click="refresh">Refresh coverage</button>
+    <button type="button" class="nfq-coverage-refresh" :disabled="loading" @click="refresh">Refresh</button>
    </div>
    <nav class="nfq-coverage-groups" aria-label="Documentation coverage groups">
     <button v-for="group in groups" :key="group.id" type="button"
@@ -74,7 +85,7 @@ onUnmounted(()=>abort?.abort());
     <input id="coverage-search" v-model="query" type="search" placeholder="Recorded name, HGVS or alias" @input="reset"/>
     <button v-if="query" type="button" class="nfq-coverage-clear" @click="query='';reset()">Clear search</button>
    </div>
-   <p class="rail-caption" role="status">{{filtered.length.toLocaleString()}} matching {{filtered.length===1?'record':'records'}} · Link counts are not a scientific quality assessment.</p>
+   <p class="rail-caption nfq-coverage-results-count" role="status">{{filtered.length.toLocaleString()}} matching {{filtered.length===1?'record':'records'}}</p>
    <div v-if="!filtered.length" class="nfq-coverage-empty" role="status">
     <p>No recorded variants match the current documentation view.</p>
     <button type="button" @click="clearFilters">Show all recorded variants</button>

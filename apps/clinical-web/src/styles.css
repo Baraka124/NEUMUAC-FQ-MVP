@@ -1004,3 +1004,23 @@ main{background:#fbfcfa}
 .variant-page .nfq-record-meta .record-match-reason{padding:0;background:none;border:0;color:#597b65;font-weight:560}
 .variant-page .nfq-record-meta .record-class{color:#6a7d71;font-weight:550}
 .variant-page .nfq-record-meta .record-current-label{font-weight:700;color:#246747}
+
+/* Phase 4F-7G · content first; documentation appears on request. */
+.intelligence-page{padding-top:4px}
+.intelligence-page .nfq-coverage-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:10px;max-width:100%}
+.intelligence-page .nfq-coverage-heading h1{font-size:clamp(25px,2.5vw,34px);line-height:1.15;margin:0;letter-spacing:-.035em}
+.intelligence-page .nfq-coverage-heading .nfq-journey-return{margin:6px 0 0}
+.intelligence-page .intelligence-metrics{margin:0 0 15px;padding:13px 0;gap:12px}
+.intelligence-page .intelligence-metrics>div{gap:3px}
+.intelligence-page .intelligence-metrics strong{font-size:clamp(21px,2.5vw,30px);line-height:1.2}
+.intelligence-page .nfq-coverage-section-head{margin:6px 0 9px;align-items:center}
+.intelligence-page .nfq-coverage-section-title{display:flex;align-items:center;gap:8px;min-width:0}
+.intelligence-page .nfq-coverage-section-title h2{font-size:clamp(17px,1.5vw,20px);margin:0}
+.intelligence-page .nfq-coverage-groups{margin:8px 0 12px;gap:8px}
+.intelligence-page .nfq-coverage-groups button{min-height:55px;padding:10px 12px}
+.intelligence-page .nfq-coverage-search{margin:0 0 5px}
+.intelligence-page .nfq-coverage-results-count{margin:0 0 8px;font-size:11px}
+@media(max-width:760px){
+ .intelligence-page .intelligence-metrics{padding:11px 0;margin-bottom:13px}
+ .intelligence-page .nfq-coverage-groups{margin-bottom:11px}
+}
