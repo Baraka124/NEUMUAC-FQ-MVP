@@ -2,41 +2,35 @@
 import {computed,ref} from 'vue';
 import {SPAIN_REGIONS} from '../domain/spainRegionalBoundaries';
 
-type Lens='geography'|'institutions'|'gaps';
 type Scope='spain'|'international';
-const lens=ref<Lens>('geography');
 const scope=ref<Scope>('spain');
 const selected=ref<string|null>(null);
 const listMode=ref(false);
+const detailPanel=ref<HTMLElement|null>(null);
 const selectedRegion=computed(()=>SPAIN_REGIONS.find(region=>region.code===selected.value)||null);
 const alphabeticalRegions=[...SPAIN_REGIONS].sort((a,b)=>a.name.localeCompare(b.name,'es'));
-const lensDescription=computed(()=>lens.value==='geography'
- ? 'Search-event geography is separate from professional affiliation.'
- : lens.value==='institutions'
- ? 'Only explicitly verified institutional activity will be attributed.'
- : 'An unmatched search is not evidence of a novel CFTR variant.');
 function choose(code:string){selected.value=code;}
 function chooseFromPicker(code:string){selected.value=code||null;}
 function clearSelection(){selected.value=null;}
 function changeScope(value:Scope){scope.value=value;selected.value=null;listMode.value=false;}
+function openSelectedDetail(){
+ const panel=detailPanel.value;
+ if(!panel||!selectedRegion.value)return;
+ const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ panel.scrollIntoView({behavior:reduceMotion?'instant':'smooth',block:'start'});
+ panel.focus({preventScroll:true});
+}
 </script>
 
 <template>
  <section class="geo-observatory" aria-label="Geographic atlas">
   <div class="geo-toolbar" aria-label="Geographic research controls">
-   <div class="geo-tabs" role="group" aria-label="Analysis mode">
-    <button type="button" :aria-pressed="lens==='geography'" @click="lens='geography'">Geography</button>
-    <button type="button" :aria-pressed="lens==='institutions'" @click="lens='institutions'">Institutions</button>
-    <button type="button" :aria-pressed="lens==='gaps'" @click="lens='gaps'">Research gaps</button>
-   </div>
    <label class="geo-select-label" for="geo-scope">Scope
     <select id="geo-scope" :value="scope" @change="changeScope(($event.target as HTMLSelectElement).value as Scope)">
      <option value="spain">Spain</option><option value="international">International</option>
     </select>
    </label>
   </div>
-
-  <p class="geo-data-status" role="status">Administrative boundaries · Regional statistics not published</p>
 
   <div class="geo-layout">
    <section class="geo-map-surface" aria-label="Regional atlas">
@@ -50,7 +44,7 @@ function changeScope(value:Scope){scope.value=value;selected.value=null;listMode
      </label>
      <span v-else class="geo-map-hint">Country-level data unavailable</span>
     </div>
-    <p v-if="selectedRegion" class="geo-current-selection" role="status">{{selectedRegion.name}} selected</p>
+    <div v-if="selectedRegion" class="geo-current-selection"><span role="status">{{selectedRegion.name}} selected</span><button class="geo-selected-detail-link" type="button" @click="openSelectedDetail">View region details <span aria-hidden="true">→</span></button></div>
     <div v-if="scope==='spain'" class="geo-map-inner">
      <svg viewBox="0 0 690 525" role="group" aria-label="Selectable map of Spain, its autonomous communities and cities. Administrative boundaries only, without individual searches or activity statistics." preserveAspectRatio="xMidYMid meet">
       <title>Spain · autonomous communities and cities</title>
@@ -84,8 +78,8 @@ function changeScope(value:Scope){scope.value=value;selected.value=null;listMode
     </footer>
    </section>
 
-   <aside id="geo-region-detail" class="geo-region-insight" aria-label="Selected geographic detail">
-    <p class="geo-kicker">{{lens==='geography'?'GEOGRAPHIC VIEW':lens==='institutions'?'INSTITUTIONAL VIEW':'RESEARCH GAP VIEW'}}</p>
+   <aside id="geo-region-detail" ref="detailPanel" tabindex="-1" class="geo-region-insight" aria-label="Selected geographic detail">
+    <p class="geo-kicker">REGION</p>
     <div class="geo-insight-heading"><h3 aria-live="polite">{{selectedRegion?.name||(scope==='spain'?'Choose a region':'International overview')}}</h3><button v-if="selectedRegion" class="geo-clear-selection" type="button" @click="clearSelection">Clear selection</button></div>
     <p class="geo-insight-intro">{{selectedRegion?'Administrative boundary selected. No verified regional activity figures are available.':scope==='spain'?'Select a region on the map or by name.':'No verified country-level research aggregates are available.'}}</p>
     <div class="geo-insight-note" role="note">
@@ -97,7 +91,7 @@ function changeScope(value:Scope){scope.value=value;selected.value=null;listMode
 
   <details class="geo-about">
    <summary>About this atlas and its data</summary>
-   <p>{{lensDescription}}</p>
+   <p>Geographic boundaries are a public reference. Professional affiliation, search activity and patient location are distinct concepts and are not inferred here.</p>
    <p>Historical records include tests. Regional search statistics are not published. The map does not represent patient locations, institution locations or clinical demand.</p>
   </details>
   <section v-if="scope==='spain'" class="geo-regions-section" aria-label="Spain regions">
@@ -111,7 +105,6 @@ function changeScope(value:Scope){scope.value=value;selected.value=null;listMode
     </button>
    </div>
   </section>
-  <p class="geo-safety-note">Public geographic reference · Research aggregates are not yet published.</p>
  </section>
 </template>
 
@@ -236,5 +229,21 @@ function changeScope(value:Scope){scope.value=value;selected.value=null;listMode
  .geo-map-inner{padding:0 2px}
  .geo-map-inner svg{max-height:none}
  .geo-data-status{font-size:10.5px}
+}
+
+/* Phase 4F-7F: the map is the subject; no faux analysis modes. */
+.geo-toolbar{justify-content:flex-end;margin:0 0 6px}
+.geo-current-selection{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.geo-selected-detail-link{display:none;align-items:center;gap:7px;min-height:40px;border:0;background:transparent;padding:5px 0;color:#296b4a;font:inherit;font-size:12px;font-weight:650;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.geo-selected-detail-link:focus-visible,.geo-region-insight:focus-visible{outline:2px solid #2b8866;outline-offset:3px}
+.geo-region-insight{scroll-margin-top:80px}
+@container(max-width:850px){
+ .geo-selected-detail-link{display:inline-flex}
+}
+@container(max-width:585px){
+ .geo-toolbar{display:flex;justify-content:flex-end}
+ .geo-select-label{gap:8px}
+ .geo-select-label select{min-height:44px}
+ .geo-selected-detail-link{margin-left:auto}
 }
 </style>

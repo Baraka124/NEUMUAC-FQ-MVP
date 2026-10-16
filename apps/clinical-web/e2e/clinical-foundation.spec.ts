@@ -357,7 +357,8 @@ test('public Spain map works without account and is accessible at mobile and des
   await page.setViewportSize({width,height:820});
   await page.goto('/#/geography');
   await expect(page.getByRole('heading',{name:'Geographic atlas',exact:true})).toBeVisible();
-  await expect(page.getByText('Administrative boundaries · Regional statistics not published')).toBeVisible();
+  await expect(page.locator('.geo-map-foot')).toContainText('Regional boundaries');
+  await expect(page.locator('.geo-about')).toContainText('Regional search statistics are not published');
   await expect(page.locator('.geo-layout')).toBeVisible();
   await expect(page.locator('path.geo-region')).toHaveCount(19);
   await page.getByRole('button',{name:'Browse all regions'}).click();
@@ -633,6 +634,27 @@ test('4F-7E map first and contextual explanation remain accessible at all widths
   await expect(details).not.toHaveAttribute('open');
   await page.getByLabel('Choose a region').selectOption('12');
   await expect(page.getByRole('heading',{name:'Galicia'})).toBeVisible();
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
+
+test('4F-7F atlas does not advertise unavailable analysis modes and guides regional detail',async({page})=>{
+ for(const width of [320,390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/geography');
+  await expect(page.getByRole('group',{name:'Analysis mode'})).toHaveCount(0);
+  await expect(page.getByRole('button',{name:'Institutions'})).toHaveCount(0);
+  await expect(page.getByRole('button',{name:'Research gaps'})).toHaveCount(0);
+  await expect(page.locator('path.geo-region')).toHaveCount(19);
+  await page.getByLabel('Choose a region').selectOption('12');
+  await expect(page.getByRole('heading',{name:'Galicia'})).toBeVisible();
+  await expect(page.getByText('Galicia selected')).toBeVisible();
+  const detail=page.getByRole('button',{name:'View region details'});
+  if(width<=768){
+   await expect(detail).toBeVisible();
+   await detail.click();
+   await expect(page.locator('#geo-region-detail')).toBeFocused();
+  }else await expect(detail).toBeHidden();
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
