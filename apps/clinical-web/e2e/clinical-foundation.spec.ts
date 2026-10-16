@@ -777,3 +777,21 @@ test('4F-9B landing sign-in is compact and shares accessible guidance',async({pa
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+test('4F-9C sign-in stage stays proportional and does not add authentication features',async({page})=>{
+ for(const width of [320,390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/sign-in');
+  const stage=page.locator('.nfq-signin-stage');
+  const card=page.locator('.nfq-login-card');
+  const stageBox=await stage.boundingBox();
+  const cardBox=await card.boundingBox();
+  expect(stageBox).not.toBeNull();expect(cardBox).not.toBeNull();
+  expect(stageBox!.height-cardBox!.height).toBeLessThanOrEqual(65);
+  expect(stageBox!.width).toBeLessThanOrEqual(width);
+  await expect(page.getByRole('heading',{name:'Research sign-in'})).toHaveCount(1);
+  await expect(page.getByRole('status')).toContainText('Account sign-in is not configured');
+  await expect(page.getByRole('button',{name:'Show password'})).toHaveCount(0);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
