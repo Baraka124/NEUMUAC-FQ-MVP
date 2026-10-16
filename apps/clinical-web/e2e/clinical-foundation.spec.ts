@@ -192,7 +192,7 @@ test('Phase 3D scientific search stays primary across six widths',async({page})=
  for(const width of [320,390,768,1024,1366,1600]){
   await page.setViewportSize({width,height:860});
   await page.goto('/#/variants');
-  await expect(page.getByRole('heading',{name:'Search variants',exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Find a variant',exact:true})).toBeVisible();
   await expect(page.getByRole('searchbox',{name:'Variant name, HGVS or recorded alias'})).toBeVisible();
   await expect(page.getByRole('button',{name:'Search help and scientific data limitations'})).toBeVisible();
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
@@ -284,7 +284,7 @@ test('UI foundation Phase 2: immediate search and visible selected state',async(
   await page.setViewportSize({width,height:860});
   await page.goto('/#/variants');
   await expect(page.getByRole('heading',{name:'Variants',exact:true})).toBeVisible();
-  await expect(page.getByRole('heading',{name:'Search variants'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Find a variant'})).toBeVisible();
   await expect(page.getByRole('searchbox',{name:/Variant name, HGVS or recorded alias/})).toBeVisible();
   await expect(page.getByText('SCIENTIFIC DISCOVERY')).toHaveCount(0);
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
@@ -675,5 +675,32 @@ test('4F-7G contextual coverage information is discreet and keyboard accessible'
   await expect(trigger).toBeFocused();
   await expect(page.getByRole('alert')).toContainText('Live research coverage connection is not configured');
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
+
+test('4F-7H functional compact search and preserved map capabilities',async({page})=>{
+ for(const width of [390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/intelligence');
+  await expect(page.getByRole('heading',{name:'Research coverage'})).toHaveCount(1);
+  const input=page.getByRole('searchbox',{name:'Find a recorded variant'});
+  await expect(input).toBeVisible().catch(async()=>expect(page.locator('#coverage-search')).toBeVisible());
+  expect(await page.locator('#coverage-search').evaluate(el=>el.getBoundingClientRect().width)).toBeLessThanOrEqual(width<=600?width:456);
+  await page.getByRole('link',{name:'Research overview'}).click();
+  await expect(page).toHaveURL(/#\/workspace/);
+  await page.goto('/#/variants');
+  await expect(page.getByRole('heading',{name:'Variants',exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Find a variant'})).toBeVisible();
+  await page.goto('/#/geography');
+  await expect(page.locator('path.geo-region')).toHaveCount(19);
+  await page.getByLabel('Choose a region').selectOption('12');
+  await expect(page.getByRole('heading',{name:'Galicia'})).toBeVisible();
+  await page.getByRole('button',{name:'Clear selection'}).click();
+  await page.getByRole('button',{name:'Browse all regions'}).click();
+  await expect(page.locator('#geo-region-list')).toBeVisible();
+  await page.getByLabel('Scope').selectOption('international');
+  await expect(page.getByRole('button',{name:'Return to Spain'})).toBeVisible();
+  await page.getByRole('button',{name:'Return to Spain'}).click();
+  await expect(page.locator('path.geo-region')).toHaveCount(19);
  }
 });
