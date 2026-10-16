@@ -1024,3 +1024,17 @@ main{background:#fbfcfa}
  .intelligence-page .intelligence-metrics{padding:11px 0;margin-bottom:13px}
  .intelligence-page .nfq-coverage-groups{margin-bottom:11px}
 }
+
+/* 4F-7H · avoid repeating page identity and limit unnecessary search width. */
+.header-overview-link{display:inline-flex;align-items:center;min-height:44px;text-decoration:none;color:#668477;font-weight:600}
+.header-overview-link:hover{text-decoration:underline;text-underline-offset:4px;color:#24583d}
+.header-overview-link:focus-visible{outline:3px solid #218466;outline-offset:3px}
+.intelligence-page .nfq-coverage-search{display:flex;align-items:center;justify-content:flex-start;flex-wrap:wrap;gap:8px 14px;max-width:100%}
+.intelligence-page .nfq-coverage-search label{flex:0 0 auto;font-size:12px}
+.intelligence-page .nfq-coverage-search input{flex:0 1 455px;width:min(100%,455px);max-width:455px;min-height:44px}
+.intelligence-page .nfq-coverage-search .nfq-coverage-clear{flex:none}
+@media(max-width:600px){
+ .intelligence-page .nfq-coverage-search{display:grid;grid-template-columns:minmax(0,1fr);gap:7px}
+ .intelligence-page .nfq-coverage-search input{width:100%;max-width:100%;min-width:0}
+ .intelligence-page .nfq-coverage-search .nfq-coverage-clear{justify-self:start}
+}
