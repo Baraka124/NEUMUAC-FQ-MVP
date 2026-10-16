@@ -119,3 +119,17 @@ it('blocks unsupported scientific notation before the live query',async()=>{
  }
  expect(network).not.toHaveBeenCalled();
 });
+
+it('retrieves and exact-resolves a recorded slash legacy substitution without rewriting the nucleotide',async()=>{
+ const stored={id:1001,legacy_name:'1001+11C/T',protein_name:'p.?',cdna_name:'c.869+11C>T',alt_names:null,cftr_class:'V'};
+ const urls:string[]=[];
+ const network=vi.fn(async(url:string)=>{urls.push(url);return new Response(JSON.stringify([stored]),{status:200})});
+ const repo=createReadOnlyRepository({...config,readTable:'variants'},network as typeof fetch);
+ const list=await repo.list({query:'1001+11C/T',page:0});
+ expect(list.records[0].legacyName).toBe('1001+11C/T');
+ expect(new URL(urls[0]).searchParams.get('or')).toContain('legacy_name.ilike.*1001+11C/T*');
+ const hit=await repo.resolveExact('1001+11C/T');
+ expect(hit?.legacyName).toBe('1001+11C/T');
+ expect(new URL(urls[1]).searchParams.get('or')).toContain('legacy_name.ilike.1001+11C/T');
+ expect(urls.every(url=>!url.includes('PATCH')&&!url.includes('POST'))).toBe(true);
+});
