@@ -629,6 +629,8 @@ test('4F-7E map first and contextual explanation remain accessible at all widths
   await details.locator('summary').click();
   await expect(details).toHaveAttribute('open','');
   await expect(details).toContainText('Regional search statistics are not published');
+  await details.locator('summary').click();
+  await expect(details).not.toHaveAttribute('open');
   await page.getByLabel('Choose a region').selectOption('12');
   await expect(page.getByRole('heading',{name:'Galicia'})).toBeVisible();
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
