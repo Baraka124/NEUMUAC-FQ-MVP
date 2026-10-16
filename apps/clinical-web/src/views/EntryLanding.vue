@@ -82,19 +82,19 @@ function openLogin(){loginOpen.value=true;}
 
 <style scoped>
 .nfq-portal-landing{min-height:100dvh;display:flex;flex-direction:column;background:#fcfdfc;color:#173444}
-.nfq-portal-masthead,.nfq-portal-content,.nfq-portal-footer{width:min(1440px,100%);margin-inline:auto;padding-inline:clamp(23px,5vw,78px)}
-.nfq-portal-masthead{min-height:114px;display:flex;align-items:center;justify-content:space-between;gap:28px}
-.nfq-portal-brand{display:flex;width:246px;height:108px;flex-shrink:0;align-items:center;justify-content:flex-start;overflow:hidden}
-.nfq-portal-brand img{display:block;width:246px;height:108px;object-fit:contain;object-position:left center}
+.nfq-portal-masthead,.nfq-portal-content,.nfq-portal-footer{width:min(1260px,100%);margin-inline:auto;padding-inline:clamp(22px,4vw,62px)}
+.nfq-portal-masthead{min-height:96px;display:flex;align-items:center;justify-content:space-between;gap:28px}
+.nfq-portal-brand{display:flex;width:225px;height:95px;flex-shrink:0;align-items:center;justify-content:flex-start;overflow:hidden}
+.nfq-portal-brand img{display:block;width:225px;height:95px;object-fit:contain;object-position:left center}
 .nfq-portal-masthead-right{display:flex;align-items:center;gap:clamp(24px,3vw,42px)}
 .nfq-portal-header-context{font-size:12px;color:#60766f;letter-spacing:.01em}
 .nfq-portal-header-link{cursor:pointer;display:inline-flex;align-items:center;gap:10px;border:1px solid #ceded7;border-radius:7px;padding:11px 15px;white-space:nowrap;color:#1b5345;background:#fff;text-decoration:none;font-size:13px;font-weight:690;transition:border-color .16s,background .16s}
 .nfq-portal-header-link:hover{border-color:#7aa997;background:#f1f8f4}
-.nfq-portal-content{flex:1;display:flex;flex-direction:column;justify-content:center;padding-block:clamp(34px,5vw,64px) 26px}
-.nfq-portal-layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(330px,.88fr);gap:clamp(46px,6vw,102px);align-items:center}
+.nfq-portal-content{flex:1;display:flex;flex-direction:column;justify-content:center;padding-block:clamp(24px,3.8vw,45px) 24px}
+.nfq-portal-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(325px,.85fr);gap:clamp(36px,4.5vw,72px);align-items:center}
 .nfq-portal-intro{min-width:0;padding-block:12px}
 .nfq-portal-kicker{font-size:10px;line-height:1.5;letter-spacing:.14em;color:#3e817b;font-weight:790;margin:0}
-.nfq-portal-intro h1{font-size:clamp(43px,5.2vw,68px);line-height:1.075;letter-spacing:-.062em;max-width:650px;font-weight:650;color:#123141;margin:24px 0 23px}
+.nfq-portal-intro h1{font-size:clamp(39px,4.5vw,59px);line-height:1.075;letter-spacing:-.062em;max-width:650px;font-weight:650;color:#123141;margin:24px 0 23px}
 .nfq-portal-description{max-width:590px;font-size:clamp(15px,1.2vw,17px);line-height:1.73;color:#546e73;margin:0}
 .nfq-portal-actions{display:flex;flex-wrap:wrap;align-items:stretch;gap:10px;margin-top:38px}
 .nfq-portal-actions a{display:inline-flex;align-items:center;justify-content:space-between;gap:20px;min-height:54px;border-radius:7px;padding:12px 19px;text-decoration:none;font-size:13px;font-weight:710;line-height:1.3;transition:background .16s,border-color .16s}
@@ -106,7 +106,7 @@ function openLogin(){loginOpen.value=true;}
 .nfq-portal-index{min-width:0;padding-top:0}
 .nfq-portal-index-top{margin:0 0 15px}
 .nfq-portal-index-top h2{font-size:clamp(22px,2vw,29px);font-weight:640;letter-spacing:-.04em;color:#153949;margin:8px 0 0}
-.nfq-portal-index-link{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:78px;padding:15px 3px;border-top:1px solid #dce6e2;color:#193e4a;text-decoration:none}
+.nfq-portal-index-link{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:69px;padding:12px 3px;border-top:1px solid #dce6e2;color:#193e4a;text-decoration:none}
 .nfq-portal-index-link strong,.nfq-portal-index-link small{display:block}
 .nfq-portal-index-link strong{font-size:14px;letter-spacing:-.006em;font-weight:690;line-height:1.45}
 .nfq-portal-index-link small{font-size:12px;font-weight:420;line-height:1.45;color:#677d80;margin-top:4px}
