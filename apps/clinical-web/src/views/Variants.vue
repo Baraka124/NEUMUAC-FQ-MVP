@@ -20,7 +20,7 @@ import {createLiveResearchHistorySource,type ResearchHistory} from '../services/
 import { createReadOnlyRepository, readConfigFromEnvironment, variantDisplayName, formatReadStatus, type RealVariant, type RealVariantSource } from '../services/liveVariants';
 const route=useRoute(),router=useRouter();
 const sourceWorkspace=computed(()=>safeResearchReturnPath(route.query.from,'workspace'));
-const dossierReturn=computed(()=>variantJourneyPath(String(route.params.id||''),route.query));
+const dossierReturn=computed(()=>variantJourneyPath(String(route.params.id||''),Object.fromEntries(Object.entries(route.query).filter(([key])=>key!=='from'))));
 const config=readConfigFromEnvironment();
 let source:RealVariantSource|null=null;
 const liveMode = Boolean(config);
