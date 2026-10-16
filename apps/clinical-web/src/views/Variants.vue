@@ -250,7 +250,7 @@ function updateWorklistRoute():void {
  if(page.value>0)query.page=String(page.value);
  if(sourceWorkspace.value)query.from=sourceWorkspace.value;
  // Retain deep-link identity even during asynchronous detail loading.
- void router.replace({path:route.params.id?route.path:'/variants',query});
+ void router.replace({path:selected.value?.id===route.params.id?route.path:'/variants',query});
 }
 watch([search,classFilter,sort,searchMode,page],updateWorklistRoute);
 function onSearchKeydown(event:KeyboardEvent):void{

@@ -677,3 +677,39 @@ test('4F-7G contextual coverage information is discreet and keyboard accessible'
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+test('4F-7H functional compact search and preserved map capabilities',async({page})=>{
+ for(const width of [390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/intelligence');
+  await expect(page.getByRole('heading',{name:'Research coverage'})).toHaveCount(1);
+  const input=page.getByRole('searchbox',{name:'Find a recorded variant'});
+  await expect(input).toBeVisible().catch(async()=>expect(page.locator('#coverage-search')).toBeVisible());
+  expect(await page.locator('#coverage-search').evaluate(el=>el.getBoundingClientRect().width)).toBeLessThanOrEqual(width<=600?width:456);
+  await page.getByRole('link',{name:'Research overview'}).click();
+  await expect(page).toHaveURL(/#\/workspace/);
+  await page.goto('/#/variants');
+  await expect(page.getByRole('heading',{name:'Variants',exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Search variants'})).toBeVisible();
+  await page.goto('/#/geography');
+  await expect(page.locator('path.geo-region')).toHaveCount(19);
+  await page.getByLabel('Choose a region').selectOption('12');
+  await expect(page.getByRole('heading',{name:'Galicia'})).toBeVisible();
+  await page.getByRole('button',{name:'Clear selection'}).click();
+  await page.getByRole('button',{name:'Browse all regions'}).click();
+  await expect(page.locator('#geo-region-list')).toBeVisible();
+  await page.getByLabel('Scope').selectOption('international');
+  await expect(page.getByRole('button',{name:'Return to Spain'})).toBeVisible();
+  await page.getByRole('button',{name:'Return to Spain'}).click();
+  await expect(page.locator('path.geo-region')).toHaveCount(19);
+ }
+});
+
+test('4F-7H exact dossier state can recover after query changes',async({page})=>{
+ await page.goto('/#/variants/383?q=1001%2B11C%2FT');
+ const search=page.getByRole('searchbox',{name:'Variant name, HGVS or recorded alias'});
+ await search.fill('R117H');
+ await expect(page).toHaveURL(/#\/variants\?q=R117H/);
+ await expect(page.getByRole('heading',{name:'Select a variant'})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Search variants'})).toBeVisible();
+});

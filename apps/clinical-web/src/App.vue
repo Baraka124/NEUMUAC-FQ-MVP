@@ -8,7 +8,6 @@ import {readConfigFromEnvironment} from './services/liveVariants';
 const route = useRoute();
 const router=useRouter();
 function goToShortcut(path:string){closeLauncher();void router.push(path);}
-const routeName = computed(() => availableSections.find(section => section.path===route.path || (section.path==='/variants'&&route.path.startsWith('/variants/')))?.name || (route.path==='/admin'?'Administration':route.path==='/sign-in'?'Staff sign-in':'Research workspace'));
 const isHome = computed(() => route.path==='/workspace');
 const isOuterEntry = computed(() => route.path==='/' || route.path==='/sign-in');
 const mobileMenuOpen = ref(false);
@@ -140,7 +139,7 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
             <span class="hamburger" aria-hidden="true">☰</span>
             <span>{{ mobileMenuOpen ? 'Close menu' : 'Workspaces' }}</span>
           </button>
-          <span class="header-path"><span class="header-path-context">Research</span><span class="header-separator" aria-hidden="true">/</span><strong>{{routeName}}</strong></span>
+          <RouterLink class="header-path header-overview-link" to="/workspace" aria-label="Research overview">Research</RouterLink>
         </div>
         <button type="button" class="workspace-launcher-trigger" @click="openLauncher" aria-label="Open workspace switcher"><span>Switch workspace</span><kbd>Ctrl K</kbd></button>
         <div class="header-environment" :class="{ 'preview-environment': !sourceConfigured }" role="status">
