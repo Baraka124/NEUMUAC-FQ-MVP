@@ -875,3 +875,36 @@ main{background:#fbfcfa}
  .variant-page .record-list button{min-height:67px}
  .variant-page .record-overview{padding:17px}
 }
+
+/* Phase 4F-6E visual acceptance: readable rhythm without altering clinical data. */
+@media(min-width:761px){
+ .app-frame.sidebar-collapsed>.sidebar{padding:0;min-width:0}
+ .app-frame.sidebar-collapsed .sidebar-scroll{padding:19px 5px 15px}
+ .app-frame.sidebar-collapsed .wordmark{padding:4px 0 16px;margin:0 0 23px;justify-content:center}
+ .app-frame.sidebar-collapsed .wordmark-icon{flex:0 0 38px}
+ .app-frame.sidebar-collapsed .workspace-nav a{padding:11px 0;justify-content:center;min-width:0}
+ .app-frame.sidebar-collapsed .staff-access-link{justify-content:center;padding:12px 0}
+ .app-frame.sidebar-collapsed .sidebar-toggle{right:-13px}
+ .workspace-frame>main{min-width:0}
+}
+.variant-page .record-layout{min-width:0}
+.variant-page .record-rail{display:flex;flex-direction:column;min-width:0}
+.variant-page .record-rail .regional-research-link{align-self:flex-start;margin:16px 0 0;padding-top:12px;border-top:1px solid #e1eae3;width:100%;font-size:11px;line-height:1.5}
+.variant-page .record-rail>.record-list{width:100%;min-width:0}
+.variant-page .record-list button{min-width:0;max-width:100%;overflow-wrap:anywhere;border-color:#e1eae3;box-shadow:none}
+.variant-page .record-list button:focus-visible{outline:3px solid #208567;outline-offset:2px}
+.variant-page .record-list button.record-selected{border-color:#9cc3a9;box-shadow:inset 3px 0 #368761}
+.variant-page .record-list .record-subline{overflow-wrap:anywhere}
+.variant-page .record-list .record-match-reason{line-height:1.5;overflow-wrap:anywhere}
+.variant-page .record-list .record-current-label{font-weight:700;color:#245b43}
+.variant-page .record-overview{min-width:0}
+.variant-page .nfq-no-selection{max-width:480px}
+.variant-page .nfq-no-selection h2{line-height:1.22}
+.variant-page .nfq-no-selection p{max-width:44ch}
+@media(max-width:760px){
+ .variant-page .record-rail .regional-research-link{margin-top:12px}
+ .variant-page .record-rail>.record-list{max-height:320px;overflow-y:auto}
+}
+@media(prefers-reduced-motion:reduce){
+ .variant-page .record-list button{transition:none}
+}
