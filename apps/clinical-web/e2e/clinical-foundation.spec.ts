@@ -472,3 +472,18 @@ test('visual integrity: landing, search inputs and result container at key width
   await expect.poll(()=>page.locator('html').evaluate(e=>e.scrollWidth-e.clientWidth)).toBe(0);
  }
 });
+
+test('institutional entry and scientific workbench retain usable controls across viewports',async({page})=>{
+ for(const width of [320,390,768,1024,1440]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/');
+  await expect(page.getByRole('heading',{name:'CFTR variant research'})).toBeVisible();
+  await expect(page.getByRole('navigation',{name:'Research tools'})).toHaveCount(0);
+  await expect(page.getByRole('link',{name:/Variant records/})).toBeVisible();
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+  await page.goto('/#/variants');
+  await expect(page.getByRole('searchbox',{name:'Variant name, HGVS or recorded alias'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Select a variant'})).toBeVisible();
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
