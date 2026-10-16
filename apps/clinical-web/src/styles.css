@@ -908,3 +908,19 @@ main{background:#fbfcfa}
 @media(prefers-reduced-motion:reduce){
  .variant-page .record-list button{transition:none}
 }
+
+/* Phase 4F-6F: visible dossier first on phones; desktop keeps the worklist. */
+.nfq-mobile-results-toggle{display:none}
+@media(max-width:760px){
+ .variant-page .record-rail{gap:0}
+ .variant-page .nfq-mobile-results-toggle{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;min-height:44px;margin:12px 0 0;padding:10px 12px;border:1px solid #cfdfd3;border-radius:6px;background:#f5faf6;color:#265b43;font:650 12px/1.4 inherit;text-align:left;cursor:pointer}
+ .variant-page .nfq-mobile-results-toggle small{font-size:11px;font-weight:450;color:#6c8374}
+ .variant-page .nfq-mobile-results-toggle svg{flex:none;transition:transform .18s ease}
+ .variant-page .nfq-mobile-results-toggle[aria-expanded="true"] svg{transform:rotate(180deg)}
+ .variant-page .record-rail>.record-list.nfq-mobile-results-hidden{display:none}
+ .variant-page .discovery-pagination.nfq-mobile-results-hidden{display:none}
+ .variant-page .nfq-mobile-results-toggle:focus-visible{outline:3px solid #208567;outline-offset:3px}
+ .variant-page .record-rail>.record-list:not(.nfq-mobile-results-hidden){max-height:280px;overscroll-behavior:contain}
+ .variant-page .record-overview{scroll-margin-top:86px}
+}
+@media(prefers-reduced-motion:reduce){.variant-page .nfq-mobile-results-toggle svg{transition:none}}
