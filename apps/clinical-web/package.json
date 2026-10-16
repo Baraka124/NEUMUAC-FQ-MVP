@@ -9,7 +9,8 @@
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest run src",
     "test:e2e": "playwright test",
-    "test:differential": "tsx tests/compare.mts"
+    "test:differential": "tsx tests/compare.mts",
+    "test:e2e:live": "playwright test --config playwright.live.config.ts"
   },
   "dependencies": {
     "vue": "3.5.18",

@@ -452,7 +452,7 @@ function select(id:string):void{
        </ul>
       </div>
       <RouterLink class="variant-evidence-browse" :to="{path:'/evidence',query:dossierReturn?{from:dossierReturn,variant:selected.id}:{}}">Browse the evidence register →</RouterLink>
-       <RouterLink class="variant-evidence-browse nfq-journey-secondary" :to="{path:'/intelligence',query:dossierReturn?{from:dossierReturn}:{}}">Inspect documentation coverage →</RouterLink>
+       <RouterLink class="variant-evidence-browse nfq-journey-secondary" :to="{path:'/intelligence',query:dossierReturn?{from:dossierReturn,variant:selected.id}:{}}">Inspect documentation coverage →</RouterLink>
      </section>
      <section v-if="!selectedFromSearch&&scientificDetailsOpen" class="research-history-section" aria-label="Research history">
       <h3 class="nfq-dossier-group-title">Review history</h3>
