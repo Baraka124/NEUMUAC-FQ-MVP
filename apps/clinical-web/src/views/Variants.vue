@@ -250,7 +250,7 @@ function updateWorklistRoute():void {
  if(page.value>0)query.page=String(page.value);
  if(sourceWorkspace.value)query.from=sourceWorkspace.value;
  // Retain deep-link identity even during asynchronous detail loading.
- void router.replace({path:route.params.id?route.path:'/variants',query});
+ void router.replace({path:selected.value?.id===route.params.id?route.path:'/variants',query});
 }
 watch([search,classFilter,sort,searchMode,page],updateWorklistRoute);
 function onSearchKeydown(event:KeyboardEvent):void{
@@ -278,7 +278,7 @@ function select(id:string):void{
   <div class="record-layout">
    <section class="record-rail" aria-labelledby="record-list-title">
     <div class="rail-topline">
-      <h2 id="record-list-title">Find a variant</h2>
+      <h2 id="record-list-title">Search variants</h2>
       <button type="button" class="discovery-info-button" aria-label="Search help and scientific data limitations" :aria-expanded="showSearchInfo" aria-controls="discovery-search-help" @click="showSearchInfo=!showSearchInfo">i</button>
     </div>
     <label for="search" class="discovery-accessible-label">Variant name, HGVS or recorded alias</label>
