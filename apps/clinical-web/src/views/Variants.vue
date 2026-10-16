@@ -355,7 +355,7 @@ function select(id:string):void{
     <article class="record-overview" aria-labelledby="selected-title">
      <p v-if="detailBusy" role="status">Loading record…</p>
      <template v-else-if="selected">
-      <p v-if="detailNotice" role="status" class="nfq-detail-notice">{{detailNotice}}</p>
+      <p v-if="detailNotice" role="status" class="nfq-detail-notice">{{detailNotice}} <button type="button" @click="loadDetail(selected.id)">Retry full record</button></p>
       <div class="nfq-dossier-primary">
        <div class="record-identity">
         <div>
