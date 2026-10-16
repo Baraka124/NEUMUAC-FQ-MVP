@@ -121,7 +121,7 @@ test('genotype is a real-record two-variant research workflow with no clinical i
 
 test('intelligence never substitutes partial or fabricated coverage data',async({page})=>{
  await page.goto('/#/intelligence');
- await expect(page.getByRole('heading',{name:'Research intelligence'})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Research coverage'})).toBeVisible();
  await expect(page.getByRole('alert')).toContainText('Live research coverage connection is not configured');
  await expect(page.locator('.intelligence-record')).toHaveCount(0);
  await expect(page.locator('html')).toHaveJSProperty('scrollWidth',await page.locator('html').evaluate(e=>e.clientWidth));
@@ -349,16 +349,16 @@ test('Regional research link is quiet and shares no variant or location metadata
  await expect(link).toHaveAttribute('href','#/geography');
  await link.click();
  await expect(page).toHaveURL(/#\/geography$/);
- await expect(page.getByRole('heading',{name:'Geographic intelligence'})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Geographic atlas'})).toBeVisible();
 });
 
 test('public Spain map works without account and is accessible at mobile and desktop widths',async({page})=>{
  for(const width of [320,390,768,1366]){
   await page.setViewportSize({width,height:820});
   await page.goto('/#/geography');
-  await expect(page.getByRole('heading',{name:'Geographic intelligence',exact:true})).toBeVisible();
-  await expect(page.getByRole('heading',{name:'Regional exploration'})).toBeVisible();
-  await expect(page.getByText('Aggregate data pending verification')).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Geographic atlas',exact:true})).toBeVisible();
+  await expect(page.getByText('Administrative boundaries · Regional statistics not published')).toBeVisible();
+  await expect(page.locator('.geo-layout')).toBeVisible();
   await expect(page.locator('path.geo-region')).toHaveCount(19);
   await page.getByRole('button',{name:'Browse all regions'}).click();
   await page.locator('.geo-region-grid').getByRole('button',{name:/Andalucía/}).click();
@@ -417,20 +417,20 @@ test('Phase 4F-5 regional picker is available at desktop and narrow phone widths
 test('Phase 4F-6 public geography is consistently discoverable across workspace navigation',async({page})=>{
  await page.setViewportSize({width:1366,height:850});
  await page.goto('/#/workspace');
- await expect(page.getByRole('link',{name:/Explore geographic intelligence/})).toHaveAttribute('href','#/geography');
+ await expect(page.getByRole('link',{name:/Explore geographic atlas/})).toHaveAttribute('href','#/geography');
  const nav=page.getByRole('navigation',{name:'Workspaces'});
- await expect(nav.getByRole('link',{name:'Geographic intelligence'})).toBeVisible();
- await nav.getByRole('link',{name:'Geographic intelligence'}).click();
- await expect(page.getByRole('heading',{name:'Geographic intelligence',exact:true})).toBeVisible();
- await expect(page.locator('.header-path')).toContainText('Geographic intelligence');
+ await expect(nav.getByRole('link',{name:'Geographic atlas'})).toBeVisible();
+ await nav.getByRole('link',{name:'Geographic atlas'}).click();
+ await expect(page.getByRole('heading',{name:'Geographic atlas',exact:true})).toBeVisible();
+ await expect(page.locator('.header-path')).toContainText('Geographic atlas');
  await page.getByRole('button',{name:'Open workspace switcher'}).click();
  const launcher=page.getByRole('dialog',{name:'Research workspace switcher'});
  await launcher.getByRole('searchbox',{name:'Find a research workspace'}).fill('regional');
- await expect(launcher.getByRole('button',{name:/Geographic intelligence/})).toBeVisible();
+ await expect(launcher.getByRole('button',{name:/Geographic atlas/})).toBeVisible();
  await page.setViewportSize({width:390,height:844});
  await page.goto('/#/workspace');
  await page.getByRole('button',{name:/workspaces/i}).click();
- await expect(page.getByRole('navigation',{name:'Mobile workspaces'}).getByRole('link',{name:'Geographic intelligence'})).toBeVisible();
+ await expect(page.getByRole('navigation',{name:'Mobile workspaces'}).getByRole('link',{name:'Geographic atlas'})).toBeVisible();
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
 
@@ -572,7 +572,7 @@ test('Phase 4F-7A coverage lens never invents counts when live register is unava
  for(const width of [320,390,768,1366]){
   await page.setViewportSize({width,height:850});
   await page.goto('/#/intelligence');
-  await expect(page.getByRole('heading',{name:'Research intelligence'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Research coverage'})).toBeVisible();
   await expect(page.getByRole('alert')).toContainText('Live research coverage connection is not configured');
   await expect(page.getByRole('navigation',{name:'Documentation coverage groups'})).toHaveCount(0);
   await expect(page.locator('.intelligence-record')).toHaveCount(0);
@@ -607,6 +607,28 @@ test('4F-7D internal return links survive workspace changes without live or inve
   await expect(page.getByRole('link',{name:'Return to variant dossier'})).toBeVisible();
   await page.goto('/#/evidence?from='+encodeURIComponent('https://outside.example'));
   await expect(page.getByRole('link',{name:'Return to variant dossier'})).toHaveCount(0);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
+
+test('4F-7E map first and contextual explanation remain accessible at all widths',async({page})=>{
+ for(const width of [320,390,768,1366,1600]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/geography');
+  await expect(page.getByRole('heading',{name:'Geographic atlas'})).toBeVisible();
+  const title=page.getByRole('heading',{name:'Geographic atlas'});
+  const map=page.locator('.geo-map-surface');
+  await expect(map).toBeVisible();
+  expect(await map.evaluate(el=>el.getBoundingClientRect().top)).toBeLessThan(365);
+  expect(await title.evaluate(el=>el.getBoundingClientRect().top)).toBeLessThan(await map.evaluate(el=>el.getBoundingClientRect().top));
+  await expect(page.getByRole('heading',{name:'Regional exploration'})).toHaveCount(0);
+  const details=page.locator('.geo-about');
+  await expect(details).not.toHaveAttribute('open');
+  await details.locator('summary').click();
+  await expect(details).toHaveAttribute('open','');
+  await expect(details).toContainText('No regional search statistics');
+  await page.getByLabel('Choose a region').selectOption('12');
+  await expect(page.getByRole('heading',{name:'Galicia'})).toBeVisible();
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
