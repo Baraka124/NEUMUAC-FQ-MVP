@@ -17,3 +17,11 @@ describe('research continuity uses only bounded internal routes',()=>{
   expect(safeResearchReturnPath('/evidence','variant')).toBeNull();
  });
 });
+it('preserves only validated variant-scoped evidence and coverage routes',()=>{
+ const evidence=workspaceJourneyPath('/evidence',{variant:'383',page:'0'});
+ const coverage=workspaceJourneyPath('/intelligence',{variant:'383',group:'none',shown:'40'});
+ expect(safeResearchReturnPath(evidence,'workspace')).toBe(evidence);
+ expect(safeResearchReturnPath(coverage,'workspace')).toBe(coverage);
+ expect(workspaceJourneyPath('/evidence',{variant:'../admin'})).toBeNull();
+ expect(safeResearchReturnPath('/intelligence?variant=https%3A%2F%2Fother.example','workspace')).toBeNull();
+});
