@@ -487,3 +487,28 @@ test('institutional entry and scientific workbench retain usable controls across
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+test('Phase 4F-6E empty research state has no misleading results or pager',async({page})=>{
+ for(const width of [320,390,768,1024,1366,1600]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/variants');
+  await expect(page.getByRole('heading',{name:'Select a variant'})).toBeVisible();
+  await expect(page.getByText('No matching variants.',{exact:true})).toHaveCount(0);
+  await expect(page.getByLabel('Visible results on this page')).toHaveCount(0);
+  await expect(page.getByRole('navigation',{name:'Variant result pages'})).toHaveCount(0);
+  await expect(page.getByRole('link',{name:'Explore aggregated geographic research activity for Spain'})).toBeVisible();
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
+
+test('Phase 4F-6E collapsed navigation retains readable layout and focusable controls',async({page})=>{
+ await page.setViewportSize({width:1366,height:850});
+ await page.goto('/#/variants');
+ await page.getByRole('button',{name:'Collapse sidebar'}).click();
+ await expect(page.locator('.app-frame')).toHaveClass(/sidebar-collapsed/);
+ await expect(page.getByRole('button',{name:'Expand sidebar'})).toBeVisible();
+ await expect(page.getByRole('navigation',{name:'Workspaces'}).getByRole('link',{name:'Variants'})).toBeVisible();
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ await page.getByRole('button',{name:'Expand sidebar'}).click();
+ await expect(page.locator('.app-frame')).not.toHaveClass(/sidebar-collapsed/);
+});
