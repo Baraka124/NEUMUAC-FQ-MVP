@@ -567,3 +567,15 @@ test('Phase 4F-6I search guidance is optional, literal and accessible across wid
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+test('Phase 4F-7A coverage lens never invents counts when live register is unavailable',async({page})=>{
+ for(const width of [320,390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/intelligence');
+  await expect(page.getByRole('heading',{name:'Research intelligence'})).toBeVisible();
+  await expect(page.getByRole('alert')).toContainText('Live research coverage connection is not configured');
+  await expect(page.getByRole('navigation',{name:'Documentation coverage groups'})).toHaveCount(0);
+  await expect(page.locator('.intelligence-record')).toHaveCount(0);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
