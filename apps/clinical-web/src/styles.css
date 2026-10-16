@@ -730,7 +730,7 @@ main{background:#fbfcfa}
 .variant-page .nfq-external-register li{margin:4px 0;font-size:12px;overflow-wrap:anywhere}
 .variant-page .nfq-external-register a{color:#27664e;text-underline-offset:3px}
 
-/* Quiet, optional navigation to aggregate-only Spain-first geographic intelligence. */
+/* Quiet, optional navigation to aggregate-only Spain-first geographic atlas. */
 .variant-page .regional-research-link{display:inline-flex;align-items:center;gap:7px;max-width:100%;margin:6px 0 12px;color:#54806a;text-decoration:none;font-size:11px;font-weight:590;line-height:1.45;letter-spacing:.005em}
 .variant-page .regional-research-link:hover{color:#25634a;text-decoration:underline;text-underline-offset:3px}
 .variant-page .regional-research-link:focus-visible{outline:3px solid #17866c;outline-offset:3px;border-radius:3px}
@@ -997,3 +997,10 @@ main{background:#fbfcfa}
 .variant-page .nfq-journey-return{margin:0 0 12px}
 .variant-page .variant-evidence-browse.nfq-journey-secondary{margin-left:18px}
 @media(max-width:600px){.variant-page .variant-evidence-browse.nfq-journey-secondary{display:block;margin:9px 0 0}}
+
+/* 4F-7E: selected row remains clear; small text is one metadata line. */
+.variant-page .nfq-record-meta{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 9px;margin-top:7px}
+.variant-page .nfq-record-meta .record-match-reason,.variant-page .nfq-record-meta .record-class,.variant-page .nfq-record-meta .record-current-label{margin:0;font-size:10px;line-height:1.5}
+.variant-page .nfq-record-meta .record-match-reason{padding:0;background:none;border:0;color:#597b65;font-weight:560}
+.variant-page .nfq-record-meta .record-class{color:#6a7d71;font-weight:550}
+.variant-page .nfq-record-meta .record-current-label{font-weight:700;color:#246747}

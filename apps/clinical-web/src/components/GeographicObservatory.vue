@@ -22,16 +22,7 @@ function changeScope(value:Scope){scope.value=value;selected.value=null;listMode
 </script>
 
 <template>
- <section class="geo-observatory" aria-label="Geographic research intelligence">
-  <header class="geo-head">
-   <div class="geo-head-copy">
-    <p class="geo-kicker">RESEARCH ATLAS · SPAIN FIRST</p>
-    <h2>Regional exploration</h2>
-    <p>Explore Spain's autonomous communities and cities.</p>
-   </div>
-   <span class="geo-access-status" role="status"><span aria-hidden="true" class="geo-status-dot"></span>Aggregate data pending verification</span>
-  </header>
-
+ <section class="geo-observatory" aria-label="Geographic atlas">
   <div class="geo-toolbar" aria-label="Geographic research controls">
    <div class="geo-tabs" role="group" aria-label="Analysis mode">
     <button type="button" :aria-pressed="lens==='geography'" @click="lens='geography'">Geography</button>
@@ -45,25 +36,22 @@ function changeScope(value:Scope){scope.value=value;selected.value=null;listMode
    </label>
   </div>
 
-  <div class="geo-context" aria-live="polite">
-   <span>{{lensDescription}}</span>
-   <span>Historical records include tests · No statistics published</span>
-  </div>
+  <p class="geo-data-status" role="status">Administrative boundaries · Regional statistics not published</p>
 
   <div class="geo-layout">
    <section class="geo-map-surface" aria-label="Regional atlas">
     <div class="geo-map-heading">
      <div><strong>{{scope==='spain'?'Spain':'International overview'}}</strong><span>{{scope==='spain'?'17 communities · 2 autonomous cities':'Country-level data pending'}}</span></div>
-     <span class="geo-map-hint">{{selectedRegion?selectedRegion.name+' selected':scope==='spain'?'Select a region':'Country-level data unavailable'}}</span>
-    </div>
-
-    <div v-if="scope==='spain'" class="geo-map-inner">
-     <label for="geo-region-picker" class="geo-region-picker">Choose a region
+     <label v-if="scope==='spain'" for="geo-region-picker" class="geo-region-picker">Choose a region
       <select id="geo-region-picker" :value="selected||''" @change="chooseFromPicker(($event.target as HTMLSelectElement).value)">
        <option value="">All Spain</option>
        <option v-for="region in alphabeticalRegions" :key="region.code" :value="region.code">{{region.name}}</option>
       </select>
      </label>
+     <span v-else class="geo-map-hint">Country-level data unavailable</span>
+    </div>
+    <p v-if="selectedRegion" class="geo-current-selection" role="status">{{selectedRegion.name}} selected</p>
+    <div v-if="scope==='spain'" class="geo-map-inner">
      <svg viewBox="0 0 690 525" role="group" aria-label="Selectable map of Spain, its autonomous communities and cities. Administrative boundaries only, without individual searches or activity statistics." preserveAspectRatio="xMidYMid meet">
       <title>Spain · autonomous communities and cities</title>
       <rect x="0" y="0" width="690" height="525" fill="#f9fbf9"/>
@@ -99,19 +87,19 @@ function changeScope(value:Scope){scope.value=value;selected.value=null;listMode
    <aside id="geo-region-detail" class="geo-region-insight" aria-label="Selected geographic detail">
     <p class="geo-kicker">{{lens==='geography'?'GEOGRAPHIC VIEW':lens==='institutions'?'INSTITUTIONAL VIEW':'RESEARCH GAP VIEW'}}</p>
     <div class="geo-insight-heading"><h3 aria-live="polite">{{selectedRegion?.name||(scope==='spain'?'Choose a region':'International overview')}}</h3><button v-if="selectedRegion" class="geo-clear-selection" type="button" @click="clearSelection">Clear selection</button></div>
-    <p class="geo-insight-intro">{{selectedRegion?'Regional research activity is not yet available.':scope==='spain'?'Select a region to inspect its research-data status.':'Data will be displayed by country when available.'}}</p>
-    <dl class="geo-insight-data">
-     <div><dt>Qualified searches</dt><dd>—</dd></div>
-     <div><dt>Matches / misses</dt><dd>—</dd></div>
-     <div><dt>Location confidence</dt><dd>Not assessed</dd></div>
-    </dl>
-    <div class="geo-insight-note">
-     <strong>What the map represents</strong>
-     <p>Boundaries do not identify patients or institutions. Unverified searches cannot establish clinical demand.</p>
+    <p class="geo-insight-intro">{{selectedRegion?'Administrative boundary selected. No verified regional activity figures are available.':scope==='spain'?'Select a region on the map or by name.':'No verified country-level research aggregates are available.'}}</p>
+    <div class="geo-insight-note" role="note">
+     <strong>Data not published</strong>
+     <p>Regional searches, matches and attribution are not verified. This map represents boundaries, not patients or institutions.</p>
     </div>
    </aside>
   </div>
 
+  <details class="geo-about">
+   <summary>About this atlas and its data</summary>
+   <p>{{lensDescription}}</p>
+   <p>Historical records include tests. Regional search statistics are not published. The map does not represent patient locations, institution locations or clinical demand.</p>
+  </details>
   <section v-if="scope==='spain'" class="geo-regions-section" aria-label="Spain regions">
    <div class="geo-regions-heading">
     <div><h3>Region index</h3><p>Find a community without navigating the map.</p></div>
@@ -226,4 +214,27 @@ function changeScope(value:Scope){scope.value=value;selected.value=null;listMode
  .geo-regions-heading button{font-size:11px;padding:7px}
 }
 @media(prefers-reduced-motion:reduce){.geo-region{transition:none}}
+
+/* Phase 4F-7E: prioritize the atlas, with explanation on demand. */
+.geo-toolbar{margin:0 0 6px}
+.geo-data-status{font-size:11px;color:#738b79;margin:0 0 9px;line-height:1.4}
+.geo-map-heading{align-items:center;min-height:60px;padding:10px 17px;gap:12px}
+.geo-region-picker{margin:0;gap:10px}
+.geo-region-picker select{width:clamp(150px,17vw,210px);min-height:44px}
+.geo-current-selection{color:#3e7558;font-size:11px;margin:0 17px 5px}
+.geo-region-insight{padding:clamp(16px,1.8vw,22px)}
+.geo-insight-intro{margin-bottom:12px}
+.geo-insight-note{margin-top:14px}
+.geo-about{margin:14px 0 0;border-top:1px solid #e0eae3;padding:8px 0 0;color:#607b69;font-size:12px}
+.geo-about summary{width:max-content;max-width:100%;cursor:pointer;min-height:38px;display:flex;align-items:center;color:#2b6447;font-weight:650;font-size:12px}
+.geo-about p{max-width:750px;margin:4px 0 10px;line-height:1.6}
+.geo-about summary:focus-visible{outline:2px solid #2b8866;outline-offset:3px}
+@container(max-width:585px){
+ .geo-map-heading{display:grid;grid-template-columns:1fr;gap:8px;padding:11px 12px 7px}
+ .geo-region-picker{display:grid;gap:5px;justify-content:stretch}
+ .geo-region-picker select{width:100%;min-width:0;min-height:44px}
+ .geo-map-inner{padding:0 2px}
+ .geo-map-inner svg{max-height:none}
+ .geo-data-status{font-size:10.5px}
+}
 </style>
