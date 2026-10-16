@@ -3,6 +3,7 @@ import { computed, nextTick, ref, watch, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import VariantFilterPanel from '../components/VariantFilterPanel.vue';
 import {cftr2LinkedReferences} from '../domain/externalReferenceTypes';
+import {referenceMetadata} from '../domain/referencePresentation';
 import {authController,authSessionProvider} from '../services/authSession';
 import {explainTextMatch,rankVisibleSearchPage} from '../domain/searchPresentation';
 import {assessScientificDiscovery} from '../domain/compoundDiscovery';
@@ -434,7 +435,7 @@ function select(id:string):void{
       <p v-else-if="evidenceReady&&!linkedEvidence.length" class="rail-caption">No source links returned from this register; published evidence has not been assessed.</p>
       <div id="variant-reference-list" v-show="showReferences">
        <ul v-if="linkedEvidence.length" class="variant-evidence-list">
-        <li v-for="entry in linkedEvidence" :key="entry.id"><a :href="entry.url" target="_blank" rel="noopener noreferrer">{{entry.title}} ↗</a><span>{{entry.source}}</span></li>
+        <li v-for="entry in linkedEvidence" :key="entry.id"><a :href="entry.url" target="_blank" rel="noopener noreferrer">{{entry.title}} ↗</a><span class="nfq-reference-meta">{{referenceMetadata(entry).join(" · ")}}</span></li>
        </ul>
       </div>
       <RouterLink class="variant-evidence-browse" to="/evidence">Browse the evidence register →</RouterLink>
