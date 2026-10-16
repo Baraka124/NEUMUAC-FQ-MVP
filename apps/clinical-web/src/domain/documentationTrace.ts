@@ -10,9 +10,9 @@ export interface RecordedField {
 export function recordedNomenclature(variant:RealVariant):readonly RecordedField[]{
  return [
   {label:'Legacy name',value:variant.legacyName},
-  {label:'cDNA notation',value:variant.cdnaName},
   {label:'Protein notation',value:variant.proteinName},
-  {label:'Recorded aliases',value:variant.aliases.length?variant.aliases.join(', '):null}
+  {label:'cDNA notation',value:variant.cdnaName},
+  {label:'Aliases',value:variant.aliases.length?variant.aliases.join(', '):null}
  ];
 }
 
