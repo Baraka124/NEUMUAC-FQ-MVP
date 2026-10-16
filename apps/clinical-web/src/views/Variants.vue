@@ -367,7 +367,7 @@ function select(id:string):void{
         </div>
         <span v-if="selected.id===exactMatchedId" class="discovery-exact-chip">Exact match</span>
        </div>
-       <RouterLink v-if="sourceWorkspace" class="nfq-journey-return" :to="sourceWorkspace">← Return to {{sourceWorkspace.startsWith("/evidence")?"evidence":"research intelligence"}}</RouterLink>
+       <RouterLink v-if="sourceWorkspace" class="nfq-journey-return" :to="sourceWorkspace">← Return to {{sourceWorkspace.startsWith("/evidence")?"evidence":"research coverage"}}</RouterLink>
        <dl class="identity-grid nfq-dossier-identity" aria-label="Variant nomenclature">
         <div><dt>Legacy name</dt><dd>{{selected.legacyName||'Not recorded'}}</dd></div>
         <div><dt>Protein notation</dt><dd>{{selected.proteinName||'Not recorded'}}<small v-if="selected.proteinName?.trim()==='p.?'" class="nfq-unknown-consequence">Protein consequence unknown</small></dd></div>
@@ -451,7 +451,7 @@ function select(id:string):void{
         <li v-for="entry in linkedEvidence" :key="entry.id"><a :href="entry.url" target="_blank" rel="noopener noreferrer">{{entry.title}} ↗</a><span class="nfq-reference-meta">{{referenceMetadata(entry).join(" · ")}}</span></li>
        </ul>
       </div>
-      <RouterLink class="variant-evidence-browse" :to="{path:'/evidence',query:dossierReturn?{from:dossierReturn}:{}}">Browse the evidence register →</RouterLink>
+      <RouterLink class="variant-evidence-browse" :to="{path:'/evidence',query:dossierReturn?{from:dossierReturn,variant:selected.id}:{}}">Browse the evidence register →</RouterLink>
        <RouterLink class="variant-evidence-browse nfq-journey-secondary" :to="{path:'/intelligence',query:dossierReturn?{from:dossierReturn}:{}}">Inspect documentation coverage →</RouterLink>
      </section>
      <section v-if="!selectedFromSearch&&scientificDetailsOpen" class="research-history-section" aria-label="Research history">

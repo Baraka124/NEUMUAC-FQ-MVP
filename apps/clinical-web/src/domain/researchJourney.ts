@@ -15,13 +15,15 @@ const OPTIONS:Record<JourneyWorkspace,Record<string,(value:string)=>boolean>>={
  },
  evidence:{
   q:v=>v.length<=70&&/^[a-zA-Z0-9 _-]*$/.test(v),
-  page:v=>/^\d{1,4}$/.test(v)&&Number(v)<=10000
+  page:v=>/^\d{1,4}$/.test(v)&&Number(v)<=10000,
+  variant:v=>/^[1-9]\d{0,17}$/.test(v)
  },
  intelligence:{
   q:v=>v.length<=75,
   group:v=>['none','single','multiple','all'].includes(v),
   shown:v=>/^\d{1,4}$/.test(v)&&Number(v)>=40&&Number(v)<=4000&&Number(v)%40===0,
-  expanded:v=>/^\d{1,18}$/.test(v)
+  expanded:v=>/^\d{1,18}$/.test(v),
+  variant:v=>/^[1-9]\d{0,17}$/.test(v)
  }
 };
 function workspace(path:string):JourneyWorkspace|null{
