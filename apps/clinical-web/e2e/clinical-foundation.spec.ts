@@ -192,7 +192,7 @@ test('Phase 3D scientific search stays primary across six widths',async({page})=
  for(const width of [320,390,768,1024,1366,1600]){
   await page.setViewportSize({width,height:860});
   await page.goto('/#/variants');
-  await expect(page.getByRole('heading',{name:'Find a variant',exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Search variants',exact:true})).toBeVisible();
   await expect(page.getByRole('searchbox',{name:'Variant name, HGVS or recorded alias'})).toBeVisible();
   await expect(page.getByRole('button',{name:'Search help and scientific data limitations'})).toBeVisible();
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
@@ -284,7 +284,7 @@ test('UI foundation Phase 2: immediate search and visible selected state',async(
   await page.setViewportSize({width,height:860});
   await page.goto('/#/variants');
   await expect(page.getByRole('heading',{name:'Variants',exact:true})).toBeVisible();
-  await expect(page.getByRole('heading',{name:'Find a variant'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Search variants'})).toBeVisible();
   await expect(page.getByRole('searchbox',{name:/Variant name, HGVS or recorded alias/})).toBeVisible();
   await expect(page.getByText('SCIENTIFIC DISCOVERY')).toHaveCount(0);
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
@@ -690,7 +690,7 @@ test('4F-7H functional compact search and preserved map capabilities',async({pag
   await expect(page).toHaveURL(/#\/workspace/);
   await page.goto('/#/variants');
   await expect(page.getByRole('heading',{name:'Variants',exact:true})).toBeVisible();
-  await expect(page.getByRole('heading',{name:'Find a variant'})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Search variants'})).toBeVisible();
   await page.goto('/#/geography');
   await expect(page.locator('path.geo-region')).toHaveCount(19);
   await page.getByLabel('Choose a region').selectOption('12');
@@ -703,4 +703,13 @@ test('4F-7H functional compact search and preserved map capabilities',async({pag
   await page.getByRole('button',{name:'Return to Spain'}).click();
   await expect(page.locator('path.geo-region')).toHaveCount(19);
  }
+});
+
+test('4F-7H exact dossier state can recover after query changes',async({page})=>{
+ await page.goto('/#/variants/383?q=1001%2B11C%2FT');
+ const search=page.getByRole('searchbox',{name:'Variant name, HGVS or recorded alias'});
+ await search.fill('R117H');
+ await expect(page).toHaveURL(/#\/variants\?q=R117H/);
+ await expect(page.getByRole('heading',{name:'Select a variant'})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Search variants'})).toBeVisible();
 });
