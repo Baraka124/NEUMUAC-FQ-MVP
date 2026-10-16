@@ -248,6 +248,7 @@ function updateWorklistRoute():void {
  if(sort.value!=='name-asc')query.sort=sort.value;
  if(searchMode.value!=='contains')query.mode=searchMode.value;
  if(page.value>0)query.page=String(page.value);
+ if(sourceWorkspace.value)query.from=sourceWorkspace.value;
  // Retain deep-link identity even during asynchronous detail loading.
  void router.replace({path:route.params.id?route.path:'/variants',query});
 }
