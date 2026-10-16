@@ -795,3 +795,25 @@ main{background:#fbfcfa}
  .variant-page .nfq-details-hint{font-size:10.5px}
  .variant-page .nfq-details-trigger{gap:7px;padding-inline:7px}
 }
+
+/* Phase 4F-6D: correct screenshot-observed containment and shell continuity. */
+@media(min-width:761px){
+ .workspace-frame>.institution-header{background:#fff;isolation:isolate}
+ .variant-page .record-rail{max-height:calc(100dvh - 86px)}
+ .variant-page .record-rail>.record-list{scrollbar-width:thin;scrollbar-color:#b6cfbf transparent;scroll-padding-block:8px}
+ .variant-page .record-rail>.record-list::-webkit-scrollbar{display:block;width:6px}
+ .variant-page .record-rail>.record-list::-webkit-scrollbar-thumb{background:#b6cfbf;border-radius:10px}
+}
+.variant-page .record-list button{height:auto;overflow:visible;flex-shrink:0;align-self:stretch;display:block}
+.variant-page .record-list .record-class,.variant-page .record-list .record-current-label{vertical-align:baseline}
+.variant-page .record-list{grid-auto-rows:max-content;align-content:start;padding-bottom:8px}
+.variant-page .discovery-input input::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none}
+.variant-page .discovery-clear{min-width:32px;min-height:32px}
+.variant-page .nfq-no-selection{max-width:520px}
+.variant-page .nfq-no-selection h2{font-size:clamp(22px,2.1vw,29px);letter-spacing:-.035em;margin:9px 0}
+.variant-page .nfq-no-selection p{color:#617a69;max-width:58ch;line-height:1.6;font-size:13px;margin:0}
+.variant-page .record-overview{scroll-margin-top:108px}
+@media(max-width:760px){
+ .variant-page .record-overview{scroll-margin-top:82px}
+ .variant-page .record-list{max-height:none}
+}
