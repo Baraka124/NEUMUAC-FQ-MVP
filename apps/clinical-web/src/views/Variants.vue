@@ -6,6 +6,7 @@ import {cftr2LinkedReferences} from '../domain/externalReferenceTypes';
 import {authController,authSessionProvider} from '../services/authSession';
 import {explainTextMatch,rankVisibleSearchPage} from '../domain/searchPresentation';
 import {assessScientificDiscovery} from '../domain/compoundDiscovery';
+import {emptySearchReason} from '../domain/searchFeedback';
 
 import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
 import {createScientificDossierSource,type ScientificDossier} from '../services/scientificDossier';
@@ -171,6 +172,11 @@ const hasMore=ref(false);
 const busy=ref(false);
 const detailBusy=ref(false);
 const error=ref(configError);
+const completed=ref(false);
+const pending=ref(true);
+const emptyReason=computed(()=>emptySearchReason({query:search.value,completed:completed.value,pending:pending.value,blocked:scientificInputAssessment.value.blocked,error:Boolean(error.value),visibleCount:displayedRows.value.length,restrictiveFilters:classFilter.value!=='all'||searchMode.value!=='contains',page:page.value}));
+function retrySearch():void{pending.value=true;completed.value=false;void load();void resolveSearch();}
+function broadenSearch():void{classFilter.value='all';searchMode.value='contains';page.value=0;}
 let current:AbortController|null=null;
 let detailRequest:AbortController|null=null;
 let exactRequest:AbortController|null=null;
@@ -182,20 +188,20 @@ watch(scientificInputAssessment,assessment=>{
  if(!assessment.blocked)return;
  current?.abort();exactRequest?.abort();
  ++listSequence;++exactSequence;
- rows.value=[];hasMore.value=false;busy.value=false;exactMatchedId.value=null;
+ rows.value=[];hasMore.value=false;busy.value=false;exactMatchedId.value=null;completed.value=false;pending.value=false;
 });
 async function load():Promise<void>{
   current?.abort();const run=++listSequence;const abort=new AbortController();current=abort;
-  hasMore.value=false;error.value='';
-  if(scientificInputAssessment.value.blocked){rows.value=[];busy.value=false;return;}
-  if(!source){error.value=configError||'The public variant catalog has not been connected yet.';return;}
+  hasMore.value=false;error.value='';completed.value=false;
+  if(scientificInputAssessment.value.blocked){rows.value=[];busy.value=false;pending.value=false;return;}
+  if(!source){rows.value=[];pending.value=false;error.value=configError||'The public variant catalog has not been connected yet.';return;}
   busy.value=true;
   try {const data=await source.list({query:search.value,page:page.value,classFilter:classFilter.value as 'all'|'I'|'II'|'III'|'IV'|'V'|'VI'|'unclassified',sort:sort.value as 'name-asc'|'name-desc'|'recent-record'|'fewest-validations'|'most-validations',searchMode:searchMode.value as 'contains'|'exact-name',signal:abort.signal});if(run===listSequence){
-    rows.value=data.records;hasMore.value=data.hasMore;
+    rows.value=data.records;hasMore.value=data.hasMore;completed.value=true;
 
   }}
-  catch(e){if(!abort.signal.aborted&&run===listSequence)error.value=formatReadStatus(e);}
-  finally {if(run===listSequence)busy.value=false;}
+  catch(e){if(!abort.signal.aborted&&run===listSequence){rows.value=[];error.value=formatReadStatus(e);}}
+  finally {if(run===listSequence){busy.value=false;pending.value=false;}}
 }
 async function resolveSearch():Promise<void>{
  exactRequest?.abort();
@@ -227,7 +233,7 @@ async function loadDetail(id:unknown):Promise<void>{
   finally {if(run===detailSequence)detailBusy.value=false;}
 }
 watch(()=>authController?.state.phase,()=>{current?.abort();detailRequest?.abort();rows.value=[];selected.value=null;page.value=0;void load();});
-watch([search,page,classFilter,sort,searchMode],()=>{clearTimeout(timer);timer=setTimeout(()=>{void load();void resolveSearch();},search.value?250:0)},{immediate:true});
+watch([search,page,classFilter,sort,searchMode],()=>{clearTimeout(timer);current?.abort();exactRequest?.abort();++listSequence;++exactSequence;rows.value=[];hasMore.value=false;busy.value=false;completed.value=false;pending.value=!scientificInputAssessment.value.blocked;timer=setTimeout(()=>{void load();void resolveSearch();},search.value?250:0)},{immediate:true});
 watch([search,classFilter,sort,searchMode],()=>{page.value=0;});
 watch(()=>route.params.id,id=>{void loadDetail(id);},{immediate:true});
 onUnmounted(()=>{current?.abort();detailRequest?.abort();exactRequest?.abort();evidenceAbort?.abort();dossierAbort?.abort();clinVarAbort?.abort();briefAbort?.abort();historyAbort?.abort();clearTimeout(timer);});
@@ -243,8 +249,8 @@ function updateWorklistRoute():void {
 watch([search,classFilter,sort,searchMode,page],updateWorklistRoute);
 function onSearchKeydown(event:KeyboardEvent):void{
  if(event.key==='Escape'){search.value='';return;}
- if(event.key==='ArrowDown'){event.preventDefault();focusResult(0);}
- if(event.key==='Enter'&&displayedRows.value.length){event.preventDefault();select(displayedRows.value[0].id);}
+ if(event.key==='ArrowDown'&&!pending.value&&!busy.value){event.preventDefault();focusResult(0);}
+ if(event.key==='Enter'&&!pending.value&&!busy.value&&displayedRows.value.length){event.preventDefault();select(displayedRows.value[0].id);}
 }
 function onResultKeydown(event:KeyboardEvent,index:number):void{
  if(event.key==='ArrowDown'){event.preventDefault();focusResult(index+1);}
@@ -292,15 +298,27 @@ function select(id:string):void{
       Search updates while typing. Separate up to four recorded variant identifiers with commas or semicolons for OR search. A single unambiguous exact identity opens its dossier automatically. Filters and scientific labels reflect database records, not independently validated clinical conclusions.
     </div>
     <p v-if="exactMatchedId" role="status" class="discovery-sr-only">Exact recorded identity opened automatically.</p>
-    <p v-if="busy" role="status" class="discovery-loading">Searching…</p>
-    <p v-if="error" role="alert" class="empty-result">{{ error }} <RouterLink v-if="error.includes('Sign in')" to="/sign-in">Sign in</RouterLink></p>
-    <p v-else-if="search.trim()&&!busy&&!rows.length&&!scientificInputAssessment.blocked" role="status" class="empty-result">No matching variants.</p>
-    <button v-if="selected&&rows.length&&!scientificInputAssessment.blocked" type="button" class="nfq-mobile-results-toggle" :aria-expanded="mobileResultsExpanded" aria-controls="variant-results" @click="mobileResultsExpanded=!mobileResultsExpanded">
+    <p v-if="pending||busy" role="status" class="discovery-loading">{{busy?'Searching recorded variants…':'Preparing search…'}}</p>
+    <div v-if="error" role="alert" class="empty-result nfq-search-feedback">
+      <p>{{error}}</p>
+      <RouterLink v-if="error.includes('Sign in')" to="/sign-in">Sign in</RouterLink>
+      <button v-else-if="source" type="button" @click="retrySearch">Retry search</button>
+    </div>
+    <div v-else-if="emptyReason" role="status" class="empty-result nfq-search-feedback">
+      <p v-if="emptyReason==='no-match'">No recorded variant matches this search. Check its spelling or try a separately recorded identifier.</p>
+      <p v-else-if="emptyReason==='restricted'">No results under the current search preferences.</p>
+      <p v-else-if="emptyReason==='empty-page'">There are no records on this page.</p>
+      <p v-else>No variant records are available from this source.</p>
+      <button v-if="emptyReason==='restricted'" type="button" @click="broadenSearch">Clear restrictive filters</button>
+      <button v-else-if="emptyReason==='empty-page'" type="button" @click="page=0">Return to first page</button>
+      <button v-else-if="emptyReason==='no-match'" type="button" @click="search=''">Clear search</button>
+    </div>
+    <button v-if="!pending&&!busy&&!error&&selected&&rows.length&&!scientificInputAssessment.blocked" type="button" class="nfq-mobile-results-toggle" :aria-expanded="mobileResultsExpanded" aria-controls="variant-results" @click="mobileResultsExpanded=!mobileResultsExpanded">
       <span>{{mobileResultsExpanded?'Hide other results':'View other results'}} <small>({{displayedRows.length}} on page)</small></span>
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
     </button>
-    <div v-if="rows.length&&!scientificInputAssessment.blocked" id="variant-results" class="record-list" :class="{'nfq-mobile-results-hidden':selected&&!mobileResultsExpanded}" aria-label="Search results"><button v-for="(record,index) in displayedRows" :key="record.id" type="button" @keydown="onResultKeydown($event,index)" @focus="activeResultIndex=index" @mouseenter="activeResultIndex=index" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span v-if="record.proteinName && !/^p\.\?$/.test(record.proteinName.trim())" class="record-subline">{{record.proteinName}}</span><span v-else-if="record.cdnaName" class="record-subline">{{record.cdnaName}}</span><span v-if="search.trim()" class="record-match-reason">{{matchExplanation(record)}}</span><span v-if="record.recordedClass" class="record-class">Class {{record.recordedClass}}</span><span v-if="selected?.id===record.id" class="record-current-label">Selected</span></button></div>
-    <nav v-if="rows.length||page>0||hasMore" class="pagination-controls discovery-pagination" :class="{'nfq-mobile-results-hidden':selected&&!mobileResultsExpanded}" aria-label="Variant result pages">
+    <div v-if="!pending&&!busy&&!error&&rows.length&&!scientificInputAssessment.blocked" id="variant-results" class="record-list" :class="{'nfq-mobile-results-hidden':selected&&!mobileResultsExpanded}" aria-label="Search results"><button v-for="(record,index) in displayedRows" :key="record.id" type="button" @keydown="onResultKeydown($event,index)" @focus="activeResultIndex=index" @mouseenter="activeResultIndex=index" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span v-if="record.proteinName && !/^p\.\?$/.test(record.proteinName.trim())" class="record-subline">{{record.proteinName}}</span><span v-else-if="record.cdnaName" class="record-subline">{{record.cdnaName}}</span><span v-if="search.trim()" class="record-match-reason">{{matchExplanation(record)}}</span><span v-if="record.recordedClass" class="record-class">Class {{record.recordedClass}}</span><span v-if="selected?.id===record.id" class="record-current-label">Selected</span></button></div>
+    <nav v-if="!pending&&!busy&&!error&&(rows.length||page>0||hasMore)" class="pagination-controls discovery-pagination" :class="{'nfq-mobile-results-hidden':selected&&!mobileResultsExpanded}" aria-label="Variant result pages">
       <button type="button" :disabled="busy||page===0" aria-label="Previous variant page" @click="page--"><span aria-hidden="true">←</span> Previous</button>
       <span class="discovery-page-current" aria-current="page">Page {{page+1}}</span>
       <button type="button" :disabled="busy||!hasMore" aria-label="Next variant page" @click="page++">Next <span aria-hidden="true">→</span></button>

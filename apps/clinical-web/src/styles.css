@@ -924,3 +924,10 @@ main{background:#fbfcfa}
  .variant-page .record-overview{scroll-margin-top:86px}
 }
 @media(prefers-reduced-motion:reduce){.variant-page .nfq-mobile-results-toggle svg{transition:none}}
+
+/* Phase 4F-6H: actionable but restrained search feedback. */
+.variant-page .nfq-search-feedback{display:grid;justify-items:start;gap:9px;border:1px solid #e0e9e2;background:#f8faf8;color:#536d5b;margin:11px 0 0;padding:14px 15px}
+.variant-page .nfq-search-feedback p{margin:0;font-size:12px;line-height:1.6}
+.variant-page .nfq-search-feedback button{display:inline-flex;align-items:center;min-height:36px;padding:7px 11px;border:1px solid #b5d2bf;border-radius:6px;background:#fff;color:#245e46;font:inherit;font-size:12px;font-weight:650;cursor:pointer}
+.variant-page .nfq-search-feedback button:hover{background:#ecf6ee}
+.variant-page .nfq-search-feedback button:focus-visible{outline:3px solid #208567;outline-offset:3px}
