@@ -450,3 +450,13 @@ test('Phase 4F-6B scientific workspaces retain responsive controls and empty sta
   await expect(page.getByRole('alert')).toContainText('Live evidence access is not configured');
  }
 });
+
+test('Phase 4F-6C scientific dossier describes hidden evidence without inventing data',async({page})=>{
+ for(const width of [320,390,768,1366]){
+  await page.setViewportSize({width,height:840});
+  await page.goto('/#/variants');
+  await expect(page.getByRole('searchbox',{name:'Variant name, HGVS or recorded alias'})).toBeVisible();
+  await expect(page.locator('.record-list button')).toHaveCount(0);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
