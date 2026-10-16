@@ -817,3 +817,61 @@ main{background:#fbfcfa}
  .variant-page .record-overview{scroll-margin-top:82px}
  .variant-page .record-list{max-height:none}
 }
+
+/* Phase 4F-6E · institutional research shell + intentional variant workbench.
+   Focused rules replace conflicting late-stage overrides without changing data logic. */
+@media(min-width:761px){
+ .app-frame:not(.sidebar-collapsed){grid-template-columns:clamp(225px,17vw,256px) minmax(0,1fr)}
+ .app-frame.sidebar-collapsed{grid-template-columns:65px minmax(0,1fr)}
+ .app-frame>.sidebar{background:#f2f6f2;border-right:1px solid #dce7de}
+ .sidebar-scroll{padding:19px 13px 17px}
+ .sidebar .wordmark{gap:10px;align-items:center;min-height:77px;margin:0 0 26px;padding:4px 7px 16px}
+ .sidebar .wordmark-icon{position:relative;flex:0 0 38px;width:38px;height:43px;overflow:hidden;border:0;border-radius:0;background:transparent}
+ .sidebar .wordmark-icon img{position:absolute;width:38px;height:38px;object-fit:contain;inset:2px 0 auto}
+ .sidebar .wordmark-text strong{font-size:16px;font-weight:740;letter-spacing:-.04em}
+ .sidebar .wordmark-text small{font-size:10px;letter-spacing:.005em}
+ .sidebar>.sidebar-toggle{top:93px;right:-13px;width:26px;height:26px;box-shadow:0 1px 5px #173b2b10;border-color:#d6e3d8}
+ .sidebar-caption{padding-left:9px;letter-spacing:.13em}
+ .workspace-nav a{min-height:46px;padding:9px 10px;gap:11px}
+ .workspace-nav a.router-link-exact-active,.workspace-nav a.variant-route-active{box-shadow:inset 2px 0 #368761}
+ .sidebar .sidebar-base{padding:0 9px 6px}
+ .sidebar-collapsed .wordmark{min-height:77px}
+ .sidebar-collapsed .wordmark-icon{margin-inline:auto}
+ .workspace-frame>.institution-header{height:62px;min-height:62px;position:sticky;top:0;z-index:30;background:#fff;border-bottom:1px solid #e1e9e2}
+ .workspace-frame>main{padding-top:24px}
+}
+.variant-page .variant-heading{margin-bottom:15px}
+.variant-page .record-layout{gap:17px}
+.variant-page .record-rail,.variant-page .record-overview{border:1px solid #dbe6dd;border-radius:8px;box-shadow:0 2px 10px #1f442a07}
+.variant-page .record-rail{padding:18px 16px}
+.variant-page .record-rail .rail-topline{margin-bottom:13px}
+.variant-page .discovery-input{background:#fff}
+.variant-page .record-rail>.record-list{margin-top:15px;padding-bottom:12px;gap:7px}
+.variant-page .record-list button{min-height:74px;padding:12px 12px;border-radius:6px;background:#fff}
+.variant-page .record-list button.record-selected{background:#eef6f0}
+.variant-page .record-list button .record-first strong{font-size:14px}
+.variant-page .record-list .record-subline{line-height:1.4;margin-top:5px}
+.variant-page .record-list .record-match-reason{margin-top:7px}
+.variant-page .record-list .record-class,.variant-page .record-list .record-current-label{margin-top:7px}
+.variant-page .record-overview{padding:clamp(24px,2.5vw,34px)}
+.variant-page .nfq-no-selection{min-height:180px;display:flex;flex-direction:column;justify-content:center;padding-block:10px}
+.variant-page .nfq-no-selection .section-label{font-size:10px;letter-spacing:.12em}
+.variant-page .nfq-no-selection h2{margin:14px 0 9px;font-size:clamp(23px,2.2vw,32px);font-family:"Iowan Old Style",Georgia,serif;font-weight:500}
+.variant-page .nfq-no-selection p{font-size:13px;line-height:1.7;color:#657c6c}
+@media(min-width:761px){
+ .variant-page .record-rail{top:76px;max-height:calc(100dvh - 94px);overflow:visible}
+ .variant-page .record-rail>.record-list{max-height:calc(100dvh - 370px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:#aec7b5 transparent}
+ .variant-page .record-rail>.record-list::-webkit-scrollbar{display:block;width:6px}
+ .variant-page .record-rail>.record-list::-webkit-scrollbar-thumb{background:#aec7b5;border-radius:8px}
+}
+@media(max-width:760px){
+ .variant-page .record-layout{display:block}
+ .variant-page .record-rail{position:static;max-height:none;overflow:visible;padding:15px;margin-bottom:15px}
+ .variant-page .record-rail>.record-list{max-height:320px;overflow-y:auto;scrollbar-width:thin}
+ .variant-page .record-overview{padding:20px;scroll-margin-top:82px}
+ .variant-page .nfq-no-selection{min-height:115px}
+}
+@media(max-width:430px){
+ .variant-page .record-list button{min-height:67px}
+ .variant-page .record-overview{padding:17px}
+}
