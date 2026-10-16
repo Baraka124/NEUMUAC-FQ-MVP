@@ -43,7 +43,7 @@ onUnmounted(()=>abort?.abort());
 <template>
  <div class="page intelligence-page nfq-science-ui">
   <div class="eyebrow">CFTR RESEARCH / EVIDENCE COVERAGE</div>
-  <h1>Research intelligence</h1>
+  <h1>Research coverage</h1>
   <RouterLink v-if="returnToVariant" class="nfq-journey-return" :to="returnToVariant">← Return to variant dossier</RouterLink>
   <p class="intro">Review which variant records have reference links in the research catalog. Link counts describe documentation coverage only—not scientific evidence strength or clinical priority.</p>
   <p v-if="loading" role="status">Retrieving the complete live variant and reference-link registers…</p>
