@@ -147,7 +147,7 @@ const loginOpen=ref(false);
 @media(prefers-reduced-motion:reduce){.nfq-portal-index-link{transition:none}}
 
 /* Phase 4F-9B: the portal form remains an actual sign-in option, not a second long panel. */
-.nfq-portal-login-card{width:min(100%,390px);justify-self:center;align-self:start;min-width:0;padding:clamp(18px,2.2vw,25px);border:1px solid #d4e2d8;border-radius:12px;background:rgba(249,252,249,.93);box-shadow:0 12px 30px -22px rgba(24,64,40,.2);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.nfq-portal-login-card{position:relative;z-index:1;width:min(100%,390px);justify-self:center;align-self:start;min-width:0;padding:clamp(18px,2.2vw,25px);border:1px solid #d4e2d8;border-radius:12px;background:rgba(249,252,249,.93);box-shadow:0 12px 30px -22px rgba(24,64,40,.2);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
 .nfq-portal-login-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:16px}
 .nfq-portal-login-heading h2{font-family:Georgia,"Times New Roman",serif;font-size:clamp(25px,2.8vw,30px);font-weight:500;letter-spacing:-.045em;line-height:1.1;margin:0;color:#173c2e}
 .nfq-portal-login-heading p{font-size:11px;line-height:1.4;color:#647c6d;margin:5px 0 0}
