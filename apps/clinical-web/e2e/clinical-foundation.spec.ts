@@ -754,3 +754,26 @@ test('4F-9A sign-in stays compact, functional and accessible at all widths',asyn
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+test('4F-9B landing sign-in is compact and shares accessible guidance',async({page})=>{
+ for(const width of [320,390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/');
+  await page.getByRole('button',{name:/Sign in/}).click();
+  const card=page.locator('#nfq-portal-account');
+  await expect(card.getByRole('heading',{name:'Research sign-in'})).toHaveCount(1);
+  await expect(card).toBeVisible();
+  const dimensions=await card.boundingBox();
+  expect(dimensions).not.toBeNull();
+  expect(dimensions!.width).toBeLessThanOrEqual(392);
+  expect(dimensions!.height).toBeLessThan(415);
+  await expect(card.getByRole('status')).toContainText('Account sign-in is not configured');
+  await card.locator('.nfq-context-help summary').click();
+  await expect(card.getByRole('note',{name:'Research account access'})).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(card.getByRole('note',{name:'Research account access'})).toHaveCount(0);
+  await page.getByRole('button',{name:/Return to research tools/}).click();
+  await expect(page.getByRole('heading',{name:'Research tools'})).toBeVisible();
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
