@@ -91,5 +91,10 @@ import ContextHelp from '../components/ContextHelp.vue';
  .nfq-login-card{width:min(100%,390px);padding:22px 19px}
  .nfq-signin-institutional .nfq-signin-main{padding-top:4px;padding-bottom:8px}
 }
+/* The glass card establishes an overlay context; keep help within it on phones. */
+@media(max-width:600px){
+ .nfq-login-card :deep(.nfq-context-help){position:static}
+ .nfq-login-card :deep(.nfq-context-help-panel){position:absolute;top:64px;left:12px;right:12px;width:auto;max-height:min(52vh,290px)}
+}
 @media(prefers-reduced-motion:reduce){.nfq-signin-stage *{scroll-behavior:auto}}
 </style>
