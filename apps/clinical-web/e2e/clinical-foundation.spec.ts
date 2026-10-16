@@ -527,3 +527,15 @@ test('Phase 4F-6F landing editorial hierarchy and unselected research results st
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+test('search guidance distinguishes unsafe notation and never shows stale no-match before query completion',async({page})=>{
+ await page.goto('/#/variants');
+ const search=page.getByRole('searchbox',{name:'Variant name, HGVS or recorded alias'});
+ await search.fill('c.123/124');
+ await expect(page.getByText(/Slash notation is only searchable/)).toBeVisible();
+ await expect(page.getByText(/No recorded variant matches this search/)).toHaveCount(0);
+ await search.fill('1001+11C/T');
+ await expect(page.getByText(/Slash notation is only searchable/)).toHaveCount(0);
+ await expect(page.getByText(/No recorded variant matches this search/)).toHaveCount(0);
+ await expect(page.getByRole('alert')).toContainText('public variant catalog has not been connected yet');
+});
