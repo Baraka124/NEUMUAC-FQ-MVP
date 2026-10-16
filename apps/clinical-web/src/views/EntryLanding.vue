@@ -13,7 +13,7 @@ function openLogin(){loginOpen.value=true;}
         <img src="/brand/neumuacfq-logo.png" alt="neumuacFQ · CFTR evidence, connected." />
       </RouterLink>
       <div class="nfq-portal-masthead-right">
-        <span class="nfq-portal-header-context">CFTR research platform</span>
+        <span class="nfq-portal-header-context">CFTR RESEARCH · PUBLIC ACCESS</span>
         <button type="button" class="nfq-portal-header-link" :aria-expanded="loginOpen" aria-controls="nfq-portal-account" @click="loginOpen=!loginOpen">{{loginOpen?'Research tools':'Sign in'}} <span aria-hidden="true">→</span></button>
       </div>
     </header>
@@ -23,14 +23,13 @@ function openLogin(){loginOpen.value=true;}
         <section class="nfq-portal-intro" aria-labelledby="nfq-entry-heading">
           <p class="nfq-portal-kicker">PUBLIC RESEARCH ACCESS</p>
           <h1 id="nfq-entry-heading">CFTR variant research</h1>
-          <p class="nfq-portal-description">Search recorded CFTR variants, review scientific references, compare variant records and examine research coverage.</p>
+          <p class="nfq-portal-description">A research workspace for recorded CFTR variants, scientific references and evidence review.</p>
 
           <div class="nfq-portal-actions" aria-label="Choose how to enter">
             <RouterLink to="/workspace" class="nfq-portal-enter">
               <span>Explore public research</span>
               <svg viewBox="0 0 24 24" aria-hidden="true" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
             </RouterLink>
-            
           </div>
           <p class="nfq-portal-access-note">Public research is available without an account.</p>
         </section>
@@ -44,8 +43,8 @@ function openLogin(){loginOpen.value=true;}
         </section>
         <nav v-else class="nfq-portal-index" aria-labelledby="nfq-portal-index-heading">
           <div class="nfq-portal-index-top">
-            <p class="nfq-portal-kicker">RESEARCH WORKSPACES</p>
-            <h2 id="nfq-portal-index-heading">Explore by task</h2>
+            <p class="nfq-portal-kicker">WORKSPACE DIRECTORY</p>
+            <h2 id="nfq-portal-index-heading">Research tools</h2>
           </div>
           <RouterLink to="/variants" class="nfq-portal-index-link">
             <span><strong>Variant records</strong><small>Names, HGVS notation and recorded aliases</small></span>
@@ -81,50 +80,50 @@ function openLogin(){loginOpen.value=true;}
 </template>
 
 <style scoped>
-.nfq-portal-landing{min-height:100dvh;display:flex;flex-direction:column;background:#fcfdfc;color:#173444}
-.nfq-portal-masthead,.nfq-portal-content,.nfq-portal-footer{width:min(1440px,100%);margin-inline:auto;padding-inline:clamp(23px,5vw,78px)}
-.nfq-portal-masthead{min-height:114px;display:flex;align-items:center;justify-content:space-between;gap:28px}
-.nfq-portal-brand{display:flex;width:246px;height:108px;flex-shrink:0;align-items:center;justify-content:flex-start;overflow:hidden}
-.nfq-portal-brand img{display:block;width:246px;height:108px;object-fit:contain;object-position:left center}
-.nfq-portal-masthead-right{display:flex;align-items:center;gap:clamp(24px,3vw,42px)}
-.nfq-portal-header-context{font-size:12px;color:#60766f;letter-spacing:.01em}
-.nfq-portal-header-link{cursor:pointer;display:inline-flex;align-items:center;gap:10px;border:1px solid #ceded7;border-radius:7px;padding:11px 15px;white-space:nowrap;color:#1b5345;background:#fff;text-decoration:none;font-size:13px;font-weight:690;transition:border-color .16s,background .16s}
-.nfq-portal-header-link:hover{border-color:#7aa997;background:#f1f8f4}
-.nfq-portal-content{flex:1;display:flex;flex-direction:column;justify-content:center;padding-block:clamp(34px,5vw,64px) 26px}
-.nfq-portal-layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(330px,.88fr);gap:clamp(46px,6vw,102px);align-items:center}
-.nfq-portal-intro{min-width:0;padding-block:12px}
-.nfq-portal-kicker{font-size:10px;line-height:1.5;letter-spacing:.14em;color:#3e817b;font-weight:790;margin:0}
-.nfq-portal-intro h1{font-size:clamp(43px,5.2vw,68px);line-height:1.075;letter-spacing:-.062em;max-width:650px;font-weight:650;color:#123141;margin:24px 0 23px}
-.nfq-portal-description{max-width:590px;font-size:clamp(15px,1.2vw,17px);line-height:1.73;color:#546e73;margin:0}
-.nfq-portal-actions{display:flex;flex-wrap:wrap;align-items:stretch;gap:10px;margin-top:38px}
-.nfq-portal-actions a{display:inline-flex;align-items:center;justify-content:space-between;gap:20px;min-height:54px;border-radius:7px;padding:12px 19px;text-decoration:none;font-size:13px;font-weight:710;line-height:1.3;transition:background .16s,border-color .16s}
-.nfq-portal-enter{background:#102f43;color:#fff;border:1px solid #102f43}
-.nfq-portal-enter:hover{background:#1a495c;border-color:#1a495c}
-.nfq-portal-staff{background:#fff;color:#1d5549;border:1px solid #cddfd5}
-.nfq-portal-staff:hover{background:#f3f9f5;border-color:#8caf9b}
-.nfq-portal-access-note{font-size:12px;line-height:1.65;color:#758984;max-width:550px;margin:15px 0 0}
-.nfq-portal-index{min-width:0;padding-top:0}
-.nfq-portal-index-top{margin:0 0 15px}
-.nfq-portal-index-top h2{font-size:clamp(22px,2vw,29px);font-weight:640;letter-spacing:-.04em;color:#153949;margin:8px 0 0}
-.nfq-portal-index-link{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:78px;padding:15px 3px;border-top:1px solid #dce6e2;color:#193e4a;text-decoration:none}
+/* Institutional editorial entry: bounded reading widths, no oversized empty hero. */
+.nfq-portal-landing{min-height:100dvh;display:flex;flex-direction:column;background:#fafbf9;color:#193b32}
+.nfq-portal-masthead,.nfq-portal-content,.nfq-portal-footer{width:min(1190px,100%);margin-inline:auto;padding-inline:clamp(24px,4vw,62px)}
+.nfq-portal-masthead{min-height:116px;display:flex;align-items:center;justify-content:space-between;gap:24px;border-bottom:1px solid #e4ebe6}
+.nfq-portal-brand{position:relative;display:block;width:200px;height:88px;overflow:hidden;flex:0 0 auto}
+.nfq-portal-brand img{position:absolute;display:block;width:172px;height:172px;max-width:none;object-fit:contain;left:0;top:-39px}
+.nfq-portal-masthead-right{display:flex;align-items:center;gap:24px}
+.nfq-portal-header-context{font-size:10px;letter-spacing:.14em;font-weight:700;color:#668274;white-space:nowrap}
+.nfq-portal-header-link{display:inline-flex;align-items:center;gap:17px;min-height:42px;padding:10px 15px;border:1px solid #d5e2d8;border-radius:5px;background:transparent;color:#234b3b;text-decoration:none;font-size:12px;font-weight:680;white-space:nowrap}
+.nfq-portal-header-link:hover{background:#f0f6f1;border-color:#a4bdae}
+.nfq-portal-content{flex:1;display:flex;flex-direction:column;justify-content:center;padding-block:clamp(40px,6vh,70px) 28px}
+.nfq-portal-layout{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(315px,.84fr);gap:clamp(38px,6vw,92px);align-items:start}
+.nfq-portal-intro{min-width:0;padding-block:clamp(13px,3vw,38px)}
+.nfq-portal-kicker{font-size:10px;line-height:1.55;letter-spacing:.14em;color:#3d7560;font-weight:740;margin:0}
+.nfq-portal-intro h1{max-width:570px;margin:25px 0 22px;color:#193a32;font-family:"Iowan Old Style","Baskerville","Palatino Linotype",Georgia,serif;font-size:clamp(45px,4.25vw,62px);font-weight:500;letter-spacing:-.048em;line-height:1.08}
+.nfq-portal-description{max-width:490px;font-size:clamp(15px,1.28vw,17px);line-height:1.7;color:#526d62;margin:0}
+.nfq-portal-actions{display:flex;align-items:center;flex-wrap:wrap;margin-top:35px}
+.nfq-portal-enter{display:inline-flex;justify-content:space-between;align-items:center;gap:22px;min-height:49px;padding:12px 17px;background:#163d33;color:#fff;border:1px solid #163d33;border-radius:5px;text-decoration:none;font-size:12px;font-weight:680}
+.nfq-portal-enter:hover{background:#265746;border-color:#265746}
+.nfq-portal-enter svg{flex:0 0 auto}
+.nfq-portal-access-note{margin:12px 0 0;font-size:11px;line-height:1.6;color:#788e80}
+.nfq-portal-index{counter-reset:workspace;min-width:0;padding:6px 0 0 27px;border-left:1px solid #dce6df}
+.nfq-portal-index-top{margin:0 0 17px}
+.nfq-portal-index-top h2{font-family:"Iowan Old Style","Baskerville",Georgia,serif;font-size:clamp(26px,2.4vw,32px);font-weight:500;letter-spacing:-.037em;line-height:1.25;color:#1b4034;margin:7px 0 0}
+.nfq-portal-index-link{counter-increment:workspace;display:grid;grid-template-columns:25px minmax(0,1fr) 20px;align-items:center;gap:10px;min-height:73px;padding:12px 0;border-top:1px solid #e1e9e3;color:#214337;text-decoration:none}
+.nfq-portal-index-link::before{content:counter(workspace,decimal-leading-zero);font-size:10px;letter-spacing:.08em;color:#879b8e;font-variant-numeric:tabular-nums}
+.nfq-portal-index-link>span:first-child{min-width:0}
 .nfq-portal-index-link strong,.nfq-portal-index-link small{display:block}
-.nfq-portal-index-link strong{font-size:14px;letter-spacing:-.006em;font-weight:690;line-height:1.45}
-.nfq-portal-index-link small{font-size:12px;font-weight:420;line-height:1.45;color:#677d80;margin-top:4px}
-.nfq-portal-index-arrow{flex-shrink:0;font-size:18px;color:#4c8679;transition:transform .16s}
-.nfq-portal-index-link:hover strong{color:#087977}
+.nfq-portal-index-link strong{font-size:13px;font-weight:710;line-height:1.4;letter-spacing:-.009em}
+.nfq-portal-index-link small{margin-top:4px;color:#6e8578;font-size:11px;line-height:1.45;font-weight:450}
+.nfq-portal-index-arrow{font-size:17px;color:#487f64;justify-self:end;transition:transform .16s ease}
+.nfq-portal-index-link:hover{color:#0f624a}
 .nfq-portal-index-link:hover .nfq-portal-index-arrow{transform:translate(2px,-2px)}
-.nfq-portal-account{align-self:stretch;min-width:0;padding-top:0}
-.nfq-portal-account h2{font-size:clamp(25px,2.3vw,31px);margin:9px 0 11px;letter-spacing:-.035em}
-.nfq-portal-account-description{font-size:13px;color:#62777d;line-height:1.65;margin:0 0 21px;max-width:450px}
-.nfq-portal-back{border:0;background:transparent;padding:13px 0;margin-top:13px;color:#286c63;font:inherit;font-size:12px;cursor:pointer}
-.nfq-portal-back:hover{text-decoration:underline}
-.nfq-portal-research-notice{margin-top:clamp(30px,4vw,54px);padding:0;display:flex;gap:11px;align-items:flex-start;color:#6d8382;max-width:none}
-.nfq-portal-research-notice svg{flex:none;margin-top:1px;color:#63887f}
-.nfq-portal-research-notice p{font-size:12px;line-height:1.6;margin:0}
-.nfq-portal-footer{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;border-top:1px solid #dce6e2;padding-block:17px;font-size:11px;color:#71837f}
-.nfq-portal-header-link:focus-visible,.nfq-portal-brand:focus-visible,.nfq-portal-actions a:focus-visible,.nfq-portal-index-link:focus-visible{outline:3px solid #107e7a;outline-offset:3px}
-@media(max-width:1040px){.nfq-portal-layout{grid-template-columns:minmax(0,1fr) minmax(285px,.85fr);gap:38px}.nfq-portal-header-context{display:none}.nfq-portal-intro h1{font-size:clamp(40px,5vw,56px)}.nfq-portal-actions a{min-height:51px}}
-@media(max-width:760px){.nfq-portal-masthead{min-height:91px}.nfq-portal-brand{width:188px;height:84px}.nfq-portal-brand img{width:188px;height:84px}.nfq-portal-content{justify-content:flex-start;padding-block:33px 28px}.nfq-portal-layout{grid-template-columns:minmax(0,1fr);gap:43px}.nfq-portal-intro{padding:0}.nfq-portal-intro h1{font-size:clamp(37px,7.7vw,53px);margin:15px 0 16px}.nfq-portal-actions{margin-top:27px}.nfq-portal-index{padding-top:18px}.nfq-portal-research-notice{margin-top:38px}}
-@media(max-width:420px){.nfq-portal-masthead{gap:10px;min-height:80px}.nfq-portal-brand{width:145px;height:75px}.nfq-portal-brand img{width:145px;height:75px}.nfq-portal-header-link{padding:9px 11px;font-size:12px}.nfq-portal-actions{display:grid;grid-template-columns:minmax(0,1fr)}.nfq-portal-description{font-size:15px}.nfq-portal-footer{font-size:10px}}
-@media(prefers-reduced-motion:reduce){.nfq-portal-header-link,.nfq-portal-actions a,.nfq-portal-index-arrow{transition:none}.nfq-portal-index-link:hover .nfq-portal-index-arrow{transform:none}}
+.nfq-portal-account{min-width:0;padding:8px 0 0 27px;border-left:1px solid #dce6df}
+.nfq-portal-account h2{font-family:Georgia,serif;font-size:30px;font-weight:500;letter-spacing:-.035em;margin:10px 0}
+.nfq-portal-account-description{max-width:430px;color:#667e72;font-size:12px;line-height:1.65;margin:0 0 22px}
+.nfq-portal-back{border:0;background:transparent;padding:13px 0;color:#2c6d51;font:inherit;font-size:12px;cursor:pointer}
+.nfq-portal-research-notice{display:flex;align-items:flex-start;gap:10px;max-width:750px;margin-top:clamp(34px,6vh,65px);padding-top:17px;border-top:1px solid #e1e9e2;color:#6c8074}
+.nfq-portal-research-notice svg{flex:0 0 17px;margin-top:1px}
+.nfq-portal-research-notice p{font-size:11px;line-height:1.65;margin:0}
+.nfq-portal-footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid #e4ebe6;padding-block:16px;font-size:10px;letter-spacing:.015em;color:#798e80}
+.nfq-portal-header-link:focus-visible,.nfq-portal-brand:focus-visible,.nfq-portal-enter:focus-visible,.nfq-portal-index-link:focus-visible,.nfq-portal-back:focus-visible{outline:3px solid #17836a;outline-offset:3px}
+@media(max-width:960px){.nfq-portal-layout{grid-template-columns:minmax(0,1fr) minmax(275px,.9fr);gap:36px}.nfq-portal-header-context{display:none}.nfq-portal-intro h1{font-size:clamp(41px,5vw,54px)}}
+@media(max-width:760px){.nfq-portal-masthead{min-height:94px}.nfq-portal-brand{width:172px;height:76px}.nfq-portal-brand img{width:150px;height:150px;top:-35px}.nfq-portal-content{justify-content:flex-start;padding-block:28px}.nfq-portal-layout{grid-template-columns:minmax(0,1fr);gap:34px}.nfq-portal-intro{padding-block:10px 0}.nfq-portal-intro h1{font-size:clamp(39px,8vw,54px);margin:16px 0}.nfq-portal-description{max-width:530px}.nfq-portal-actions{margin-top:23px}.nfq-portal-index{border-left:0;padding:22px 0 0;border-top:1px solid #dce6df}.nfq-portal-account{border-left:0;padding:20px 0 0;border-top:1px solid #dce6df}.nfq-portal-research-notice{margin-top:34px}}
+@media(max-width:420px){.nfq-portal-masthead{min-height:80px}.nfq-portal-brand{width:125px;height:66px}.nfq-portal-brand img{width:127px;height:127px;top:-31px}.nfq-portal-header-link{padding:8px 11px;min-height:39px}.nfq-portal-intro h1{font-size:39px}.nfq-portal-index-link{grid-template-columns:23px minmax(0,1fr) 18px;min-height:68px}.nfq-portal-footer{display:grid}}
+@media(prefers-reduced-motion:reduce){.nfq-portal-index-arrow{transition:none}.nfq-portal-index-link:hover .nfq-portal-index-arrow{transform:none}}
 </style>

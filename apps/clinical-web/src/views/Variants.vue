@@ -125,7 +125,17 @@ const searchMode=ref(typeof route.query.mode==='string'&&route.query.mode==='exa
 const showAdvanced=ref(false);
 const activeFilterCount=computed(()=>Number(classFilter.value!=='all')+Number(sort.value!=='name-asc')+Number(searchMode.value!=='contains'));
 function resetAdvancedFilters():void{classFilter.value='all';sort.value='name-asc';searchMode.value='contains';}
-watch(search,()=>{exactMatchedId.value=null;});
+watch(search,()=>{
+ exactMatchedId.value=null;
+ // A changed query is a new research context: never retain a previously opened dossier.
+ if(route.params.id){
+  detailRequest?.abort();
+  ++detailSequence;
+  detailBusy.value=false;
+  selected.value=null;
+  revealNextId=null;
+ }
+});
 const scientificDetailsOpen=ref(false);
 const showReferences=ref(false);
 watch(selected,()=>{showReferences.value=false;scientificDetailsOpen.value=false;});
@@ -219,7 +229,7 @@ function updateWorklistRoute():void {
  if(sort.value!=='name-asc')query.sort=sort.value;
  if(searchMode.value!=='contains')query.mode=searchMode.value;
  if(page.value>0)query.page=String(page.value);
- void router.replace({path:route.path,query});
+ void router.replace({path:route.params.id&&selected.value?route.path:'/variants',query});
 }
 watch([search,classFilter,sort,searchMode,page],updateWorklistRoute);
 function onSearchKeydown(event:KeyboardEvent):void{
@@ -267,7 +277,7 @@ function select(id:string):void{
        </button>
        <VariantFilterPanel v-if="showAdvanced" v-model:class-filter="classFilter" v-model:sort="sort" v-model:search-mode="searchMode" @close="showAdvanced=false" @reset="resetAdvancedFilters"/>
       </div>
-      <span class="record-total" aria-label="Results on this page">{{rows.length}} results</span>
+      <span class="record-total" aria-label="Results on this page">{{rows.length}} on page</span>
     </div>
     <RouterLink class="regional-research-link" to="/geography" aria-label="Explore aggregated geographic research activity for Spain">
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m3 6 6-2 6 2 6-2v14l-6 2-6-2-6 2zM9 4v14M15 6v14"/></svg>
@@ -433,7 +443,13 @@ function select(id:string):void{
        <p class="rail-caption">Textual match is not a clinical interpretation. Use ↑/↓ to explore results, Enter to open.</p>
       </div>
      </template>
-     <template v-else><h2 id="selected-title">{{route.params.id?'Record unavailable':'Select a variant'}}</h2><p>{{route.params.id?'No accessible record was returned for this identifier.':'Choose a database record to view its available nomenclature.'}}</p></template>
+     <template v-else>
+      <div class="nfq-no-selection" aria-live="polite">
+       <span class="section-label">SCIENTIFIC RECORD</span>
+       <h2 id="selected-title">{{route.params.id?'Record unavailable':search.trim()&&!busy&&!error&&!displayedRows.length?'No matching variant':'Select a variant'}}</h2>
+       <p>{{route.params.id?'No accessible record was returned for this identifier.':search.trim()&&!busy&&!error&&!displayedRows.length?'No recorded variant matches the current search. Check the notation or try a recorded alias.':'Choose a variant from the results to examine its nomenclature and available references.'}}</p>
+      </div>
+     </template>
     </article>
    </div>
   </div>
