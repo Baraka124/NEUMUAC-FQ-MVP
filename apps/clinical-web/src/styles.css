@@ -774,3 +774,24 @@ main{background:#fbfcfa}
  .nfq-science-ui .pagination-controls>span{order:-1;width:100%;text-align:left}
  .nfq-science-ui .intelligence-metrics strong{font-size:clamp(19px,5vw,25px)}
 }
+
+/* Phase 4F-6C · restrained, discoverable scientific dossier controls. */
+.variant-page .nfq-details-trigger-copy{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0;text-align:left}
+.variant-page .nfq-details-hint{display:block;font-size:11px;line-height:1.35;font-weight:450;color:#648171;letter-spacing:0;white-space:normal}
+.variant-page .nfq-details-trigger{max-width:min(100%,430px);min-height:49px;align-items:center;padding-block:7px}
+.variant-page .nfq-details-trigger:hover .nfq-details-hint{color:#315d45}
+.variant-page .nfq-dossier-group-title{line-height:1.45}
+.variant-page .nfq-supporting-fields dt{line-height:1.5}
+.variant-page .nfq-supporting-fields dd{overflow-wrap:anywhere;line-height:1.55}
+.variant-page .nfq-external-register a,.variant-page .variant-evidence-list a{overflow-wrap:anywhere;text-underline-offset:3px}
+.variant-page .record-overview{min-width:0}
+.variant-page .discovery-input input:focus-visible{outline-offset:1px}
+@media(max-width:760px){
+ .variant-page .nfq-details-trigger{width:100%;max-width:100%;min-height:52px}
+ .variant-page .nfq-dossier-expanded{gap:18px}
+ .variant-page .record-overview{min-width:0}
+}
+@media(max-width:380px){
+ .variant-page .nfq-details-hint{font-size:10.5px}
+ .variant-page .nfq-details-trigger{gap:7px;padding-inline:7px}
+}
