@@ -278,7 +278,7 @@ function select(id:string):void{
   <div class="record-layout">
    <section class="record-rail" aria-labelledby="record-list-title">
     <div class="rail-topline">
-      <h2 id="record-list-title">Search variants</h2>
+      <h2 id="record-list-title">Find a variant</h2>
       <button type="button" class="discovery-info-button" aria-label="Search help and scientific data limitations" :aria-expanded="showSearchInfo" aria-controls="discovery-search-help" @click="showSearchInfo=!showSearchInfo">i</button>
     </div>
     <label for="search" class="discovery-accessible-label">Variant name, HGVS or recorded alias</label>
