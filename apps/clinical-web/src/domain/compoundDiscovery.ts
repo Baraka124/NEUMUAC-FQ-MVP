@@ -25,15 +25,21 @@ export function assessScientificDiscovery(query:string):ScientificDiscoveryAsses
   // unknown locations or alternate consequences; none is synonymous.
   if(/[()?^]/.test(raw))
     return block('Uncertain or predicted HGVS notation cannot be safely interpreted here. Use an exact recorded name or alias.');
-  // A wildcard, reference-equivalence operator, mosaicism notation or
-  // pipe must not be repurposed as a PostgREST pattern or guessed variant.
-  if(/[*=/|]/.test(raw))
+  // Wildcards, reference-equivalence and pipe operators are not literal
+  // names; never let them alter the PostgREST filter grammar.
+  if(/[*=|]/.test(raw))
     return block('This scientific notation is not supported by recorded-identity search. No equivalent variant has been inferred.');
   const parts=raw.split(/[,;]/).map(x=>x.trim());
   if(parts.length>4||parts.some(x=>!x||x.length>75||
-      !/^[a-zA-Z0-9 _.+>:\-]+$/.test(x)||
+      !/^[a-zA-Z0-9 _.+>:/-]+$/.test(x)||
       /\b(?:id|variant_id)\.(?:eq|gt|lt)\./i.test(x)))
     return block('Enter one to four recorded identifiers separated by commas or semicolons.');
+  // Historical legacy names sometimes contain one literal nucleotide slash
+  // (1001+11C/T). Treat it only as recorded text: never reinterpret C/T as
+  // HGVS C>T or treat arbitrary slashes as allelic relationships.
+  const recordedSlashSubstitution=/^(?:(?:[A-Za-z]{1,5}_\d+\.\d+:)?c\.)?\d+(?:[+-]\d+)?[ACGT]\/[ACGT]$/i;
+  if(parts.some(x=>x.includes('/')&&!recordedSlashSubstitution.test(x)))
+    return block('Slash notation is only searchable for a recorded base substitution such as 1001+11C/T. Allele or position expressions require separate interpretation.');
   const sequenceQualified=parts.some(x=>/^[A-Za-z]{1,5}_\d+\.\d+:[gcnrpm]\./i.test(x));
   return {
     blocked:false,sequenceQualified,
