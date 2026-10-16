@@ -63,6 +63,8 @@ try { if(config) source=createReadOnlyRepository(config,fetch,authSessionProvide
 const rows=ref<readonly RealVariant[]>([]);
 
 const selected=ref<RealVariant|null>(null);
+const detailNotice=ref('');
+const selectedFromSearch=ref(false);
 watch(selected,()=>{
  clinVarAbort?.abort();
  clinVarSummary.value=null;clinVarError.value='';clinVarLoading.value=false;
@@ -227,14 +229,17 @@ async function resolveSearch():Promise<void>{
 }
 async function loadDetail(id:unknown):Promise<void>{
   detailRequest?.abort();const run=++detailSequence;
-  selected.value=null;
+  const candidate=typeof id==='string'?rows.value.find(row=>row.id===id):undefined;
+  selected.value=null;selectedFromSearch.value=false;detailNotice.value='';
   if(typeof id!=='string'||!source)return;
   const abort=new AbortController();detailRequest=abort;detailBusy.value=true;
   try {const record=await source.get(id,abort.signal);if(run===detailSequence){
-    selected.value=record;
-    if(record)void revealSelectedRecord(id);
+    selected.value=record??candidate??null;
+    selectedFromSearch.value=!record&&Boolean(candidate);
+    if(!record&&candidate)detailNotice.value='The individual record could not be retrieved. Showing only fields returned by the search results; detailed scientific information remains unavailable.';
+    if(record||candidate)void revealSelectedRecord(id);
   }}
-  catch(e){if(!abort.signal.aborted&&run===detailSequence)error.value=formatReadStatus(e);}
+  catch(e){if(!abort.signal.aborted&&run===detailSequence){selected.value=candidate??null;selectedFromSearch.value=Boolean(candidate);detailNotice.value=candidate?'The individual record could not be retrieved. Showing only fields returned by the search results; detailed scientific information remains unavailable.':formatReadStatus(e);}}
   finally {if(run===detailSequence)detailBusy.value=false;}
 }
 watch(()=>authController?.state.phase,()=>{current?.abort();detailRequest?.abort();rows.value=[];selected.value=null;page.value=0;void load();});
@@ -269,7 +274,7 @@ function onResultKeydown(event:KeyboardEvent,index:number):void{
 function select(id:string):void{
  exactMatchedId.value=null;
  revealNextId=id;
- if(route.params.id===id){void revealSelectedRecord(id);return;}
+ if(route.params.id===id){void loadDetail(id);return;}
  void router.push({path:'/variants/'+encodeURIComponent(id),query:{...route.query}});
 }
 </script>
@@ -350,6 +355,7 @@ function select(id:string):void{
     <article class="record-overview" aria-labelledby="selected-title">
      <p v-if="detailBusy" role="status">Loading record…</p>
      <template v-else-if="selected">
+      <p v-if="detailNotice" role="status" class="nfq-detail-notice">{{detailNotice}}</p>
       <div class="nfq-dossier-primary">
        <div class="record-identity">
         <div>
@@ -368,7 +374,7 @@ function select(id:string):void{
         <div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div>
         <div><dt>Aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div>
        </dl>
-      </div><section class="dossier-science" aria-label="Additional scientific record details">
+      </div><section v-if="!selectedFromSearch" class="dossier-science" aria-label="Additional scientific record details">
       <p v-if="dossierError" role="alert">{{dossierError}}</p>
       <div class="nfq-details-control">
        <button type="button" class="nfq-details-trigger" :aria-expanded="scientificDetailsOpen" aria-controls="nfq-secondary-science" @click="scientificDetailsOpen=!scientificDetailsOpen">
@@ -430,7 +436,7 @@ function select(id:string):void{
       </div>
       </div>
      </section>
-     <section v-if="scientificDetailsOpen" class="variant-evidence-links" aria-label="Scientific references">
+     <section v-if="!selectedFromSearch&&scientificDetailsOpen" class="variant-evidence-links" aria-label="Scientific references">
       <h3 class="nfq-dossier-group-title">References</h3>
       <div v-if="evidenceReady&&cftr2References.length" class="nfq-external-register" aria-label="CFTR2 source links">
        <span class="section-label">CFTR2 · LINKED REFERENCES</span>
@@ -448,7 +454,7 @@ function select(id:string):void{
       <RouterLink class="variant-evidence-browse" :to="{path:'/evidence',query:dossierReturn?{from:dossierReturn}:{}}">Browse the evidence register →</RouterLink>
        <RouterLink class="variant-evidence-browse nfq-journey-secondary" :to="{path:'/intelligence',query:dossierReturn?{from:dossierReturn}:{}}">Inspect documentation coverage →</RouterLink>
      </section>
-     <section v-if="scientificDetailsOpen" class="research-history-section" aria-label="Research history">
+     <section v-if="!selectedFromSearch&&scientificDetailsOpen" class="research-history-section" aria-label="Research history">
       <h3 class="nfq-dossier-group-title">Review history</h3>
       <button class="disclosure-button" type="button" :aria-expanded="historyOpen" aria-controls="variant-research-history" @click="toggleResearchHistory">
        <span>Validation & conflict history</span><span aria-hidden="true">{{historyOpen?'−':'+'}}</span>
@@ -471,14 +477,14 @@ function select(id:string):void{
        </template>
       </div>
      </section>
-     <div v-if="scientificDetailsOpen" class="nfq-dossier-report">
+     <div v-if="!selectedFromSearch&&scientificDetailsOpen" class="nfq-dossier-report">
       <div class="variant-export-actions" v-if="scientificDetailsOpen">
       <button type="button" :disabled="briefBusy" @click="copyResearchBrief">{{briefBusy?'Preparing full research brief…':'Copy scientific research brief'}}</button>
       <p role="status" v-if="briefStatus">{{briefStatus}}</p>
       <p class="rail-caption">Copies current scientific fields and recorded reference links. No patient data, clinical report or treatment recommendations.</p>
      </div>
      </div>
-     <p v-if="scientificDetailsOpen" class="history-disclaimer">Database classifications and reference links are research information, not independently validated clinical conclusions.</p></template>
+     <p v-if="!selectedFromSearch&&scientificDetailsOpen" class="history-disclaimer">Database classifications and reference links are research information, not independently validated clinical conclusions.</p></template>
      <template v-else-if="previewCandidate">
       <div class="research-preview" aria-label="Search result preview">
        <span class="section-label">SEARCH PREVIEW · NOT OPENED</span>
