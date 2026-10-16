@@ -44,7 +44,7 @@ async function refresh(){
  }finally{if(run===sequence)loading.value=false;}
 }
 watch(query,()=>{page.value=0;});
-watch([query,page],()=>{clearTimeout(debounce);debounce=setTimeout(()=>{void refresh();},query.value?250:0);},{immediate:true});
+watch([query,page,focusId],()=>{clearTimeout(debounce);debounce=setTimeout(()=>{void refresh();},query.value?250:0);},{immediate:true});
 onUnmounted(()=>{abort?.abort();clearTimeout(debounce);});
 </script>
 <template>
