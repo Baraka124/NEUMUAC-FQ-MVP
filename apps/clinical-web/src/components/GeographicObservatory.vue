@@ -246,4 +246,8 @@ function openSelectedDetail(){
  .geo-select-label select{min-height:44px}
  .geo-selected-detail-link{margin-left:auto}
 }
+
+/* Keep native selection comfortably tappable without a large empty field. */
+.geo-region-picker select{width:clamp(142px,12vw,186px);min-height:42px;padding:7px 30px 7px 10px}
+@container(max-width:585px){.geo-region-picker select{width:min(100%,230px);min-height:42px}}
 </style>
