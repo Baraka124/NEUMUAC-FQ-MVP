@@ -3,6 +3,7 @@ import {ref,watch,onUnmounted} from 'vue';
 import {RouterLink} from 'vue-router';
 import {createLiveEvidenceSource, EVIDENCE_PAGE_SIZE, type LiveEvidenceReference} from '../services/liveEvidence';
 import {readConfigFromEnvironment} from '../services/liveVariants';
+import {referenceMetadata} from '../domain/referencePresentation';
 const config=readConfigFromEnvironment();
 const source=config?createLiveEvidenceSource(config):null;
 const query=ref('');
@@ -49,7 +50,7 @@ onUnmounted(()=>{abort?.abort();clearTimeout(debounce);});
   <p v-if="!loading&&!error&&!rows.length" class="empty-result">No recorded source links match this search.</p>
   <div v-if="rows.length" class="evidence-register" aria-label="Recorded citations">
    <article v-for="item in rows" :key="item.id" class="evidence-row">
-    <div class="evidence-row-meta"><span>{{item.source}}</span><span v-if="item.year">{{item.year}} (recorded)</span></div>
+    <div class="evidence-row-meta"><span>{{referenceMetadata(item).join(" · ")}}</span></div>
     <h2><button type="button" class="evidence-row-disclosure" :aria-expanded="expandedRows.includes(item.id)" :aria-controls="'evidence-details-'+item.id" @click="toggleRow(item.id)"><span>{{item.title}}</span><span aria-hidden="true">{{expandedRows.includes(item.id)?'−':'+'}}</span></button></h2>
     <div v-if="expandedRows.includes(item.id)" :id="'evidence-details-'+item.id" class="evidence-row-foot">
      <span>Recorded quality score: {{item.recordedQualityScore??'Not recorded'}}</span>
