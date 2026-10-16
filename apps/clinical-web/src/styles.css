@@ -945,3 +945,20 @@ main{background:#fbfcfa}
 .variant-page .nfq-search-guide li{margin:6px 0;line-height:1.6}
 .variant-page .nfq-search-guide code{font-size:11px;overflow-wrap:anywhere}
 .variant-page .nfq-search-guide .nfq-search-guide-note{color:#657e6d;font-size:11px}
+
+/* Phase 4F-7A · documentation link coverage, not evidence quality. */
+.nfq-coverage-section-head{display:flex;align-items:end;justify-content:space-between;gap:16px;margin:22px 0 15px}
+.nfq-coverage-section-head h2{margin:0;font-size:20px;letter-spacing:-.025em}
+.nfq-coverage-section-head p{font-size:12px;color:#62796a;margin:6px 0 0}
+.nfq-coverage-refresh,.nfq-coverage-clear,.nfq-coverage-empty button{min-height:38px;border:1px solid #c3d8c9;border-radius:6px;background:#fff;color:#286149;padding:7px 11px;font:inherit;font-size:12px;font-weight:650;cursor:pointer}
+.nfq-coverage-groups{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:15px 0 22px}
+.nfq-coverage-groups button{display:flex;align-items:start;justify-content:space-between;gap:9px;min-width:0;min-height:65px;padding:13px 12px;border:1px solid #d7e4db;border-radius:7px;background:#fff;color:#375e48;text-align:left;font:inherit;font-size:12px;line-height:1.4;cursor:pointer}
+.nfq-coverage-groups button strong{font-size:17px;line-height:1.2;white-space:nowrap;color:#1e4834;font-variant-numeric:tabular-nums}
+.nfq-coverage-groups button.nfq-coverage-active{background:#f0f7f1;border-color:#8cb69b;box-shadow:inset 2px 0 #35885d}
+.nfq-coverage-groups button:hover,.nfq-coverage-refresh:hover,.nfq-coverage-clear:hover{background:#eef6f0}
+.nfq-coverage-groups button:focus-visible,.nfq-coverage-refresh:focus-visible,.nfq-coverage-clear:focus-visible,.nfq-coverage-empty button:focus-visible{outline:3px solid #29876a;outline-offset:3px}
+.nfq-coverage-search{margin-top:4px}
+.nfq-coverage-empty{display:grid;justify-items:start;gap:10px;padding:21px;border:1px solid #e0eae2;border-radius:7px;background:#f8fbf8}
+.nfq-coverage-empty p{font-size:13px;color:#557363;margin:0}
+@media(max-width:900px){.nfq-coverage-groups{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:420px){.nfq-coverage-section-head{align-items:start;flex-direction:column}.nfq-coverage-groups button{flex-direction:column;min-height:72px}}
