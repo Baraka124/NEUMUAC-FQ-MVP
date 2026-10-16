@@ -1,4 +1,4 @@
-import {parseDiscoveryTerms,buildDiscoveryExpression} from '../domain/compoundDiscovery';
+import {parseDiscoveryTerms,buildDiscoveryExpression,assessScientificDiscovery} from '../domain/compoundDiscovery';
 /**
  * Real database records only. No fixture fallback, local persistent cache or writes.
  * Public/publishable API key is NOT an authorization mechanism: actual read access
@@ -127,7 +127,7 @@ export function formatReadStatus(error: unknown): string {
 }
 function safeSearchTerm(query: string): string {
   const trim=query.trim();
-  if (trim.length>75 || !/^[a-zA-Z0-9 _.+>:\-]+$/.test(trim)) return '';
+  if (trim.length>75 || assessScientificDiscovery(trim).blocked || trim.includes(',') || trim.includes(';')) return '';
   return trim;
 }
 export const PAGE_SIZE=40;
