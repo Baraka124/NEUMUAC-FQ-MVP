@@ -133,3 +133,19 @@ it('retrieves and exact-resolves a recorded slash legacy substitution without re
  expect(new URL(urls[1]).searchParams.get('or')).toContain('legacy_name.ilike.1001+11C/T');
  expect(urls.every(url=>!url.includes('PATCH')&&!url.includes('POST'))).toBe(true);
 });
+
+it('4F-8A uses consistent source columns and rejects mismatched detail records',async()=>{
+ const record={id:383,legacy_name:'1001+11C/T',protein_name:'p.?',cdna_name:'c.869+11C>T',alt_names:null,cftr_class:'V',validation_count:1};
+ const calls:string[]=[];
+ const transport=vi.fn(async(url:string)=>{calls.push(url);return new Response(JSON.stringify([record]),{status:200})});
+ const repository=createReadOnlyRepository({...config,readTable:'variants'},transport as typeof fetch);
+ const listed=await repository.list({query:'1001+11C/T',page:0});
+ const detailed=await repository.get(listed.records[0].id);
+ expect(detailed?.id).toBe(listed.records[0].id);
+ expect(detailed?.recordedClass).toBe(listed.records[0].recordedClass);
+ expect(detailed?.validationCount).toBe(listed.records[0].validationCount);
+ expect(new URL(calls[0]).searchParams.get('select')).toBe(new URL(calls[1]).searchParams.get('select'));
+ expect(new URL(calls[1]).searchParams.get('id')).toBe('eq.383');
+ const bad=createReadOnlyRepository({...config,readTable:'variants'},vi.fn(async()=>new Response(JSON.stringify([{...record,id:384}]),{status:200})) as typeof fetch);
+ await expect(bad.get('383')).rejects.toMatchObject({code:'schema-mismatch'});
+});
