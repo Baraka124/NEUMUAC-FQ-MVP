@@ -140,6 +140,7 @@ export function createReadOnlyRepository(
   const endpoint=validateReadOnlyConfig(config);
   const mode: ReadAccessMode = config.accessMode ?? 'anonymous';
   const table = config.readTable === 'variants' ? 'variants' : 'nfq_public_variant_catalog';
+  const recordColumns=table==='variants'?'id,legacy_name,protein_name,cdna_name,alt_names,cftr_class,validation_count':'id,legacy_name,protein_name,cdna_name,alt_names';
   async function request(params: URLSearchParams,signal?: AbortSignal): Promise<readonly RealVariant[]> {
     const url=new URL('/rest/v1/'+table,endpoint);
     url.search=params.toString();
@@ -192,9 +193,7 @@ export function createReadOnlyRepository(
         throw new VariantConnectionError('not-configured','Scientific class filters require the full authorized variant source.');
       if (!Number.isInteger(page)||page<0||page>10000) throw new VariantConnectionError('invalid-configuration','Invalid page.');
       const params=new URLSearchParams({
-        select:table==='variants'
-          ? 'id,legacy_name,protein_name,cdna_name,alt_names,cftr_class,validation_count'
-          : 'id,legacy_name,protein_name,cdna_name,alt_names',
+        select:recordColumns,
         order:sort==='recent-record'?'id.desc':sort==='name-desc'?'legacy_name.desc,id.asc':
           sort==='fewest-validations'?'validation_count.asc.nullslast,id.asc':
           sort==='most-validations'?'validation_count.desc.nullslast,id.asc':'legacy_name.asc,id.asc',
@@ -218,8 +217,7 @@ export function createReadOnlyRepository(
       if(!filters.includes(filter))throw new VariantConnectionError('invalid-configuration','Invalid class filter');
       if(table!=='variants'&&filter!=='all')return null;
       const params=new URLSearchParams({
-        select:table==='variants'?'id,legacy_name,protein_name,cdna_name,alt_names,cftr_class,validation_count':
-          'id,legacy_name,protein_name,cdna_name,alt_names',
+        select:recordColumns,
         order:'id.asc',
         limit:String(EXACT_CANDIDATE_LIMIT)
       });
@@ -234,10 +232,12 @@ export function createReadOnlyRepository(
     },
     async get(id:string,signal?:AbortSignal) {
       if (!/^[a-zA-Z0-9_-]{1,128}$/.test(id)) return null;
-      const params=new URLSearchParams({select:table==='variants'
-        ? 'id,legacy_name,protein_name,cdna_name,alt_names,cftr_class'
-        : 'id,legacy_name,protein_name,cdna_name,alt_names',id:`eq.${id}`,limit:'1'});
+      const params=new URLSearchParams({select:recordColumns,id:`eq.${id}`,limit:'2'});
       const found=await request(params,signal);
+      // Search and dossier identity must agree. Never show a different record
+      // under a URL that identifies the requested variant.
+      if(found.length>1 || found.some(record=>record.id!==id))
+        throw new VariantConnectionError('schema-mismatch','Detail response does not match the requested identifier.');
       return found[0]??null;
     }
   });
