@@ -931,3 +931,17 @@ main{background:#fbfcfa}
 .variant-page .nfq-search-feedback button{display:inline-flex;align-items:center;min-height:36px;padding:7px 11px;border:1px solid #b5d2bf;border-radius:6px;background:#fff;color:#245e46;font:inherit;font-size:12px;font-weight:650;cursor:pointer}
 .variant-page .nfq-search-feedback button:hover{background:#ecf6ee}
 .variant-page .nfq-search-feedback button:focus-visible{outline:3px solid #208567;outline-offset:3px}
+
+/* Phase 4F-6I: one compact, optional scientific search help disclosure. */
+.variant-page .nfq-search-actions{display:flex;flex-wrap:wrap;align-items:center;gap:7px}
+.variant-page .nfq-guidance-link{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:6px 8px;border:0;border-radius:4px;background:transparent;color:#28644b;font:inherit;font-size:12px;font-weight:650;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.variant-page .nfq-guidance-link:hover{background:#eef5ef}
+.variant-page .nfq-guidance-link:focus-visible{outline:3px solid #208567;outline-offset:3px}
+.variant-page .nfq-blocked-guidance{align-self:flex-start;margin:4px 0 8px}
+.variant-page .nfq-search-guide{max-width:100%;overflow-wrap:anywhere;margin:9px 0;padding:13px 15px}
+.variant-page .nfq-search-guide>strong{display:block;font-size:13px;color:#264c37}
+.variant-page .nfq-search-guide p{margin:7px 0 0;line-height:1.55}
+.variant-page .nfq-search-guide ul{margin:9px 0 0;padding-left:18px}
+.variant-page .nfq-search-guide li{margin:6px 0;line-height:1.6}
+.variant-page .nfq-search-guide code{font-size:11px;overflow-wrap:anywhere}
+.variant-page .nfq-search-guide .nfq-search-guide-note{color:#657e6d;font-size:11px}
