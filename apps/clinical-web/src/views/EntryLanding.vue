@@ -2,8 +2,8 @@
 import {ref} from 'vue';
 import {RouterLink} from 'vue-router';
 import ResearchSignInForm from '../components/ResearchSignInForm.vue';
+import ContextHelp from '../components/ContextHelp.vue';
 const loginOpen=ref(false);
-function openLogin(){loginOpen.value=true;}
 </script>
 
 <template>
@@ -34,10 +34,14 @@ function openLogin(){loginOpen.value=true;}
           <p class="nfq-portal-access-note">Public research is available without an account.</p>
         </section>
 
-        <section v-if="loginOpen" id="nfq-portal-account" class="nfq-portal-account" aria-labelledby="nfq-portal-account-title">
-          <p class="nfq-portal-kicker">AUTHORIZED RESEARCH ACCOUNT</p>
-          <h2 id="nfq-portal-account-title">Sign in</h2>
-          <p class="nfq-portal-account-description">Use your assigned research account. Signing in does not automatically grant editing or approval privileges.</p>
+        <section v-if="loginOpen" id="nfq-portal-account" class="nfq-portal-account nfq-portal-login-card" aria-labelledby="nfq-portal-account-title">
+          <div class="nfq-portal-login-heading">
+            <div><h2 id="nfq-portal-account-title">Research sign-in</h2><p>Authorized accounts</p></div>
+            <ContextHelp label="About account access" title="Research account access">
+              <p>Research accounts are assigned by the team. Signing in does not automatically grant editing, approval or administrative permissions.</p>
+              <p>Public CFTR research remains accessible without an account.</p>
+            </ContextHelp>
+          </div>
           <ResearchSignInForm id-prefix="entry-account"/>
           <button type="button" class="nfq-portal-back" @click="loginOpen=false">← Return to research tools</button>
         </section>
@@ -141,4 +145,25 @@ function openLogin(){loginOpen.value=true;}
  .nfq-portal-index-link{min-height:69px}
 }
 @media(prefers-reduced-motion:reduce){.nfq-portal-index-link{transition:none}}
+
+/* Phase 4F-9B: the portal form remains an actual sign-in option, not a second long panel. */
+.nfq-portal-login-card{width:min(100%,390px);justify-self:center;align-self:start;min-width:0;padding:clamp(18px,2.2vw,25px);border:1px solid #d4e2d8;border-radius:12px;background:rgba(249,252,249,.93);box-shadow:0 12px 30px -22px rgba(24,64,40,.2);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.nfq-portal-login-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:16px}
+.nfq-portal-login-heading h2{font-family:Georgia,"Times New Roman",serif;font-size:clamp(25px,2.8vw,30px);font-weight:500;letter-spacing:-.045em;line-height:1.1;margin:0;color:#173c2e}
+.nfq-portal-login-heading p{font-size:11px;line-height:1.4;color:#647c6d;margin:5px 0 0}
+.nfq-portal-login-card :deep(.nfq-account-fields){gap:7px}
+.nfq-portal-login-card :deep(.nfq-account-fields label){color:#355748;font-size:11px}
+.nfq-portal-login-card :deep(.nfq-account-fields input){min-height:43px;border:1px solid #c5d5c9;border-radius:7px;padding:9px 12px;background:#fff;color:#17392a;font-size:13px}
+.nfq-portal-login-card :deep(.nfq-account-fields input:focus-visible){outline:2px solid #357b5a;outline-offset:2px}
+.nfq-portal-login-card :deep(.nfq-account-fields button[type="submit"]){min-height:44px;background:#14392e;border-color:#14392e;border-radius:7px;font-size:12px;margin-top:7px}
+.nfq-portal-login-card :deep(.nfq-account-fields button[type="submit"]:hover){background:#0b281f}
+.nfq-portal-login-card :deep(.nfq-account-unavailable){font-size:12px;line-height:1.55}
+.nfq-portal-login-card .nfq-portal-back{margin-top:12px;min-height:38px;padding:5px 0;font-size:12px}
+.nfq-portal-login-card .nfq-portal-back:hover{text-decoration:underline;text-underline-offset:3px}
+@media(max-width:760px){.nfq-portal-login-card{justify-self:stretch;max-width:390px;margin:0 auto;padding:20px 18px}}
+/* Keep mobile help inside the card instead of a fixed layer clipped by glass. */
+@media(max-width:600px){
+ .nfq-portal-login-card :deep(.nfq-context-help){position:static}
+ .nfq-portal-login-card :deep(.nfq-context-help-panel){position:absolute;top:63px;left:11px;right:11px;width:auto;max-height:min(52vh,290px)}
+}
 </style>
