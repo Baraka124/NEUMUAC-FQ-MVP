@@ -65,7 +65,7 @@ onUnmounted(()=>{for(const n of [0,1]){aborts[n]?.abort();citationAborts[n]?.abo
  <div class="page genotype-page nfq-science-ui">
   <div class="eyebrow">CFTR RESEARCH / VARIANT PAIRS</div>
   <h1>Genotype research</h1>
-  <p class="intro">Compare recorded CFTR variants and their linked references. This is not a clinical genotype interpretation.</p>
+  <p class="intro">Compare recorded CFTR variants and linked references. This research view does not establish allelic phase, disease severity, treatment eligibility or a clinical genotype interpretation.</p>
   <div class="genotype-comparison">
    <section v-for="slot in [0,1]" :key="slot" class="genotype-locus" :aria-label="'Variant '+(slot+1)">
     <div class="genotype-topline"><span class="section-label">VARIANT {{slot+1}}</span><button v-if="chosen[slot].value" type="button" @click="clear(slot)">Clear</button></div>
