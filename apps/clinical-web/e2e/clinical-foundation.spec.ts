@@ -713,3 +713,21 @@ test('4F-7H exact dossier state can recover after query changes',async({page})=>
  await expect(page.getByRole('heading',{name:'Select a variant'})).toBeVisible();
  await expect(page.getByRole('heading',{name:'Search variants'})).toBeVisible();
 });
+
+test('4F-8B scoped research navigation stays reversible and does not invent records',async({page})=>{
+ for(const width of [390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/evidence?variant=383&from='+encodeURIComponent('/variants/383?q=1001%2B11C%2FT'));
+  await expect(page.getByRole('heading',{name:'Evidence & provenance'})).toHaveCount(1);
+  await expect(page.getByText('References for variant record #383')).toBeVisible();
+  await expect(page.locator('#evidence-search')).toHaveCount(0);
+  await expect(page.getByRole('alert')).toContainText('Live evidence access is not configured');
+  await page.getByRole('link',{name:'All records'}).click();
+  await expect(page.locator('#evidence-search')).toBeVisible();
+  await page.goto('/#/intelligence?variant=383&from='+encodeURIComponent('/variants/383'));
+  await expect(page.getByRole('heading',{name:'Research coverage'})).toHaveCount(1);
+  await expect(page.getByRole('alert')).toContainText('Live research coverage connection is not configured');
+  await expect(page.getByRole('link',{name:'Return to variant dossier'})).toBeVisible();
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
