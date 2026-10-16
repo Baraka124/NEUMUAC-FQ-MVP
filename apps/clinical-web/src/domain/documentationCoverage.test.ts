@@ -2,10 +2,10 @@ import {describe,it,expect} from 'vitest';
 import {filterDocumentation,summarizeDocumentation} from './documentationCoverage';
 import type {CoverageRow} from '../services/liveCoverage';
 const rows:CoverageRow[]=[
- {variant:{id:'1',legacyName:'1001+11C/T',proteinName:'p.?',cdnaName:'c.869+11C>T',aliases:[]},links:0},
- {variant:{id:'2',legacyName:'R117H',proteinName:'p.Arg117His',cdnaName:'c.350G>A',aliases:['Alias-R117H']},links:1},
- {variant:{id:'3',legacyName:'F508del',proteinName:'p.Phe508del',cdnaName:'c.1521_1523delCTT',aliases:[]},links:3},
- {variant:{id:'4',legacyName:'G551D',proteinName:null,cdnaName:null,aliases:[]},links:0}
+ {variant:{id:'1',legacyName:'1001+11C/T',proteinName:'p.?',cdnaName:'c.869+11C>T',aliases:[]},links:0,sources:[]},
+ {variant:{id:'2',legacyName:'R117H',proteinName:'p.Arg117His',cdnaName:'c.350G>A',aliases:['Alias-R117H']},links:1,sources:[{name:'Recorded source',count:1}]},
+ {variant:{id:'3',legacyName:'F508del',proteinName:'p.Phe508del',cdnaName:'c.1521_1523delCTT',aliases:[]},links:3,sources:[{name:'Recorded source',count:3}]},
+ {variant:{id:'4',legacyName:'G551D',proteinName:null,cdnaName:null,aliases:[]},links:0,sources:[]}
 ];
 describe('research documentation coverage is non-clinical and source-bound',()=>{
  it('uses the exact recorded reference counts, not inferred scores',()=>{
