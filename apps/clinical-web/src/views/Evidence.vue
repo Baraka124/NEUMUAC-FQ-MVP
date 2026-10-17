@@ -33,8 +33,8 @@ async function refresh(){
  loading.value=true;
  try{
   if(focusId.value){
-   const records=await source.forVariant(focusId.value,controller.signal);
-   if(run===sequence){rows.value=records;hasMore.value=false;}
+   const data=await source.forVariantPage(focusId.value,page.value,controller.signal);
+   if(run===sequence){rows.value=data.records;hasMore.value=data.hasMore;}
   }else{
    const data=await source.list({query:query.value,page:page.value,signal:controller.signal});
    if(run===sequence){rows.value=data.records;hasMore.value=data.hasMore;}
@@ -44,6 +44,7 @@ async function refresh(){
  }finally{if(run===sequence)loading.value=false;}
 }
 watch(query,()=>{page.value=0;});
+watch(focusId,()=>{page.value=0;expandedRows.value=[];});
 watch([query,page,focusId],()=>{clearTimeout(debounce);debounce=setTimeout(()=>{void refresh();},query.value?250:0);},{immediate:true});
 onUnmounted(()=>{abort?.abort();clearTimeout(debounce);});
 </script>
@@ -58,7 +59,7 @@ onUnmounted(()=>{abort?.abort();clearTimeout(debounce);});
   </div>
   <p v-if="loading" role="status">Loading current references…</p>
   <p v-else-if="error" role="alert" class="empty-result">{{error}}</p>
-  <p v-else role="status" class="evidence-results-count">{{rows.length}} recorded {{rows.length===1?'reference':'references'}}{{focusId?'':' on page '+(page+1)}}</p>
+  <p v-else role="status" class="evidence-results-count">{{rows.length}} recorded {{rows.length===1?'reference':'references'}} on page {{page+1}}</p>
   <p v-if="!loading&&!error&&!rows.length" class="empty-result">{{focusId?'No reference links recorded for this variant in the accessible catalog.':'No recorded source links match this search.'}}</p>
   <div v-if="rows.length" class="evidence-register" aria-label="Recorded citations">
    <article v-for="item in rows" :key="item.id" class="evidence-row">
@@ -70,7 +71,7 @@ onUnmounted(()=>{abort?.abort();clearTimeout(debounce);});
      <span>Recorded citation count: {{item.recordedCitationCount??'Not recorded'}}</span><a :href="item.url" target="_blank" rel="noopener noreferrer">Open source ↗</a><RouterLink :to="{path:'/variants/'+encodeURIComponent(item.variantId),query:savedWorkspace?{from:savedWorkspace}:{}}">Variant record #{{item.variantId}}</RouterLink><span v-if="item.journal">{{item.journal}}</span><span v-if="item.pmid">PMID {{item.pmid}}</span></div>
    </article>
   </div>
-  <nav v-if="!focusId" class="pagination-controls" aria-label="Evidence pages">
+  <nav class="pagination-controls" aria-label="Evidence pages">
    <button type="button" :disabled="loading||page===0" @click="page--">Previous</button>
    <span>Page {{page+1}} · {{EVIDENCE_PAGE_SIZE}} per page</span>
    <button type="button" :disabled="loading||!hasMore" @click="page++">Next</button>
