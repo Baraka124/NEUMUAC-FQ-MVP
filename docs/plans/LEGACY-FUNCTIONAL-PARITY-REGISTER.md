@@ -88,3 +88,7 @@ NFQ-004 and NFQ-005 remain **Partial**. User-facing live discovery now rejects u
 ## Phase 3N — source-attributed research comparison
 
 NFQ-007, NFQ-009 and NFQ-011 remain **Partial**. A local recorded determination, local source summary and complete successfully fetched local reference metadata can be viewed side by side with an explicitly requested ClinVar ESummary. The source-level comparison never assesses clinical disagreement, concordance, strength of evidence or treatment eligibility. If ClinVar retrieval or local reference loading fails, no comparison is rendered. External live API/browser verification and scientific review remain required. No SQL, record mutations, synthetic research records or legacy index changes.
+
+## Phase 4F-10A — pair-selection continuity and reference states
+
+NFQ-024 remains **Partial**, NFQ-009 remains **Partial**, and NFQ-038 remains **Partial**. The two-record comparison preserves independent route selections, supports stable and shareable a/b record identifiers, and distinguishes references loading, no recorded links, unavailable service, and failed retrieval. Scientific limitations are available via accessible contextual help, while same-record comparison retains its visible homozygosity warning. No patient data, allelic-phase inference, scientific scoring, database changes or live-clinical validation are introduced. Production real-record and concurrent-request acceptance remain outstanding.

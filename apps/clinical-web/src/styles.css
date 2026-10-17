@@ -1046,3 +1046,20 @@ main{background:#fbfcfa}
 .nfq-variant-scope button,.nfq-variant-scope a{display:inline-flex;align-items:center;min-height:38px;padding:6px 11px;border:1px solid #c8dbce;border-radius:6px;background:#fff;color:#2b6348;font:inherit;font-size:12px;text-decoration:none;cursor:pointer}
 .nfq-variant-scope button:focus-visible,.nfq-variant-scope a:focus-visible{outline:3px solid #218466;outline-offset:3px}
 @media(max-width:600px){.nfq-evidence-heading{margin-bottom:9px}.nfq-variant-scope{padding:7px 0 10px}}
+
+/* Phase 4F-10A: show comparison controls first and contextualize only on request. */
+.genotype-page .nfq-pair-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 10px}
+.genotype-page .nfq-pair-heading h1{font-size:clamp(25px,2.5vw,34px);line-height:1.17;letter-spacing:-.03em;margin:0}
+.genotype-page .genotype-comparison{margin:13px 0 17px}
+.genotype-page .genotype-locus{padding-top:11px}
+.genotype-page .genotype-locus label{margin:9px 0 6px}
+.genotype-page .genotype-locus input{max-width:470px;min-height:44px;padding:9px 12px}
+.genotype-page .genotype-locus h2{font-size:clamp(18px,1.9vw,23px);margin:15px 0 8px}
+.genotype-page .genotype-fields{margin:11px 0 14px}
+.genotype-page .genotype-fields div{padding:7px 0}
+.genotype-page .genotype-references{margin:15px 0 5px;padding-top:8px}
+.genotype-page .nfq-pair-status{font-size:12px;line-height:1.55;color:#5d7465;margin:8px 0}
+.genotype-page .nfq-pair-retry{border:0;background:transparent;color:#28694b;font:inherit;font-weight:700;text-decoration:underline;text-underline-offset:3px;min-height:36px;cursor:pointer}
+.genotype-page .nfq-pair-retry:focus-visible{outline:3px solid #218466;outline-offset:3px}
+.genotype-page .nfq-pair-duplicate{color:#6b533a;background:#fcf7ee;padding:10px 13px;border-left:3px solid #ad926e;border-radius:4px;font-size:12px}
+@media(max-width:800px){.genotype-page .genotype-comparison{margin-top:11px;gap:20px}}
