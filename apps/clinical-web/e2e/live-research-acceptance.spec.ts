@@ -68,3 +68,21 @@ test('record 1001+11C/T opens from exact search and stays traceable across works
  await expect(page.locator('#selected-title')).toHaveText('1001+11C/T');
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
+
+test('live scientific multi-term discovery preserves recorded identity and explains visible matches',async({page})=>{
+ test.setTimeout(90000);
+ await page.goto('/#/variants');
+ const search=page.getByRole('searchbox',{name:'Variant name, HGVS or recorded alias'});
+ await search.fill('1001+11C/T, R117H');
+ await expect(page.getByRole('alert')).toHaveCount(0);
+ const rows=page.locator('.record-list button');
+ await expect(rows.first()).toBeVisible({timeout:20000});
+ // The backend is paginated: do not claim an absent term has no global match.
+ const labels=await page.locator('.record-list .record-match-reason').allTextContents();
+ expect(labels.length).toBeGreaterThan(0);
+ for(const label of labels){
+  expect(label).toMatch(/1001\+11C\/T|R117H/i);
+  expect(label).toMatch(/Recorded name|Protein notation|cDNA notation|Recorded alias/);
+ }
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
