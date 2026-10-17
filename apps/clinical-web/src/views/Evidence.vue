@@ -45,6 +45,7 @@ async function refresh(){
 }
 watch(query,()=>{page.value=0;});
 watch(focusId,()=>{page.value=0;expandedRows.value=[];});
+watch(page,()=>{expandedRows.value=[];});
 watch([query,page,focusId],()=>{clearTimeout(debounce);debounce=setTimeout(()=>{void refresh();},query.value?250:0);},{immediate:true});
 onUnmounted(()=>{abort?.abort();clearTimeout(debounce);});
 </script>
@@ -60,7 +61,7 @@ onUnmounted(()=>{abort?.abort();clearTimeout(debounce);});
   <p v-if="loading" role="status">Loading current references…</p>
   <p v-else-if="error" role="alert" class="empty-result">{{error}}</p>
   <p v-else role="status" class="evidence-results-count">{{rows.length}} recorded {{rows.length===1?'reference':'references'}} on page {{page+1}}</p>
-  <p v-if="!loading&&!error&&!rows.length" class="empty-result">{{focusId?'No reference links recorded for this variant in the accessible catalog.':'No recorded source links match this search.'}}</p>
+  <p v-if="!loading&&!error&&!rows.length" class="empty-result">{{page>0?'No references on this page. Return to the previous page.':focusId?'No reference links recorded for this variant in the accessible catalog.':'No recorded source links match this search.'}}</p>
   <div v-if="rows.length" class="evidence-register" aria-label="Recorded citations">
    <article v-for="item in rows" :key="item.id" class="evidence-row">
     <div class="evidence-row-meta"><span>{{referenceMetadata(item).join(" · ")}}</span></div>
