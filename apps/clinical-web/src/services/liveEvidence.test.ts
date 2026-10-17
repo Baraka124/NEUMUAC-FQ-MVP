@@ -52,3 +52,16 @@ it('allows the established HTTPS source link while refusing disguised authority 
   await expect(createLiveEvidenceSource(config,transport as typeof fetch).forVariant('12')).rejects.toMatchObject({code:'schema-mismatch'});
  }
 });
+
+it('preserves recorded CFTR2 links from either canonical hostname without granting arbitrary domains',async()=>{
+ for(const hostname of ['cftr2.org','www.cftr2.org']){
+  const url='https://'+hostname+'/mutation/scientific/example';
+  const transport=vi.fn(async()=>new Response(JSON.stringify([{...link(3),url}]),{status:200}));
+  const refs=await createLiveEvidenceSource(config,transport as typeof fetch).forVariant('12');
+  expect(refs[0].url).toBe(url);
+ }
+ for(const url of ['https://cftr2.org.evil.example/variant/x','https://www.cftr2.org:8443/variant/x']){
+  const transport=vi.fn(async()=>new Response(JSON.stringify([{...link(3),url}]),{status:200}));
+  await expect(createLiveEvidenceSource(config,transport as typeof fetch).forVariant('12')).rejects.toMatchObject({code:'schema-mismatch'});
+ }
+});

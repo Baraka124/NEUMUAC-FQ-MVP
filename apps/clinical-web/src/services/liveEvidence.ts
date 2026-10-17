@@ -27,7 +27,7 @@ export interface LiveEvidenceSource {
 export const EVIDENCE_PAGE_SIZE = 30;
 const LINK_COLUMNS='id,variant_id,title,url,source,type,category,journal,year,pmid,doi,quality_score,source_weight,citation_count';
 const trustedHosts = new Set([
-  'pubmed.ncbi.nlm.nih.gov','www.ncbi.nlm.nih.gov','scholar.google.com','cftr2.org','doi.org'
+  'pubmed.ncbi.nlm.nih.gov','www.ncbi.nlm.nih.gov','scholar.google.com','cftr2.org','www.cftr2.org','doi.org'
 ]);
 
 export function decodeLiveEvidence(row: unknown): LiveEvidenceReference {
