@@ -4,6 +4,7 @@ import {historicalDiscoveryHint} from './legacyDiscoveryHints';
 
 export type SynonymAssessment =
  | {readonly kind:'recorded-match';readonly recordId:string;readonly matchedField:string;readonly recordedValue:string}
+ | {readonly kind:'ambiguous-recorded';readonly recordIds:readonly string[];readonly scope:'visible-page-only'}
  | {readonly kind:'historical-lead';readonly suggestedName:string;readonly candidates:readonly string[];readonly scope:'visible-page-only'}
  | {readonly kind:'no-evidence'};
 
@@ -21,6 +22,7 @@ export function assessSynonymProvenance(
   const {record,match}=matching[0];
   return {kind:'recorded-match',recordId:record.id,matchedField:match!.label,recordedValue:match!.matchedValue};
  }
+ if(matching.length>1)return {kind:'ambiguous-recorded',recordIds:matching.map(entry=>entry.record.id),scope:'visible-page-only'};
  const historical=historicalDiscoveryHint(q);
  if(!historical)return {kind:'no-evidence'};
  const candidates=visibleRecords.filter(record=>explainTextMatch(record,historical.suggestedName)?.priority===0)
