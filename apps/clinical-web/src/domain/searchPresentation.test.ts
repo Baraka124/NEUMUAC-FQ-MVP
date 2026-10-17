@@ -43,3 +43,10 @@ it('11C does not claim genotype relationships, catalog-wide misses or inferred s
  expect(explainMultiTermMatch(record,['F508del','G551D'])).toBeNull();
  expect(explainMultiTermMatch(record,['R117H'])).toBe('Exact · Recorded name');
 });
+
+it('11C ranks multi-identifier results using each recorded term, not the combined literal phrase',()=>{
+ const partial=make('1','pre-F508del-copy');
+ const other=make('2','G551D');
+ const exact=make('3','F508del');
+ expect(rankVisibleSearchPage([partial,other,exact],'F508del, G551D').map(row=>row.id)).toEqual(['2','3','1']);
+});
