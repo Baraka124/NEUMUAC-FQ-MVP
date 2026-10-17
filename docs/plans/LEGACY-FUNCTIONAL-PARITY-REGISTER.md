@@ -108,3 +108,7 @@ NFQ-003, NFQ-004 and NFQ-007 remain **Partial**. Live variant list/detail decodi
 ## Phase 4F-10E — linked evidence identity consistency
 
 NFQ-009 and NFQ-007 remain **Partial**. The public evidence decoder now rejects malformed/nonpositive evidence record IDs and malformed, noncanonical or unsafe linked variant IDs before surfacing trusted URLs or associated citations. Variant-scoped reads require a positive canonical decimal variant identifier, matching the dossier identity boundary; malformed selections cause no network request. Regression tests cover malformed evidence records, invalid selected IDs and valid scoped references. This phase does not evaluate actual evidence quality, scientific claims, external-source coverage, RLS, database contents or complete live scientific acceptance. No new data, backend permissions, writes or UI redesign.
+
+## Phase 4F-10F — source-link authority consistency
+
+NFQ-009 and NFQ-013 remain **Partial / Not migrated**, respectively. The existing evidence-link allowlist now rejects custom network ports, matching the already established external-reference classification boundary. Unit cases cover valid standard HTTPS DOI links, nonstandard ports, misleading subdomains, userinfo and plaintext URLs. This is link-origin input validation only, not verification of a publication's contents, DOI resolution, scientific authority, licensing or completeness of external federation. No UI, database, patient data, permission or write changes. Browser/live evidence access and full legacy parity are separate acceptance gates.
