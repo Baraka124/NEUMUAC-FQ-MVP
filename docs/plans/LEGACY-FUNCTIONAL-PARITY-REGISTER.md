@@ -120,3 +120,7 @@ NFQ-009 stays **Partial** and NFQ-012 stays **Not migrated**. The recorded evide
 ## Phase 4F-10H — evidence collection integrity
 
 NFQ-009 stays **Partial** and NFQ-038 stays **Partial**. The public evidence read now rejects duplicate source-record identifiers in a returned collection and rejects an overlarge paginated response instead of silently slicing malformed results. The existing 30-item page plus one sentinel, 200-record full-view cap and valid pagination behavior remain unchanged. Focused tests verify duplicate rejection for both register and variant views, overflow refusal and proper has-more behavior. This does not prove source freshness, scientific reliability, completeness across unknown server omissions, or live production acceptance. No UI, clinical interpretation, writes, schema or permissions changed.
+
+## Phase 4F-10I — evidence retrieval state consistency
+
+NFQ-009 and NFQ-038 remain **Partial**. A successful HTTP response that contains malformed/unreadable JSON now fails as a schema mismatch rather than passing through an unspecified parse exception; a genuinely empty JSON array remains a successful empty collection. Reads aborted after the HTTP response are not misrepresented as successful empty evidence. Unit tests distinguish malformed, truly empty and cancelled reads. No backend schema, data, clinical assessment, authentication, production write or visual design changes. Live deployed acceptance and full legacy evidence parity remain outstanding.

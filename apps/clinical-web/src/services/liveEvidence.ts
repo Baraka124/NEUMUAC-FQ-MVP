@@ -88,7 +88,13 @@ export function createLiveEvidenceSource(config: ReadOnlyConfig, transport: type
       throw new VariantConnectionError('access-denied','Public references are not accessible.');
     if(!response.ok)
       throw new VariantConnectionError('request-failed','Public reference lookup failed.');
-    const payload:unknown=await response.json();
+    let payload:unknown;
+    try { payload=await response.json(); }
+    catch(error) {
+      if(signal?.aborted)throw error;
+      throw new VariantConnectionError('schema-mismatch','Reference service returned unreadable data.');
+    }
+    if(signal?.aborted)throw new VariantConnectionError('request-failed','Reference retrieval cancelled.');
     if(!Array.isArray(payload))
       throw new VariantConnectionError('schema-mismatch','Unexpected reference response');
     const records=payload.map(decodeLiveEvidence);

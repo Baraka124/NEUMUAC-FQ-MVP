@@ -82,3 +82,15 @@ it('preserves legitimate evidence paging and the extra-record has-more flag',asy
  expect(page.records).toHaveLength(30);
  expect(page.hasMore).toBe(true);
 });
+
+it('distinguishes unreadable successful responses from genuinely empty evidence',async()=>{
+ const invalid=createLiveEvidenceSource(config,vi.fn(async()=>new Response('<html>gateway</html>',{status:200})) as typeof fetch);
+ await expect(invalid.forVariant('12')).rejects.toMatchObject({code:'schema-mismatch'});
+ const empty=createLiveEvidenceSource(config,vi.fn(async()=>new Response('[]',{status:200})) as typeof fetch);
+ expect(await empty.forVariant('12')).toEqual([]);
+});
+it('retains an aborted read rather than presenting broken response content as an empty reference list',async()=>{
+ const controller=new AbortController();
+ const transport=vi.fn(async()=>{controller.abort();return new Response('[]',{status:200});});
+ await expect(createLiveEvidenceSource(config,transport as typeof fetch).forVariant('12',controller.signal)).rejects.toThrow('cancelled');
+});
