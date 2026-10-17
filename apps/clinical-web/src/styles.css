@@ -1063,3 +1063,15 @@ main{background:#fbfcfa}
 .genotype-page .nfq-pair-retry:focus-visible{outline:3px solid #218466;outline-offset:3px}
 .genotype-page .nfq-pair-duplicate{color:#6b533a;background:#fcf7ee;padding:10px 13px;border-left:3px solid #ad926e;border-radius:4px;font-size:12px}
 @media(max-width:800px){.genotype-page .genotype-comparison{margin-top:11px;gap:20px}}
+
+/* Phase 4F-10B: report actions stay subordinate to research content. */
+.variant-page .variant-export-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:12px 0;padding:10px 0}
+.variant-page .variant-export-actions > button{min-height:42px;padding:9px 13px;border-radius:6px;font-size:12px;line-height:1.3;cursor:pointer}
+.variant-page .variant-export-actions button:focus-visible{outline:3px solid #25886a;outline-offset:2px}
+.variant-page .variant-export-actions .nfq-context-help{margin-left:auto}
+.variant-page .variant-export-actions .nfq-brief-status{flex-basis:100%;margin:0;color:#3c6950;font-size:12px;line-height:1.5}
+@media(max-width:520px){
+ .variant-page .variant-export-actions{gap:8px}
+ .variant-page .variant-export-actions > button{flex:0 1 auto;min-width:0}
+ .variant-page .variant-export-actions .nfq-context-help{margin-left:0}
+}
