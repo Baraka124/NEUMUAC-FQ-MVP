@@ -91,7 +91,11 @@ export function createLiveEvidenceSource(config: ReadOnlyConfig, transport: type
     const payload:unknown=await response.json();
     if(!Array.isArray(payload))
       throw new VariantConnectionError('schema-mismatch','Unexpected reference response');
-    return payload.map(decodeLiveEvidence);
+    const records=payload.map(decodeLiveEvidence);
+    // Never present duplicated IDs as independent scientific references.
+    if(new Set(records.map(record=>record.id)).size!==records.length)
+      throw new VariantConnectionError('schema-mismatch','Duplicate research reference identifiers.');
+    return records;
   }
   return Object.freeze({
     async list({query,page,signal}:{query:string;page:number;signal?:AbortSignal}):Promise<EvidencePage>{
@@ -105,6 +109,8 @@ export function createLiveEvidenceSource(config: ReadOnlyConfig, transport: type
       });
       if(text)params.set('or','(title.ilike.*'+text+'*,source.ilike.*'+text+'*,pmid.ilike.*'+text+'*)');
       const records=await request(params,signal);
+      if(records.length>EVIDENCE_PAGE_SIZE+1)
+        throw new VariantConnectionError('schema-mismatch','Unexpected reference page size.');
       return {records:records.slice(0,EVIDENCE_PAGE_SIZE),hasMore:records.length>EVIDENCE_PAGE_SIZE};
     },
     async forVariant(variantId:string,signal?:AbortSignal):Promise<readonly LiveEvidenceReference[]>{

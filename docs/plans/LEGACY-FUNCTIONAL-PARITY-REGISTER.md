@@ -116,3 +116,7 @@ NFQ-009 and NFQ-013 remain **Partial / Not migrated**, respectively. The existin
 ## Phase 4F-10G — CFTR2 recorded-link hostname parity
 
 NFQ-009 stays **Partial** and NFQ-012 stays **Not migrated**. The recorded evidence-link decoder now accepts both `cftr2.org` and `www.cftr2.org` with standard HTTPS, consistent with the pre-existing CFTR2 reference classifier. This restores visibility for legitimately stored links using the `www` host, while rejecting lookalike hosts and custom ports. Unit cases cover both allowed origins and denied lookalikes. A recorded link does not confirm CFTR2 page content, external scientific identity, licence, currency or a functional federation. No URL synthesis, user-interface redesign, database changes or clinical inference. Production-record and browser acceptance still outstanding.
+
+## Phase 4F-10H — evidence collection integrity
+
+NFQ-009 stays **Partial** and NFQ-038 stays **Partial**. The public evidence read now rejects duplicate source-record identifiers in a returned collection and rejects an overlarge paginated response instead of silently slicing malformed results. The existing 30-item page plus one sentinel, 200-record full-view cap and valid pagination behavior remain unchanged. Focused tests verify duplicate rejection for both register and variant views, overflow refusal and proper has-more behavior. This does not prove source freshness, scientific reliability, completeness across unknown server omissions, or live production acceptance. No UI, clinical interpretation, writes, schema or permissions changed.
