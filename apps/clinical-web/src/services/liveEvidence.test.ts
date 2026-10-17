@@ -12,3 +12,29 @@ it('rejects references attributed to a different variant',async()=>{
  const transport=vi.fn(async()=>new Response(JSON.stringify([link(1,13)]),{status:200}));
  await expect(createLiveEvidenceSource(config,transport as typeof fetch).forVariant('12')).rejects.toMatchObject({code:'schema-mismatch'});
 });
+
+it('rejects malformed evidence IDs and linked record identifiers before displaying sources',async()=>{
+ const invalid=[0,-1,1.5,Number.MAX_SAFE_INTEGER+1,'0','-1','1e3',' 12 ','12;DELETE',null];
+ for(const id of invalid){
+  const t=vi.fn(async()=>new Response(JSON.stringify([{...link(1),variant_id:id}]),{status:200}));
+  await expect(createLiveEvidenceSource(config,t as typeof fetch).forVariant('12')).rejects.toMatchObject({code:'schema-mismatch'});
+ }
+ for(const id of [0,-1,1.5,Number.MAX_SAFE_INTEGER+1]){
+  const t=vi.fn(async()=>new Response(JSON.stringify([link(id)]),{status:200}));
+  await expect(createLiveEvidenceSource(config,t as typeof fetch).forVariant('12')).rejects.toMatchObject({code:'schema-mismatch'});
+ }
+});
+it('does not query for invalid selected variant identifiers',async()=>{
+ const net=vi.fn();
+ const source=createLiveEvidenceSource(config,net as typeof fetch);
+ for(const id of ['0','012','-12','12;DELETE','1e3']){
+  expect(await source.forVariant(id)).toEqual([]);
+ }
+ expect(net).not.toHaveBeenCalled();
+});
+it('accepts a correctly scoped recorded evidence identifier and reference',async()=>{
+ const transport=vi.fn(async()=>new Response(JSON.stringify([link(1)]),{status:200}));
+ const result=await createLiveEvidenceSource(config,transport as typeof fetch).forVariant('12');
+ expect(result).toHaveLength(1);
+ expect(result[0].variantId).toBe('12');
+});

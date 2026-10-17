@@ -34,8 +34,9 @@ export function decodeLiveEvidence(row: unknown): LiveEvidenceReference {
   if (!row || typeof row !== 'object' || Array.isArray(row))
     throw new VariantConnectionError('schema-mismatch','Unexpected evidence record');
   const data = row as Record<string,unknown>;
-  if (typeof data.id !== 'number' || !Number.isSafeInteger(data.id) ||
-      (typeof data.variant_id !== 'number' && typeof data.variant_id !== 'string') ||
+  if (typeof data.id !== 'number' || !Number.isSafeInteger(data.id) || data.id <= 0 ||
+      !((typeof data.variant_id === 'number' && Number.isSafeInteger(data.variant_id) && data.variant_id > 0) ||
+        (typeof data.variant_id === 'string' && /^[1-9]\d{0,17}$/.test(data.variant_id))) ||
       typeof data.title !== 'string' || !data.title.trim() || typeof data.url !== 'string')
     throw new VariantConnectionError('schema-mismatch','Invalid evidence record fields');
   let url:URL;
@@ -107,7 +108,7 @@ export function createLiveEvidenceSource(config: ReadOnlyConfig, transport: type
       return {records:records.slice(0,EVIDENCE_PAGE_SIZE),hasMore:records.length>EVIDENCE_PAGE_SIZE};
     },
     async forVariant(variantId:string,signal?:AbortSignal):Promise<readonly LiveEvidenceReference[]>{
-      if(!/^\d{1,18}$/.test(variantId))return [];
+      if(!/^[1-9]\d{0,17}$/.test(variantId))return [];
       // Request one beyond the supported full-view limit. If the response
       // reaches the boundary, do not present a truncated list as complete.
       const params=new URLSearchParams({select:LINK_COLUMNS,variant_id:'eq.'+variantId,order:'id.asc',limit:'201'});
