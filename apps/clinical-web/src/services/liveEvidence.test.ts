@@ -38,3 +38,17 @@ it('accepts a correctly scoped recorded evidence identifier and reference',async
  expect(result).toHaveLength(1);
  expect(result[0].variantId).toBe('12');
 });
+
+it('allows the established HTTPS source link while refusing disguised authority origins',async()=>{
+ const accepted=vi.fn(async()=>new Response(JSON.stringify([link(1)]),{status:200}));
+ expect(await createLiveEvidenceSource(config,accepted as typeof fetch).forVariant('12')).toHaveLength(1);
+ for(const url of [
+  'https://doi.org:8443/10.1000/test',
+  'https://attacker.example@doi.org:8443/10.1000/test',
+  'https://doi.org.evil.example/10.1000/test',
+  'http://doi.org/10.1000/test'
+ ]){
+  const transport=vi.fn(async()=>new Response(JSON.stringify([{...link(1),url}]),{status:200}));
+  await expect(createLiveEvidenceSource(config,transport as typeof fetch).forVariant('12')).rejects.toMatchObject({code:'schema-mismatch'});
+ }
+});

@@ -43,7 +43,7 @@ export function decodeLiveEvidence(row: unknown): LiveEvidenceReference {
   try { url = new URL(data.url); }
   catch { throw new VariantConnectionError('schema-mismatch','Invalid reference URL'); }
   if (url.protocol !== 'https:' || !trustedHosts.has(url.hostname) ||
-      url.username || url.password)
+      url.username || url.password || url.port)
     throw new VariantConnectionError('schema-mismatch','Unreviewed external source URL');
   return Object.freeze({
     id:data.id,
