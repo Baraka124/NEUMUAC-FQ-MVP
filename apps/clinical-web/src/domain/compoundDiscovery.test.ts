@@ -40,3 +40,22 @@ it('searches recorded legacy nucleotide slash names literally without claiming H
  expect(assessScientificDiscovery('1001+11C/T, R117H').blocked).toBe(false);
  expect(buildDiscoveryExpression(['1001+11C/T'],true)).toContain('legacy_name.ilike.1001+11C/T');
 });
+
+it('Phase 4F-11A baseline: explicit multi-term discovery is textual OR, not a genotype',()=>{
+ const terms=parseDiscoveryTerms('F508del, G551D');
+ expect(terms).toEqual(['F508del','G551D']);
+ const expression=buildDiscoveryExpression(terms,false);
+ expect(expression).toContain('legacy_name.ilike.*F508del*');
+ expect(expression).toContain('legacy_name.ilike.*G551D*');
+ expect(expression).not.toContain('eti_prediction');
+});
+it('Phase 4F-11A baseline: unverified eponyms and positional nicknames are not silently normalized',()=>{
+ expect(parseDiscoveryTerms('la variante gallega')).toEqual(['la variante gallega']);
+ expect(parseDiscoveryTerms('508')).toEqual(['508']);
+ expect(parseDiscoveryTerms('F508del G551D')).toEqual(['F508del G551D']);
+});
+it('Phase 4F-11A baseline: scientific uncertainty and phase cannot be transformed into search synonyms',()=>{
+ for(const query of ['p.(Phe508del)','p.[Phe508del;Gly551Asp]','p.?','c.1521=']){
+  expect(assessScientificDiscovery(query).blocked).toBe(true);
+ }
+});
