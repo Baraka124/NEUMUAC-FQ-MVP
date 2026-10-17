@@ -124,3 +124,7 @@ NFQ-009 stays **Partial** and NFQ-038 stays **Partial**. The public evidence rea
 ## Phase 4F-10I — evidence retrieval state consistency
 
 NFQ-009 and NFQ-038 remain **Partial**. A successful HTTP response that contains malformed/unreadable JSON now fails as a schema mismatch rather than passing through an unspecified parse exception; a genuinely empty JSON array remains a successful empty collection. Reads aborted after the HTTP response are not misrepresented as successful empty evidence. Unit tests distinguish malformed, truly empty and cancelled reads. No backend schema, data, clinical assessment, authentication, production write or visual design changes. Live deployed acceptance and full legacy evidence parity remain outstanding.
+
+## Phase 4F-10J — paginated variant-scoped evidence browsing
+
+NFQ-009 and NFQ-038 remain **Partial**. The public Evidence workspace now uses bounded 30+1 pagination for a selected variant, allowing researchers to browse more than 200 recorded references without an erroneous whole-view failure. Each scoped page checks linked variant identity, duplicate reference IDs and response bounds. The existing `forVariant` complete-read contract and 201 sentinel **remain unchanged** for research exports and other workflows that must not silently omit references. Browser and deployed real-data acceptance remain outstanding, including navigation and empty/error states. No database, authorization, scientific classification or UI design-system change.

@@ -23,6 +23,7 @@ export interface EvidencePage {
 export interface LiveEvidenceSource {
   list(options: { readonly query: string; readonly page: number; readonly signal?: AbortSignal }): Promise<EvidencePage>;
   forVariant(variantId: string, signal?: AbortSignal): Promise<readonly LiveEvidenceReference[]>;
+  forVariantPage(variantId: string, page: number, signal?: AbortSignal): Promise<EvidencePage>;
 }
 export const EVIDENCE_PAGE_SIZE = 30;
 const LINK_COLUMNS='id,variant_id,title,url,source,type,category,journal,year,pmid,doi,quality_score,source_weight,citation_count';
@@ -117,6 +118,22 @@ export function createLiveEvidenceSource(config: ReadOnlyConfig, transport: type
       const records=await request(params,signal);
       if(records.length>EVIDENCE_PAGE_SIZE+1)
         throw new VariantConnectionError('schema-mismatch','Unexpected reference page size.');
+      return {records:records.slice(0,EVIDENCE_PAGE_SIZE),hasMore:records.length>EVIDENCE_PAGE_SIZE};
+    },
+    async forVariantPage(variantId:string,page:number,signal?:AbortSignal):Promise<EvidencePage>{
+      if(!/^[1-9]\d{0,17}$/.test(variantId))
+        throw new VariantConnectionError('invalid-configuration','Invalid selected variant ID.');
+      if(!Number.isInteger(page)||page<0||page>10000)
+        throw new VariantConnectionError('invalid-configuration','Invalid selected reference page.');
+      const params=new URLSearchParams({
+        select:LINK_COLUMNS,variant_id:'eq.'+variantId,order:'id.asc',
+        limit:String(EVIDENCE_PAGE_SIZE+1),offset:String(page*EVIDENCE_PAGE_SIZE)
+      });
+      const records=await request(params,signal);
+      if(records.length>EVIDENCE_PAGE_SIZE+1)
+        throw new VariantConnectionError('schema-mismatch','Unexpected scoped reference page size.');
+      if(records.some(record=>record.variantId!==variantId))
+        throw new VariantConnectionError('schema-mismatch','Reference page contains another variant.');
       return {records:records.slice(0,EVIDENCE_PAGE_SIZE),hasMore:records.length>EVIDENCE_PAGE_SIZE};
     },
     async forVariant(variantId:string,signal?:AbortSignal):Promise<readonly LiveEvidenceReference[]>{

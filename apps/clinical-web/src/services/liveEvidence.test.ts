@@ -94,3 +94,28 @@ it('retains an aborted read rather than presenting broken response content as an
  const transport=vi.fn(async()=>{controller.abort();return new Response('[]',{status:200});});
  await expect(createLiveEvidenceSource(config,transport as typeof fetch).forVariant('12',controller.signal)).rejects.toThrow('cancelled');
 });
+
+it('pages variant-specific citations without claiming a capped full reference read',async()=>{
+ const urls:string[]=[];
+ const transport=vi.fn(async(url:string)=>{
+  urls.push(url);
+  return new Response(JSON.stringify(Array.from({length:31},(_,i)=>link(i+31))),{status:200});
+ });
+ const page=await createLiveEvidenceSource(config,transport as typeof fetch).forVariantPage('12',2);
+ expect(page.records).toHaveLength(30);
+ expect(page.hasMore).toBe(true);
+ expect(new URL(urls[0]).searchParams.get('variant_id')).toBe('eq.12');
+ expect(new URL(urls[0]).searchParams.get('offset')).toBe('60');
+ expect(new URL(urls[0]).searchParams.get('limit')).toBe('31');
+});
+it('rejects cross-variant links, malformed IDs and overflow in scoped pages',async()=>{
+ const mismatched=createLiveEvidenceSource(config,vi.fn(async()=>new Response(JSON.stringify([link(1,13)]),{status:200})) as typeof fetch);
+ await expect(mismatched.forVariantPage('12',0)).rejects.toMatchObject({code:'schema-mismatch'});
+ const overlong=createLiveEvidenceSource(config,vi.fn(async()=>new Response(JSON.stringify(Array.from({length:32},(_,i)=>link(i+1))),{status:200})) as typeof fetch);
+ await expect(overlong.forVariantPage('12',0)).rejects.toMatchObject({code:'schema-mismatch'});
+ const net=vi.fn();
+ const source=createLiveEvidenceSource(config,net as typeof fetch);
+ await expect(source.forVariantPage('0',0)).rejects.toMatchObject({code:'invalid-configuration'});
+ await expect(source.forVariantPage('12',-1)).rejects.toMatchObject({code:'invalid-configuration'});
+ expect(net).not.toHaveBeenCalled();
+});
