@@ -1075,3 +1075,16 @@ main{background:#fbfcfa}
  .variant-page .variant-export-actions > button{flex:0 1 auto;min-width:0}
  .variant-page .variant-export-actions .nfq-context-help{margin-left:0}
 }
+
+/* Phase 4F-10C · source context available without repeated explanatory paragraphs. */
+.variant-page .nfq-provenance-header{display:flex;align-items:center;gap:8px;justify-content:flex-start;flex-wrap:wrap;margin:0 0 10px;min-width:0}
+.variant-page .nfq-provenance-header .nfq-dossier-group-title{margin:0}
+.variant-page .nfq-provenance-header strong{color:#294f3a;font-size:13px}
+.variant-page .nfq-provenance-header .nfq-context-help summary{width:32px;height:32px}
+.variant-page .nfq-authority-link{margin:9px 0 0;font-size:12px}
+.variant-page .nfq-external-register>.nfq-context-help{margin:5px 0 6px}
+.variant-page .evidence-comparison>.nfq-context-help{margin:4px 0 10px}
+@media(max-width:600px){
+ .variant-page .nfq-provenance-header{gap:6px}
+ .variant-page .nfq-provenance-header .nfq-context-help summary{min-width:36px;min-height:36px}
+}
