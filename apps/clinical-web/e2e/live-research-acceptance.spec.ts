@@ -38,6 +38,22 @@ test('record 1001+11C/T opens from exact search and stays traceable across works
  await expect(page).toHaveURL(new RegExp('variant='+variantId));
  await expect(page.getByRole('heading',{name:'Evidence & provenance'})).toBeVisible();
  await expect(page.getByRole('alert')).toHaveCount(0);
+ const evidencePages=page.getByRole('navigation',{name:'Evidence pages'});
+ const previous=evidencePages.getByRole('button',{name:'Previous'});
+ const next=evidencePages.getByRole('button',{name:'Next'});
+ await expect(evidencePages).toBeVisible();
+ await expect(previous).toBeDisabled();
+ await expect(evidencePages).toContainText('Page 1');
+ // Only advance when actual recorded evidence supplies a second page.
+ if(await next.isEnabled()){
+  await next.click();
+  await expect(evidencePages).toContainText('Page 2');
+  await expect(previous).toBeEnabled();
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  await previous.click();
+  await expect(evidencePages).toContainText('Page 1');
+ }
+ await expect(page.getByRole('link',{name:'Return to variant dossier'})).toBeVisible();
  await page.screenshot({path:testInfo.outputPath('live-scoped-evidence.png'),fullPage:true});
  await page.getByRole('link',{name:'Return to variant dossier'}).click();
  await expect(page.locator('#selected-title')).toHaveText('1001+11C/T');
