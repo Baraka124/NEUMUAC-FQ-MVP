@@ -152,3 +152,7 @@ NFQ-003–006 remain incomplete. A pure read-only domain function differentiates
 ## Phase 4F-11G — source-attributed synonym review contract
 
 NFQ-003–006 remain incomplete. A pure domain contract models proposed, under-review, approved and rejected alias relations with canonical recorded ID, source URI/label, submitter and reviewer decision provenance. Approval status requires reviewer attribution, timestamp and rationale. This is a **schema-level readiness step only**: no persistence, authorization/RLS, scientific source verification, user-facing curation, automatic alias promotion or clinical equivalence has been implemented. These require owner-reviewed database design, immutable audit, concurrency checks and expert review before production write paths.
+
+## Phase 4F-11H — review decisions and audit sequencing (design only)
+
+NFQ-003–006 and curation functions remain incomplete. A pure deterministic model now checks proposal-to-review-to-decision transitions, requires distinct submitter and final reviewer, requires an attributed dated rationale, and checks the continuity of an in-memory audit event sequence. It provides **no authenticated server enforcement, durable append-only event storage, permission matrix, RLS policy, clinical alias equivalence, automatic alias promotion or production write UI**. Treat this as engineering contract/test scaffolding; the next phase requires owner-reviewed Supabase schema and access-governance decisions. Do not represent these client-side rules as security controls.
