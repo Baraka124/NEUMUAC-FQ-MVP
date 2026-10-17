@@ -62,7 +62,7 @@ it('does not create a complete-looking report if scientific details are missing 
    :scientific?[{id:19,cftr_class:'I'}]
    :[{id:18,legacy_name:'F508del',protein_name:null,cdna_name:null,alt_names:null}]),{status:200});
  });
- await expect(createVariantResearchBriefMarkdown(cfg,'18',wrong as typeof fetch)).rejects.toThrow('Scientific record incomplete');
+ await expect(createVariantResearchBriefMarkdown(cfg,'18',wrong as typeof fetch)).rejects.toThrow('Scientific profile does not match the requested variant.');
  await expect(createVariantResearchBriefMarkdown(cfg,'0',transport as typeof fetch)).rejects.toThrow('Invalid variant identifier');
 });
 it('never exports an incomplete research brief when reference retrieval fails',async()=>{

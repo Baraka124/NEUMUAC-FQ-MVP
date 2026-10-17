@@ -17,6 +17,7 @@ import {retrieveClinVarSummary,type ClinVarAuthoritySummary} from '../services/l
 import {compareRecordedEvidence} from '../domain/evidenceComparison';
 import {createVariantResearchBrief,createVariantResearchBriefMarkdown} from '../services/researchBrief';
 import ContextHelp from '../components/ContextHelp.vue';
+import {scientificFieldInventory} from '../domain/scientificFieldInventory';
 import {createLiveResearchHistorySource,type ResearchHistory} from '../services/liveResearchHistory';
 import { createReadOnlyRepository, readConfigFromEnvironment, variantDisplayName, formatReadStatus, type RealVariant, type RealVariantSource } from '../services/liveVariants';
 const route=useRoute(),router=useRouter();
@@ -28,6 +29,7 @@ const liveMode = Boolean(config);
 const evidenceSource=config?createLiveEvidenceSource(config):null;
 const dossierSource=config?createScientificDossierSource(config):null;
 const dossier=ref<ScientificDossier|null>(null);
+const fieldInventory=computed(()=>dossier.value?scientificFieldInventory(dossier.value):null);
 const dossierError=ref('');
 let dossierAbort:AbortController|null=null;
 const clinVarSummary=ref<ClinVarAuthoritySummary|null>(null);
@@ -132,7 +134,7 @@ watch(selected,async record=>{
  dossierAbort?.abort();dossier.value=null;dossierError.value='';
  if(!record||!dossierSource)return;
  const controller=new AbortController();dossierAbort=controller;
- try{const data=await dossierSource.get(record.id,controller.signal);if(!controller.signal.aborted)dossier.value=data;}
+ try{const data=await dossierSource.get(record.id,controller.signal);if(!controller.signal.aborted){dossier.value=data;if(!data)dossierError.value='No scientific metadata returned for this record.';}}
  catch{if(!controller.signal.aborted)dossierError.value='Scientific fields could not be loaded.';}
 });
 watch(selected,async value=>{
@@ -419,21 +421,30 @@ function select(id:string):void{
         </dl>
        </section>
        <section aria-labelledby="nfq-dossier-sources">
-        <h3 id="nfq-dossier-sources" class="nfq-dossier-group-title">Sources and validation</h3>
+        <div class="nfq-provenance-header">
+         <h3 id="nfq-dossier-sources" class="nfq-dossier-group-title">Sources and validation</h3>
+         <ContextHelp label="About recorded provenance" title="Recorded metadata and provenance">
+          <p>These fields are reproduced from the research database. A recorded source name, confidence label or validation entry does not mean that the scientific assertion was independently verified.</p>
+          <p v-if="fieldInventory">Recorded fields ({{fieldInventory.recorded.length}} of 10 inspected): {{fieldInventory.recorded.join(', ')||'None'}}.</p>
+          <p v-if="fieldInventory&&fieldInventory.absent.length">Not recorded in this profile: {{fieldInventory.absent.join(', ')}}.</p>
+          <p>Field presence is not a completeness grade. Missing catalog entries do not establish absent scientific evidence.</p>
+         </ContextHelp>
+        </div>
         <dl v-if="dossier" class="identity-grid nfq-supporting-fields">
          <div><dt>Source summary</dt><dd>{{dossier.sourceSummary||'Not recorded'}}</dd></div>
          <div><dt>ClinVar</dt><dd><a v-if="clinVarVariationUrl(dossier.clinvarId)" :href="clinVarVariationUrl(dossier.clinvarId)!" target="_blank" rel="noopener noreferrer">Open ClinVar record ↗</a><span v-else>{{dossier.clinvarId?'Identifier not recognized':'Not recorded'}}</span></dd></div>
          <div><dt>Validation entries</dt><dd>{{dossier.validationCount??'Not recorded'}}</dd></div>
          <div><dt>Latest validation</dt><dd>{{dossier.lastValidatedAt||'Not recorded'}}</dd></div>
+         <div><dt>Last evidence update</dt><dd>{{dossier.lastEvidenceUpdate||'Not recorded'}}</dd></div>
         </dl>
        </section>
       <div v-if="dossier&&clinVarVariationUrl(dossier.clinvarId)" class="clinvar-verification" aria-label="On-demand external ClinVar verification">
-       <div class="clinvar-verification-head"><div><strong>External authority · ClinVar</strong><p class="rail-caption">Fetch the NCBI summary only when requested. Separate from recorded NeumuacFQ findings.</p></div><button type="button" :disabled="clinVarLoading" @click="checkClinVar">{{clinVarLoading?'Checking NCBI…':clinVarSummary?'Refresh ClinVar summary':'Check current ClinVar summary'}}</button></div>
+       <div class="clinvar-verification-head"><div class="nfq-provenance-header"><strong>External authority · ClinVar</strong><ContextHelp label="About external ClinVar data" title="External source interpretation"><p>The NCBI ClinVar summary is retrieved only on request. It is separate from the local NeumuacFQ research catalog, may aggregate different clinical conditions and has not been clinically reconciled with local labels.</p></ContextHelp></div><button type="button" :disabled="clinVarLoading" @click="checkClinVar">{{clinVarLoading?'Checking NCBI…':clinVarSummary?'Refresh ClinVar summary':'Check current ClinVar summary'}}</button></div>
        <p v-if="clinVarLoading" role="status" class="rail-caption">Requesting the official ClinVar API…</p>
        <p v-if="clinVarError" role="alert" class="rail-caption">{{clinVarError}}</p>
        <section v-if="evidenceComparison" class="evidence-comparison" aria-label="Source-attributed scientific evidence comparison">
         <h4>Evidence comparison · source-attributed</h4>
-        <p class="rail-caption">Descriptions are not normalized or ranked. Source context and review scope can differ.</p>
+        <ContextHelp label="About source comparison" title="Scope of source comparison"><p>Descriptions are shown side by side. They are not normalized, ranked or independently adjudicated; differences in clinical condition, scope and review status may explain apparent agreement or conflict.</p><p>{{evidenceComparison.interpretation}}</p></ContextHelp>
         <dl class="identity-grid">
          <div><dt>NeumuacFQ · recorded determination</dt><dd>{{evidenceComparison.localClaim||'Not recorded'}}</dd></div>
          <div><dt>Local source summary</dt><dd>{{evidenceComparison.localSource||'Not recorded'}}</dd></div>
@@ -442,7 +453,7 @@ function select(id:string):void{
          <div><dt>Linked local references</dt><dd>{{evidenceComparison.referencesCount}} recorded</dd></div>
          <div><dt>Recorded source names</dt><dd>{{evidenceComparison.sourceNames.join(', ')||'None returned'}}</dd></div>
         </dl>
-        <p class="rail-caption">{{evidenceComparison.interpretation}}</p>
+        
        </section>
        <template v-if="clinVarSummary">
         <dl class="identity-grid">
@@ -453,7 +464,7 @@ function select(id:string):void{
          <div><dt>Last external evaluation</dt><dd>{{clinVarSummary.lastEvaluated||'Not returned'}}</dd></div>
          <div><dt>Retrieved from NCBI</dt><dd>{{clinVarSummary.retrievedAt}}</dd></div>
         </dl>
-        <p class="rail-caption">External aggregate classifications can concern multiple conditions. This is not a CFTR-specific clinical reconciliation, conflict determination or treatment recommendation. <a :href="clinVarSummary.sourceUrl" target="_blank" rel="noopener noreferrer">Review authority record ↗</a></p>
+        <p class="nfq-authority-link"><a :href="clinVarSummary.sourceUrl" target="_blank" rel="noopener noreferrer">Review authority record ↗</a></p>
        </template>
       </div>
       </div>
@@ -462,7 +473,7 @@ function select(id:string):void{
       <h3 class="nfq-dossier-group-title">References</h3>
       <div v-if="evidenceReady&&cftr2References.length" class="nfq-external-register" aria-label="CFTR2 source links">
        <span class="section-label">CFTR2 · LINKED REFERENCES</span>
-       <p>External CFTR2 links exist for this variant. Their contents and scientific conclusions have not been verified here.</p>
+       <ContextHelp label="About linked CFTR2 references" title="Linked CFTR2 records"><p>External CFTR2 links are recorded for this variant. The linked contents and conclusions have not been independently verified by NeumuacFQ.</p></ContextHelp>
        <ul><li v-for="item in cftr2References" :key="item.id"><a :href="item.url" rel="noopener noreferrer" target="_blank">{{item.title}} ↗</a></li></ul>
       </div>
       <button class="disclosure-button" type="button" :disabled="!evidenceReady" :aria-expanded="showReferences" aria-controls="variant-reference-list" @click="showReferences=!showReferences"><span>{{showReferences?'Hide references':'Show references'}} · {{evidenceReady?linkedEvidence.length:evidenceError?'Unavailable':'Loading…'}}</span><span aria-hidden="true">{{showReferences?'−':'+'}}</span></button>
@@ -477,12 +488,12 @@ function select(id:string):void{
        <RouterLink class="variant-evidence-browse nfq-journey-secondary" :to="{path:'/intelligence',query:dossierReturn?{from:dossierReturn,variant:selected.id}:{}}">Inspect documentation coverage →</RouterLink>
      </section>
      <section v-if="!selectedFromSearch&&scientificDetailsOpen" class="research-history-section" aria-label="Research history">
-      <h3 class="nfq-dossier-group-title">Review history</h3>
+      <div class="nfq-provenance-header"><h3 class="nfq-dossier-group-title">Review history</h3><ContextHelp label="About recorded review history" title="Limits of the review register"><p>Entries reflect database-recorded actions and detected conflicts only. They do not establish an independently verified immutable audit trail. Personal identifiers and free-text annotations are excluded.</p></ContextHelp></div>
       <button class="disclosure-button" type="button" :aria-expanded="historyOpen" aria-controls="variant-research-history" @click="toggleResearchHistory">
        <span>Validation & conflict history</span><span aria-hidden="true">{{historyOpen?'−':'+'}}</span>
       </button>
       <div v-if="historyOpen" id="variant-research-history">
-       <p class="rail-caption">Database-recorded events only. Historical log entries do not establish an independently verified immutable audit trail. Personal identifiers and free-text annotations are excluded.</p>
+       
        <p v-if="historyLoading" role="status">Loading recorded history…</p>
        <p v-else-if="historyError" role="alert">{{historyError}}</p>
        <template v-else-if="researchHistory">
@@ -511,7 +522,7 @@ function select(id:string):void{
        <p role="status" v-if="briefStatus" class="nfq-brief-status">{{briefStatus}}</p>
       </div>
      </div>
-     <p v-if="!selectedFromSearch&&scientificDetailsOpen" class="history-disclaimer">Database classifications and reference links are research information, not independently validated clinical conclusions.</p></template>
+     </template>
      <template v-else-if="previewCandidate">
       <div class="research-preview" aria-label="Search result preview">
        <span class="section-label">SEARCH PREVIEW · NOT OPENED</span>
