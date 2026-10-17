@@ -15,7 +15,8 @@ import {createScientificDossierSource,type ScientificDossier} from '../services/
 import {clinVarVariationUrl} from '../domain/externalAuthority';
 import {retrieveClinVarSummary,type ClinVarAuthoritySummary} from '../services/liveClinVar';
 import {compareRecordedEvidence} from '../domain/evidenceComparison';
-import {createVariantResearchBrief} from '../services/researchBrief';
+import {createVariantResearchBrief,createVariantResearchBriefMarkdown} from '../services/researchBrief';
+import ContextHelp from '../components/ContextHelp.vue';
 import {createLiveResearchHistorySource,type ResearchHistory} from '../services/liveResearchHistory';
 import { createReadOnlyRepository, readConfigFromEnvironment, variantDisplayName, formatReadStatus, type RealVariant, type RealVariantSource } from '../services/liveVariants';
 const route=useRoute(),router=useRouter();
@@ -93,19 +94,40 @@ const briefBusy=ref(false);
 const briefStatus=ref('');
 let briefAbort:AbortController|null=null;
 watch(selected,()=>{briefAbort?.abort();briefBusy.value=false;briefStatus.value='';});
-async function copyResearchBrief():Promise<void>{
+async function exportResearchBrief(mode:'copy'|'download'):Promise<void>{
  if(!selected.value||!config||briefBusy.value)return;
- const id=selected.value.id,controller=new AbortController();briefAbort?.abort();briefAbort=controller;
+ const id=selected.value.id,controller=new AbortController();
+ briefAbort?.abort();briefAbort=controller;
  briefBusy.value=true;briefStatus.value='';
  try{
-  const contents=await createVariantResearchBrief(config,id,fetch,controller.signal);
+  const contents=mode==='copy'
+   ?await createVariantResearchBrief(config,id,fetch,controller.signal)
+   :await createVariantResearchBriefMarkdown(config,id,fetch,controller.signal);
   if(controller.signal.aborted||selected.value?.id!==id)return;
-  await navigator.clipboard.writeText(contents);
-  if(!controller.signal.aborted&&selected.value?.id===id)briefStatus.value='Research brief copied. It contains current recorded fields and linked references.';
+  if(mode==='copy'){
+   await navigator.clipboard.writeText(contents);
+   if(!controller.signal.aborted&&selected.value?.id===id)briefStatus.value='Research brief copied with current recorded fields and references.';
+  }else{
+   const file=new Blob([contents],{type:'text/markdown;charset=utf-8'});
+   const url=URL.createObjectURL(file);
+   try{
+    const link=document.createElement('a');
+    link.href=url;link.download='neumuacFQ-variant-'+id+'-research-brief.md';
+    document.body.appendChild(link);link.click();link.remove();
+    briefStatus.value='Research brief downloaded as Markdown.';
+   }finally{
+    // Allow the browser to resolve the user-initiated download before revoking.
+    window.setTimeout(()=>URL.revokeObjectURL(url),5000);
+   }
+  }
  }catch{
-  if(!controller.signal.aborted)briefStatus.value='Research brief could not be completed or copied. No partial report was produced.';
- }finally{if(!controller.signal.aborted)briefBusy.value=false;}
+  if(!controller.signal.aborted&&selected.value?.id===id)
+   briefStatus.value='Research brief could not be prepared. No incomplete export was produced.';
+ }finally{
+  if(!controller.signal.aborted)briefBusy.value=false;
+ }
 }
+
 watch(selected,async record=>{
  dossierAbort?.abort();dossier.value=null;dossierError.value='';
  if(!record||!dossierSource)return;
@@ -478,11 +500,16 @@ function select(id:string):void{
       </div>
      </section>
      <div v-if="!selectedFromSearch&&scientificDetailsOpen" class="nfq-dossier-report">
-      <div class="variant-export-actions" v-if="scientificDetailsOpen">
-      <button type="button" :disabled="briefBusy" @click="copyResearchBrief">{{briefBusy?'Preparing full research brief…':'Copy scientific research brief'}}</button>
-      <p role="status" v-if="briefStatus">{{briefStatus}}</p>
-      <p class="rail-caption">Copies current scientific fields and recorded reference links. No patient data, clinical report or treatment recommendations.</p>
-     </div>
+      <div class="variant-export-actions" role="group" aria-label="Research brief actions">
+       <button type="button" :disabled="briefBusy" @click="exportResearchBrief('copy')">{{briefBusy?'Preparing brief…':'Copy research brief'}}</button>
+       <button type="button" :disabled="briefBusy" @click="exportResearchBrief('download')">Download .md</button>
+       <ContextHelp label="About the research brief" title="Research brief and provenance">
+        <p>The brief is generated on request from the current live variant record, recorded scientific metadata and complete accessible reference links.</p>
+        <p>It includes recorded source identifiers, citation details and database labels. Neither the source labels nor the scientific interpretation have been independently verified.</p>
+        <p>Markdown is a portable text format, not a PDF, clinical report, patient record or treatment recommendation. If any required read fails, no brief is produced.</p>
+       </ContextHelp>
+       <p role="status" v-if="briefStatus" class="nfq-brief-status">{{briefStatus}}</p>
+      </div>
      </div>
      <p v-if="!selectedFromSearch&&scientificDetailsOpen" class="history-disclaimer">Database classifications and reference links are research information, not independently validated clinical conclusions.</p></template>
      <template v-else-if="previewCandidate">
