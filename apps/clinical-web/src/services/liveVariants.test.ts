@@ -162,3 +162,18 @@ it('fails closed on malformed identifiers in live response rather than rendering
  const malformed=createReadOnlyRepository(config,vi.fn(async()=>new Response(JSON.stringify([{id:'1e3',legacy_name:'R117H'}]),{status:200})) as typeof fetch);
  await expect(malformed.list({query:'R117H',page:0})).rejects.toMatchObject({code:'schema-mismatch'});
 });
+
+it('Phase 4F-11B refuses noncanonical dossier IDs before any database request',async()=>{
+ const network=vi.fn();
+ const repo=createReadOnlyRepository(config,network as typeof fetch);
+ for(const id of ['0','0018','rs1234','R117H','18;DELETE',' 18 ','18.0','-18']){
+  expect(await repo.get(id)).toBeNull();
+ }
+ expect(network).not.toHaveBeenCalled();
+});
+it('Phase 4F-11B retains lookup by the actual recorded ID',async()=>{
+ const transport=vi.fn(async()=>new Response(JSON.stringify([{id:18,legacy_name:'R117H',alt_names:['Arg117His']}]),{status:200}));
+ const repo=createReadOnlyRepository(config,transport as typeof fetch);
+ expect((await repo.get('18'))?.id).toBe('18');
+ expect(transport).toHaveBeenCalledTimes(1);
+});
