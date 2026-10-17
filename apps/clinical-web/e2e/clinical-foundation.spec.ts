@@ -184,7 +184,7 @@ test('Phase 3C research workbench exposes shortcuts and preserves variant workli
  await expect(page.getByRole('dialog',{name:'Research workspace switcher'})).toBeVisible();
  await page.getByRole('searchbox',{name:'Find a research workspace'}).fill('genotype');
  await page.getByRole('dialog',{name:'Research workspace switcher'}).getByRole('button',{name:/Genotype/}).click();
- await expect(page.getByRole('heading',{name:'Genotype research'})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Variant comparison'})).toBeVisible();
  await page.goto('/#/variants?class=I&q=R117H');
  await page.getByRole('button',{name:/Filters/}).click();
  await expect(page.locator('#class-filter')).toHaveValue('I');
