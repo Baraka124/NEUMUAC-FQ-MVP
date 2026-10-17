@@ -108,9 +108,13 @@ async function clear(slot:Slot):Promise<void>{
  chosen[slot].value=null;input[slot].value='';results[slot].value=[];error[slot].value='';
  await router.replace({path:'/genotype',query:pairSelectionQuery(route.query,slot,null)});
 }
+let initialRoute=true;
+let previousIds:[string|null,string|null]=[null,null];
 watch(()=>[routeId(0),routeId(1)] as const,([first,second])=>{
- void restoreSlot(0,first);
- void restoreSlot(1,second);
+ // Do not interrupt the other input's in-flight search when its URL ID did not change.
+ if(initialRoute||first!==previousIds[0])void restoreSlot(0,first);
+ if(initialRoute||second!==previousIds[1])void restoreSlot(1,second);
+ previousIds=[first,second];initialRoute=false;
 },{immediate:true});
 onUnmounted(()=>{stopReads(0);stopReads(1);});
 </script>
