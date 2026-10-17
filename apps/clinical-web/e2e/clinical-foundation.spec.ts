@@ -109,10 +109,14 @@ test('evidence module never substitutes static records when live source is uncon
 
 test('genotype is a real-record two-variant research workflow with no clinical inference',async({page})=>{
  await page.goto('/#/genotype');
- await expect(page.getByRole('heading',{name:'Genotype research'})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Variant comparison'})).toBeVisible();
  await expect(page.getByRole('region',{name:'Variant 1'})).toBeVisible();
  await expect(page.getByRole('region',{name:'Variant 2'})).toBeVisible();
- await expect(page.getByText(/does not establish allelic phase/)).toBeVisible();
+ await expect(page.getByRole('note',{name:'About this research comparison'})).toHaveCount(0);
+ await page.locator('.nfq-pair-heading .nfq-context-help summary').click();
+ await expect(page.getByRole('note',{name:'About this research comparison'})).toContainText('does not establish allelic phase');
+ await page.keyboard.press('Escape');
+ await expect(page.getByRole('note',{name:'About this research comparison'})).toHaveCount(0);
  await page.locator('#genotype-search-0').fill('R117H');
  await expect(page.getByRole('alert')).toContainText('Live CFTR access is not configured');
  await expect(page.getByRole('button',{name:/DEMO-CFTR/i})).toHaveCount(0);
@@ -792,6 +796,22 @@ test('4F-9C sign-in stage stays proportional and does not add authentication fea
   await expect(page.getByRole('heading',{name:'Research sign-in'})).toHaveCount(1);
   await expect(page.getByRole('status')).toContainText('Account sign-in is not configured');
   await expect(page.getByRole('button',{name:'Show password'})).toHaveCount(0);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
+
+test('4F-10A paired variant routes keep identity and avoid false reference statements',async({page})=>{
+ for(const width of [320,390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/genotype?a=18&b=383');
+  await expect(page.getByRole('heading',{name:'Variant comparison'})).toHaveCount(1);
+  await expect(page.getByRole('region',{name:'Variant 1'}).getByRole('alert')).toContainText('Live CFTR access is not configured');
+  await expect(page.getByRole('region',{name:'Variant 2'}).getByRole('alert')).toContainText('Live CFTR access is not configured');
+  await expect(page.getByText('No links are recorded for this variant in the accessible register.')).toHaveCount(0);
+  await page.locator('#genotype-search-0').fill('R117H');
+  await expect(page).toHaveURL(/#\/genotype\?b=383$/);
+  await expect(page.locator('#genotype-search-0')).toHaveValue('R117H');
+  await expect(page.getByRole('region',{name:'Variant 2'}).getByRole('alert')).toContainText('Live CFTR access is not configured');
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
