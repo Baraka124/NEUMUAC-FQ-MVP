@@ -8,6 +8,7 @@ import {safeResearchReturnPath,variantJourneyPath} from '../domain/researchJourn
 import {authController,authSessionProvider} from '../services/authSession';
 import {explainMultiTermMatch,rankVisibleSearchPage} from '../domain/searchPresentation';
 import {assessScientificDiscovery,parseDiscoveryTerms} from '../domain/compoundDiscovery';
+import {historicalDiscoveryHint} from '../domain/legacyDiscoveryHints';
 import {emptySearchReason} from '../domain/searchFeedback';
 
 import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
@@ -147,6 +148,7 @@ watch(selected,async value=>{
 });
 const search=ref(typeof route.query.q==='string'?route.query.q:'');
 const scientificInputAssessment=computed(()=>assessScientificDiscovery(search.value));
+const legacyHint=computed(()=>scientificInputAssessment.value.blocked?null:historicalDiscoveryHint(search.value));
 const inputActive=ref(false);
 const exactMatchedId=ref<string|null>(null);
 const showSearchInfo=ref(false);
@@ -321,6 +323,7 @@ function select(id:string):void{
       <button v-if="search" type="button" class="discovery-clear" aria-label="Clear variant search" @click="search=''">×</button>
     </div>
     <p v-if="scientificInputAssessment.message" class="discovery-notation-guidance" role="status">{{scientificInputAssessment.message}}</p>
+    <p v-if="legacyHint" class="discovery-notation-guidance" role="status">Historical search lead: {{legacyHint.suggestedName}}. Not a verified synonym; search the recorded identifier independently.</p>
     <button v-if="scientificInputAssessment.blocked" type="button" class="nfq-guidance-link nfq-blocked-guidance" :aria-expanded="showSearchInfo" aria-controls="discovery-search-help" @click="showSearchInfo=!showSearchInfo">{{showSearchInfo?'Hide search guidance':'Search guidance'}}</button>
     <div class="discovery-utility-row">
       <div class="variant-filter-anchor">
