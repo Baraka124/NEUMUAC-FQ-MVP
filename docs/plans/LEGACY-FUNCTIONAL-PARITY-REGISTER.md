@@ -148,3 +148,7 @@ NFQ-003–006 remain incomplete where already marked Partial / Not migrated. The
 ## Phase 4F-11F — provenance classification for future curated synonyms
 
 NFQ-003–006 remain incomplete. A pure read-only domain function differentiates exact recorded names/aliases, multiple records sharing a textual alias, and unverified historical search hints. Candidate IDs are explicitly limited to supplied visible-page records. No curator has verified a historical alias, and this is **not** a synonym database, authority mapping, full-catalog completeness check, or auto-selection mechanism. Independent source records, review evidence, curator decisions, access-control rules and audit history are required before any mapping is promoted. No production search/UI changes or database writes. This branch builds on 11E and should only be merged after that dependency.
+
+## Phase 4F-11G — source-attributed synonym review contract
+
+NFQ-003–006 remain incomplete. A pure domain contract models proposed, under-review, approved and rejected alias relations with canonical recorded ID, source URI/label, submitter and reviewer decision provenance. Approval status requires reviewer attribution, timestamp and rationale. This is a **schema-level readiness step only**: no persistence, authorization/RLS, scientific source verification, user-facing curation, automatic alias promotion or clinical equivalence has been implemented. These require owner-reviewed database design, immutable audit, concurrency checks and expert review before production write paths.
