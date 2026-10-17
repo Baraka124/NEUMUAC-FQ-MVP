@@ -65,3 +65,20 @@ it('preserves recorded CFTR2 links from either canonical hostname without granti
   await expect(createLiveEvidenceSource(config,transport as typeof fetch).forVariant('12')).rejects.toMatchObject({code:'schema-mismatch'});
  }
 });
+
+it('rejects duplicate research-reference IDs rather than displaying two independent citations',async()=>{
+ const transport=vi.fn(async()=>new Response(JSON.stringify([link(3),link(3)]),{status:200}));
+ const source=createLiveEvidenceSource(config,transport as typeof fetch);
+ await expect(source.forVariant('12')).rejects.toMatchObject({code:'schema-mismatch'});
+ await expect(source.list({query:'',page:0})).rejects.toMatchObject({code:'schema-mismatch'});
+});
+it('rejects an oversized evidence page rather than silently truncating a malformed service response',async()=>{
+ const transport=vi.fn(async()=>new Response(JSON.stringify(Array.from({length:32},(_,i)=>link(i+1))),{status:200}));
+ await expect(createLiveEvidenceSource(config,transport as typeof fetch).list({query:'',page:0})).rejects.toMatchObject({code:'schema-mismatch'});
+});
+it('preserves legitimate evidence paging and the extra-record has-more flag',async()=>{
+ const transport=vi.fn(async()=>new Response(JSON.stringify(Array.from({length:31},(_,i)=>link(i+1))),{status:200}));
+ const page=await createLiveEvidenceSource(config,transport as typeof fetch).list({query:'',page:0});
+ expect(page.records).toHaveLength(30);
+ expect(page.hasMore).toBe(true);
+});
