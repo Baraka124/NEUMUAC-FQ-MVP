@@ -232,7 +232,7 @@ export function createReadOnlyRepository(
       return unambiguousExactMatch(text,candidates,false);
     },
     async get(id:string,signal?:AbortSignal) {
-      if (!/^[a-zA-Z0-9_-]{1,128}$/.test(id)) return null;
+      if (!/^[1-9]\d{0,17}$/.test(id)) return null;
       const params=new URLSearchParams({select:recordColumns,id:`eq.${id}`,limit:'2'});
       const found=await request(params,signal);
       // Search and dossier identity must agree. Never show a different record
