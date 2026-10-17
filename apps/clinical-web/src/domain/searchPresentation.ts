@@ -45,7 +45,9 @@ export function explainTextMatch(variant:RealVariant,term:string):TextMatchExpla
 export function rankVisibleSearchPage(records:readonly RealVariant[],term:string):readonly RealVariant[]{
   if(!term.trim())return records;
   return [...records].map((record,index)=>({
-    record,index,priority:explainTextMatch(record,term)?.priority??99
+    record,index,priority:term.includes(',')||term.includes(';')
+      ? Math.min(99,...term.split(/[,;]/).map(part=>explainTextMatch(record,part.trim())?.priority??99))
+      : explainTextMatch(record,term)?.priority??99
   })).sort((a,b)=>a.priority-b.priority||a.index-b.index).map(x=>x.record);
 }
 
