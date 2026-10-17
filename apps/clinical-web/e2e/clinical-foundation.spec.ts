@@ -815,3 +815,16 @@ test('4F-10A paired variant routes keep identity and avoid false reference state
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+test('Phase 4F-10J scoped Evidence retains navigation and paging without invented references',async({page})=>{
+ await page.goto('/#/evidence?variant=18&from=%2Fvariants%2F18');
+ await expect(page.getByRole('heading',{name:'Evidence & provenance'})).toBeVisible();
+ await expect(page.getByText('References for variant record #18')).toBeVisible();
+ await expect(page.getByRole('link',{name:'Return to variant dossier'})).toHaveAttribute('href','#/variants/18');
+ await expect(page.getByRole('navigation',{name:'Evidence pages'})).toBeVisible();
+ await expect(page.getByRole('button',{name:'Previous'})).toBeDisabled();
+ await expect(page.getByRole('button',{name:'Next'})).toBeDisabled();
+ await expect(page.getByRole('alert')).toContainText('Live evidence access is not configured');
+ await expect(page.locator('.evidence-row')).toHaveCount(0);
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
