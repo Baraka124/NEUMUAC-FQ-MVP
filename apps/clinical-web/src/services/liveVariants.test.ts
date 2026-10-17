@@ -149,3 +149,16 @@ it('4F-8A uses consistent source columns and rejects mismatched detail records',
  const bad=createReadOnlyRepository({...config,readTable:'variants'},vi.fn(async()=>new Response(JSON.stringify([{...record,id:384}]),{status:200})) as typeof fetch);
  await expect(bad.get('383')).rejects.toMatchObject({code:'schema-mismatch'});
 });
+
+it('requires a positive canonical variant ID before using a live search or detail record',()=>{
+ for(const id of [0,-1,1.5,Number.MAX_SAFE_INTEGER+1,'0','-1','1.5','18;DELETE',' 18 ','1e3',null,undefined]){
+  expect(()=>decodeRealVariant({id,legacy_name:'R117H'})).toThrowError(VariantConnectionError);
+ }
+ expect(decodeRealVariant({id:18,legacy_name:'R117H'}).id).toBe('18');
+ expect(decodeRealVariant({id:'18',legacy_name:'R117H'}).id).toBe('18');
+});
+
+it('fails closed on malformed identifiers in live response rather than rendering a deceptive search row',async()=>{
+ const malformed=createReadOnlyRepository(config,vi.fn(async()=>new Response(JSON.stringify([{id:'1e3',legacy_name:'R117H'}]),{status:200})) as typeof fetch);
+ await expect(malformed.list({query:'R117H',page:0})).rejects.toMatchObject({code:'schema-mismatch'});
+});
