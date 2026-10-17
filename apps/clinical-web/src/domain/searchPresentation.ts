@@ -45,6 +45,21 @@ export function explainTextMatch(variant:RealVariant,term:string):TextMatchExpla
 export function rankVisibleSearchPage(records:readonly RealVariant[],term:string):readonly RealVariant[]{
   if(!term.trim())return records;
   return [...records].map((record,index)=>({
-    record,index,priority:explainTextMatch(record,term)?.priority??99
+    record,index,priority:term.includes(',')||term.includes(';')
+      ? Math.min(99,...term.split(/[,;]/).map(part=>explainTextMatch(record,part.trim())?.priority??99))
+      : explainTextMatch(record,term)?.priority??99
   })).sort((a,b)=>a.priority-b.priority||a.index-b.index).map(x=>x.record);
+}
+
+/** Explain which explicitly entered identifier matched this returned record.
+ * This describes only the current result, never whole-catalog coverage,
+ * allelic phase, or clinical genotype interpretation.
+ */
+export function explainMultiTermMatch(variant:RealVariant,terms:readonly string[]):string|null {
+ const matches=terms.map(term=>({term,match:explainTextMatch(variant,term)}))
+  .filter((entry):entry is {term:string;match:TextMatchExplanation}=>entry.match!==null)
+  .sort((a,b)=>a.match.priority-b.match.priority);
+ if(!matches.length)return null;
+ const best=matches[0];
+ return terms.length>1?best.term+' · '+best.match.label:best.match.label;
 }

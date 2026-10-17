@@ -6,8 +6,8 @@ import {cftr2LinkedReferences} from '../domain/externalReferenceTypes';
 import {referenceMetadata} from '../domain/referencePresentation';
 import {safeResearchReturnPath,variantJourneyPath} from '../domain/researchJourney';
 import {authController,authSessionProvider} from '../services/authSession';
-import {explainTextMatch,rankVisibleSearchPage} from '../domain/searchPresentation';
-import {assessScientificDiscovery} from '../domain/compoundDiscovery';
+import {explainMultiTermMatch,rankVisibleSearchPage} from '../domain/searchPresentation';
+import {assessScientificDiscovery,parseDiscoveryTerms} from '../domain/compoundDiscovery';
 import {emptySearchReason} from '../domain/searchFeedback';
 
 import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
@@ -196,7 +196,10 @@ async function revealSelectedRecord(id:string):Promise<void>{
  }
 }
 watch(displayedRows,()=>{activeResultIndex.value=-1;});
-function matchExplanation(record:RealVariant):string{return explainTextMatch(record,search.value)?.label||'Recorded variant';}
+function matchExplanation(record:RealVariant):string{
+ const terms=parseDiscoveryTerms(search.value);
+ return explainMultiTermMatch(record,terms)||'Recorded variant';
+}
 function focusResult(index:number):void{const items=document.querySelectorAll<HTMLButtonElement>('.record-list button');if(!items.length)return;const next=(index+items.length)%items.length;activeResultIndex.value=next;items[next]?.focus();}
 const hasMore=ref(false);
 const busy=ref(false);
