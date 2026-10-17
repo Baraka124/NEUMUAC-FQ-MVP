@@ -444,7 +444,7 @@ function select(id:string):void{
        <p v-if="clinVarError" role="alert" class="rail-caption">{{clinVarError}}</p>
        <section v-if="evidenceComparison" class="evidence-comparison" aria-label="Source-attributed scientific evidence comparison">
         <h4>Evidence comparison · source-attributed</h4>
-        <ContextHelp label="About source comparison" title="Scope of source comparison"><p>Descriptions are shown side by side. They are not normalized, ranked or independently adjudicated; differences in clinical condition, scope and review status may explain apparent agreement or conflict.</p></ContextHelp>
+        <ContextHelp label="About source comparison" title="Scope of source comparison"><p>Descriptions are shown side by side. They are not normalized, ranked or independently adjudicated; differences in clinical condition, scope and review status may explain apparent agreement or conflict.</p><p>{{evidenceComparison.interpretation}}</p></ContextHelp>
         <dl class="identity-grid">
          <div><dt>NeumuacFQ · recorded determination</dt><dd>{{evidenceComparison.localClaim||'Not recorded'}}</dd></div>
          <div><dt>Local source summary</dt><dd>{{evidenceComparison.localSource||'Not recorded'}}</dd></div>
@@ -453,7 +453,7 @@ function select(id:string):void{
          <div><dt>Linked local references</dt><dd>{{evidenceComparison.referencesCount}} recorded</dd></div>
          <div><dt>Recorded source names</dt><dd>{{evidenceComparison.sourceNames.join(', ')||'None returned'}}</dd></div>
         </dl>
-        <ContextHelp label="About comparison limitations" title="Scientific comparison limitations"><p>{{evidenceComparison.interpretation}}</p></ContextHelp>
+        
        </section>
        <template v-if="clinVarSummary">
         <dl class="identity-grid">
