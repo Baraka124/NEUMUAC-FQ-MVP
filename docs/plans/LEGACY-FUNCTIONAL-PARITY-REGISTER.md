@@ -128,3 +128,7 @@ NFQ-009 and NFQ-038 remain **Partial**. A successful HTTP response that contains
 ## Phase 4F-10J — paginated variant-scoped evidence browsing
 
 NFQ-009 and NFQ-038 remain **Partial**. The public Evidence workspace now uses bounded 30+1 pagination for a selected variant, allowing researchers to browse more than 200 recorded references without an erroneous whole-view failure. Each scoped page checks linked variant identity, duplicate reference IDs and response bounds. The existing `forVariant` complete-read contract and 201 sentinel **remain unchanged** for research exports and other workflows that must not silently omit references. Browser and deployed real-data acceptance remain outstanding, including navigation and empty/error states. No database, authorization, scientific classification or UI design-system change.
+
+## Phase 4F-10K — live scoped-evidence navigation acceptance coverage
+
+NFQ-009 and NFQ-038 remain **Partial**. The optional, explicitly opted-in deployed public read-only acceptance suite now checks that variant-scoped Evidence has a usable first-page state and preserved return-to-dossier navigation. When the actual selected record has a next page, the test advances and returns, checking truthful page navigation without manufacturing reference rows. When no next page exists, it does not assert one. This is added test coverage, **not** a claim that the deployed live workflow has been successfully executed or scientifically validated. No frontend research behavior, clinical rules, production data, backend access or UI design changed.
