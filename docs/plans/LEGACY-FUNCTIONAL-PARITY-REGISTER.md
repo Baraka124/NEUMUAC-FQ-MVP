@@ -112,3 +112,7 @@ NFQ-009 and NFQ-007 remain **Partial**. The public evidence decoder now rejects 
 ## Phase 4F-10F — source-link authority consistency
 
 NFQ-009 and NFQ-013 remain **Partial / Not migrated**, respectively. The existing evidence-link allowlist now rejects custom network ports, matching the already established external-reference classification boundary. Unit cases cover valid standard HTTPS DOI links, nonstandard ports, misleading subdomains, userinfo and plaintext URLs. This is link-origin input validation only, not verification of a publication's contents, DOI resolution, scientific authority, licensing or completeness of external federation. No UI, database, patient data, permission or write changes. Browser/live evidence access and full legacy parity are separate acceptance gates.
+
+## Phase 4F-10G — CFTR2 recorded-link hostname parity
+
+NFQ-009 stays **Partial** and NFQ-012 stays **Not migrated**. The recorded evidence-link decoder now accepts both `cftr2.org` and `www.cftr2.org` with standard HTTPS, consistent with the pre-existing CFTR2 reference classifier. This restores visibility for legitimately stored links using the `www` host, while rejecting lookalike hosts and custom ports. Unit cases cover both allowed origins and denied lookalikes. A recorded link does not confirm CFTR2 page content, external scientific identity, licence, currency or a functional federation. No URL synthesis, user-interface redesign, database changes or clinical inference. Production-record and browser acceptance still outstanding.
