@@ -103,8 +103,9 @@ function decodeAliases(value: unknown): readonly string[] {
 export function decodeRealVariant(input: unknown): RealVariant {
   if (!input || typeof input!=='object' || Array.isArray(input)) throw new VariantConnectionError('request-failed','Unexpected record schema.');
   const raw = input as Record<string,unknown>;
-  const id = typeof raw.id==='number' && Number.isFinite(raw.id) ? String(raw.id) : requiredText(raw.id);
-  if (!id) throw new VariantConnectionError('request-failed','A variant identifier was missing.');
+  const id = typeof raw.id === 'number' && Number.isSafeInteger(raw.id) && raw.id > 0
+    ? String(raw.id) : typeof raw.id === 'string' && /^[1-9]\d{0,17}$/.test(raw.id) ? raw.id : null;
+  if (!id) throw new VariantConnectionError('schema-mismatch','A valid positive variant identifier was missing.');
   const legacyName=requiredText(raw.legacy_name);
   const proteinName=requiredText(raw.protein_name);
   const cdnaName=requiredText(raw.cdna_name);
