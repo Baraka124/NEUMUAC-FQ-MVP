@@ -974,6 +974,7 @@ test('Evidence page export never invents a CSV when live source is disconnected'
  for(const width of [320,768,1366]){
   await page.setViewportSize({width,height:850});
   await page.goto('/#/evidence?variant=383');
+  await expect(page.getByTestId('evidence-copy-view')).toBeVisible();
   await expect(page.getByRole('alert')).toContainText('Live evidence access is not configured');
   await expect(page.getByTestId('evidence-export-page')).toHaveCount(0);
   await page.goto('/#/evidence');
