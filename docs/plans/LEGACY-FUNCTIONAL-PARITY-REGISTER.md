@@ -164,3 +164,7 @@ NFQ-010, 018–023, 028–029, 031–038 are **not declared complete**. The sour
 ## Phase 4F-12R — browser-local saved research worklists
 
 **NFQ-007 and NFQ-038 remain Partial; V04 remains partially recovered, not complete.** The legacy saved-variant capability (original functions `getBookmarks`, `toggleBookmark`, `openBookmarkPanel`, `exportBookmarkedVariants`) is now represented by an in-Variants local worklist of canonical source IDs, with reopen/removal and CSV export of IDs/routes. Historical browser bookmarks are not automatically imported; scientific metadata is never stored or exported as a potentially stale dossier. Production real-record acceptance, cross-device behavior and full original rich-CSV parity remain outstanding. See `docs/plans/PHASE-4F-12R-SAVED-VARIANTS.md`. No server/database/geographic-activity changes.
+
+## Phase 4F-12S — portable variant identity references
+
+**NFQ-007 and NFQ-038 remain Partial; V02 and V04 remain Partial.** The modern Variants worklist now exports canonical absolute record URLs alongside safe numeric identifiers, and an opened, fully retrieved source record offers Copy link. It strips the browsing/search context and performs no geographic activity recording. This restores a portion of the original QR/share and bookmark portability functionality but **does not generate QR codes** or reproduce the original richer scientific CSV. Production share/clipboard acceptance and long-term link accuracy remain to be verified. See `docs/plans/PHASE-4F-12S-PORTABLE-VARIANT-REFERENCES.md`.
