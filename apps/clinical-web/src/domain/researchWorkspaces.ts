@@ -12,6 +12,7 @@ export const researchWorkspaces:readonly ResearchWorkspace[]=Object.freeze([
   {id:'overview',name:'Overview',path:'/workspace',description:'Research entry and available tools',keywords:['home','start']},
   {id:'variants',name:'Variants',path:'/variants',description:'Live CFTR nomenclature, classification and evidence',keywords:['search','hgvs','class','f508del']},
   {id:'evidence',name:'Evidence & Curation',path:'/evidence',description:'Recorded source links and scientific provenance',keywords:['literature','references','pubmed','sources']},
+  {id:'helios',name:'Helios',path:'/helios',description:'Review workspace foundation · decisions unavailable',keywords:['review','curation','audit','helios']},
   {id:'genotype',name:'Genotype',path:'/genotype',description:'Exploratory comparison of two recorded variants',keywords:['pair','compare','compound']},
   {id:'intelligence',name:'Research coverage',path:'/intelligence',description:'Live recorded-link coverage and research documentation gaps',keywords:['coverage','gaps','analytics']},
   {id:'geography',name:'Geographic atlas',path:'/geography',description:'Public Spain-first geographic reference and protected regional research activity',keywords:['map','spain','geography','galicia','regions','regional']}
