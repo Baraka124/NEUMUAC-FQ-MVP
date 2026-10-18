@@ -51,7 +51,7 @@ const areas=[
 .helios-head{display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:1.35rem}
 .helios-head h1{margin:.26rem 0 .15rem;font-size:clamp(1.65rem,2.8vw,2.2rem);font-weight:600;letter-spacing:-.035em;line-height:1.2}
 .helios-subtitle{margin:0;color:var(--text-muted,#687381);font-size:.92rem}
-.helios-info{width:31px;height:31px;flex:none;border:1px solid var(--border,#dce2e7);background:transparent;border-radius:50%;color:inherit;font:600 .8rem inherit;cursor:pointer}
+.helios-info{width:31px;height:31px;flex:none;border:1px solid var(--border,#dce2e7);background:transparent;border-radius:50%;color:inherit;font-size:.8rem;font-weight:600;cursor:pointer}
 .helios-info:focus-visible{outline:2px solid currentColor;outline-offset:3px}
 .helios-context{border:1px solid var(--border,#dce2e7);border-radius:12px;padding:1rem 1.1rem;font-size:.85rem;line-height:1.65;max-width:74ch;margin-bottom:1rem}
 .helios-current{display:flex;align-items:center;flex-wrap:wrap;gap:.5rem;color:var(--text-muted,#687381);font-size:.81rem;margin-bottom:1.35rem}
