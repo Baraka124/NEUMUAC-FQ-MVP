@@ -64,8 +64,10 @@ watch(()=>[route.query.q,route.query.page],()=>{
  if(query.value!==nextQuery)query.value=nextQuery;
  if(page.value!==nextPage)page.value=nextPage;
 });
-watch(focusId,()=>{expandedRows.value=[];});
-watch(page,()=>{expandedRows.value=[];});
+// A disclosure belongs to the currently visible result set. Never carry an
+// expanded reference into a new query, variant scope, or page, even when
+// numeric reference IDs happen to overlap across responses.
+watch([query,focusId,page],()=>{expandedRows.value=[];});
 watch([query,page,focusId],()=>{clearTimeout(debounce);debounce=setTimeout(()=>{void refresh();},query.value?250:0);},{immediate:true});
 onUnmounted(()=>{abort?.abort();clearTimeout(debounce);});
 const exportNotice=ref('');
