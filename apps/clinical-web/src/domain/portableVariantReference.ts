@@ -22,5 +22,5 @@ export function portableSavedVariantsCsv(ids:readonly string[],currentHref:strin
  // Refuse to emit a misleading partially-formed file when the origin is invalid.
  const links=canonical.map(id=>({id,link:portableVariantLink(id,currentHref)}));
  if(links.some(row=>!row.link))return null;
- return '\uFEFFvariant_id,record_url\r\n'+links.map(row=>row.id+','+row.link).join('\r\n')+'\r\n';
+ return '\uFEFFvariant_id,record_url\r\n'+links.map(row=>row.id+',"'+row.link!.replaceAll('"','""')+'"').join('\r\n')+'\r\n';
 }
