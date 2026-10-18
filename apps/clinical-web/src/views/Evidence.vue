@@ -6,6 +6,7 @@ import {safeResearchReturnPath,workspaceJourneyPath} from '../domain/researchJou
 import {createLiveEvidenceSource, EVIDENCE_PAGE_SIZE, type LiveEvidenceReference} from '../services/liveEvidence';
 import {readConfigFromEnvironment} from '../services/liveVariants';
 import {referenceMetadata} from '../domain/referencePresentation';
+import {evidencePageCsv} from '../domain/evidencePageExport';
 import ContextHelp from '../components/ContextHelp.vue';
 const route=useRoute();
 const focusId=computed(()=>typeof route.query.variant==='string'&&/^[1-9]\d{0,17}$/.test(route.query.variant)?route.query.variant:null);
@@ -21,6 +22,21 @@ const rows=ref<readonly LiveEvidenceReference[]>([]);
 const hasMore=ref(false);
 const loading=ref(false);
 const error=ref('');
+const exportNotice=ref('');
+function downloadEvidencePage():void{
+ if(loading.value||error.value||!rows.value.length)return;
+ const csv=evidencePageCsv(rows.value);
+ if(csv===null){exportNotice.value='This reference page could not be exported safely.';return;}
+ const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+ const url=URL.createObjectURL(blob);
+ try{
+  const anchor=document.createElement('a');
+  anchor.href=url;anchor.download='neumuacFQ-evidence-page-'+String(page.value+1)+'.csv';
+  document.body.appendChild(anchor);anchor.click();anchor.remove();
+  exportNotice.value='Current page exported. Recorded citations have not been independently validated.';
+ }finally{window.setTimeout(()=>URL.revokeObjectURL(url),5000);}
+}
+watch([query,page,focusId],()=>{exportNotice.value='';});
 let abort:AbortController|null=null;
 let sequence=0;
 let debounce:ReturnType<typeof setTimeout>|undefined;
@@ -62,6 +78,11 @@ onUnmounted(()=>{abort?.abort();clearTimeout(debounce);});
   <p v-else-if="error" role="alert" class="empty-result">{{error}}</p>
   <p v-else role="status" class="evidence-results-count">{{rows.length}} recorded {{rows.length===1?'reference':'references'}} on page {{page+1}}</p>
   <p v-if="!loading&&!error&&!rows.length" class="empty-result">{{page>0?'No references on this page. Return to the previous page.':focusId?'No reference links recorded for this variant in the accessible catalog.':'No recorded source links match this search.'}}</p>
+  <div v-if="!loading&&!error&&rows.length" class="nfq-evidence-page-tools">
+   <button type="button" data-testid="evidence-export-page" @click="downloadEvidencePage">Export page · CSV</button>
+   <span>Current page only · Recorded citation metadata</span>
+  </div>
+  <p v-if="exportNotice" role="status" class="nfq-evidence-export-notice">{{exportNotice}}</p>
   <div v-if="rows.length" class="evidence-register" aria-label="Recorded citations">
    <article v-for="item in rows" :key="item.id" class="evidence-row">
     <div class="evidence-row-meta"><span>{{referenceMetadata(item).join(" · ")}}</span></div>
