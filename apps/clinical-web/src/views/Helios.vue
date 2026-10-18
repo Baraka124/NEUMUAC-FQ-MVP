@@ -7,11 +7,12 @@ function closeReview(){selectedReviewId.value=null;selectedArea.value='queue';}
 // No records are supplied until a server-authorized, provenance-reviewed endpoint exists.
 const availableReviews:readonly {id:string;label:string}[]=[];
 const assessmentStep=ref<'record'|'sources'|'uncertainty'>('record');
-const selectedArea=ref<'queue'|'evidence'|'history'>('queue');
+const selectedArea=ref<'queue'|'evidence'|'signals'|'history'>('queue');
 const areas=[
  {id:'queue',title:'Review queue',detail:'Proposals, priority and ownership',state:'Awaiting authorized connection'},
  {id:'evidence',title:'Evidence assessment',detail:'Proposed change and recorded supporting sources',state:'Scientific review pending'},
- {id:'history',title:'Decision history',detail:'Attributed decisions and audit chronology',state:'Restricted until access review'}
+ {id:'signals',title:'Signals',detail:'Source scans, scientific drift and monitor targets',state:'Scans and monitoring not connected'},
+ {id:'history',title:'History',detail:'Review chronology, validation and feedback',state:'Restricted until access review'}
 ] as const;
 </script>
 
@@ -55,6 +56,20 @@ const areas=[
      <div class="helios-proposal-list">
       <button v-for="review in availableReviews" :key="review.id" type="button"
        @click="openReview(review.id)">{{review.label}} <span aria-hidden="true">→</span></button>
+     </div>
+    </template>
+    <template v-if="area.id==='signals'">
+     <div class="helios-recovery-sections" aria-label="Scientific signal capabilities">
+      <div><strong>Source assessment</strong><span>Internal and external evidence scans · Not connected</span></div>
+      <div><strong>Consistency</strong><span>Contradictions and drift · Not connected</span></div>
+      <div><strong>Monitoring</strong><span>Watch targets and scheduled checks · Not connected</span></div>
+     </div>
+    </template>
+    <template v-if="area.id==='history'">
+     <div class="helios-recovery-sections" aria-label="Review history capabilities">
+      <div><strong>Decisions</strong><span>Reviewer audit trail · Access restricted</span></div>
+      <div><strong>Validation</strong><span>Scientific validation chronology · Not connected</span></div>
+      <div><strong>Feedback</strong><span>Source feedback and review calibration · Not connected</span></div>
      </div>
     </template>
     <template v-if="area.id==='evidence'">
@@ -157,4 +172,12 @@ const areas=[
 .helios-proposal-list button:focus-visible,.helios-selected-review button:focus-visible{outline:2px solid currentColor;outline-offset:2px}
 .helios-selected-review{display:flex;flex-wrap:wrap;gap:1rem;align-items:center;font-size:.8rem;color:var(--text-muted,#687381)}
 .helios-selected-review button{background:transparent;border:0;padding:.45rem 0;color:inherit;font:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+</style>
+
+<style scoped>
+.helios-recovery-sections{margin:1.1rem 0 0;border-top:1px solid var(--border,#dce2e7)}
+.helios-recovery-sections>div{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:.35rem 1rem;padding:.9rem 0;border-bottom:1px solid var(--border,#dce2e7)}
+.helios-recovery-sections strong{font-weight:600;font-size:.84rem}
+.helios-recovery-sections span{font-size:.78rem;color:var(--text-muted,#687381)}
+@media(max-width:620px){.helios-recovery-sections>div{display:block}.helios-recovery-sections span{display:block;margin-top:.35rem}}
 </style>

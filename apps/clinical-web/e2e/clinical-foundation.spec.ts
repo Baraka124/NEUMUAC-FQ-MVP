@@ -821,10 +821,10 @@ test('4F-10A paired variant routes keep identity and avoid false reference state
 test('Helios review areas stay accessible and do not imply authorized review operations',async({page})=>{
  await page.goto('/#/helios');
  await expect(page.getByRole('heading',{name:'Helios',exact:true})).toBeVisible();
- const history=page.getByRole('button',{name:'Decision history'});
+ const history=page.getByRole('button',{name:'History',exact:true});
  await history.click();
  await expect(history).toHaveAttribute('aria-pressed','true');
- await expect(page.getByRole('region',{name:'Decision history'})).toContainText('No live records or review actions');
+ await expect(page.getByRole('region',{name:'History'})).toContainText('No live records or review actions');
  await expect(page.getByRole('button',{name:/approve|reject|claim/i})).toHaveCount(0);
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
@@ -844,5 +844,17 @@ test('Helios evidence assessment makes missing provenance explicit across viewpo
  await expect(page.getByRole('button',{name:'3. Uncertainty'})).toHaveAttribute('aria-pressed','true');
  await expect(assessment).toContainText('No scientific decision is implied');
  await expect(page.getByRole('button',{name:/approve|reject|claim/i})).toHaveCount(0);
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
+
+test('Helios Signals and History remain integrated, accessible and read only',async({page})=>{
+ await page.goto('/#/helios');
+ await page.getByRole('button',{name:'Signals',exact:true}).click();
+ await expect(page.getByRole('region',{name:'Signals'})).toContainText('Contradictions and drift');
+ await expect(page.getByRole('region',{name:'Signals'})).toContainText('Not connected');
+ await page.getByRole('button',{name:'History',exact:true}).click();
+ await expect(page.getByRole('region',{name:'History'})).toContainText('Reviewer audit trail');
+ await expect(page.getByRole('region',{name:'History'})).toContainText('Access restricted');
+ await expect(page.getByRole('button',{name:/approve|reject|run scan/i})).toHaveCount(0);
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
