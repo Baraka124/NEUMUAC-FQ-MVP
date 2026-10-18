@@ -601,3 +601,20 @@ function select(id:string):void{
   </div>
  </div>
 </template>
+
+<style scoped>
+.nfq-saved-trigger,.nfq-save-record{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;flex:none;border:1px solid var(--border,#dce2e7);border-radius:8px;background:transparent;color:inherit;padding:.4rem .65rem;font:inherit;font-size:.78rem;font-weight:550;cursor:pointer}
+.nfq-saved-trigger[aria-expanded="true"],.nfq-save-record[aria-pressed="true"]{background:var(--surface-secondary,#f4f6f8)}
+.nfq-saved-trigger:focus-visible,.nfq-save-record:focus-visible,.nfq-saved-panel button:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.nfq-saved-panel{border:1px solid var(--border,#dce2e7);border-radius:10px;padding:.8rem;margin:.5rem 0 1rem;background:var(--surface,#fff)}
+.nfq-saved-panel-head{display:flex;justify-content:space-between;align-items:center;gap:.75rem;font-size:.82rem}
+.nfq-saved-panel-head button{background:transparent;border:0;color:var(--text-muted,#687381);font:inherit;font-size:.78rem;cursor:pointer}
+.nfq-saved-list{padding:0;margin:.7rem 0;list-style:none}
+.nfq-saved-list li{display:flex;justify-content:space-between;gap:.65rem;align-items:center;padding:.55rem 0;border-bottom:1px solid var(--border,#dce2e7)}
+.nfq-saved-list button{font:inherit;color:inherit;font-size:.78rem;cursor:pointer;border:0;background:transparent;text-align:left}
+.nfq-saved-list button:first-child{overflow-wrap:anywhere;min-width:0}
+.nfq-saved-list button:last-child{color:var(--text-muted,#687381)}
+.nfq-saved-muted,.nfq-saved-feedback{font-size:.73rem;line-height:1.45;color:var(--text-muted,#687381);margin:.6rem 0 0}
+.nfq-saved-export{margin-top:.35rem;border:1px solid var(--border,#dce2e7);border-radius:7px;background:transparent;padding:.5rem .7rem;color:inherit;font:inherit;font-size:.78rem;cursor:pointer}
+@media(max-width:640px){.nfq-save-record{padding:.45rem .6rem}.nfq-saved-panel{max-width:100%}}
+</style>
