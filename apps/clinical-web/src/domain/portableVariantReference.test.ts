@@ -15,6 +15,7 @@ it('rejects noncanonical identifiers and unsafe origins',()=>{
 });
 it('exports only deduplicated public record identities, no search or user context',()=>{
  const csv=portableSavedVariantsCsv(['2','2','5','01','=HYPERLINK(1)'],'https://fq.neumact.org/?user=email@example.org#/variants?q=secret');
+ if(csv===null)throw new Error('Expected valid HTTP(S) origin to produce a portable CSV');
  expect(csv).toContain('2,"https://fq.neumact.org/#/variants/2"');
  expect(csv).toContain('5,"https://fq.neumact.org/#/variants/5"');
  expect(csv).not.toContain('example.org#/variants');
