@@ -406,7 +406,7 @@ function select(id:string):void{
       <p class="nfq-saved-muted">Local to this browser. Saved links are not verified scientific dossiers or geographic activity.</p>
      </section>
      <p v-if="savedNotice" role="status" class="nfq-saved-feedback">{{savedNotice}}</p>
-     <p v-if="exactMatchedId" role="status" class="discovery-sr-only">Exact recorded identity opened automatically.</p>
+     <p v-if="exactMatchedId&&selected?.id===exactMatchedId" role="status" class="discovery-sr-only">Exact recorded identity opened automatically.</p>
     <p v-if="pending||busy" role="status" class="discovery-loading">{{busy?'Searching recorded variants…':'Preparing search…'}}</p>
     <div v-if="error" role="alert" class="empty-result nfq-search-feedback">
       <p>{{error}}</p>
@@ -433,7 +433,7 @@ function select(id:string):void{
         <li>For example, <code>1001+11C/T</code> and <code>c.869+11C&gt;T</code> are different written forms. This search does not translate or assume equivalence between them.</li>
         <li>Filters and exact-name mode narrow results. Separate up to four identifiers with commas or semicolons for an OR search, not a genotype interpretation.</li>
       </ul>
-      <p class="nfq-search-guide-note">Unsupported or uncertain notation is not automatically corrected. No match means no accessible recorded result for this search, not proof that a variant does not exist or is novel.</p>
+      <p class="nfq-search-guide-note">Unsupported or uncertain notation is not automatically corrected. No match means no accessible recorded result for this search, not proof that a variant does not exist or is novel. Search suggestions and typing are not geographic hit/miss events; regional activity recording is currently disabled.</p>
     </div>
     <button v-if="!pending&&!busy&&!error&&selected&&rows.length&&!scientificInputAssessment.blocked" type="button" class="nfq-mobile-results-toggle" :aria-expanded="mobileResultsExpanded" aria-controls="variant-results" @click="mobileResultsExpanded=!mobileResultsExpanded">
       <span>{{mobileResultsExpanded?'Hide other results':'View other results'}} <small>({{displayedRows.length}} on page)</small></span>
