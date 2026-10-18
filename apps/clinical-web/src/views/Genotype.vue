@@ -6,6 +6,7 @@ import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/l
 import {pairRecordId,pairSelectionQuery} from '../domain/pairSelection';
 import ContextHelp from '../components/ContextHelp.vue';
 import {portableComparisonLink} from '../domain/portableComparisonLink';
+import {pairResearchMarkdown} from '../domain/pairResearchExport';
 
 const route=useRoute(),router=useRouter();
 const cfg=readConfigFromEnvironment();
@@ -29,6 +30,24 @@ const debounce:[ReturnType<typeof setTimeout>|undefined,ReturnType<typeof setTim
 const sameVariant=computed(()=>Boolean(chosen[0].value&&chosen[1].value&&chosen[0].value.id===chosen[1].value.id));
 const shareNotice=ref('');
 const canShare=computed(()=>Boolean(chosen[0].value&&chosen[1].value));
+const canExport=computed(()=>canShare.value&&referenceState[0].value==='loaded'&&referenceState[1].value==='loaded');
+const exportNotice=ref('');
+function downloadResearchComparison():void{
+ if(!canExport.value||!chosen[0].value||!chosen[1].value)return;
+ const markdown=pairResearchMarkdown({
+  first:chosen[0].value,second:chosen[1].value,
+  firstReferences:citations[0].value,secondReferences:citations[1].value
+ });
+ if(markdown===null){exportNotice.value='The current reference records cannot be exported safely.';return;}
+ const blob=new Blob([markdown],{type:'text/markdown;charset=utf-8'});
+ const url=URL.createObjectURL(blob);
+ try{
+  const link=document.createElement('a');link.href=url;
+  link.download='neumuacFQ-comparison-'+chosen[0].value.id+'-'+chosen[1].value.id+'.md';
+  document.body.appendChild(link);link.click();link.remove();
+  exportNotice.value='Research record comparison exported. Sources have not been independently validated.';
+ }finally{window.setTimeout(()=>URL.revokeObjectURL(url),5000);}
+}
 async function copyComparisonLink():Promise<void>{
  const href=portableComparisonLink(chosen[0].value?.id,chosen[1].value?.id,window.location.href);
  if(!href||!navigator.clipboard?.writeText){shareNotice.value='A shareable comparison link is unavailable.';return;}
@@ -37,7 +56,7 @@ async function copyComparisonLink():Promise<void>{
   shareNotice.value='Record comparison link copied. Opened records must be verified again.';
  }catch{shareNotice.value='The comparison link could not be copied. Clipboard access may be restricted.';}
 }
-watch([chosen[0],chosen[1]],()=>{shareNotice.value='';});
+watch([chosen[0],chosen[1]],()=>{shareNotice.value='';exportNotice.value='';});
 
 
 function routeId(slot:Slot):string|null{return pairRecordId(route.query[slot===0?'a':'b']);}
@@ -136,14 +155,16 @@ onUnmounted(()=>{stopReads(0);stopReads(1);});
  <div class="page genotype-page nfq-science-ui">
   <header class="nfq-pair-heading">
    <h1>Variant comparison</h1>
-   <div class="nfq-pair-heading-actions"><button type="button" data-testid="comparison-copy-link" :disabled="!canShare" @click="copyComparisonLink">Copy comparison link</button>
+   <div class="nfq-pair-heading-actions"><button type="button" data-testid="comparison-copy-link" :disabled="!canShare" @click="copyComparisonLink">Copy comparison link</button><button type="button" data-testid="comparison-download" :disabled="!canExport" @click="downloadResearchComparison">Download .md</button>
    <ContextHelp label="About variant comparison" title="About this research comparison">
     <p>Compare the nomenclature and recorded reference links associated with two accessible CFTR variants. Selected variants are research records, not a patient genotype.</p>
     <p>Pair selection does not establish allelic phase, homozygosity, pathogenicity, clinical severity, modulator responsiveness or treatment eligibility.</p>
     <p>Reference counts describe catalog associations, not independent study quality or clinical certainty.</p>
+    <p>The optional Markdown export requires both complete reference reads and contains recorded source metadata only. It is not a clinical report.</p>
    </ContextHelp></div>
   </header>
   <p v-if="shareNotice" role="status" class="nfq-pair-copy-status">{{shareNotice}}</p>
+  <p v-if="exportNotice" role="status" class="nfq-pair-copy-status">{{exportNotice}}</p>
   <div class="genotype-comparison">
    <section v-for="slot in [0,1] as const" :key="slot" class="genotype-locus" :aria-label="'Variant '+(slot+1)">
     <div class="genotype-topline">
