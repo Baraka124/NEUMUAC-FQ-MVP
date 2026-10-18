@@ -42,7 +42,7 @@ test('reserved workspaces do not imply clinical functionality', async ({ page })
   await page.goto('/#/helios');
   await expect(page.getByRole('heading', { name: 'Helios', exact: true })).toBeVisible();
   await expect(page.getByText('Read-only preparation')).toBeVisible();
-  await expect(page.getByText('Review records not connected')).toBeVisible();
+  await expect(page.getByText('Not connected', {exact:true})).toBeVisible();
   await expect(page.getByText('No live decisions available')).toBeVisible();
 });
 
@@ -867,4 +867,12 @@ test('Helios locked features explain that backend access is not yet connected',a
  await expect(signals.locator('.helios-restricted').first()).toHaveAttribute('title',/authorization is not yet connected/);
  await page.getByRole('button',{name:'History',exact:true}).click();
  await expect(page.getByRole('region',{name:'History'}).locator('.helios-restricted')).toHaveCount(3);
+});
+
+test('Helios queue describes disconnected state without claiming denied access',async({page})=>{
+ await page.goto('/#/helios');
+ const queue=page.getByRole('region',{name:'Review queue'});
+ await expect(queue.locator('.helios-read-state')).toContainText('Authorized review data has not been connected');
+ await expect(page.locator('.helios-current')).toContainText('Read-only preparation');
+ await expect(page.getByRole('button',{name:/approve|reject|claim/i})).toHaveCount(0);
 });
