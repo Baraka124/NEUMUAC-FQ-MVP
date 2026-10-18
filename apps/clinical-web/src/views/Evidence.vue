@@ -68,7 +68,17 @@ watch(()=>[route.query.q,route.query.page],()=>{
 // expanded reference into a new query, variant scope, or page, even when
 // numeric reference IDs happen to overlap across responses.
 watch([query,focusId,page],()=>{expandedRows.value=[];});
-watch([query,page,focusId],()=>{clearTimeout(debounce);debounce=setTimeout(()=>{void refresh();},query.value?250:0);},{immediate:true});
+watch([query,page,focusId],()=>{
+ // Invalidate the prior result context before the search debounce runs.
+ // Otherwise a previous page remains actionable (including CSV export)
+ // while the user is already looking at a new query or variant scope.
+ clearTimeout(debounce);
+ abort?.abort();
+ ++sequence;
+ rows.value=[];hasMore.value=false;error.value='';
+ loading.value=Boolean(source);
+ debounce=setTimeout(()=>{void refresh();},query.value?250:0);
+},{immediate:true});
 onUnmounted(()=>{abort?.abort();clearTimeout(debounce);});
 const exportNotice=ref('');
 function downloadEvidencePage():void{
