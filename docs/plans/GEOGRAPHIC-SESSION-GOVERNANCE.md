@@ -15,3 +15,10 @@
 - Admin-facing unavailable settings should show a clear lock and reason, rather than a fake active toggle.
 
 Dependencies: review current database schema, actual collection call sites and role policies before implementation. **No production RLS or data modifications without separate reviewed deployment and privacy gates.**
+
+## Phase 4F-13L–13M preflight (pure code, not event recording)
+
+- The verified event classifier in `domain/variantQueryIntent.ts` requires a loaded matching dossier identity for a hit candidate; a miss candidate requires a deliberately committed, complete, unfiltered, successful zero-result search. Partial, stale, ambiguous, filtered, service-error and non-variant strings remain excluded.
+- `domain/geographicEventGate.ts` separately requires explicit feature activation, authenticated/verified approved administrator, purpose/consent/retention, a server-authorized active session bound to the actor, a permitted trial/production mode, and an authorized session region unrelated to patient, IP or device location.
+- The output is an **eligibility candidate for a future server check**, never an event, scientific conclusion, location lookup or authorization token. The current UI does not call this gate or write any geography; no server recorder exists in this phase. Server policies, approved aggregate privacy controls and deletion reconciliation are independent future requirements.
+- An auto-open announcement must be conditioned on a successfully loaded selected dossier. Failed full-record reads must not be treated as hits or geographic observations.
