@@ -25,6 +25,7 @@ import {scientificFieldInventory} from '../domain/scientificFieldInventory';
 import {createLiveResearchHistorySource,type ResearchHistory} from '../services/liveResearchHistory';
 import {recordedResearchChronology} from '../domain/recordedResearchChronology';
 import {recordedConflictFocus} from '../domain/recordedConflictFocus';
+import {prepareConflictReviewPacket} from '../domain/conflictReviewPacket';
 import { createReadOnlyRepository, readConfigFromEnvironment, variantDisplayName, formatReadStatus, type RealVariant, type RealVariantSource } from '../services/liveVariants';
 const route=useRoute(),router=useRouter();
 const sourceWorkspace=computed(()=>safeResearchReturnPath(route.query.from,'workspace'));
@@ -128,12 +129,13 @@ const researchHistory=ref<ResearchHistory|null>(null);
 const researchChronology=computed(()=>researchHistory.value&&selected.value?recordedResearchChronology(researchHistory.value,selected.value.id):null);
 const conflictFocus=computed(()=>researchHistory.value&&selected.value?recordedConflictFocus(researchHistory.value,selected.value.id):null);
 const unresolvedOpen=ref(false);
+const reviewPacketNotice=ref('');
 const historyError=ref('');
 const historyLoading=ref(false);
 const historyOpen=ref(false);
 let historyAbort:AbortController|null=null;
 const historySource=config?createLiveResearchHistorySource(config):null;
-watch(selected,()=>{historyAbort?.abort();researchHistory.value=null;historyError.value='';historyLoading.value=false;historyOpen.value=false;unresolvedOpen.value=false;});
+watch(selected,()=>{historyAbort?.abort();researchHistory.value=null;historyError.value='';historyLoading.value=false;historyOpen.value=false;unresolvedOpen.value=false;reviewPacketNotice.value='';});
 async function toggleResearchHistory():Promise<void>{
  historyOpen.value=!historyOpen.value;
  if(!historyOpen.value||researchHistory.value||historyLoading.value||!selected.value)return;
@@ -147,6 +149,22 @@ async function toggleResearchHistory():Promise<void>{
   if(!controller.signal.aborted&&selected.value?.id===id)historyError.value='Historical records could not be retrieved. No incomplete timeline is shown.';
  }finally{if(!controller.signal.aborted)historyLoading.value=false;}
 }
+function downloadConflictReviewPacket():void{
+ if(!selected.value||!researchHistory.value||!evidenceReady.value||evidenceError.value){
+  reviewPacketNotice.value='The complete source and conflict records must load before preparing a review packet.';
+  return;
+ }
+ const packet=prepareConflictReviewPacket(selected.value.id,researchHistory.value,linkedEvidence.value,true);
+ if(!packet){reviewPacketNotice.value='A consistent unresolved research packet could not be prepared.';return;}
+ const url=URL.createObjectURL(new Blob([packet],{type:'text/markdown;charset=utf-8'}));
+ try{
+  const link=document.createElement('a');link.href=url;
+  link.download='neumuacFQ-conflict-review-'+selected.value.id+'.md';
+  document.body.appendChild(link);link.click();link.remove();
+  reviewPacketNotice.value='Review packet downloaded. No records were changed.';
+ }finally{window.setTimeout(()=>URL.revokeObjectURL(url),5000);}
+}
+
 const briefBusy=ref(false);
 const briefStatus=ref('');
 let briefAbort:AbortController|null=null;
@@ -601,6 +619,9 @@ function select(id:string):void{
           <li v-for="item in conflictFocus.unresolved" :key="item.id"><strong>{{item.field}}</strong><small>Conflict record #{{item.id}} · Recorded severity: {{item.recordedSeverity||'Not recorded'}}</small></li>
          </ul>
          <p v-if="unresolvedOpen" class="rail-caption">Recorded unresolved status only. This is not a verified review assignment, approval decision or clinical priority.</p>
+         <button v-if="unresolvedOpen" type="button" class="nfq-save-record" data-testid="export-conflict-review" :disabled="!evidenceReady||Boolean(evidenceError)" @click="downloadConflictReviewPacket">Download research review packet · .md</button>
+         <p v-if="unresolvedOpen&&!evidenceReady" role="status" class="rail-caption">Complete linked reference records are required to prepare this packet.</p>
+         <p v-if="unresolvedOpen&&reviewPacketNotice" role="status" class="rail-caption">{{reviewPacketNotice}}</p>
         </div>
         <p v-if="!researchChronology.dated.length&&!researchChronology.undated.length" class="rail-caption">No recorded validation or conflict events were returned for this variant.</p>
         <ol v-if="researchChronology.dated.length" class="research-history-list nfq-history-timeline" aria-label="Dated research events, newest first">
