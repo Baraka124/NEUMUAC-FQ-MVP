@@ -982,3 +982,15 @@ test('Evidence page export never invents a CSV when live source is disconnected'
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+test('two-record comparison share requires two retrieved source records, not URL text alone',async({page})=>{
+ for(const width of [320,390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/genotype?a=18&b=383');
+  const copy=page.getByTestId('comparison-copy-link');
+  await expect(copy).toBeVisible();
+  await expect(copy).toBeDisabled();
+  await expect(page.locator('.genotype-locus')).toHaveCount(2);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
