@@ -41,7 +41,9 @@ export function referenceLinkConsistency(entry:LiveEvidenceReference):ReferenceL
  const host=url.hostname.toLowerCase();
  if(host==='doi.org'){
   const doi=entry.doi?.trim().replace(/^https?:\/\/(?:dx\.)?doi\.org\//i,'').toLowerCase();
-  const urlDoi=decodeURIComponent(url.pathname.slice(1)).toLowerCase();
+  let urlDoi:string;
+  try{urlDoi=decodeURIComponent(url.pathname.slice(1)).toLowerCase();}
+  catch{return {kind:'unassessed',label:'DOI link could not be compared'};}
   if(!doi)return {kind:'unassessed',label:'DOI not recorded; link identity not assessed'};
   return urlDoi===doi
    ?{kind:'consistent',label:'Recorded DOI and link agree'}
