@@ -817,3 +817,27 @@ test('4F-10A paired variant routes keep identity and avoid false reference state
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+test('Helios review areas stay accessible and do not imply authorized review operations',async({page})=>{
+ await page.goto('/#/helios');
+ await expect(page.getByRole('heading',{name:'Helios',exact:true})).toBeVisible();
+ const history=page.getByRole('button',{name:'Decision history'});
+ await history.click();
+ await expect(history).toHaveAttribute('aria-pressed','true');
+ await expect(page.getByRole('region',{name:'Decision history'})).toContainText('No live records or review actions');
+ await expect(page.getByRole('button',{name:/approve|reject|claim/i})).toHaveCount(0);
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
+
+test('Helios evidence assessment makes missing provenance explicit across viewports',async({page})=>{
+ await page.goto('/#/helios');
+ await page.getByRole('button',{name:'Evidence assessment'}).click();
+ const assessment=page.getByRole('region',{name:'Evidence assessment'});
+ for(const name of ['Recorded value','Proposed change','Supporting evidence','Uncertainty']){
+  await expect(assessment.getByRole('region',{name})).toBeVisible();
+ }
+ await expect(assessment).toContainText('No verified references loaded');
+ await expect(assessment).toContainText('No scientific decision is implied');
+ await expect(page.getByRole('button',{name:/approve|reject|claim/i})).toHaveCount(0);
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});

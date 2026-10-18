@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import {ref} from 'vue';
 const showContext=ref(false);
+const selectedArea=ref<'queue'|'evidence'|'history'>('queue');
 const areas=[
- {title:'Review queue',detail:'Proposals, priority and ownership',state:'Awaiting authorized connection'},
- {title:'Evidence assessment',detail:'Proposed change and recorded supporting sources',state:'Scientific review pending'},
- {title:'Decision history',detail:'Attributed decisions and audit chronology',state:'Restricted until access review'}
+ {id:'queue',title:'Review queue',detail:'Proposals, priority and ownership',state:'Awaiting authorized connection'},
+ {id:'evidence',title:'Evidence assessment',detail:'Proposed change and recorded supporting sources',state:'Scientific review pending'},
+ {id:'history',title:'Decision history',detail:'Attributed decisions and audit chronology',state:'Restricted until access review'}
 ] as const;
 </script>
 
@@ -35,11 +36,37 @@ const areas=[
     <h2 id="helios-panel-title">Review workspace</h2>
     <span class="helios-caption">No live decisions available</span>
    </div>
-   <div class="helios-worklist">
-    <div v-for="area in areas" :key="area.title" class="helios-workitem">
-     <div class="helios-workitem-copy"><h3>{{area.title}}</h3><p>{{area.detail}}</p></div>
-     <span class="helios-workitem-state">{{area.state}}</span>
-    </div>
+   <div class="helios-area-nav" role="group" aria-label="Helios review areas">
+    <button v-for="area in areas" :key="area.id" type="button"
+     :class="{ 'helios-area-selected': selectedArea===area.id }"
+     :aria-pressed="selectedArea===area.id" @click="selectedArea=area.id">{{area.title}}</button>
+   </div>
+   <div v-for="area in areas" v-show="selectedArea===area.id" :key="area.id"
+    class="helios-area-detail" role="region" :aria-label="area.title">
+    <h3>{{area.title}}</h3>
+    <p>{{area.detail}}</p>
+    <template v-if="area.id==='evidence'">
+     <div class="helios-assessment-grid" aria-label="Evidence assessment structure">
+      <section class="helios-assessment-cell" aria-label="Recorded value">
+       <span class="helios-assessment-label">Recorded value</span>
+       <p>Awaiting an authorized review record</p>
+      </section>
+      <section class="helios-assessment-cell" aria-label="Proposed change">
+       <span class="helios-assessment-label">Proposed change</span>
+       <p>No proposal selected</p>
+      </section>
+      <section class="helios-assessment-cell" aria-label="Supporting evidence">
+       <span class="helios-assessment-label">Supporting evidence</span>
+       <p>No verified references loaded</p>
+      </section>
+      <section class="helios-assessment-cell" aria-label="Uncertainty">
+       <span class="helios-assessment-label">Uncertainty</span>
+       <p>Cannot be assessed without source records</p>
+      </section>
+     </div>
+     <div class="helios-empty-state" role="status">Evidence assessment is unavailable until authorized records and traceable sources are connected. No scientific decision is implied.</div>
+    </template>
+    <div v-else class="helios-empty-state" role="status">{{area.state}}. No live records or review actions are shown.</div>
    </div>
   </section>
   <p class="helios-footnote">The existing research catalog remains available through <RouterLink to="/variants">Variants</RouterLink> and <RouterLink to="/evidence">Evidence</RouterLink>.</p>
@@ -69,4 +96,25 @@ const areas=[
 .helios-footnote{margin:1.2rem 0 0;font-size:.8rem;line-height:1.6;color:var(--text-muted,#687381)}
 .helios-footnote a{color:inherit;text-underline-offset:3px}
 @media(max-width:620px){.helios-panel-heading,.helios-workitem{padding:1rem}.helios-workitem{align-items:flex-start;flex-direction:column;gap:.4rem}.helios-workitem-state{text-align:left;max-width:none}.helios-workspace{max-width:100%}}
+</style>
+<style scoped>
+.helios-area-nav{display:flex;flex-wrap:wrap;gap:.25rem;padding:.75rem 1rem;border-bottom:1px solid var(--border,#dce2e7)}
+.helios-area-nav button{border:1px solid transparent;background:transparent;color:var(--text-muted,#687381);font-size:.81rem;font-weight:550;padding:.52rem .75rem;border-radius:8px;cursor:pointer}
+.helios-area-nav button.helios-area-selected{background:var(--surface-secondary,#f4f6f8);border-color:var(--border,#dce2e7);color:inherit}
+.helios-area-nav button:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.helios-area-detail{padding:1.25rem;min-height:170px}
+.helios-area-detail h3{font-size:.98rem;font-weight:600;margin:0 0 .4rem}
+.helios-area-detail p{font-size:.84rem;line-height:1.6;color:var(--text-muted,#687381);margin:0 0 1.2rem}
+.helios-empty-state{border-top:1px solid var(--border,#dce2e7);padding-top:1rem;font-size:.8rem;color:var(--text-muted,#687381)}
+@media(max-width:620px){.helios-area-nav{padding:.5rem;gap:.15rem}.helios-area-nav button{padding:.52rem .6rem;font-size:.76rem}.helios-area-detail{padding:1rem}}
+</style>
+
+<style scoped>
+.helios-assessment-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;border:1px solid var(--border,#dce2e7);border-radius:10px;overflow:hidden;margin:1rem 0}
+.helios-assessment-cell{padding:1rem;min-width:0}
+.helios-assessment-cell:nth-child(odd){border-right:1px solid var(--border,#dce2e7)}
+.helios-assessment-cell:nth-child(-n+2){border-bottom:1px solid var(--border,#dce2e7)}
+.helios-assessment-label{display:block;font-size:.72rem;font-weight:600;letter-spacing:.015em;color:var(--text-muted,#687381)}
+.helios-assessment-cell p{margin:.45rem 0 0;font-size:.83rem;line-height:1.5}
+@media(max-width:620px){.helios-assessment-grid{grid-template-columns:minmax(0,1fr)}.helios-assessment-cell:nth-child(odd){border-right:0}.helios-assessment-cell:not(:last-child){border-bottom:1px solid var(--border,#dce2e7)}}
 </style>
