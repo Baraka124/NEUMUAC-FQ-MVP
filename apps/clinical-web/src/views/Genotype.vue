@@ -5,6 +5,7 @@ import {createReadOnlyRepository,readConfigFromEnvironment,variantDisplayName,ty
 import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
 import {pairRecordId,pairSelectionQuery} from '../domain/pairSelection';
 import ContextHelp from '../components/ContextHelp.vue';
+import {portableComparisonLink} from '../domain/portableComparisonLink';
 
 const route=useRoute(),router=useRouter();
 const cfg=readConfigFromEnvironment();
@@ -26,6 +27,18 @@ const citationAborts:[AbortController|null,AbortController|null]=[null,null];
 const sequence=[0,0],restoreSequence=[0,0];
 const debounce:[ReturnType<typeof setTimeout>|undefined,ReturnType<typeof setTimeout>|undefined]=[undefined,undefined];
 const sameVariant=computed(()=>Boolean(chosen[0].value&&chosen[1].value&&chosen[0].value.id===chosen[1].value.id));
+const shareNotice=ref('');
+const canShare=computed(()=>Boolean(chosen[0].value&&chosen[1].value));
+async function copyComparisonLink():Promise<void>{
+ const href=portableComparisonLink(chosen[0].value?.id,chosen[1].value?.id,window.location.href);
+ if(!href||!navigator.clipboard?.writeText){shareNotice.value='A shareable comparison link is unavailable.';return;}
+ try{
+  await navigator.clipboard.writeText(href);
+  shareNotice.value='Record comparison link copied. Opened records must be verified again.';
+ }catch{shareNotice.value='The comparison link could not be copied. Clipboard access may be restricted.';}
+}
+watch([chosen[0],chosen[1]],()=>{shareNotice.value='';});
+
 
 function routeId(slot:Slot):string|null{return pairRecordId(route.query[slot===0?'a':'b']);}
 function stopReads(slot:Slot){
@@ -123,12 +136,14 @@ onUnmounted(()=>{stopReads(0);stopReads(1);});
  <div class="page genotype-page nfq-science-ui">
   <header class="nfq-pair-heading">
    <h1>Variant comparison</h1>
+   <div class="nfq-pair-heading-actions"><button type="button" data-testid="comparison-copy-link" :disabled="!canShare" @click="copyComparisonLink">Copy comparison link</button>
    <ContextHelp label="About variant comparison" title="About this research comparison">
     <p>Compare the nomenclature and recorded reference links associated with two accessible CFTR variants. Selected variants are research records, not a patient genotype.</p>
     <p>Pair selection does not establish allelic phase, homozygosity, pathogenicity, clinical severity, modulator responsiveness or treatment eligibility.</p>
     <p>Reference counts describe catalog associations, not independent study quality or clinical certainty.</p>
-   </ContextHelp>
+   </ContextHelp></div>
   </header>
+  <p v-if="shareNotice" role="status" class="nfq-pair-copy-status">{{shareNotice}}</p>
   <div class="genotype-comparison">
    <section v-for="slot in [0,1] as const" :key="slot" class="genotype-locus" :aria-label="'Variant '+(slot+1)">
     <div class="genotype-topline">
@@ -174,3 +189,12 @@ onUnmounted(()=>{stopReads(0);stopReads(1);});
   <p v-if="sameVariant" role="status" class="nfq-pair-duplicate">Same record selected twice. This does not establish homozygosity.</p>
  </div>
 </template>
+
+<style scoped>
+.nfq-pair-heading-actions{display:inline-flex;gap:10px;align-items:center;flex:0 0 auto}
+.nfq-pair-heading-actions button{font:inherit;font-size:12px;font-weight:600;color:#2b6348;background:transparent;border:1px solid #c8dbce;border-radius:6px;min-height:40px;padding:7px 11px;cursor:pointer}
+.nfq-pair-heading-actions button:disabled{opacity:.5;cursor:not-allowed}
+.nfq-pair-heading-actions button:focus-visible{outline:2px solid #218466;outline-offset:3px}
+.nfq-pair-copy-status{color:#557463;font-size:12px;margin:0 0 12px}
+@media(max-width:560px){.nfq-pair-heading{flex-wrap:wrap;min-width:0}.nfq-pair-heading h1{min-width:0}.nfq-pair-heading-actions{margin-left:auto;flex-wrap:wrap;min-width:0}.nfq-pair-heading-actions button{font-size:11px;padding:7px 9px}}
+</style>
