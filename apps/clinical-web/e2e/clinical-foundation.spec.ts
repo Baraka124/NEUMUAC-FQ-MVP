@@ -936,7 +936,7 @@ test('partial CFTR search leaves the scientific canvas unselected even after Ent
  await search.fill('f508');
  await expect(search).toHaveValue('f508');
  await expect(page.getByRole('heading',{name:'Select a variant'})).toBeVisible();
- await expect(page.getByRole('region',{name:'Search result preview'})).toHaveCount(0);
+ await expect(page.locator('.research-preview')).toHaveCount(0);
  await search.press('Enter');
  await expect(page.getByRole('heading',{name:'Select a variant'})).toBeVisible();
  await expect(page).toHaveURL(/#\/variants\?q=f508/);
