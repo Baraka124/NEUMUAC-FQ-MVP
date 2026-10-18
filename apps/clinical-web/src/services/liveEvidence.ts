@@ -112,7 +112,7 @@ export function createLiveEvidenceSource(config: ReadOnlyConfig, transport: type
       if(text && (text.length>70 || !/^[a-zA-Z0-9 _-]+$/.test(text)))
         throw new VariantConnectionError('request-failed','Unsupported reference search characters');
       const params=new URLSearchParams({
-        select:LINK_COLUMNS,order:'id.asc',limit:String(EVIDENCE_PAGE_SIZE+1),offset:String(page*EVIDENCE_PAGE_SIZE)
+        select:LINK_COLUMNS,order:'year.desc.nullslast,id.asc',limit:String(EVIDENCE_PAGE_SIZE+1),offset:String(page*EVIDENCE_PAGE_SIZE)
       });
       if(text)params.set('or','(title.ilike.*'+text+'*,source.ilike.*'+text+'*,pmid.ilike.*'+text+'*)');
       const records=await request(params,signal);
@@ -126,7 +126,7 @@ export function createLiveEvidenceSource(config: ReadOnlyConfig, transport: type
       if(!Number.isInteger(page)||page<0||page>10000)
         throw new VariantConnectionError('invalid-configuration','Invalid selected reference page.');
       const params=new URLSearchParams({
-        select:LINK_COLUMNS,variant_id:'eq.'+variantId,order:'id.asc',
+        select:LINK_COLUMNS,variant_id:'eq.'+variantId,order:'year.desc.nullslast,id.asc',
         limit:String(EVIDENCE_PAGE_SIZE+1),offset:String(page*EVIDENCE_PAGE_SIZE)
       });
       const records=await request(params,signal);

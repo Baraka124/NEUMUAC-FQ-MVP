@@ -132,3 +132,14 @@ it('uses a ten-reference page size for both catalogue and variant-scoped reads',
  expect(catalogue.hasMore&&variant.hasMore).toBe(true);
  for(const url of urls){expect(new URL(url).searchParams.get('limit')).toBe('11');expect(new URL(url).searchParams.get('offset')).toBe('10');}
 });
+
+it('requests stable publication-year ordering without treating scores as scientific ranking',async()=>{
+ const urls:string[]=[];
+ const transport=vi.fn(async(url:string)=>{urls.push(url);return new Response('[]',{status:200});});
+ const source=createLiveEvidenceSource(config,transport as typeof fetch);
+ await source.list({query:'',page:0});
+ await source.forVariantPage('12',1);
+ expect(urls).toHaveLength(2);
+ for(const url of urls){expect(new URL(url).searchParams.get('order')).toBe('year.desc.nullslast,id.asc');}
+ expect(new URL(urls[1]).searchParams.get('offset')).toBe('10');
+});
