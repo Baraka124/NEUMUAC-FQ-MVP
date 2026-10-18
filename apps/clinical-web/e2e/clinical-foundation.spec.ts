@@ -942,3 +942,19 @@ test('partial CFTR search leaves the scientific canvas unselected even after Ent
  await expect(page).toHaveURL(/#\/variants\?q=f508/);
  await expect(page.getByRole('button',{name:'Open scientific dossier'})).toHaveCount(0);
 });
+
+test('Evidence workspace links preserve explicit source filters without requiring live catalog records',async({page})=>{
+ for(const width of [390,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/evidence?q=CFTR&page=2');
+  const share=page.getByTestId('evidence-copy-view');
+  await expect(share).toBeEnabled();
+  await expect(page.getByRole('textbox',{name:'Find a source or reference'})).toHaveValue('CFTR');
+  await page.getByRole('textbox',{name:'Find a source or reference'}).fill('!invalid*');
+  await expect(share).toBeDisabled();
+  await page.goto('/#/evidence?variant=383&page=1');
+  await expect(share).toBeEnabled();
+  await expect(page.getByText('References for variant record #383')).toBeVisible();
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
