@@ -9,6 +9,7 @@ import {referenceMetadata,referenceLinkConsistency} from '../domain/referencePre
 import {retrievePubMedMetadata,supportedPubMedId,type PubMedPublicationMetadata} from '../services/livePubMed';
 import {evidencePageCsv} from '../domain/evidencePageExport';
 import ContextHelp from '../components/ContextHelp.vue';
+import EvidenceProposalDraft from '../components/EvidenceProposalDraft.vue';
 import {portableEvidenceLink} from '../domain/portableEvidenceLink';
 const route=useRoute();
 const focusId=computed(()=>typeof route.query.variant==='string'&&/^[1-9]\d{0,17}$/.test(route.query.variant)?route.query.variant:null);
@@ -158,6 +159,7 @@ watch([query,page,focusId,invalidVariantScope],()=>{exportNotice.value='';});
       <small>Retrieved {{pubmedCheck.metadata.retrievedAt}} · Indexing terms only, not independently appraised study quality.</small>
       <a :href="pubmedCheck.metadata.sourceUrl" target="_blank" rel="noopener noreferrer">Open PubMed record ↗</a>
      </div>
+     <EvidenceProposalDraft :reference="item" />
     </div>
    </article>
   </div>
