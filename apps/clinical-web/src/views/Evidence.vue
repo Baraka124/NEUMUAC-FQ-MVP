@@ -5,7 +5,7 @@ import {computed} from 'vue';
 import {safeResearchReturnPath,workspaceJourneyPath} from '../domain/researchJourney';
 import {createLiveEvidenceSource, EVIDENCE_PAGE_SIZE, type LiveEvidenceReference} from '../services/liveEvidence';
 import {readConfigFromEnvironment} from '../services/liveVariants';
-import {referenceMetadata} from '../domain/referencePresentation';
+import {referenceMetadata,referenceLinkConsistency} from '../domain/referencePresentation';
 import {evidencePageCsv} from '../domain/evidencePageExport';
 import ContextHelp from '../components/ContextHelp.vue';
 import {portableEvidenceLink} from '../domain/portableEvidenceLink';
@@ -101,7 +101,7 @@ watch([query,page,focusId,invalidVariantScope],()=>{exportNotice.value='';});
 </script>
 <template>
  <div class="page evidence-page nfq-science-ui">
-  <header class="nfq-evidence-heading"><h1>Evidence & provenance</h1><div class="nfq-evidence-heading-actions"><button type="button" data-testid="evidence-copy-view" @click="copyEvidenceView">Copy view link</button><ContextHelp label="About recorded references" title="Recorded reference details"><p>Links and source metadata come from the catalog. They do not independently establish study quality, pathogenicity or clinical relevance.</p></ContextHelp></div></header>
+  <header class="nfq-evidence-heading"><h1>Evidence & provenance</h1><div class="nfq-evidence-heading-actions"><button type="button" data-testid="evidence-copy-view" @click="copyEvidenceView">Copy view link</button><ContextHelp label="About recorded references" title="Recorded reference details"><p>Links, source categories and publication types are catalog-recorded metadata. They do not independently establish study design, quality, pathogenicity or clinical relevance.</p><p>Identifier consistency compares the stored DOI or PMID with its linked URL. Agreement is not external verification; a mismatch should be checked against the original source.</p></ContextHelp></div></header>
   <p v-if="shareStatus" role="status" class="nfq-evidence-share-status">{{shareStatus}}</p>
   <RouterLink v-if="returnToVariant" class="nfq-journey-return" :to="returnToVariant">← Return to variant dossier</RouterLink>
   <div v-if="focusId" class="nfq-variant-scope"><span>References for variant record #{{focusId}}</span><RouterLink to="/evidence">All records</RouterLink></div>
@@ -125,7 +125,7 @@ watch([query,page,focusId,invalidVariantScope],()=>{exportNotice.value='';});
     <div v-if="expandedRows.includes(item.id)" :id="'evidence-details-'+item.id" class="evidence-row-foot">
      <span>Recorded quality score: {{item.recordedQualityScore??'Not recorded'}}</span>
      <span>Recorded source weight: {{item.recordedSourceWeight??'Not recorded'}}</span>
-     <span>Recorded citation count: {{item.recordedCitationCount??'Not recorded'}}</span><a :href="item.url" target="_blank" rel="noopener noreferrer">Open source ↗</a><RouterLink :to="{path:'/variants/'+encodeURIComponent(item.variantId),query:savedWorkspace?{from:savedWorkspace}:{}}">Variant record #{{item.variantId}}</RouterLink><span v-if="item.journal">{{item.journal}}</span><span v-if="item.pmid">PMID {{item.pmid}}</span></div>
+     <span>Recorded citation count: {{item.recordedCitationCount??'Not recorded'}}</span><span :data-link-consistency="referenceLinkConsistency(item).kind">{{referenceLinkConsistency(item).label}}</span><a :href="item.url" target="_blank" rel="noopener noreferrer">Open source ↗</a><RouterLink :to="{path:'/variants/'+encodeURIComponent(item.variantId),query:savedWorkspace?{from:savedWorkspace}:{}}">Variant record #{{item.variantId}}</RouterLink><span v-if="item.journal">{{item.journal}}</span><span v-if="item.pmid">PMID {{item.pmid}}</span></div>
    </article>
   </div>
   <nav class="pagination-controls" aria-label="Evidence pages">
