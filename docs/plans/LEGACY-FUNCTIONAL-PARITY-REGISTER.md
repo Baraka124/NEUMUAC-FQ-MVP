@@ -160,3 +160,7 @@ NFQ-003–006 and curation functions remain incomplete. A pure deterministic mod
 ## Phase 4F-12H — archived capability recovery review
 
 NFQ-010, 018–023, 028–029, 031–038 are **not declared complete**. The source-traced inventory in `docs/architecture/PHASE-4F-12H-LEGACY-CAPABILITY-RECOVERY.md` reveals that the original Helios includes claim/release, discussion polling, feedback calibration, deferred/superseded triage, contradiction/drift scans, monitor targets, alerting, scan history, validation queues, audit exports and governed decision variants beyond the modern Vue shell and read contracts. It additionally catalogs distinctive functional-class diagrams, timelines, QR, bookmarks, batch lookup, nomenclature audit, gap/reach analysis, command centre, disputes and clinical/ethics exports. They remain explicit recovery or reviewed-retirement decisions. No clinical validation, server access, migration or live parity is implied.
+
+## Phase 4F-12I — feature placement and recovery checklist
+
+All 38 NFQ parity statuses remain unchanged. `docs/plans/PHASE-4F-12I-CAPABILITY-RECOVERY-MATRIX.md` adds source-anchored work-package IDs H01–H15, V01–V04, E01, I01–I02, R01, A01–A02 and explicit acceptance/dependency gates for advanced original functions. Recover functions **inside** the correct workspace or restricted settings, not as additional top-level navigation. The matrix is a migration plan, **not evidence that these features function in Vue**; actual secure live functionality and scientific validation remain outstanding.
