@@ -858,3 +858,13 @@ test('Helios Signals and History remain integrated, accessible and read only',as
  await expect(page.getByRole('button',{name:/approve|reject|run scan/i})).toHaveCount(0);
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
+
+test('Helios locked features explain that backend access is not yet connected',async({page})=>{
+ await page.goto('/#/helios');
+ await page.getByRole('button',{name:'Signals',exact:true}).click();
+ const signals=page.getByRole('region',{name:'Signals'});
+ await expect(signals.locator('.helios-restricted')).toHaveCount(3);
+ await expect(signals.locator('.helios-restricted').first()).toHaveAttribute('title',/authorization is not yet connected/);
+ await page.getByRole('button',{name:'History',exact:true}).click();
+ await expect(page.getByRole('region',{name:'History'}).locator('.helios-restricted')).toHaveCount(3);
+});
