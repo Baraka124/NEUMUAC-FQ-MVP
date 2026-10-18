@@ -116,6 +116,7 @@ function downloadSavedWorklist():void{
 
 const selectedFromSearch=ref(false);
 watch(selected,()=>{
+ shareNotice.value='';
  clinVarAbort?.abort();
  clinVarSummary.value=null;clinVarError.value='';clinVarLoading.value=false;
 });
