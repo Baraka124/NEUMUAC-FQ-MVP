@@ -18,7 +18,8 @@ import {retrieveClinVarSummary,type ClinVarAuthoritySummary} from '../services/l
 import {compareRecordedEvidence} from '../domain/evidenceComparison';
 import {createVariantResearchBrief,createVariantResearchBriefMarkdown} from '../services/researchBrief';
 import ContextHelp from '../components/ContextHelp.vue';
-import {readSavedVariantIds,savedVariantsCsv,toggleSavedVariant} from '../domain/savedVariants';
+import {readSavedVariantIds,toggleSavedVariant} from '../domain/savedVariants';
+import {portableSavedVariantsCsv,portableVariantLink} from '../domain/portableVariantReference';
 import {scientificFieldInventory} from '../domain/scientificFieldInventory';
 import {createLiveResearchHistorySource,type ResearchHistory} from '../services/liveResearchHistory';
 import { createReadOnlyRepository, readConfigFromEnvironment, variantDisplayName, formatReadStatus, type RealVariant, type RealVariantSource } from '../services/liveVariants';
@@ -71,6 +72,7 @@ const selected=ref<RealVariant|null>(null);
 const detailNotice=ref('');
 const savedOpen=ref(false);
 const savedNotice=ref('');
+const shareNotice=ref('');
 function bookmarkStorage():Storage|null{try{return typeof window==='undefined'?null:window.localStorage;}catch{return null;}}
 const savedIds=ref<readonly string[]>(readSavedVariantIds(bookmarkStorage()));
 const selectedIsSaved=computed(()=>Boolean(selected.value&&savedIds.value.includes(selected.value.id)));
@@ -84,19 +86,37 @@ function changeSavedVariant(id:string):void{
  savedIds.value=outcome.ids;
  savedNotice.value=outcome.saved?'Variant saved on this browser.':'Variant removed from saved worklist.';
 }
+async function copyVariantLink():Promise<void>{
+ const id=selected.value?.id;
+ if(!id||selectedFromSearch.value)return;
+ const link=portableVariantLink(id,window.location.href);
+ if(!link||!navigator.clipboard?.writeText){
+  shareNotice.value='A shareable record link is unavailable in this browser.';
+  return;
+ }
+ try{
+  await navigator.clipboard.writeText(link);
+  if(selected.value?.id===id)shareNotice.value='Direct record link copied. The recipient must verify current evidence.';
+ }catch{
+  if(selected.value?.id===id)shareNotice.value='The record link could not be copied. Browser clipboard access may be restricted.';
+ }
+}
 function downloadSavedWorklist():void{
  if(!savedIds.value.length)return;
- const blob=new Blob([savedVariantsCsv(savedIds.value)],{type:'text/csv;charset=utf-8'});
+ const csv=portableSavedVariantsCsv(savedIds.value,window.location.href);
+ if(!csv){savedNotice.value='Portable record links could not be created. No export was produced.';return;}
+ const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
  const url=URL.createObjectURL(blob);
  try{
-  const a=document.createElement('a');a.href=url;a.download='neumuacFQ-saved-variant-ids.csv';
+  const a=document.createElement('a');a.href=url;a.download='neumuacFQ-saved-variant-links.csv';
   document.body.appendChild(a);a.click();a.remove();
-  savedNotice.value='Saved IDs exported. Open each record for current scientific information.';
+  savedNotice.value='Saved record links exported. Open each record for current scientific information.';
  }finally{window.setTimeout(()=>URL.revokeObjectURL(url),5000);}
 }
 
 const selectedFromSearch=ref(false);
 watch(selected,()=>{
+ shareNotice.value='';
  clinVarAbort?.abort();
  clinVarSummary.value=null;clinVarError.value='';clinVarLoading.value=false;
 });
@@ -374,8 +394,8 @@ function select(id:string):void{
         <button type="button" :aria-label="'Remove saved variant '+id" @click="changeSavedVariant(id)">Remove</button>
        </li>
       </ul>
-      <button v-if="savedIds.length" type="button" class="nfq-saved-export" @click="downloadSavedWorklist">Export IDs · CSV</button>
-      <p class="nfq-saved-muted">Local to this browser. Saved IDs are not verified scientific dossiers or geographic activity.</p>
+      <button v-if="savedIds.length" type="button" class="nfq-saved-export" @click="downloadSavedWorklist">Export links · CSV</button>
+      <p class="nfq-saved-muted">Local to this browser. Saved links are not verified scientific dossiers or geographic activity.</p>
      </section>
      <p v-if="savedNotice" role="status" class="nfq-saved-feedback">{{savedNotice}}</p>
      <p v-if="exactMatchedId" role="status" class="discovery-sr-only">Exact recorded identity opened automatically.</p>
@@ -441,7 +461,9 @@ function select(id:string):void{
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4.5A1.5 1.5 0 0 1 7.5 3h9A1.5 1.5 0 0 1 18 4.5V21l-6-4-6 4z"/></svg>
           {{selectedIsSaved?'Saved':'Save'}}
          </button>
+         <button v-if="!selectedFromSearch" type="button" class="nfq-save-record" data-testid="copy-variant-record-link" @click="copyVariantLink">Copy link</button>
        </div>
+       <p v-if="shareNotice" role="status" class="nfq-saved-feedback">{{shareNotice}}</p>
        <RouterLink v-if="sourceWorkspace" class="nfq-journey-return" :to="sourceWorkspace">← Return to {{sourceWorkspace.startsWith("/evidence")?"evidence":"research coverage"}}</RouterLink>
        <dl class="identity-grid nfq-dossier-identity" aria-label="Variant nomenclature">
         <div><dt>Legacy name</dt><dd>{{selected.legacyName||'Not recorded'}}</dd></div>
