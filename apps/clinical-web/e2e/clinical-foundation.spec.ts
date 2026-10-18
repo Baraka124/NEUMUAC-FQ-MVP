@@ -929,3 +929,16 @@ test('share actions are not offered for unavailable scientific records',async({p
  await expect(page.getByTestId('copy-variant-record-link')).toHaveCount(0);
  await expect(page.getByTestId('save-current-variant')).toHaveCount(0);
 });
+
+test('partial CFTR search leaves the scientific canvas unselected even after Enter',async({page})=>{
+ await page.goto('/#/variants');
+ const search=page.getByRole('searchbox',{name:'Variant name, HGVS or recorded alias'});
+ await search.fill('f508');
+ await expect(search).toHaveValue('f508');
+ await expect(page.getByRole('heading',{name:'Select a variant'})).toBeVisible();
+ await expect(page.getByRole('region',{name:'Search result preview'})).toHaveCount(0);
+ await search.press('Enter');
+ await expect(page.getByRole('heading',{name:'Select a variant'})).toBeVisible();
+ await expect(page).toHaveURL(/#\/variants\?q=f508/);
+ await expect(page.getByRole('button',{name:'Open scientific dossier'})).toHaveCount(0);
+});
