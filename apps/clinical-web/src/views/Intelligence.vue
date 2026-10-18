@@ -7,6 +7,7 @@ import {readConfigFromEnvironment,variantDisplayName} from '../services/liveVari
 import {loadLiveCoverage,type CoverageReport} from '../services/liveCoverage';
 import {filterDocumentation,summarizeDocumentation,type DocumentationGroup} from '../domain/documentationCoverage';
 import {recordedNomenclature,unspecifiedSourceLinks} from '../domain/documentationTrace';
+import {documentationWorklistCsv,MAX_DOCUMENTATION_EXPORT_ROWS} from '../domain/documentationWorklistExport';
 
 const route=useRoute(),router=useRouter();
 const returnToVariant=computed(()=>safeResearchReturnPath(route.query.from,'variant'));
@@ -27,9 +28,28 @@ let abort:AbortController|null=null;
 const summary=computed(()=>summarizeDocumentation(report.value?.variants||[]));
 const filtered=computed(()=>focusId.value?(focusedRecord.value?[focusedRecord.value]:[]):filterDocumentation(report.value?.variants||[],filter.value,query.value));
 const shown=computed(()=>filtered.value.slice(0,visible.value));
+const exportNotice=ref('');
+function exportDocumentationMatches():void{
+ if(!report.value||loading.value||error.value)return;
+ const csv=documentationWorklistCsv(filtered.value);
+ if(!csv){
+  exportNotice.value=filtered.value.length>MAX_DOCUMENTATION_EXPORT_ROWS
+   ?'Too many matching records for a safe CSV download. Narrow the filter.'
+   :'The current documentation worklist cannot be exported safely.';
+  return;
+ }
+ const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+ const url=URL.createObjectURL(blob);
+ try{
+  const anchor=document.createElement('a');
+  anchor.href=url;anchor.download='neumuacFQ-documentation-'+filter.value+'.csv';
+  document.body.appendChild(anchor);anchor.click();anchor.remove();
+  exportNotice.value='Matching recorded documentation exported. Link counts do not establish scientific quality.';
+ }finally{window.setTimeout(()=>URL.revokeObjectURL(url),5000);}
+}
 const pct=computed(()=>report.value?.variants.length
   ?Math.round(1000*report.value.linkedVariants/report.value.variants.length)/10+'%':'—');
-function reset(){visible.value=40;expandedId.value=null;}
+function reset(){visible.value=40;expandedId.value=null;exportNotice.value='';}
 function chooseGroup(group:DocumentationGroup){filter.value=group;reset();}
 function clearFilters(){filter.value='all';query.value='';reset();}
 async function refresh(){
@@ -90,6 +110,10 @@ onUnmounted(()=>abort?.abort());
     <button v-if="query" type="button" class="nfq-coverage-clear" @click="query='';reset()">Clear search</button>
    </div>
    <p class="rail-caption nfq-coverage-results-count" role="status">{{filtered.length.toLocaleString()}} matching {{filtered.length===1?'record':'records'}}</p>
+   <div v-if="filtered.length" class="nfq-documentation-export">
+    <button type="button" data-testid="coverage-export-matches" @click="exportDocumentationMatches">Export matches · CSV</button>
+   </div>
+   <p v-if="exportNotice" role="status" class="nfq-documentation-export-note">{{exportNotice}}</p>
    <div v-if="!filtered.length" class="nfq-coverage-empty" role="status">
     <p>No recorded variants match the current documentation view.</p>
     <button type="button" @click="clearFilters">Show all recorded variants</button>
@@ -140,3 +164,10 @@ onUnmounted(()=>abort?.abort());
   </template>
  </div>
 </template>
+
+<style scoped>
+.nfq-documentation-export{display:flex;align-items:center;max-width:100%;margin:0 0 14px}
+.nfq-documentation-export button{min-height:38px;max-width:100%;border:1px solid #c8dbce;border-radius:7px;padding:8px 12px;background:transparent;color:#2b6348;font:inherit;font-size:12px;font-weight:600;cursor:pointer;white-space:normal;overflow-wrap:anywhere}
+.nfq-documentation-export button:focus-visible{outline:2px solid #218466;outline-offset:3px}
+.nfq-documentation-export-note{font-size:12px;line-height:1.45;color:#547662;margin:0 0 12px}
+</style>
