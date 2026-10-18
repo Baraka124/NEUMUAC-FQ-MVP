@@ -994,3 +994,16 @@ test('two-record comparison share requires two retrieved source records, not URL
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+test('paired research export remains disabled until both complete reference reads succeed',async({page})=>{
+ for(const width of [320,390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/genotype?a=18&b=383');
+  const exportButton=page.getByTestId('comparison-download');
+  await expect(exportButton).toBeVisible();
+  await expect(exportButton).toBeDisabled();
+  await expect(page.getByTestId('comparison-copy-link')).toBeDisabled();
+  await expect(page.locator('.genotype-locus')).toHaveCount(2);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
