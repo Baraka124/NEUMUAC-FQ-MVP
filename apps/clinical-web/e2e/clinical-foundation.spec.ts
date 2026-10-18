@@ -969,3 +969,15 @@ test('Evidence workspace links copy real validated filter URLs and reject unsafe
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+test('Evidence page export never invents a CSV when live source is disconnected',async({page})=>{
+ for(const width of [320,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/evidence?variant=383');
+  await expect(page.getByRole('alert')).toContainText('Live evidence access is not configured');
+  await expect(page.getByTestId('evidence-export-page')).toHaveCount(0);
+  await page.goto('/#/evidence');
+  await expect(page.getByTestId('evidence-export-page')).toHaveCount(0);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
