@@ -1017,3 +1017,14 @@ test('coverage worklist export is not available without a complete live research
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+test('unconnected variant dossier does not invent review chronology or audit actions',async({page})=>{
+ for(const width of [320,390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/variants/18');
+  await expect(page.getByTestId('variant-history-panel')).toHaveCount(0);
+  await expect(page.locator('.nfq-history-timeline li')).toHaveCount(0);
+  await expect(page.getByRole('button',{name:/approve validation|resolve conflict|sign audit/i})).toHaveCount(0);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
