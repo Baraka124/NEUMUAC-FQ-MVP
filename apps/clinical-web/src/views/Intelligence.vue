@@ -15,12 +15,13 @@ const focusedRecord=computed(()=>report.value?.variants.find(row=>row.variant.id
 function clearScope(){void router.replace({path:'/intelligence'});}
 const workspaceReturn=computed(()=>workspaceJourneyPath('/intelligence',{q:query.value,group:filter.value,shown:String(visible.value),expanded:expandedId.value||undefined,variant:focusId.value||undefined}));
 const report=ref<CoverageReport|null>(null);
-const loading=ref(true),error=ref(''),filter=ref<DocumentationGroup>(['none','single','multiple','all'].includes(String(route.query.group))?route.query.group as DocumentationGroup:'none'),query=ref(typeof route.query.q==='string'&&route.query.q.length<=75?route.query.q:''),visible=ref(typeof route.query.shown==='string'&&/^\d{2,4}$/.test(route.query.shown)&&Number(route.query.shown)%40===0?Math.min(Number(route.query.shown),4000):40);
+const loading=ref(true),error=ref(''),filter=ref<DocumentationGroup>(['none','single','multiple','unnamed','all'].includes(String(route.query.group))?route.query.group as DocumentationGroup:'none'),query=ref(typeof route.query.q==='string'&&route.query.q.length<=75?route.query.q:''),visible=ref(typeof route.query.shown==='string'&&/^\d{2,4}$/.test(route.query.shown)&&Number(route.query.shown)%40===0?Math.min(Number(route.query.shown),4000):40);
 const expandedId=ref<string|null>(typeof route.query.expanded==='string'&&/^\d{1,18}$/.test(route.query.expanded)?route.query.expanded:null);
 const groups=[
  {id:'none',label:'No links recorded'},
  {id:'single',label:'One recorded link'},
  {id:'multiple',label:'Two or more links'},
+ {id:'unnamed',label:'Source not named'},
  {id:'all',label:'All variants'}
 ] as const;
 let abort:AbortController|null=null;
@@ -72,6 +73,7 @@ onUnmounted(()=>abort?.abort());
        <div><dt>No links recorded</dt><dd>There are no reference associations for this variant in the retrieved catalog.</dd></div>
        <div><dt>One recorded link</dt><dd>Exactly one reference association exists in the catalog.</dd></div>
        <div><dt>Two or more links</dt><dd>Multiple reference associations exist; this does not establish independent studies or evidence quality.</dd></div>
+       <div><dt>Source not named</dt><dd>One or more linked references lack a source name in the catalog. This is a metadata follow-up, not evidence of absent research.</dd></div>
       </dl>
      </ContextHelp>
     </div>
