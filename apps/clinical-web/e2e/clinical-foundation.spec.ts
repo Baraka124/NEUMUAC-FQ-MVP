@@ -846,3 +846,15 @@ test('Helios evidence assessment makes missing provenance explicit across viewpo
  await expect(page.getByRole('button',{name:/approve|reject|claim/i})).toHaveCount(0);
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
+
+test('Helios Signals and History remain integrated, accessible and read only',async({page})=>{
+ await page.goto('/#/helios');
+ await page.getByRole('button',{name:'Signals',exact:true}).click();
+ await expect(page.getByRole('region',{name:'Signals'})).toContainText('Contradictions and drift');
+ await expect(page.getByRole('region',{name:'Signals'})).toContainText('Not connected');
+ await page.getByRole('button',{name:'History',exact:true}).click();
+ await expect(page.getByRole('region',{name:'History'})).toContainText('Reviewer audit trail');
+ await expect(page.getByRole('region',{name:'History'})).toContainText('Access restricted');
+ await expect(page.getByRole('button',{name:/approve|reject|run scan/i})).toHaveCount(0);
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
