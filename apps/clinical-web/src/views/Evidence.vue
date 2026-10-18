@@ -115,7 +115,7 @@ watch([query,page,focusId,invalidVariantScope],()=>{exportNotice.value='';});
   <p v-if="!loading&&!error&&!rows.length" class="empty-result">{{page>0?'No references on this page. Return to the previous page.':focusId?'No reference links recorded for this variant in the accessible catalog.':'No recorded source links match this search.'}}</p>
   <div v-if="!loading&&!error&&rows.length" class="nfq-evidence-page-tools">
    <button type="button" data-testid="evidence-export-page" @click="downloadEvidencePage">Export page · CSV</button>
-   <span>Current page only · Recorded citation metadata</span>
+   <span>10 per page · Recorded year, newest first · Not a quality ranking</span>
   </div>
   <p v-if="exportNotice" role="status" class="nfq-evidence-export-notice">{{exportNotice}}</p>
   <div v-if="rows.length" class="evidence-register" aria-label="Recorded citations">
