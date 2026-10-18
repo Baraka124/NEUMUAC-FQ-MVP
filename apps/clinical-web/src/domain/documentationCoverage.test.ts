@@ -9,7 +9,7 @@ const rows:CoverageRow[]=[
 ];
 describe('research documentation coverage is non-clinical and source-bound',()=>{
  it('uses the exact recorded reference counts, not inferred scores',()=>{
-  expect(summarizeDocumentation(rows)).toEqual({none:2,single:1,multiple:1,all:4});
+  expect(summarizeDocumentation(rows)).toEqual({none:2,single:1,multiple:1,unnamed:0,all:4});
   expect(filterDocumentation(rows,'none','').map(x=>x.variant.id)).toEqual(['1','4']);
   expect(filterDocumentation(rows,'single','').map(x=>x.variant.id)).toEqual(['2']);
   expect(filterDocumentation(rows,'multiple','').map(x=>x.variant.id)).toEqual(['3']);
@@ -19,6 +19,19 @@ describe('research documentation coverage is non-clinical and source-bound',()=>
   expect(filterDocumentation(rows,'all','c.869+11C>T').map(x=>x.variant.id)).toEqual(['1']);
   expect(filterDocumentation(rows,'all','alias-r117h').map(x=>x.variant.id)).toEqual(['2']);
   expect(filterDocumentation(rows,'all','c.869+11C/A')).toEqual([]);
+ });
+ it('isolates unnamed source metadata without labeling it missing scientific evidence',()=>{
+  const withUnnamed:CoverageRow[]=[
+   ...rows,{variant:{id:'5',legacyName:'G85E',proteinName:null,cdnaName:null,aliases:[]},
+    links:3,sources:[{name:null,count:2},{name:'Recorded authority',count:1}]},
+   {variant:{id:'6',legacyName:'L206W',proteinName:null,cdnaName:null,aliases:[]},
+    links:2,sources:[{name:'Known source',count:2}]}
+  ];
+  expect(summarizeDocumentation(withUnnamed).unnamed).toBe(1);
+  expect(filterDocumentation(withUnnamed,'unnamed','').map(row=>row.variant.id)).toEqual(['5']);
+  expect(filterDocumentation(withUnnamed,'unnamed','G85').map(row=>row.variant.id)).toEqual(['5']);
+  expect(filterDocumentation(withUnnamed,'unnamed','R117')).toEqual([]);
+  expect(()=>summarizeDocumentation([{...withUnnamed[4],links:4}])).toThrow('Incomplete recorded source breakdown');
  });
  it('does not silently accept malformed or invented link counts',()=>{
   expect(()=>summarizeDocumentation([{...rows[0],links:-1}])).toThrow();
