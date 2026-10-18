@@ -61,7 +61,7 @@ onUnmounted(()=>{abort?.abort();clearTimeout(debounce);});
 </script>
 <template>
  <div class="page evidence-page nfq-science-ui">
-  <header class="nfq-evidence-heading"><h1>Evidence & provenance</h1><div class="nfq-evidence-heading-actions"><button type="button" data-testid="evidence-copy-view" :disabled="!shareableView" @click="copyEvidenceView">Copy view link</button><ContextHelp label="About recorded references" title="Recorded reference details"><p>Links and source metadata come from the catalog. They do not independently establish study quality, pathogenicity or clinical relevance.</p></ContextHelp></div></header>
+  <header class="nfq-evidence-heading"><h1>Evidence & provenance</h1><div class="nfq-evidence-heading-actions"><button type="button" data-testid="evidence-copy-view" @click="copyEvidenceView">Copy view link</button><ContextHelp label="About recorded references" title="Recorded reference details"><p>Links and source metadata come from the catalog. They do not independently establish study quality, pathogenicity or clinical relevance.</p></ContextHelp></div></header>
   <p v-if="shareStatus" role="status" class="nfq-evidence-share-status">{{shareStatus}}</p>
   <RouterLink v-if="returnToVariant" class="nfq-journey-return" :to="returnToVariant">← Return to variant dossier</RouterLink>
   <div v-if="focusId" class="nfq-variant-scope"><span>References for variant record #{{focusId}}</span><RouterLink to="/evidence">All records</RouterLink></div>
@@ -97,5 +97,5 @@ onUnmounted(()=>{abort?.abort();clearTimeout(debounce);});
 .nfq-evidence-heading-actions button:disabled{opacity:.45;cursor:not-allowed}
 .nfq-evidence-heading-actions button:focus-visible{outline:2px solid #218466;outline-offset:3px}
 .nfq-evidence-share-status{font-size:12px;color:#557463;margin:0 0 12px}
-@media(max-width:600px){.nfq-evidence-heading-actions{gap:6px}.nfq-evidence-heading-actions button{font-size:11px;padding:7px 9px}}
+@media(max-width:600px){.nfq-evidence-heading{flex-wrap:wrap;min-width:0}.nfq-evidence-heading h1{min-width:0}.nfq-evidence-heading-actions{gap:6px;flex-wrap:wrap;margin-left:auto;min-width:0}.nfq-evidence-heading-actions button{font-size:11px;padding:7px 9px}}
 </style>
