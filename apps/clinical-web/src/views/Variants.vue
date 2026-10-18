@@ -18,6 +18,7 @@ import {retrieveClinVarSummary,type ClinVarAuthoritySummary} from '../services/l
 import {compareRecordedEvidence} from '../domain/evidenceComparison';
 import {createVariantResearchBrief,createVariantResearchBriefMarkdown} from '../services/researchBrief';
 import ContextHelp from '../components/ContextHelp.vue';
+import {readSavedVariantIds,savedVariantsCsv,toggleSavedVariant} from '../domain/savedVariants';
 import {scientificFieldInventory} from '../domain/scientificFieldInventory';
 import {createLiveResearchHistorySource,type ResearchHistory} from '../services/liveResearchHistory';
 import { createReadOnlyRepository, readConfigFromEnvironment, variantDisplayName, formatReadStatus, type RealVariant, type RealVariantSource } from '../services/liveVariants';
@@ -68,6 +69,32 @@ const rows=ref<readonly RealVariant[]>([]);
 
 const selected=ref<RealVariant|null>(null);
 const detailNotice=ref('');
+const savedOpen=ref(false);
+const savedNotice=ref('');
+function bookmarkStorage():Storage|null{try{return typeof window==='undefined'?null:window.localStorage;}catch{return null;}}
+const savedIds=ref<readonly string[]>(readSavedVariantIds(bookmarkStorage()));
+const selectedIsSaved=computed(()=>Boolean(selected.value&&savedIds.value.includes(selected.value.id)));
+function savedVariantLabel(id:string):string{
+ const record=selected.value?.id===id?selected.value:rows.value.find(v=>v.id===id);
+ return record?variantDisplayName(record):'Recorded variant #'+id;
+}
+function changeSavedVariant(id:string):void{
+ const outcome=toggleSavedVariant(bookmarkStorage(),id);
+ if(!outcome){savedNotice.value='This browser could not update the saved worklist. No change was recorded.';return;}
+ savedIds.value=outcome.ids;
+ savedNotice.value=outcome.saved?'Variant saved on this browser.':'Variant removed from saved worklist.';
+}
+function downloadSavedWorklist():void{
+ if(!savedIds.value.length)return;
+ const blob=new Blob([savedVariantsCsv(savedIds.value)],{type:'text/csv;charset=utf-8'});
+ const url=URL.createObjectURL(blob);
+ try{
+  const a=document.createElement('a');a.href=url;a.download='neumuacFQ-saved-variant-ids.csv';
+  document.body.appendChild(a);a.click();a.remove();
+  savedNotice.value='Saved IDs exported. Open each record for current scientific information.';
+ }finally{window.setTimeout(()=>URL.revokeObjectURL(url),5000);}
+}
+
 const selectedFromSearch=ref(false);
 watch(selected,()=>{
  clinVarAbort?.abort();
@@ -335,9 +362,23 @@ function select(id:string):void{
        </button>
        <VariantFilterPanel v-if="showAdvanced" v-model:class-filter="classFilter" v-model:sort="sort" v-model:search-mode="searchMode" @close="showAdvanced=false" @reset="resetAdvancedFilters"/>
       </div>
-      <span v-if="!busy&&!error&&displayedRows.length" class="record-total" aria-live="polite" aria-label="Visible results on this page">{{displayedRows.length}} on page</span>
+      <button type="button" class="nfq-saved-trigger" data-testid="saved-variants-toggle" :aria-expanded="savedOpen" aria-controls="saved-variants-panel" @click="savedOpen=!savedOpen">Saved<span v-if="savedIds.length"> · {{savedIds.length}}</span></button>
+       <span v-if="!busy&&!error&&displayedRows.length" class="record-total" aria-live="polite" aria-label="Visible results on this page">{{displayedRows.length}} on page</span>
     </div>
-    <p v-if="exactMatchedId" role="status" class="discovery-sr-only">Exact recorded identity opened automatically.</p>
+    <section v-if="savedOpen" id="saved-variants-panel" class="nfq-saved-panel" aria-label="Saved variants" data-testid="saved-variants-panel">
+      <div class="nfq-saved-panel-head"><strong>Saved variants</strong><button type="button" aria-label="Close saved variants" @click="savedOpen=false">Close</button></div>
+      <p v-if="!savedIds.length" class="nfq-saved-muted">No saved variants on this browser.</p>
+      <ul v-else class="nfq-saved-list">
+       <li v-for="id in savedIds" :key="id">
+        <button type="button" :aria-label="'Open saved variant '+id" @click="savedOpen=false;select(id)">{{savedVariantLabel(id)}}</button>
+        <button type="button" :aria-label="'Remove saved variant '+id" @click="changeSavedVariant(id)">Remove</button>
+       </li>
+      </ul>
+      <button v-if="savedIds.length" type="button" class="nfq-saved-export" @click="downloadSavedWorklist">Export IDs · CSV</button>
+      <p class="nfq-saved-muted">Local to this browser. Saved IDs are not verified scientific dossiers or geographic activity.</p>
+     </section>
+     <p v-if="savedNotice" role="status" class="nfq-saved-feedback">{{savedNotice}}</p>
+     <p v-if="exactMatchedId" role="status" class="discovery-sr-only">Exact recorded identity opened automatically.</p>
     <p v-if="pending||busy" role="status" class="discovery-loading">{{busy?'Searching recorded variants…':'Preparing search…'}}</p>
     <div v-if="error" role="alert" class="empty-result nfq-search-feedback">
       <p>{{error}}</p>
@@ -396,6 +437,10 @@ function select(id:string):void{
          </div>
         </div>
         <span v-if="selected.id===exactMatchedId" class="discovery-exact-chip">Exact match</span>
+         <button v-if="!selectedFromSearch" type="button" class="nfq-save-record" data-testid="save-current-variant" :aria-pressed="selectedIsSaved" @click="changeSavedVariant(selected.id)">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4.5A1.5 1.5 0 0 1 7.5 3h9A1.5 1.5 0 0 1 18 4.5V21l-6-4-6 4z"/></svg>
+          {{selectedIsSaved?'Saved':'Save'}}
+         </button>
        </div>
        <RouterLink v-if="sourceWorkspace" class="nfq-journey-return" :to="sourceWorkspace">← Return to {{sourceWorkspace.startsWith("/evidence")?"evidence":"research coverage"}}</RouterLink>
        <dl class="identity-grid nfq-dossier-identity" aria-label="Variant nomenclature">
@@ -556,3 +601,20 @@ function select(id:string):void{
   </div>
  </div>
 </template>
+
+<style scoped>
+.nfq-saved-trigger,.nfq-save-record{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;flex:none;border:1px solid var(--border,#dce2e7);border-radius:8px;background:transparent;color:inherit;padding:.4rem .65rem;font:inherit;font-size:.78rem;font-weight:550;cursor:pointer}
+.nfq-saved-trigger[aria-expanded="true"],.nfq-save-record[aria-pressed="true"]{background:var(--surface-secondary,#f4f6f8)}
+.nfq-saved-trigger:focus-visible,.nfq-save-record:focus-visible,.nfq-saved-panel button:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.nfq-saved-panel{border:1px solid var(--border,#dce2e7);border-radius:10px;padding:.8rem;margin:.5rem 0 1rem;background:var(--surface,#fff)}
+.nfq-saved-panel-head{display:flex;justify-content:space-between;align-items:center;gap:.75rem;font-size:.82rem}
+.nfq-saved-panel-head button{background:transparent;border:0;color:var(--text-muted,#687381);font:inherit;font-size:.78rem;cursor:pointer}
+.nfq-saved-list{padding:0;margin:.7rem 0;list-style:none}
+.nfq-saved-list li{display:flex;justify-content:space-between;gap:.65rem;align-items:center;padding:.55rem 0;border-bottom:1px solid var(--border,#dce2e7)}
+.nfq-saved-list button{font:inherit;color:inherit;font-size:.78rem;cursor:pointer;border:0;background:transparent;text-align:left}
+.nfq-saved-list button:first-child{overflow-wrap:anywhere;min-width:0}
+.nfq-saved-list button:last-child{color:var(--text-muted,#687381)}
+.nfq-saved-muted,.nfq-saved-feedback{font-size:.73rem;line-height:1.45;color:var(--text-muted,#687381);margin:.6rem 0 0}
+.nfq-saved-export{margin-top:.35rem;border:1px solid var(--border,#dce2e7);border-radius:7px;background:transparent;padding:.5rem .7rem;color:inherit;font:inherit;font-size:.78rem;cursor:pointer}
+@media(max-width:640px){.nfq-save-record{padding:.45rem .6rem}.nfq-saved-panel{max-width:100%}}
+</style>

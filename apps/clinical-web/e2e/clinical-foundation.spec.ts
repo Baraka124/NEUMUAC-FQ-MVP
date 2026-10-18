@@ -898,3 +898,27 @@ test('Helios navigation keeps accessible selection semantics independent of disp
  await expect(page.getByTestId('helios-panel-history').getByTestId('helios-locked-capability')).toHaveCount(3);
  await expect(page.getByRole('button',{name:/approve|reject|run scan/i})).toHaveCount(0);
 });
+
+test('saved variant worklist remains local, compact and honest without a catalog',async({page})=>{
+ await page.goto('/#/variants');
+ const toggle=page.getByTestId('saved-variants-toggle');
+ await expect(toggle).toBeVisible();
+ await toggle.click();
+ const panel=page.getByTestId('saved-variants-panel');
+ await expect(panel).toContainText('No saved variants on this browser');
+ await expect(panel).toContainText('Local to this browser');
+ await expect(panel.getByRole('button',{name:'Export IDs · CSV'})).toHaveCount(0);
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
+test('saved worklist reopens an identity route without presenting cached scientific claims',async({page})=>{
+ await page.addInitScript(()=>{window.localStorage.setItem('neumuacfq_saved_variant_ids_v1',JSON.stringify(['2','2','01','3']));});
+ await page.goto('/#/variants');
+ await page.getByTestId('saved-variants-toggle').click();
+ const panel=page.getByTestId('saved-variants-panel');
+ await expect(panel.getByRole('button',{name:'Open saved variant 2'})).toHaveCount(1);
+ await expect(panel.getByRole('button',{name:'Open saved variant 3'})).toHaveCount(1);
+ await expect(panel).not.toContainText('01');
+ await panel.getByRole('button',{name:'Open saved variant 2'}).click();
+ await expect(page).toHaveURL(/#\/variants\/2/);
+ await expect(page.getByTestId('saved-variants-panel')).toHaveCount(0);
+});
