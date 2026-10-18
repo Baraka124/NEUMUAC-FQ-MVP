@@ -362,9 +362,23 @@ function select(id:string):void{
        </button>
        <VariantFilterPanel v-if="showAdvanced" v-model:class-filter="classFilter" v-model:sort="sort" v-model:search-mode="searchMode" @close="showAdvanced=false" @reset="resetAdvancedFilters"/>
       </div>
-      <span v-if="!busy&&!error&&displayedRows.length" class="record-total" aria-live="polite" aria-label="Visible results on this page">{{displayedRows.length}} on page</span>
+      <button type="button" class="nfq-saved-trigger" data-testid="saved-variants-toggle" :aria-expanded="savedOpen" aria-controls="saved-variants-panel" @click="savedOpen=!savedOpen">Saved<span v-if="savedIds.length"> · {{savedIds.length}}</span></button>
+       <span v-if="!busy&&!error&&displayedRows.length" class="record-total" aria-live="polite" aria-label="Visible results on this page">{{displayedRows.length}} on page</span>
     </div>
-    <p v-if="exactMatchedId" role="status" class="discovery-sr-only">Exact recorded identity opened automatically.</p>
+    <section v-if="savedOpen" id="saved-variants-panel" class="nfq-saved-panel" aria-label="Saved variants" data-testid="saved-variants-panel">
+      <div class="nfq-saved-panel-head"><strong>Saved variants</strong><button type="button" aria-label="Close saved variants" @click="savedOpen=false">Close</button></div>
+      <p v-if="!savedIds.length" class="nfq-saved-muted">No saved variants on this browser.</p>
+      <ul v-else class="nfq-saved-list">
+       <li v-for="id in savedIds" :key="id">
+        <button type="button" :aria-label="'Open saved variant '+id" @click="savedOpen=false;select(id)">{{savedVariantLabel(id)}}</button>
+        <button type="button" :aria-label="'Remove saved variant '+id" @click="changeSavedVariant(id)">Remove</button>
+       </li>
+      </ul>
+      <button v-if="savedIds.length" type="button" class="nfq-saved-export" @click="downloadSavedWorklist">Export IDs · CSV</button>
+      <p class="nfq-saved-muted">Local to this browser. Saved IDs are not verified scientific dossiers or geographic activity.</p>
+     </section>
+     <p v-if="savedNotice" role="status" class="nfq-saved-feedback">{{savedNotice}}</p>
+     <p v-if="exactMatchedId" role="status" class="discovery-sr-only">Exact recorded identity opened automatically.</p>
     <p v-if="pending||busy" role="status" class="discovery-loading">{{busy?'Searching recorded variants…':'Preparing search…'}}</p>
     <div v-if="error" role="alert" class="empty-result nfq-search-feedback">
       <p>{{error}}</p>
@@ -423,6 +437,10 @@ function select(id:string):void{
          </div>
         </div>
         <span v-if="selected.id===exactMatchedId" class="discovery-exact-chip">Exact match</span>
+         <button v-if="!selectedFromSearch" type="button" class="nfq-save-record" data-testid="save-current-variant" :aria-pressed="selectedIsSaved" @click="changeSavedVariant(selected.id)">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4.5A1.5 1.5 0 0 1 7.5 3h9A1.5 1.5 0 0 1 18 4.5V21l-6-4-6 4z"/></svg>
+          {{selectedIsSaved?'Saved':'Save'}}
+         </button>
        </div>
        <RouterLink v-if="sourceWorkspace" class="nfq-journey-return" :to="sourceWorkspace">← Return to {{sourceWorkspace.startsWith("/evidence")?"evidence":"research coverage"}}</RouterLink>
        <dl class="identity-grid nfq-dossier-identity" aria-label="Variant nomenclature">
