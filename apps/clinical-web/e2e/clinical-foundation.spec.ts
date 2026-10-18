@@ -942,3 +942,30 @@ test('partial CFTR search leaves the scientific canvas unselected even after Ent
  await expect(page).toHaveURL(/#\/variants\?q=f508/);
  await expect(page.getByRole('button',{name:'Open scientific dossier'})).toHaveCount(0);
 });
+
+test('Evidence workspace links copy real validated filter URLs and reject unsafe queries',async({page})=>{
+ for(const width of [390,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/evidence?q=CFTR&page=2');
+  await page.evaluate(()=>{
+   Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async(value:string)=>{
+    (window as Window & {__evidenceCopied?:string}).__evidenceCopied=value;
+   }}});
+  });
+  const share=page.getByTestId('evidence-copy-view');
+  await expect(share).toBeEnabled();
+  await expect(page.getByRole('searchbox',{name:'Find a source or reference'})).toHaveValue('CFTR');
+  await share.click();
+  await expect(page.locator('.nfq-evidence-share-status')).toContainText('View link copied');
+  expect(await page.evaluate(()=>(window as Window & {__evidenceCopied?:string}).__evidenceCopied)).toMatch(/#\/evidence\?q=CFTR&page=2$/);
+  await page.getByRole('searchbox',{name:'Find a source or reference'}).fill('!invalid*');
+  await share.click();
+  await expect(page.locator('.nfq-evidence-share-status')).toContainText('Cannot copy this view link');
+  await page.goto('/#/evidence?variant=383&page=1');
+  await expect(share).toBeEnabled();
+  await expect(page.getByText('References for variant record #383')).toBeVisible();
+  await page.goto('/#/evidence?q=PMID&page=1');
+  await expect(page.getByRole('searchbox',{name:'Find a source or reference'})).toHaveValue('PMID');
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
