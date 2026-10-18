@@ -1,5 +1,5 @@
 import {it,expect,vi} from 'vitest';
-import {createLiveEvidenceSource} from './liveEvidence';
+import {createLiveEvidenceSource,EVIDENCE_PAGE_SIZE} from './liveEvidence';
 const config={endpoint:'https://research.supabase.co',publishableKey:'sb_publishable_test123',enabled:true,readTable:'variants' as const};
 const link=(i:number,variant=12)=>({id:i,variant_id:variant,title:'Reference '+i,url:'https://doi.org/10.1000/test',source:'Recorded source'});
 it('does not pass off capped variant references as complete',async()=>{
@@ -73,13 +73,13 @@ it('rejects duplicate research-reference IDs rather than displaying two independ
  await expect(source.list({query:'',page:0})).rejects.toMatchObject({code:'schema-mismatch'});
 });
 it('rejects an oversized evidence page rather than silently truncating a malformed service response',async()=>{
- const transport=vi.fn(async()=>new Response(JSON.stringify(Array.from({length:32},(_,i)=>link(i+1))),{status:200}));
+ const transport=vi.fn(async()=>new Response(JSON.stringify(Array.from({length:12},(_,i)=>link(i+1))),{status:200}));
  await expect(createLiveEvidenceSource(config,transport as typeof fetch).list({query:'',page:0})).rejects.toMatchObject({code:'schema-mismatch'});
 });
 it('preserves legitimate evidence paging and the extra-record has-more flag',async()=>{
- const transport=vi.fn(async()=>new Response(JSON.stringify(Array.from({length:31},(_,i)=>link(i+1))),{status:200}));
+ const transport=vi.fn(async()=>new Response(JSON.stringify(Array.from({length:11},(_,i)=>link(i+1))),{status:200}));
  const page=await createLiveEvidenceSource(config,transport as typeof fetch).list({query:'',page:0});
- expect(page.records).toHaveLength(30);
+ expect(page.records).toHaveLength(10);
  expect(page.hasMore).toBe(true);
 });
 
@@ -99,14 +99,14 @@ it('pages variant-specific citations without claiming a capped full reference re
  const urls:string[]=[];
  const transport=vi.fn(async(url:string)=>{
   urls.push(url);
-  return new Response(JSON.stringify(Array.from({length:31},(_,i)=>link(i+31))),{status:200});
+  return new Response(JSON.stringify(Array.from({length:11},(_,i)=>link(i+31))),{status:200});
  });
  const page=await createLiveEvidenceSource(config,transport as typeof fetch).forVariantPage('12',2);
- expect(page.records).toHaveLength(30);
+ expect(page.records).toHaveLength(10);
  expect(page.hasMore).toBe(true);
  expect(new URL(urls[0]).searchParams.get('variant_id')).toBe('eq.12');
- expect(new URL(urls[0]).searchParams.get('offset')).toBe('60');
- expect(new URL(urls[0]).searchParams.get('limit')).toBe('31');
+ expect(new URL(urls[0]).searchParams.get('offset')).toBe('20');
+ expect(new URL(urls[0]).searchParams.get('limit')).toBe('11');
 });
 it('rejects cross-variant links, malformed IDs and overflow in scoped pages',async()=>{
  const mismatched=createLiveEvidenceSource(config,vi.fn(async()=>new Response(JSON.stringify([link(1,13)]),{status:200})) as typeof fetch);
@@ -118,4 +118,17 @@ it('rejects cross-variant links, malformed IDs and overflow in scoped pages',asy
  await expect(source.forVariantPage('0',0)).rejects.toMatchObject({code:'invalid-configuration'});
  await expect(source.forVariantPage('12',-1)).rejects.toMatchObject({code:'invalid-configuration'});
  expect(net).not.toHaveBeenCalled();
+});
+
+it('uses a ten-reference page size for both catalogue and variant-scoped reads',async()=>{
+ expect(EVIDENCE_PAGE_SIZE).toBe(10);
+ const urls:string[]=[];
+ const transport=vi.fn(async(url:string)=>{urls.push(url);return new Response(JSON.stringify(Array.from({length:11},(_,i)=>link(i+1))),{status:200});});
+ const source=createLiveEvidenceSource(config,transport as typeof fetch);
+ const catalogue=await source.list({query:'',page:1});
+ const variant=await source.forVariantPage('12',1);
+ expect(catalogue.records).toHaveLength(10);
+ expect(variant.records).toHaveLength(10);
+ expect(catalogue.hasMore&&variant.hasMore).toBe(true);
+ for(const url of urls){expect(new URL(url).searchParams.get('limit')).toBe('11');expect(new URL(url).searchParams.get('offset')).toBe('10');}
 });

@@ -25,7 +25,7 @@ export interface LiveEvidenceSource {
   forVariant(variantId: string, signal?: AbortSignal): Promise<readonly LiveEvidenceReference[]>;
   forVariantPage(variantId: string, page: number, signal?: AbortSignal): Promise<EvidencePage>;
 }
-export const EVIDENCE_PAGE_SIZE = 30;
+export const EVIDENCE_PAGE_SIZE = 10;
 const LINK_COLUMNS='id,variant_id,title,url,source,type,category,journal,year,pmid,doi,quality_score,source_weight,citation_count';
 const trustedHosts = new Set([
   'pubmed.ncbi.nlm.nih.gov','www.ncbi.nlm.nih.gov','scholar.google.com','cftr2.org','www.cftr2.org','doi.org'
