@@ -37,7 +37,7 @@ const areas=[
    history remain unavailable here until server-side reviewer authorization and scientific governance
    have been verified. This view does not display synthetic review records.
   </div>
-  <div class="helios-current" role="status">
+  <div class="helios-current" role="status" data-testid="helios-status-banner">
    <span class="helios-status-dot" aria-hidden="true"></span>
    <span>Read-only preparation</span>
    <span class="helios-status-sep" aria-hidden="true">·</span>
@@ -49,15 +49,15 @@ const areas=[
     <span class="helios-caption">No live decisions available</span>
    </div>
    <div class="helios-area-nav" role="group" aria-label="Helios review areas">
-    <button v-for="area in areas" :key="area.id" type="button"
+    <button v-for="area in areas" :key="area.id" type="button" :data-testid="'helios-tab-'+area.id"
      :class="{ 'helios-area-selected': selectedArea===area.id }"
      :aria-pressed="selectedArea===area.id" @click="selectedArea=area.id">{{area.title}}</button>
    </div>
    <div v-for="area in areas" v-show="selectedArea===area.id" :key="area.id"
-    class="helios-area-detail" role="region" :aria-label="area.title">
+    class="helios-area-detail" role="region" :aria-label="area.title" :data-testid="'helios-panel-'+area.id">
     <h3>{{area.title}}</h3>
     <p>{{area.detail}}</p>
-    <div v-if="area.id==='queue'" class="helios-read-state" role="status">{{reviewPresentation.detail}}</div>
+    <div v-if="area.id==='queue'" class="helios-read-state" role="status" data-testid="helios-review-read-state">{{reviewPresentation.detail}}</div>
     <template v-if="area.id==='queue' && availableReviews.length">
      <div class="helios-proposal-list">
       <button v-for="review in availableReviews" :key="review.id" type="button"
@@ -66,17 +66,17 @@ const areas=[
     </template>
     <template v-if="area.id==='signals'">
      <div class="helios-recovery-sections" aria-label="Scientific signal capabilities">
-      <div><strong>Source assessment</strong><span class="helios-restricted" title="Unavailable in this build; authorization is not yet connected"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Internal and external evidence scans · Not connected</span></div>
-      <div><strong>Consistency</strong><span class="helios-restricted" title="Unavailable in this build; authorization is not yet connected"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Contradictions and drift · Not connected</span></div>
-      <div><strong>Monitoring</strong><span class="helios-restricted" title="Unavailable in this build; authorization is not yet connected"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Watch targets and scheduled checks · Not connected</span></div>
+      <div><strong>Source assessment</strong><span class="helios-restricted" data-testid="helios-locked-capability" title="Unavailable in this build; authorization is not yet connected"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Internal and external evidence scans · Not connected</span></div>
+      <div><strong>Consistency</strong><span class="helios-restricted" data-testid="helios-locked-capability" title="Unavailable in this build; authorization is not yet connected"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Contradictions and drift · Not connected</span></div>
+      <div><strong>Monitoring</strong><span class="helios-restricted" data-testid="helios-locked-capability" title="Unavailable in this build; authorization is not yet connected"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Watch targets and scheduled checks · Not connected</span></div>
      </div>
-     <p class="helios-source-continuity">Recorded scientific references remain accessible in <RouterLink to="/evidence">Evidence &amp; Curation</RouterLink>. This does not run a Helios scan.</p>
+     <p class="helios-source-continuity">Recorded scientific references remain accessible in <RouterLink to="/evidence" data-testid="helios-recorded-evidence-link">Evidence &amp; Curation</RouterLink>. This does not run a Helios scan.</p>
     </template>
     <template v-if="area.id==='history'">
      <div class="helios-recovery-sections" aria-label="Review history capabilities">
-      <div><strong>Decisions</strong><span class="helios-restricted" title="Unavailable in this build; authorization is not yet connected"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Reviewer audit trail · Access restricted</span></div>
-      <div><strong>Validation</strong><span class="helios-restricted" title="Unavailable in this build; authorization is not yet connected"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Scientific validation chronology · Not connected</span></div>
-      <div><strong>Feedback</strong><span class="helios-restricted" title="Unavailable in this build; authorization is not yet connected"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Source feedback and review calibration · Not connected</span></div>
+      <div><strong>Decisions</strong><span class="helios-restricted" data-testid="helios-locked-capability" title="Unavailable in this build; authorization is not yet connected"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Reviewer audit trail · Access restricted</span></div>
+      <div><strong>Validation</strong><span class="helios-restricted" data-testid="helios-locked-capability" title="Unavailable in this build; authorization is not yet connected"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Scientific validation chronology · Not connected</span></div>
+      <div><strong>Feedback</strong><span class="helios-restricted" data-testid="helios-locked-capability" title="Unavailable in this build; authorization is not yet connected"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Source feedback and review calibration · Not connected</span></div>
      </div>
     </template>
     <template v-if="area.id==='evidence'">
@@ -85,9 +85,9 @@ const areas=[
       <span>Review {{selectedReviewId}}</span>
      </div>
      <div class="helios-review-steps" role="group" aria-label="Evidence examination sequence">
-      <button type="button" :aria-pressed="assessmentStep==='record'" @click="assessmentStep='record'">1. Comparison</button>
-      <button type="button" :aria-pressed="assessmentStep==='sources'" @click="assessmentStep='sources'">2. Sources</button>
-      <button type="button" :aria-pressed="assessmentStep==='uncertainty'" @click="assessmentStep='uncertainty'">3. Uncertainty</button>
+      <button type="button" data-testid="helios-step-record" :aria-pressed="assessmentStep==='record'" @click="assessmentStep='record'">1. Comparison</button>
+      <button type="button" data-testid="helios-step-sources" :aria-pressed="assessmentStep==='sources'" @click="assessmentStep='sources'">2. Sources</button>
+      <button type="button" data-testid="helios-step-uncertainty" :aria-pressed="assessmentStep==='uncertainty'" @click="assessmentStep='uncertainty'">3. Uncertainty</button>
      </div>
      <div class="helios-assessment-grid" aria-label="Evidence assessment structure">
       <section :hidden="assessmentStep!=='record'" class="helios-assessment-cell" aria-label="Recorded value">
