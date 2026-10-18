@@ -59,7 +59,7 @@ watch(()=>[route.query.q,route.query.page],()=>{
  const raw=route.query.q;
  const nextQuery=typeof raw==='string'&&/^[a-zA-Z0-9 _-]{0,70}$/.test(raw)?raw:'';
  const rawPage=route.query.page;
- const nextPage=typeof rawPage==='string'&&/^\\d{1,4}$/.test(rawPage)?Math.min(Number(rawPage),10000):0;
+ const nextPage=typeof rawPage==='string'&&/^[0-9]{1,4}$/.test(rawPage)?Math.min(Number(rawPage),10000):0;
  if(query.value!==nextQuery)query.value=nextQuery;
  if(page.value!==nextPage)page.value=nextPage;
 });
