@@ -24,6 +24,7 @@ import {portableSavedVariantsCsv,portableVariantLink} from '../domain/portableVa
 import {scientificFieldInventory} from '../domain/scientificFieldInventory';
 import {createLiveResearchHistorySource,type ResearchHistory} from '../services/liveResearchHistory';
 import {recordedResearchChronology} from '../domain/recordedResearchChronology';
+import {recordedConflictFocus} from '../domain/recordedConflictFocus';
 import { createReadOnlyRepository, readConfigFromEnvironment, variantDisplayName, formatReadStatus, type RealVariant, type RealVariantSource } from '../services/liveVariants';
 const route=useRoute(),router=useRouter();
 const sourceWorkspace=computed(()=>safeResearchReturnPath(route.query.from,'workspace'));
@@ -125,12 +126,14 @@ watch(selected,()=>{
 });
 const researchHistory=ref<ResearchHistory|null>(null);
 const researchChronology=computed(()=>researchHistory.value&&selected.value?recordedResearchChronology(researchHistory.value,selected.value.id):null);
+const conflictFocus=computed(()=>researchHistory.value&&selected.value?recordedConflictFocus(researchHistory.value,selected.value.id):null);
+const unresolvedOpen=ref(false);
 const historyError=ref('');
 const historyLoading=ref(false);
 const historyOpen=ref(false);
 let historyAbort:AbortController|null=null;
 const historySource=config?createLiveResearchHistorySource(config):null;
-watch(selected,()=>{historyAbort?.abort();researchHistory.value=null;historyError.value='';historyLoading.value=false;historyOpen.value=false;});
+watch(selected,()=>{historyAbort?.abort();researchHistory.value=null;historyError.value='';historyLoading.value=false;historyOpen.value=false;unresolvedOpen.value=false;});
 async function toggleResearchHistory():Promise<void>{
  historyOpen.value=!historyOpen.value;
  if(!historyOpen.value||researchHistory.value||historyLoading.value||!selected.value)return;
@@ -592,6 +595,13 @@ function select(id:string):void{
        <p v-else-if="researchHistory&&!researchChronology" role="alert">The recorded history is inconsistent and cannot be placed in a reliable chronology.</p>
        <template v-else-if="researchChronology">
         <p class="nfq-history-count" role="status">{{researchChronology.validationCount}} validation entries · {{researchChronology.conflictCount}} conflict records</p>
+        <div v-if="conflictFocus?.unresolved.length" class="nfq-conflict-focus" data-testid="recorded-unresolved-focus">
+         <button type="button" class="disclosure-button" :aria-expanded="unresolvedOpen" aria-controls="nfq-unresolved-conflicts" @click="unresolvedOpen=!unresolvedOpen">Unresolved records · {{conflictFocus.unresolved.length}} <span aria-hidden="true">{{unresolvedOpen?'−':'+'}}</span></button>
+         <ul v-if="unresolvedOpen" id="nfq-unresolved-conflicts" class="research-history-list" aria-label="Recorded unresolved conflicts">
+          <li v-for="item in conflictFocus.unresolved" :key="item.id"><strong>{{item.field}}</strong><small>Conflict record #{{item.id}} · Recorded severity: {{item.recordedSeverity||'Not recorded'}}</small></li>
+         </ul>
+         <p v-if="unresolvedOpen" class="rail-caption">Recorded unresolved status only. This is not a verified review assignment, approval decision or clinical priority.</p>
+        </div>
         <p v-if="!researchChronology.dated.length&&!researchChronology.undated.length" class="rail-caption">No recorded validation or conflict events were returned for this variant.</p>
         <ol v-if="researchChronology.dated.length" class="research-history-list nfq-history-timeline" aria-label="Dated research events, newest first">
          <li v-for="event in researchChronology.dated" :key="event.key">
