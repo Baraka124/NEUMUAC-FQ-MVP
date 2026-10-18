@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import {ref} from 'vue';
 const showContext=ref(false);
+const selectedReviewId=ref<string|null>(null);
+function openReview(id:string){selectedReviewId.value=id;assessmentStep.value='record';selectedArea.value='evidence';}
+function closeReview(){selectedReviewId.value=null;selectedArea.value='queue';}
+// No records are supplied until a server-authorized, provenance-reviewed endpoint exists.
+const availableReviews:readonly {id:string;label:string}[]=[];
 const assessmentStep=ref<'record'|'sources'|'uncertainty'>('record');
 const selectedArea=ref<'queue'|'evidence'|'history'>('queue');
 const areas=[
@@ -46,7 +51,17 @@ const areas=[
     class="helios-area-detail" role="region" :aria-label="area.title">
     <h3>{{area.title}}</h3>
     <p>{{area.detail}}</p>
+    <template v-if="area.id==='queue' && availableReviews.length">
+     <div class="helios-proposal-list">
+      <button v-for="review in availableReviews" :key="review.id" type="button"
+       @click="openReview(review.id)">{{review.label}} <span aria-hidden="true">→</span></button>
+     </div>
+    </template>
     <template v-if="area.id==='evidence'">
+     <div v-if="selectedReviewId" class="helios-selected-review">
+      <button type="button" @click="closeReview">Back to review queue</button>
+      <span>Review {{selectedReviewId}}</span>
+     </div>
      <div class="helios-review-steps" role="group" aria-label="Evidence examination sequence">
       <button type="button" :aria-pressed="assessmentStep==='record'" @click="assessmentStep='record'">1. Comparison</button>
       <button type="button" :aria-pressed="assessmentStep==='sources'" @click="assessmentStep='sources'">2. Sources</button>
@@ -134,4 +149,12 @@ const areas=[
 .helios-review-steps+.helios-assessment-grid .helios-assessment-cell:not([hidden]){flex:1 1 230px;border:0}
 .helios-review-steps+.helios-assessment-grid .helios-assessment-cell[hidden]{display:none}
 @media(max-width:620px){.helios-review-steps+.helios-assessment-grid .helios-assessment-cell:not([hidden]){flex-basis:100%}}
+</style>
+
+<style scoped>
+.helios-proposal-list{display:grid;gap:.45rem;margin:.7rem 0}
+.helios-proposal-list button{display:flex;justify-content:space-between;text-align:left;gap:1rem;padding:1rem;border:1px solid var(--border,#dce2e7);border-radius:10px;background:transparent;font:inherit;cursor:pointer}
+.helios-proposal-list button:focus-visible,.helios-selected-review button:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.helios-selected-review{display:flex;flex-wrap:wrap;gap:1rem;align-items:center;font-size:.8rem;color:var(--text-muted,#687381)}
+.helios-selected-review button{background:transparent;border:0;padding:.45rem 0;color:inherit;font:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 </style>
