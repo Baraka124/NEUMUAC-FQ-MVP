@@ -964,6 +964,8 @@ test('Evidence workspace links copy real validated filter URLs and reject unsafe
   await page.goto('/#/evidence?variant=383&page=1');
   await expect(share).toBeEnabled();
   await expect(page.getByText('References for variant record #383')).toBeVisible();
+  await page.goto('/#/evidence?q=PMID&page=1');
+  await expect(page.getByRole('searchbox',{name:'Find a source or reference'})).toHaveValue('PMID');
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
