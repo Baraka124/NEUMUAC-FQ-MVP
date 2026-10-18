@@ -885,3 +885,16 @@ test('Helios Signals offers real read-only evidence navigation without enabling 
  await expect(signals).toContainText('This does not run a Helios scan');
  await expect(page.getByRole('button',{name:/run scan|approve|reject/i})).toHaveCount(0);
 });
+
+test('Helios navigation keeps accessible selection semantics independent of displayed copy',async({page})=>{
+ await page.goto('/#/helios');
+ for(const section of ['queue','evidence','signals','history']){
+  const tab=page.getByTestId('helios-tab-'+section);
+  await expect(tab).toHaveAttribute('type','button');
+  await tab.click();
+  await expect(tab).toHaveAttribute('aria-pressed','true');
+  await expect(page.getByTestId('helios-panel-'+section)).toBeVisible();
+ }
+ await expect(page.getByTestId('helios-panel-history').getByTestId('helios-locked-capability')).toHaveCount(3);
+ await expect(page.getByRole('button',{name:/approve|reject|run scan/i})).toHaveCount(0);
+});
