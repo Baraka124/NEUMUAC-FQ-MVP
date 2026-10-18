@@ -22,21 +22,7 @@ const rows=ref<readonly LiveEvidenceReference[]>([]);
 const hasMore=ref(false);
 const loading=ref(false);
 const error=ref('');
-const exportNotice=ref('');
-function downloadEvidencePage():void{
- if(loading.value||error.value||!rows.value.length)return;
- const csv=evidencePageCsv(rows.value);
- if(csv===null){exportNotice.value='This reference page could not be exported safely.';return;}
- const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
- const url=URL.createObjectURL(blob);
- try{
-  const anchor=document.createElement('a');
-  anchor.href=url;anchor.download='neumuacFQ-evidence-page-'+String(page.value+1)+'.csv';
-  document.body.appendChild(anchor);anchor.click();anchor.remove();
-  exportNotice.value='Current page exported. Recorded citations have not been independently validated.';
- }finally{window.setTimeout(()=>URL.revokeObjectURL(url),5000);}
-}
-watch([query,page,focusId],()=>{exportNotice.value='';});
+
 let abort:AbortController|null=null;
 let sequence=0;
 let debounce:ReturnType<typeof setTimeout>|undefined;
@@ -64,6 +50,21 @@ watch(focusId,()=>{page.value=0;expandedRows.value=[];});
 watch(page,()=>{expandedRows.value=[];});
 watch([query,page,focusId],()=>{clearTimeout(debounce);debounce=setTimeout(()=>{void refresh();},query.value?250:0);},{immediate:true});
 onUnmounted(()=>{abort?.abort();clearTimeout(debounce);});
+const exportNotice=ref('');
+function downloadEvidencePage():void{
+ if(loading.value||error.value||!rows.value.length)return;
+ const csv=evidencePageCsv(rows.value);
+ if(csv===null){exportNotice.value='This reference page could not be exported safely.';return;}
+ const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+ const url=URL.createObjectURL(blob);
+ try{
+  const anchor=document.createElement('a');
+  anchor.href=url;anchor.download='neumuacFQ-evidence-page-'+String(page.value+1)+'.csv';
+  document.body.appendChild(anchor);anchor.click();anchor.remove();
+  exportNotice.value='Current page exported. Recorded citations have not been independently validated.';
+ }finally{window.setTimeout(()=>URL.revokeObjectURL(url),5000);}
+}
+watch([query,page,focusId],()=>{exportNotice.value='';});
 </script>
 <template>
  <div class="page evidence-page nfq-science-ui">
