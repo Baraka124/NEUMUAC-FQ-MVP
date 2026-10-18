@@ -5,7 +5,7 @@ export interface SavedVariantStorage {
  getItem(key:string):string|null;
  setItem(key:string,value:string):void;
 }
-const isId=(v:unknown):v is string=>typeof v==='string'&&/^[1-9]\\d{0,17}$/.test(v);
+const isId=(v:unknown):v is string=>typeof v==='string'&&/^[1-9][0-9]{0,17}$/.test(v);
 export function readSavedVariantIds(storage:SavedVariantStorage|null):readonly string[]{
  if(!storage)return [];
  try {
