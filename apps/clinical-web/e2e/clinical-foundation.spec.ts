@@ -949,8 +949,8 @@ test('Evidence workspace links preserve explicit source filters without requirin
   await page.goto('/#/evidence?q=CFTR&page=2');
   const share=page.getByTestId('evidence-copy-view');
   await expect(share).toBeEnabled();
-  await expect(page.getByRole('textbox',{name:'Find a source or reference'})).toHaveValue('CFTR');
-  await page.getByRole('textbox',{name:'Find a source or reference'}).fill('!invalid*');
+  await expect(page.getByRole('searchbox',{name:'Find a source or reference'})).toHaveValue('CFTR');
+  await page.getByRole('searchbox',{name:'Find a source or reference'}).fill('!invalid*');
   await expect(share).toBeDisabled();
   await page.goto('/#/evidence?variant=383&page=1');
   await expect(share).toBeEnabled();
