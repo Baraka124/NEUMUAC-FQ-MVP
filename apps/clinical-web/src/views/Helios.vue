@@ -45,7 +45,28 @@ const areas=[
     class="helios-area-detail" role="region" :aria-label="area.title">
     <h3>{{area.title}}</h3>
     <p>{{area.detail}}</p>
-    <div class="helios-empty-state" role="status">{{area.state}}. No live records or review actions are shown.</div>
+    <template v-if="area.id==='evidence'">
+     <div class="helios-assessment-grid" aria-label="Evidence assessment structure">
+      <section class="helios-assessment-cell" aria-label="Recorded value">
+       <span class="helios-assessment-label">Recorded value</span>
+       <p>Awaiting an authorized review record</p>
+      </section>
+      <section class="helios-assessment-cell" aria-label="Proposed change">
+       <span class="helios-assessment-label">Proposed change</span>
+       <p>No proposal selected</p>
+      </section>
+      <section class="helios-assessment-cell" aria-label="Supporting evidence">
+       <span class="helios-assessment-label">Supporting evidence</span>
+       <p>No verified references loaded</p>
+      </section>
+      <section class="helios-assessment-cell" aria-label="Uncertainty">
+       <span class="helios-assessment-label">Uncertainty</span>
+       <p>Cannot be assessed without source records</p>
+      </section>
+     </div>
+     <div class="helios-empty-state" role="status">Evidence assessment is unavailable until authorized records and traceable sources are connected. No scientific decision is implied.</div>
+    </template>
+    <div v-else class="helios-empty-state" role="status">{{area.state}}. No live records or review actions are shown.</div>
    </div>
   </section>
   <p class="helios-footnote">The existing research catalog remains available through <RouterLink to="/variants">Variants</RouterLink> and <RouterLink to="/evidence">Evidence</RouterLink>.</p>
@@ -86,4 +107,14 @@ const areas=[
 .helios-area-detail p{font-size:.84rem;line-height:1.6;color:var(--text-muted,#687381);margin:0 0 1.2rem}
 .helios-empty-state{border-top:1px solid var(--border,#dce2e7);padding-top:1rem;font-size:.8rem;color:var(--text-muted,#687381)}
 @media(max-width:620px){.helios-area-nav{padding:.5rem;gap:.15rem}.helios-area-nav button{padding:.52rem .6rem;font-size:.76rem}.helios-area-detail{padding:1rem}}
+</style>
+
+<style scoped>
+.helios-assessment-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;border:1px solid var(--border,#dce2e7);border-radius:10px;overflow:hidden;margin:1rem 0}
+.helios-assessment-cell{padding:1rem;min-width:0}
+.helios-assessment-cell:nth-child(odd){border-right:1px solid var(--border,#dce2e7)}
+.helios-assessment-cell:nth-child(-n+2){border-bottom:1px solid var(--border,#dce2e7)}
+.helios-assessment-label{display:block;font-size:.72rem;font-weight:600;letter-spacing:.015em;color:var(--text-muted,#687381)}
+.helios-assessment-cell p{margin:.45rem 0 0;font-size:.83rem;line-height:1.5}
+@media(max-width:620px){.helios-assessment-grid{grid-template-columns:minmax(0,1fr)}.helios-assessment-cell:nth-child(odd){border-right:0}.helios-assessment-cell:not(:last-child){border-bottom:1px solid var(--border,#dce2e7)}}
 </style>
