@@ -22,6 +22,7 @@ import {readSavedVariantIds,toggleSavedVariant} from '../domain/savedVariants';
 import {portableSavedVariantsCsv,portableVariantLink} from '../domain/portableVariantReference';
 import {scientificFieldInventory} from '../domain/scientificFieldInventory';
 import {createLiveResearchHistorySource,type ResearchHistory} from '../services/liveResearchHistory';
+import {recordedResearchChronology} from '../domain/recordedResearchChronology';
 import { createReadOnlyRepository, readConfigFromEnvironment, variantDisplayName, formatReadStatus, type RealVariant, type RealVariantSource } from '../services/liveVariants';
 const route=useRoute(),router=useRouter();
 const sourceWorkspace=computed(()=>safeResearchReturnPath(route.query.from,'workspace'));
@@ -121,6 +122,7 @@ watch(selected,()=>{
  clinVarSummary.value=null;clinVarError.value='';clinVarLoading.value=false;
 });
 const researchHistory=ref<ResearchHistory|null>(null);
+const researchChronology=computed(()=>researchHistory.value&&selected.value?recordedResearchChronology(researchHistory.value,selected.value.id):null);
 const historyError=ref('');
 const historyLoading=ref(false);
 const historyOpen=ref(false);
@@ -561,25 +563,38 @@ function select(id:string):void{
        <RouterLink class="variant-evidence-browse nfq-journey-secondary" :to="{path:'/intelligence',query:dossierReturn?{from:dossierReturn,variant:selected.id}:{}}">Inspect documentation coverage →</RouterLink>
      </section>
      <section v-if="!selectedFromSearch&&scientificDetailsOpen" class="research-history-section" aria-label="Research history">
-      <div class="nfq-provenance-header"><h3 class="nfq-dossier-group-title">Review history</h3><ContextHelp label="About recorded review history" title="Limits of the review register"><p>Entries reflect database-recorded actions and detected conflicts only. They do not establish an independently verified immutable audit trail. Personal identifiers and free-text annotations are excluded.</p></ContextHelp></div>
-      <button class="disclosure-button" type="button" :aria-expanded="historyOpen" aria-controls="variant-research-history" @click="toggleResearchHistory">
-       <span>Validation & conflict history</span><span aria-hidden="true">{{historyOpen?'−':'+'}}</span>
+      <div class="nfq-provenance-header">
+       <h3 class="nfq-dossier-group-title">Review history</h3>
+       <ContextHelp label="About recorded review history" title="Limits of the review register">
+        <p>Events come from database-recorded validation and conflict records. Dates are normalized to UTC; entries without dates are shown separately and cannot be placed in time.</p>
+        <p>Resolution status is recorded metadata, not proof of a medically validated decision or an immutable audit trail. Personal identities and free-text notes are excluded.</p>
+       </ContextHelp>
+      </div>
+      <button class="disclosure-button" type="button" :aria-expanded="historyOpen" aria-controls="variant-research-history" data-testid="variant-history-toggle" @click="toggleResearchHistory">
+       <span>Recorded chronology</span><span aria-hidden="true">{{historyOpen?'−':'+'}}</span>
       </button>
-      <div v-if="historyOpen" id="variant-research-history">
-       
+      <div v-if="historyOpen" id="variant-research-history" data-testid="variant-history-panel">
        <p v-if="historyLoading" role="status">Loading recorded history…</p>
        <p v-else-if="historyError" role="alert">{{historyError}}</p>
-       <template v-else-if="researchHistory">
-        <h4>Validation entries · {{researchHistory.validations.length}}</h4>
-        <p v-if="!researchHistory.validations.length" class="rail-caption">No validation events returned for this variant.</p>
-        <ul v-else class="research-history-list">
-         <li v-for="event in researchHistory.validations" :key="'v'+event.id"><strong>{{event.action}}</strong> · {{event.at||'Date not recorded'}}<small>Recorded class: {{event.recordedClass||'Not recorded'}} · Confidence: {{event.confidence||'Not recorded'}}</small></li>
-        </ul>
-        <h4>Recorded conflicts · {{researchHistory.conflicts.length}}</h4>
-        <p v-if="!researchHistory.conflicts.length" class="rail-caption">No conflict events returned for this variant.</p>
-        <ul v-else class="research-history-list">
-         <li v-for="event in researchHistory.conflicts" :key="'c'+event.id"><strong>{{event.field}}</strong> · {{event.resolved?'Resolved':'Unresolved'}}<small>Detected: {{event.detectedAt||'Not recorded'}} · Resolution: {{event.resolvedAt||'Not recorded'}}</small></li>
-        </ul>
+       <p v-else-if="researchHistory&&!researchChronology" role="alert">The recorded history is inconsistent and cannot be placed in a reliable chronology.</p>
+       <template v-else-if="researchChronology">
+        <p class="nfq-history-count" role="status">{{researchChronology.validationCount}} validation entries · {{researchChronology.conflictCount}} conflict records</p>
+        <p v-if="!researchChronology.dated.length&&!researchChronology.undated.length" class="rail-caption">No recorded validation or conflict events were returned for this variant.</p>
+        <ol v-if="researchChronology.dated.length" class="research-history-list nfq-history-timeline" aria-label="Dated research events, newest first">
+         <li v-for="event in researchChronology.dated" :key="event.key">
+          <time class="nfq-history-time" :datetime="event.recordedAt||undefined">{{event.timestampLabel}}</time>
+          <strong>{{event.heading}}</strong>
+          <small>{{event.details}}</small>
+         </li>
+        </ol>
+        <div v-if="researchChronology.undated.length" class="nfq-history-undated">
+         <p class="nfq-history-undated-label">Without recorded date · {{researchChronology.undated.length}}</p>
+         <ul class="research-history-list" aria-label="Undated research events, not chronologically ordered">
+          <li v-for="event in researchChronology.undated" :key="event.key">
+           <strong>{{event.heading}}</strong><small>{{event.details}}</small>
+          </li>
+         </ul>
+        </div>
        </template>
       </div>
      </section>
@@ -624,4 +639,14 @@ function select(id:string):void{
 .nfq-saved-muted,.nfq-saved-feedback{font-size:.73rem;line-height:1.45;color:var(--text-muted,#687381);margin:.6rem 0 0}
 .nfq-saved-export{margin-top:.35rem;border:1px solid var(--border,#dce2e7);border-radius:7px;background:transparent;padding:.5rem .7rem;color:inherit;font:inherit;font-size:.78rem;cursor:pointer}
 @media(max-width:640px){.nfq-save-record{padding:.45rem .6rem}.nfq-saved-panel{max-width:100%}}
+</style>
+
+<style scoped>
+.nfq-history-count{font-size:12px;color:var(--muted,#526b7b);margin:14px 0 6px}
+.nfq-history-timeline{margin:5px 0 0;padding:0}
+.nfq-history-time{display:block;color:#496d65;font-size:11px;font-variant-numeric:tabular-nums;font-weight:600;margin-bottom:3px}
+.nfq-history-undated{margin-top:13px;border-top:1px solid var(--line,#dce5e8);padding-top:9px}
+.nfq-history-undated-label{font-size:11px;color:var(--muted,#526b7b);font-weight:600;margin:0 0 4px}
+.nfq-history-timeline li,.nfq-history-undated li{min-width:0;max-width:100%;overflow-wrap:anywhere}
+@media(max-width:640px){.nfq-history-time{font-size:10.5px}}
 </style>
