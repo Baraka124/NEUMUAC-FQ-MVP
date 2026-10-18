@@ -873,6 +873,6 @@ test('Helios queue describes disconnected state without claiming denied access',
  await page.goto('/#/helios');
  const queue=page.getByRole('region',{name:'Review queue'});
  await expect(queue.locator('.helios-read-state')).toContainText('Authorized review data has not been connected');
- await expect(page.getByRole('status').first()).toContainText('Read-only preparation');
+ await expect(page.locator('.helios-current')).toContainText('Read-only preparation');
  await expect(page.getByRole('button',{name:/approve|reject|claim/i})).toHaveCount(0);
 });
