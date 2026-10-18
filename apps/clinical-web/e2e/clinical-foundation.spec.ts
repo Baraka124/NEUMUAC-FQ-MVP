@@ -907,7 +907,7 @@ test('saved variant worklist remains local, compact and honest without a catalog
  const panel=page.getByTestId('saved-variants-panel');
  await expect(panel).toContainText('No saved variants on this browser');
  await expect(panel).toContainText('Local to this browser');
- await expect(panel.getByRole('button',{name:'Export IDs · CSV'})).toHaveCount(0);
+ await expect(panel.getByRole('button',{name:'Export links · CSV'})).toHaveCount(0);
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
 test('saved worklist reopens an identity route without presenting cached scientific claims',async({page})=>{
@@ -917,8 +917,15 @@ test('saved worklist reopens an identity route without presenting cached scienti
  const panel=page.getByTestId('saved-variants-panel');
  await expect(panel.getByRole('button',{name:'Open saved variant 2'})).toHaveCount(1);
  await expect(panel.getByRole('button',{name:'Open saved variant 3'})).toHaveCount(1);
+ await expect(panel.getByRole('button',{name:'Export links · CSV'})).toBeVisible();
  await expect(panel).not.toContainText('01');
  await panel.getByRole('button',{name:'Open saved variant 2'}).click();
  await expect(page).toHaveURL(/#\/variants\/2/);
  await expect(page.getByTestId('saved-variants-panel')).toHaveCount(0);
+});
+
+test('share actions are not offered for unavailable scientific records',async({page})=>{
+ await page.goto('/#/variants/2');
+ await expect(page.getByTestId('copy-variant-record-link')).toHaveCount(0);
+ await expect(page.getByTestId('save-current-variant')).toHaveCount(0);
 });
