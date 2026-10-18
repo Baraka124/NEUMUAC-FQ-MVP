@@ -11,9 +11,11 @@ import ContextHelp from '../components/ContextHelp.vue';
 import {portableEvidenceLink} from '../domain/portableEvidenceLink';
 const route=useRoute();
 const focusId=computed(()=>typeof route.query.variant==='string'&&/^[1-9]\d{0,17}$/.test(route.query.variant)?route.query.variant:null);
+// Explicit but invalid variant scopes must never silently broaden to all evidence.
+const invalidVariantScope=computed(()=>route.query.variant!==undefined&&!focusId.value);
 const returnToVariant=computed(()=>safeResearchReturnPath(route.query.from,'variant'));
 const savedWorkspace=computed(()=>workspaceJourneyPath('/evidence',{q:query.value,page:String(page.value),variant:focusId.value||undefined}));
-const shareableView=computed(()=>workspaceJourneyPath('/evidence',{q:focusId.value?undefined:query.value.trim(),page:String(page.value),variant:focusId.value||undefined}));
+const shareableView=computed(()=>invalidVariantScope.value?null:workspaceJourneyPath('/evidence',{q:focusId.value?undefined:query.value.trim(),page:String(page.value),variant:focusId.value||undefined}));
 const config=readConfigFromEnvironment();
 const source=config?createLiveEvidenceSource(config):null;
 const query=ref(typeof route.query.q==='string'&&/^[a-zA-Z0-9 _-]{0,70}$/.test(route.query.q)?route.query.q:'');
@@ -31,7 +33,7 @@ async function copyEvidenceView():Promise<void>{
  try{await navigator.clipboard.writeText(url);shareStatus.value='View link copied. It points to search filters, not verified evidence.';}
  catch{shareStatus.value='View link could not be copied. Clipboard access was denied.';}
 }
-watch([query,page,focusId],()=>{shareStatus.value='';});
+watch([query,page,focusId,invalidVariantScope],()=>{shareStatus.value='';});
 let abort:AbortController|null=null;
 let sequence=0;
 let debounce:ReturnType<typeof setTimeout>|undefined;
@@ -40,7 +42,8 @@ async function refresh(){
  const run=++sequence;
  const controller=new AbortController();abort=controller;
  rows.value=[];hasMore.value=false;error.value='';
- if(!source){error.value='Live evidence access is not configured.';return;}
+ if(invalidVariantScope.value){error.value='Invalid variant reference. No evidence was retrieved.';loading.value=false;return;}
+ if(!source){error.value='Live evidence access is not configured.';loading.value=false;return;}
  loading.value=true;
  try{
   if(focusId.value){
@@ -67,8 +70,8 @@ watch(()=>[route.query.q,route.query.page],()=>{
 // A disclosure belongs to the currently visible result set. Never carry an
 // expanded reference into a new query, variant scope, or page, even when
 // numeric reference IDs happen to overlap across responses.
-watch([query,focusId,page],()=>{expandedRows.value=[];});
-watch([query,page,focusId],()=>{
+watch([query,focusId,page,invalidVariantScope],()=>{expandedRows.value=[];});
+watch([query,page,focusId,invalidVariantScope],()=>{
  // Invalidate the prior result context before the search debounce runs.
  // Otherwise a previous page remains actionable (including CSV export)
  // while the user is already looking at a new query or variant scope.
@@ -94,7 +97,7 @@ function downloadEvidencePage():void{
   exportNotice.value='Current page exported. Recorded citations have not been independently validated.';
  }finally{window.setTimeout(()=>URL.revokeObjectURL(url),5000);}
 }
-watch([query,page,focusId],()=>{exportNotice.value='';});
+watch([query,page,focusId,invalidVariantScope],()=>{exportNotice.value='';});
 </script>
 <template>
  <div class="page evidence-page nfq-science-ui">
