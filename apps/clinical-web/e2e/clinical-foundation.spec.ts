@@ -1007,3 +1007,13 @@ test('paired research export remains disabled until both complete reference read
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+test('documentation CSV export is unavailable without a complete connected coverage register',async({page})=>{
+ for(const width of [320,390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/intelligence');
+  await expect(page.getByRole('alert')).toContainText('Live research coverage connection is not configured');
+  await expect(page.getByTestId('coverage-export-matches')).toHaveCount(0);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
