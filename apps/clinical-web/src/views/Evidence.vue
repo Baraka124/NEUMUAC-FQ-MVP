@@ -6,6 +6,7 @@ import {safeResearchReturnPath,workspaceJourneyPath} from '../domain/researchJou
 import {createLiveEvidenceSource, EVIDENCE_PAGE_SIZE, type LiveEvidenceReference} from '../services/liveEvidence';
 import {readConfigFromEnvironment} from '../services/liveVariants';
 import {referenceMetadata,referenceLinkConsistency} from '../domain/referencePresentation';
+import {retrievePubMedMetadata,supportedPubMedId,type PubMedPublicationMetadata} from '../services/livePubMed';
 import {evidencePageCsv} from '../domain/evidencePageExport';
 import ContextHelp from '../components/ContextHelp.vue';
 import {portableEvidenceLink} from '../domain/portableEvidenceLink';
@@ -21,7 +22,27 @@ const source=config?createLiveEvidenceSource(config):null;
 const query=ref(typeof route.query.q==='string'&&/^[a-zA-Z0-9 _-]{0,70}$/.test(route.query.q)?route.query.q:'');
 const page=ref(typeof route.query.page==='string'&&/^\d{1,4}$/.test(route.query.page)?Math.min(Number(route.query.page),10000):0);
 const expandedRows=ref<readonly number[]>([]);
-function toggleRow(id:number){expandedRows.value=expandedRows.value.includes(id)?expandedRows.value.filter(x=>x!==id):[...expandedRows.value,id];}
+type PubMedCheckState=
+ | {readonly refId:number;readonly phase:'loading'}
+ | {readonly refId:number;readonly phase:'ready';readonly metadata:PubMedPublicationMetadata}
+ | {readonly refId:number;readonly phase:'error'};
+const pubmedCheck=ref<PubMedCheckState|null>(null);
+let pubmedAbort:AbortController|null=null;
+async function inspectPubMed(item:LiveEvidenceReference):Promise<void>{
+ if(!supportedPubMedId(item.pmid)||pubmedCheck.value?.phase==='loading')return;
+ pubmedAbort?.abort();
+ const controller=new AbortController();pubmedAbort=controller;
+ pubmedCheck.value={refId:item.id,phase:'loading'};
+ try{
+  const metadata=await retrievePubMedMetadata(item.pmid,fetch,controller.signal);
+  if(!controller.signal.aborted&&rows.value.some(row=>row.id===item.id&&row.pmid===item.pmid)&&expandedRows.value.includes(item.id))
+   pubmedCheck.value={refId:item.id,phase:'ready',metadata};
+ }catch{
+  if(!controller.signal.aborted&&rows.value.some(row=>row.id===item.id)&&expandedRows.value.includes(item.id))
+   pubmedCheck.value={refId:item.id,phase:'error'};
+ }
+}
+function toggleRow(id:number){expandedRows.value=expandedRows.value.includes(id)?expandedRows.value.filter(x=>x!==id):[...expandedRows.value,id];if(pubmedCheck.value?.refId===id){pubmedAbort?.abort();pubmedCheck.value=null;}}
 const rows=ref<readonly LiveEvidenceReference[]>([]);
 const hasMore=ref(false);
 const loading=ref(false);
@@ -71,6 +92,7 @@ watch(()=>[route.query.q,route.query.page],()=>{
 // expanded reference into a new query, variant scope, or page, even when
 // numeric reference IDs happen to overlap across responses.
 watch([query,focusId,page,invalidVariantScope],()=>{expandedRows.value=[];});
+watch([query,focusId,page,invalidVariantScope],()=>{pubmedAbort?.abort();pubmedCheck.value=null;});
 watch([query,page,focusId,invalidVariantScope],()=>{
  // Invalidate the prior result context before the search debounce runs.
  // Otherwise a previous page remains actionable (including CSV export)
@@ -82,7 +104,7 @@ watch([query,page,focusId,invalidVariantScope],()=>{
  loading.value=Boolean(source);
  debounce=setTimeout(()=>{void refresh();},query.value?250:0);
 },{immediate:true});
-onUnmounted(()=>{abort?.abort();clearTimeout(debounce);});
+onUnmounted(()=>{abort?.abort();pubmedAbort?.abort();clearTimeout(debounce);});
 const exportNotice=ref('');
 function downloadEvidencePage():void{
  if(loading.value||error.value||!rows.value.length)return;
@@ -101,7 +123,7 @@ watch([query,page,focusId,invalidVariantScope],()=>{exportNotice.value='';});
 </script>
 <template>
  <div class="page evidence-page nfq-science-ui">
-  <header class="nfq-evidence-heading"><h1>Evidence & provenance</h1><div class="nfq-evidence-heading-actions"><button type="button" data-testid="evidence-copy-view" @click="copyEvidenceView">Copy view link</button><ContextHelp label="About recorded references" title="Recorded reference details"><p>Links, source categories and publication types are catalog-recorded metadata. They do not independently establish study design, quality, pathogenicity or clinical relevance.</p><p>Identifier consistency compares the stored DOI or PMID with its linked URL. Agreement is not external verification; a mismatch should be checked against the original source.</p></ContextHelp></div></header>
+  <header class="nfq-evidence-heading"><h1>Evidence & provenance</h1><div class="nfq-evidence-heading-actions"><button type="button" data-testid="evidence-copy-view" @click="copyEvidenceView">Copy view link</button><ContextHelp label="About recorded references" title="Recorded reference details"><p>Links, source categories and publication types are catalog-recorded metadata. They do not independently establish study design, quality, pathogenicity or clinical relevance.</p><p>Identifier consistency compares the stored DOI or PMID with its linked URL. Agreement is not external verification; a mismatch should be checked against the original source. PubMed publication types can be requested explicitly from NCBI for a recorded PMID. Those indexing labels are not an independently validated study-design assessment.</p></ContextHelp></div></header>
   <p v-if="shareStatus" role="status" class="nfq-evidence-share-status">{{shareStatus}}</p>
   <RouterLink v-if="returnToVariant" class="nfq-journey-return" :to="returnToVariant">← Return to variant dossier</RouterLink>
   <div v-if="focusId" class="nfq-variant-scope"><span>References for variant record #{{focusId}}</span><RouterLink to="/evidence">All records</RouterLink></div>
@@ -125,7 +147,18 @@ watch([query,page,focusId,invalidVariantScope],()=>{exportNotice.value='';});
     <div v-if="expandedRows.includes(item.id)" :id="'evidence-details-'+item.id" class="evidence-row-foot">
      <span>Recorded quality score: {{item.recordedQualityScore??'Not recorded'}}</span>
      <span>Recorded source weight: {{item.recordedSourceWeight??'Not recorded'}}</span>
-     <span>Recorded citation count: {{item.recordedCitationCount??'Not recorded'}}</span><span :data-link-consistency="referenceLinkConsistency(item).kind">{{referenceLinkConsistency(item).label}}</span><a :href="item.url" target="_blank" rel="noopener noreferrer">Open source ↗</a><RouterLink :to="{path:'/variants/'+encodeURIComponent(item.variantId),query:savedWorkspace?{from:savedWorkspace}:{}}">Variant record #{{item.variantId}}</RouterLink><span v-if="item.journal">{{item.journal}}</span><span v-if="item.pmid">PMID {{item.pmid}}</span></div>
+     <span>Recorded citation count: {{item.recordedCitationCount??'Not recorded'}}</span><span :data-link-consistency="referenceLinkConsistency(item).kind">{{referenceLinkConsistency(item).label}}</span><a :href="item.url" target="_blank" rel="noopener noreferrer">Open source ↗</a><RouterLink :to="{path:'/variants/'+encodeURIComponent(item.variantId),query:savedWorkspace?{from:savedWorkspace}:{}}">Variant record #{{item.variantId}}</RouterLink><span v-if="item.journal">{{item.journal}}</span><span v-if="item.pmid">PMID {{item.pmid}}</span>
+     <button v-if="supportedPubMedId(item.pmid)" type="button" :disabled="pubmedCheck?.phase==='loading'" @click="inspectPubMed(item)">{{pubmedCheck?.refId===item.id&&pubmedCheck.phase==='ready'?'Refresh PubMed types':'Check PubMed publication types'}}</button>
+     <p v-if="pubmedCheck?.refId===item.id&&pubmedCheck.phase==='loading'" role="status">Checking the recorded PMID with NCBI…</p>
+     <p v-else-if="pubmedCheck?.refId===item.id&&pubmedCheck.phase==='error'" role="alert">PubMed metadata unavailable. No study classification was inferred.</p>
+     <div v-else-if="pubmedCheck?.refId===item.id&&pubmedCheck.phase==='ready'" class="nfq-pubmed-metadata" role="status">
+      <strong>PubMed publication types · NCBI</strong>
+      <p v-if="pubmedCheck.metadata.publicationTypes.length">{{pubmedCheck.metadata.publicationTypes.join(' · ')}}</p>
+      <p v-else>No publication types returned for this identifier.</p>
+      <small>Retrieved {{pubmedCheck.metadata.retrievedAt}} · Indexing terms only, not independently appraised study quality.</small>
+      <a :href="pubmedCheck.metadata.sourceUrl" target="_blank" rel="noopener noreferrer">Open PubMed record ↗</a>
+     </div>
+    </div>
    </article>
   </div>
   <nav class="pagination-controls" aria-label="Evidence pages">
