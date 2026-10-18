@@ -40,8 +40,10 @@ test('unconfigured database never substitutes invented records', async ({ page }
 
 test('reserved workspaces do not imply clinical functionality', async ({ page }) => {
   await page.goto('/#/helios');
-  await expect(page.getByRole('heading', { name: 'Helios Review' })).toBeVisible();
-  await expect(page.getByText(/no backend connection, evidence interpretation/i)).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Helios', exact: true })).toBeVisible();
+  await expect(page.getByText('Read-only preparation')).toBeVisible();
+  await expect(page.getByText('Review records not connected')).toBeVisible();
+  await expect(page.getByText('No live decisions available')).toBeVisible();
 });
 
 test('keyboard skip target remains accessible', async ({ page }) => {
