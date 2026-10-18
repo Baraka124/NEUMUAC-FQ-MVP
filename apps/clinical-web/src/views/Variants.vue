@@ -628,7 +628,9 @@ function select(id:string):void{
       <div class="nfq-no-selection" aria-live="polite">
        <span class="section-label">SCIENTIFIC RECORD</span>
        <h2 id="selected-title">{{route.params.id?'Record unavailable':search.trim()&&!busy&&!error&&!displayedRows.length?'No matching variant':'Select a variant'}}</h2>
-       <p>{{route.params.id?'No accessible record was returned for this identifier.':search.trim()&&!busy&&!error&&!displayedRows.length?'No recorded variant matches the current search. Check the notation or try a recorded alias.':'Choose a result to open its dossier. An unambiguous exact match opens automatically.'}}</p>
+       <p v-if="detailNotice" role="alert">{{detailNotice}}</p>
+       <p v-else>{{route.params.id?'No accessible record was returned for this identifier.':search.trim()&&!busy&&!error&&!displayedRows.length?'No recorded variant matches the current search. Check the notation or try a recorded alias.':'Choose a result to open its dossier. An unambiguous exact match opens automatically.'}}</p>
+       <button v-if="route.params.id&&detailNotice" type="button" class="nfq-save-record" @click="loadDetail(route.params.id)">Retry record</button>
       </div>
      </template>
     </article>
