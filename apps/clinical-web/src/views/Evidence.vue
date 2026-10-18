@@ -7,10 +7,12 @@ import {createLiveEvidenceSource, EVIDENCE_PAGE_SIZE, type LiveEvidenceReference
 import {readConfigFromEnvironment} from '../services/liveVariants';
 import {referenceMetadata} from '../domain/referencePresentation';
 import ContextHelp from '../components/ContextHelp.vue';
+import {portableEvidenceLink} from '../domain/portableEvidenceLink';
 const route=useRoute();
 const focusId=computed(()=>typeof route.query.variant==='string'&&/^[1-9]\d{0,17}$/.test(route.query.variant)?route.query.variant:null);
 const returnToVariant=computed(()=>safeResearchReturnPath(route.query.from,'variant'));
 const savedWorkspace=computed(()=>workspaceJourneyPath('/evidence',{q:query.value,page:String(page.value),variant:focusId.value||undefined}));
+const shareableView=computed(()=>workspaceJourneyPath('/evidence',{q:focusId.value?undefined:query.value.trim(),page:String(page.value),variant:focusId.value||undefined}));
 const config=readConfigFromEnvironment();
 const source=config?createLiveEvidenceSource(config):null;
 const query=ref(typeof route.query.q==='string'&&/^[a-zA-Z0-9 _-]{0,70}$/.test(route.query.q)?route.query.q:'');
@@ -21,6 +23,14 @@ const rows=ref<readonly LiveEvidenceReference[]>([]);
 const hasMore=ref(false);
 const loading=ref(false);
 const error=ref('');
+const shareStatus=ref('');
+async function copyEvidenceView():Promise<void>{
+ const url=portableEvidenceLink(shareableView.value,window.location.href);
+ if(!url||!navigator.clipboard?.writeText){shareStatus.value='Cannot copy this view link. Check search filters or browser permissions.';return;}
+ try{await navigator.clipboard.writeText(url);shareStatus.value='View link copied. It points to search filters, not verified evidence.';}
+ catch{shareStatus.value='View link could not be copied. Clipboard access was denied.';}
+}
+watch([query,page,focusId],()=>{shareStatus.value='';});
 let abort:AbortController|null=null;
 let sequence=0;
 let debounce:ReturnType<typeof setTimeout>|undefined;
@@ -51,7 +61,8 @@ onUnmounted(()=>{abort?.abort();clearTimeout(debounce);});
 </script>
 <template>
  <div class="page evidence-page nfq-science-ui">
-  <header class="nfq-evidence-heading"><h1>Evidence & provenance</h1><ContextHelp label="About recorded references" title="Recorded reference details"><p>Links and source metadata come from the catalog. They do not independently establish study quality, pathogenicity or clinical relevance.</p></ContextHelp></header>
+  <header class="nfq-evidence-heading"><h1>Evidence & provenance</h1><div class="nfq-evidence-heading-actions"><button type="button" data-testid="evidence-copy-view" :disabled="!shareableView" @click="copyEvidenceView">Copy view link</button><ContextHelp label="About recorded references" title="Recorded reference details"><p>Links and source metadata come from the catalog. They do not independently establish study quality, pathogenicity or clinical relevance.</p></ContextHelp></div></header>
+  <p v-if="shareStatus" role="status" class="nfq-evidence-share-status">{{shareStatus}}</p>
   <RouterLink v-if="returnToVariant" class="nfq-journey-return" :to="returnToVariant">← Return to variant dossier</RouterLink>
   <div v-if="focusId" class="nfq-variant-scope"><span>References for variant record #{{focusId}}</span><RouterLink to="/evidence">All records</RouterLink></div>
   <div v-if="!focusId" class="evidence-search-head" role="search" aria-label="Find recorded scientific sources">
@@ -80,3 +91,11 @@ onUnmounted(()=>{abort?.abort();clearTimeout(debounce);});
 
  </div>
 </template>
+<style scoped>
+.nfq-evidence-heading-actions{display:inline-flex;align-items:center;gap:10px;flex:0 0 auto}
+.nfq-evidence-heading-actions button{border:1px solid #c8dbce;border-radius:6px;background:transparent;color:#2b6348;padding:8px 12px;font:inherit;font-size:12px;font-weight:600;min-height:40px;cursor:pointer}
+.nfq-evidence-heading-actions button:disabled{opacity:.45;cursor:not-allowed}
+.nfq-evidence-heading-actions button:focus-visible{outline:2px solid #218466;outline-offset:3px}
+.nfq-evidence-share-status{font-size:12px;color:#557463;margin:0 0 12px}
+@media(max-width:600px){.nfq-evidence-heading-actions{gap:6px}.nfq-evidence-heading-actions button{font-size:11px;padding:7px 9px}}
+</style>
