@@ -833,10 +833,15 @@ test('Helios evidence assessment makes missing provenance explicit across viewpo
  await page.goto('/#/helios');
  await page.getByRole('button',{name:'Evidence assessment'}).click();
  const assessment=page.getByRole('region',{name:'Evidence assessment'});
- for(const name of ['Recorded value','Proposed change','Supporting evidence','Uncertainty']){
+ for(const name of ['Recorded value','Proposed change']){
   await expect(assessment.getByRole('region',{name})).toBeVisible();
  }
+ await page.getByRole('button',{name:'2. Sources'}).click();
+ await expect(assessment.getByRole('region',{name:'Supporting evidence'})).toBeVisible();
  await expect(assessment).toContainText('No verified references loaded');
+ await page.getByRole('button',{name:'3. Uncertainty'}).click();
+ await expect(assessment.getByRole('region',{name:'Uncertainty'})).toBeVisible();
+ await expect(page.getByRole('button',{name:'3. Uncertainty'})).toHaveAttribute('aria-pressed','true');
  await expect(assessment).toContainText('No scientific decision is implied');
  await expect(page.getByRole('button',{name:/approve|reject|claim/i})).toHaveCount(0);
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
