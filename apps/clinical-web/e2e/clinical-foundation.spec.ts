@@ -42,7 +42,7 @@ test('reserved workspaces do not imply clinical functionality', async ({ page })
   await page.goto('/#/helios');
   await expect(page.getByRole('heading', { name: 'Helios', exact: true })).toBeVisible();
   await expect(page.getByText('Read-only preparation')).toBeVisible();
-  await expect(page.getByText('Not connected', {exact:true})).toBeVisible();
+  await expect(page.getByTestId('helios-status-banner')).toContainText('Not connected');
   await expect(page.getByText('No live decisions available')).toBeVisible();
 });
 
@@ -821,27 +821,27 @@ test('4F-10A paired variant routes keep identity and avoid false reference state
 test('Helios review areas stay accessible and do not imply authorized review operations',async({page})=>{
  await page.goto('/#/helios');
  await expect(page.getByRole('heading',{name:'Helios',exact:true})).toBeVisible();
- const history=page.getByRole('button',{name:'History',exact:true});
+ const history=page.getByTestId('helios-tab-history');
  await history.click();
  await expect(history).toHaveAttribute('aria-pressed','true');
- await expect(page.getByRole('region',{name:'History'})).toContainText('No live records or review actions');
+ await expect(page.getByTestId('helios-panel-history')).toContainText('No live records or review actions');
  await expect(page.getByRole('button',{name:/approve|reject|claim/i})).toHaveCount(0);
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
 
 test('Helios evidence assessment makes missing provenance explicit across viewports',async({page})=>{
  await page.goto('/#/helios');
- await page.getByRole('button',{name:'Evidence assessment'}).click();
- const assessment=page.getByRole('region',{name:'Evidence assessment'});
+ await page.getByTestId('helios-tab-evidence').click();
+ const assessment=page.getByTestId('helios-panel-evidence');
  for(const name of ['Recorded value','Proposed change']){
   await expect(assessment.getByRole('region',{name})).toBeVisible();
  }
- await page.getByRole('button',{name:'2. Sources'}).click();
+ await page.getByTestId('helios-step-sources').click();
  await expect(assessment.getByRole('region',{name:'Supporting evidence'})).toBeVisible();
  await expect(assessment).toContainText('No verified references loaded');
- await page.getByRole('button',{name:'3. Uncertainty'}).click();
+ await page.getByTestId('helios-step-uncertainty').click();
  await expect(assessment.getByRole('region',{name:'Uncertainty'})).toBeVisible();
- await expect(page.getByRole('button',{name:'3. Uncertainty'})).toHaveAttribute('aria-pressed','true');
+ await expect(page.getByTestId('helios-step-uncertainty')).toHaveAttribute('aria-pressed','true');
  await expect(assessment).toContainText('No scientific decision is implied');
  await expect(page.getByRole('button',{name:/approve|reject|claim/i})).toHaveCount(0);
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
@@ -849,30 +849,52 @@ test('Helios evidence assessment makes missing provenance explicit across viewpo
 
 test('Helios Signals and History remain integrated, accessible and read only',async({page})=>{
  await page.goto('/#/helios');
- await page.getByRole('button',{name:'Signals',exact:true}).click();
- await expect(page.getByRole('region',{name:'Signals'})).toContainText('Contradictions and drift');
- await expect(page.getByRole('region',{name:'Signals'})).toContainText('Not connected');
- await page.getByRole('button',{name:'History',exact:true}).click();
- await expect(page.getByRole('region',{name:'History'})).toContainText('Reviewer audit trail');
- await expect(page.getByRole('region',{name:'History'})).toContainText('Access restricted');
+ await page.getByTestId('helios-tab-signals').click();
+ await expect(page.getByTestId('helios-panel-signals')).toContainText('Contradictions and drift');
+ await expect(page.getByTestId('helios-panel-signals')).toContainText('Not connected');
+ await page.getByTestId('helios-tab-history').click();
+ await expect(page.getByTestId('helios-panel-history')).toContainText('Reviewer audit trail');
+ await expect(page.getByTestId('helios-panel-history')).toContainText('Access restricted');
  await expect(page.getByRole('button',{name:/approve|reject|run scan/i})).toHaveCount(0);
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
 
 test('Helios locked features explain that backend access is not yet connected',async({page})=>{
  await page.goto('/#/helios');
- await page.getByRole('button',{name:'Signals',exact:true}).click();
- const signals=page.getByRole('region',{name:'Signals'});
- await expect(signals.locator('.helios-restricted')).toHaveCount(3);
- await expect(signals.locator('.helios-restricted').first()).toHaveAttribute('title',/authorization is not yet connected/);
- await page.getByRole('button',{name:'History',exact:true}).click();
- await expect(page.getByRole('region',{name:'History'}).locator('.helios-restricted')).toHaveCount(3);
+ await page.getByTestId('helios-tab-signals').click();
+ const signals=page.getByTestId('helios-panel-signals');
+ await expect(signals.getByTestId('helios-locked-capability')).toHaveCount(3);
+ await expect(signals.getByTestId('helios-locked-capability').first()).toHaveAttribute('title',/authorization is not yet connected/);
+ await page.getByTestId('helios-tab-history').click();
+ await expect(page.getByTestId('helios-panel-history').getByTestId('helios-locked-capability')).toHaveCount(3);
 });
 
 test('Helios queue describes disconnected state without claiming denied access',async({page})=>{
  await page.goto('/#/helios');
- const queue=page.getByRole('region',{name:'Review queue'});
- await expect(queue.locator('.helios-read-state')).toContainText('Authorized review data has not been connected');
- await expect(page.locator('.helios-current')).toContainText('Read-only preparation');
+ const queue=page.getByTestId('helios-panel-queue');
+ await expect(queue.getByTestId('helios-review-read-state')).toContainText('Authorized review data has not been connected');
+ await expect(page.getByTestId('helios-status-banner')).toContainText('Read-only preparation');
  await expect(page.getByRole('button',{name:/approve|reject|claim/i})).toHaveCount(0);
+});
+
+test('Helios Signals offers real read-only evidence navigation without enabling scans',async({page})=>{
+ await page.goto('/#/helios');
+ await page.getByTestId('helios-tab-signals').click();
+ const signals=page.getByTestId('helios-panel-signals');
+ await expect(signals.getByRole('link',{name:'Evidence & Curation'})).toHaveAttribute('href',/#?\/?evidence/);
+ await expect(signals).toContainText('This does not run a Helios scan');
+ await expect(page.getByRole('button',{name:/run scan|approve|reject/i})).toHaveCount(0);
+});
+
+test('Helios navigation keeps accessible selection semantics independent of displayed copy',async({page})=>{
+ await page.goto('/#/helios');
+ for(const section of ['queue','evidence','signals','history']){
+  const tab=page.getByTestId('helios-tab-'+section);
+  await expect(tab).toHaveAttribute('type','button');
+  await tab.click();
+  await expect(tab).toHaveAttribute('aria-pressed','true');
+  await expect(page.getByTestId('helios-panel-'+section)).toBeVisible();
+ }
+ await expect(page.getByTestId('helios-panel-history').getByTestId('helios-locked-capability')).toHaveCount(3);
+ await expect(page.getByRole('button',{name:/approve|reject|run scan/i})).toHaveCount(0);
 });
