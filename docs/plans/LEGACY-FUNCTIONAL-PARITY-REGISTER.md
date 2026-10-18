@@ -176,3 +176,7 @@ NFQ-010, 018–023, 028–029, 031–038 are **not declared complete**. The sour
 ## Phase 4F-12Y — source-name documentation follow-up
 
 **NFQ-027 remains Partial and NFQ-029 remains Not migrated.** A new Research coverage filter isolates variants with one or more recorded references whose `source` metadata is missing, using a complete retrieved catalog and verifying that grouped source counts reconcile to linked references. It is **not** an expert priority queue, an assertion of missing published research or an evidence-quality assessment. No demographic/geographic activity is recorded, no scientific label changed, and the database is untouched. See `docs/plans/PHASE-4F-12Y-UNNAMED-SOURCE-WORKLIST.md`. Real source-curation acceptance remains outstanding.
+
+## Phase 4F-12Z — filtered documentation CSV
+
+**NFQ-027 remains Partial and NFQ-029 remains Not migrated.** The Research coverage workspace can now export a bounded CSV of *all currently filtered* recorded variants from a completely retrieved accessible catalog, including counts of recorded reference links and those with no recorded source name. Its purpose is documentation follow-up, not scientific quality, clinical priority, patient research or a whole-literature inventory. It performs no additional queries or writes. Formula-safe CSV escaping and source/count-integrity validation are tested; real-record download acceptance remains outstanding. See `docs/plans/PHASE-4F-12Z-DOCUMENTATION-EXPORT.md`.
