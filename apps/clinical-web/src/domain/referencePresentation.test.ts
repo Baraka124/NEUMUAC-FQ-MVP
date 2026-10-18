@@ -1,5 +1,5 @@
 import {it,expect} from 'vitest';
-import {referenceMetadata,dossierReferencePreview,DOSSIER_REFERENCE_PREVIEW_LIMIT} from './referencePresentation';
+import {referenceMetadata,referenceLinkConsistency,dossierReferencePreview,DOSSIER_REFERENCE_PREVIEW_LIMIT} from './referencePresentation';
 import type {LiveEvidenceReference} from '../services/liveEvidence';
 const base:LiveEvidenceReference={id:4,variantId:'12',title:'Recorded reference',url:'https://doi.org/10.1/test',source:'PubMed',type:null,category:null,journal:'Journal',year:2024,pmid:'12345',doi:'10.1/test',recordedQualityScore:null,recordedSourceWeight:null,recordedCitationCount:null};
 it('preserves recorded source fields without suggesting external verification',()=>{
