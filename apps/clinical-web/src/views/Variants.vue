@@ -18,6 +18,7 @@ import {retrieveClinVarSummary,type ClinVarAuthoritySummary} from '../services/l
 import {compareRecordedEvidence} from '../domain/evidenceComparison';
 import {createVariantResearchBrief,createVariantResearchBriefMarkdown} from '../services/researchBrief';
 import ContextHelp from '../components/ContextHelp.vue';
+import {readSavedVariantIds,savedVariantsCsv,toggleSavedVariant} from '../domain/savedVariants';
 import {scientificFieldInventory} from '../domain/scientificFieldInventory';
 import {createLiveResearchHistorySource,type ResearchHistory} from '../services/liveResearchHistory';
 import { createReadOnlyRepository, readConfigFromEnvironment, variantDisplayName, formatReadStatus, type RealVariant, type RealVariantSource } from '../services/liveVariants';
@@ -68,6 +69,32 @@ const rows=ref<readonly RealVariant[]>([]);
 
 const selected=ref<RealVariant|null>(null);
 const detailNotice=ref('');
+const savedOpen=ref(false);
+const savedNotice=ref('');
+function bookmarkStorage():Storage|null{try{return typeof window==='undefined'?null:window.localStorage;}catch{return null;}}
+const savedIds=ref<readonly string[]>(readSavedVariantIds(bookmarkStorage()));
+const selectedIsSaved=computed(()=>Boolean(selected.value&&savedIds.value.includes(selected.value.id)));
+function savedVariantLabel(id:string):string{
+ const record=selected.value?.id===id?selected.value:rows.value.find(v=>v.id===id);
+ return record?variantDisplayName(record):'Recorded variant #'+id;
+}
+function changeSavedVariant(id:string):void{
+ const outcome=toggleSavedVariant(bookmarkStorage(),id);
+ if(!outcome){savedNotice.value='This browser could not update the saved worklist. No change was recorded.';return;}
+ savedIds.value=outcome.ids;
+ savedNotice.value=outcome.saved?'Variant saved on this browser.':'Variant removed from saved worklist.';
+}
+function downloadSavedWorklist():void{
+ if(!savedIds.value.length)return;
+ const blob=new Blob([savedVariantsCsv(savedIds.value)],{type:'text/csv;charset=utf-8'});
+ const url=URL.createObjectURL(blob);
+ try{
+  const a=document.createElement('a');a.href=url;a.download='neumuacFQ-saved-variant-ids.csv';
+  document.body.appendChild(a);a.click();a.remove();
+  savedNotice.value='Saved IDs exported. Open each record for current scientific information.';
+ }finally{window.setTimeout(()=>URL.revokeObjectURL(url),5000);}
+}
+
 const selectedFromSearch=ref(false);
 watch(selected,()=>{
  clinVarAbort?.abort();
