@@ -868,3 +868,11 @@ test('Helios locked features explain that backend access is not yet connected',a
  await page.getByRole('button',{name:'History',exact:true}).click();
  await expect(page.getByRole('region',{name:'History'}).locator('.helios-restricted')).toHaveCount(3);
 });
+
+test('Helios queue describes disconnected state without claiming denied access',async({page})=>{
+ await page.goto('/#/helios');
+ const queue=page.getByRole('region',{name:'Review queue'});
+ await expect(queue.getByRole('status')).toContainText('Authorized review data has not been connected');
+ await expect(page.getByRole('status').first()).toContainText('Read-only preparation');
+ await expect(page.getByRole('button',{name:/approve|reject|claim/i})).toHaveCount(0);
+});
