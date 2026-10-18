@@ -60,16 +60,16 @@ const areas=[
     </template>
     <template v-if="area.id==='signals'">
      <div class="helios-recovery-sections" aria-label="Scientific signal capabilities">
-      <div><strong>Source assessment</strong><span>Internal and external evidence scans · Not connected</span></div>
-      <div><strong>Consistency</strong><span>Contradictions and drift · Not connected</span></div>
-      <div><strong>Monitoring</strong><span>Watch targets and scheduled checks · Not connected</span></div>
+      <div><strong>Source assessment</strong><span class="helios-restricted"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Internal and external evidence scans · Not connected</span></div>
+      <div><strong>Consistency</strong><span class="helios-restricted"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Contradictions and drift · Not connected</span></div>
+      <div><strong>Monitoring</strong><span class="helios-restricted"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Watch targets and scheduled checks · Not connected</span></div>
      </div>
     </template>
     <template v-if="area.id==='history'">
      <div class="helios-recovery-sections" aria-label="Review history capabilities">
-      <div><strong>Decisions</strong><span>Reviewer audit trail · Access restricted</span></div>
-      <div><strong>Validation</strong><span>Scientific validation chronology · Not connected</span></div>
-      <div><strong>Feedback</strong><span>Source feedback and review calibration · Not connected</span></div>
+      <div><strong>Decisions</strong><span class="helios-restricted"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Reviewer audit trail · Access restricted</span></div>
+      <div><strong>Validation</strong><span class="helios-restricted"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Scientific validation chronology · Not connected</span></div>
+      <div><strong>Feedback</strong><span class="helios-restricted"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Source feedback and review calibration · Not connected</span></div>
      </div>
     </template>
     <template v-if="area.id==='evidence'">
@@ -180,4 +180,9 @@ const areas=[
 .helios-recovery-sections strong{font-weight:600;font-size:.84rem}
 .helios-recovery-sections span{font-size:.78rem;color:var(--text-muted,#687381)}
 @media(max-width:620px){.helios-recovery-sections>div{display:block}.helios-recovery-sections span{display:block;margin-top:.35rem}}
+</style>
+
+<style scoped>
+.helios-restricted{display:inline-flex;align-items:center;gap:.45rem}
+.helios-restricted svg{flex:none;opacity:.7}
 </style>
