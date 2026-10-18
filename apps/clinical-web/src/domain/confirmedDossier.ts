@@ -4,6 +4,6 @@ import type {RealVariant} from '../services/liveVariants';
  * may be rendered as a confirmed scientific canvas record.
  */
 export function confirmedDossierRecord(requestedId:unknown,record:RealVariant|null|undefined):RealVariant|null{
- if(typeof requestedId!=='string'||!/^[1-9]\\d{0,17}$/.test(requestedId))return null;
+ if(typeof requestedId!=='string'||!/^[1-9]\d{0,17}$/.test(requestedId))return null;
  return record?.id===requestedId?record:null;
 }
