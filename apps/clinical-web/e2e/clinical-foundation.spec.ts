@@ -876,3 +876,12 @@ test('Helios queue describes disconnected state without claiming denied access',
  await expect(page.locator('.helios-current')).toContainText('Read-only preparation');
  await expect(page.getByRole('button',{name:/approve|reject|claim/i})).toHaveCount(0);
 });
+
+test('Helios Signals offers real read-only evidence navigation without enabling scans',async({page})=>{
+ await page.goto('/#/helios');
+ await page.getByRole('button',{name:'Signals',exact:true}).click();
+ const signals=page.getByRole('region',{name:'Signals'});
+ await expect(signals.getByRole('link',{name:'Evidence & Curation'})).toHaveAttribute('href',/#?\/?evidence/);
+ await expect(signals).toContainText('This does not run a Helios scan');
+ await expect(page.getByRole('button',{name:/run scan|approve|reject/i})).toHaveCount(0);
+});

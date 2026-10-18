@@ -70,6 +70,7 @@ const areas=[
       <div><strong>Consistency</strong><span class="helios-restricted" title="Unavailable in this build; authorization is not yet connected"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Contradictions and drift · Not connected</span></div>
       <div><strong>Monitoring</strong><span class="helios-restricted" title="Unavailable in this build; authorization is not yet connected"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Watch targets and scheduled checks · Not connected</span></div>
      </div>
+     <p class="helios-source-continuity">Recorded scientific references remain accessible in <RouterLink to="/evidence">Evidence &amp; Curation</RouterLink>. This does not run a Helios scan.</p>
     </template>
     <template v-if="area.id==='history'">
      <div class="helios-recovery-sections" aria-label="Review history capabilities">
@@ -191,4 +192,10 @@ const areas=[
 <style scoped>
 .helios-restricted{display:inline-flex;align-items:center;gap:.45rem}
 .helios-restricted svg{flex:none;opacity:.7}
+</style>
+
+<style scoped>
+.helios-source-continuity{font-size:.8rem;line-height:1.55;color:var(--text-muted,#687381);margin:1rem 0 0}
+.helios-source-continuity a{text-decoration:underline;text-underline-offset:3px}
+.helios-source-continuity a:focus-visible{outline:2px solid currentColor;outline-offset:3px}
 </style>
