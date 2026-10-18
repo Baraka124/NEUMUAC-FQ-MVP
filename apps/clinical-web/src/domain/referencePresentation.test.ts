@@ -26,3 +26,19 @@ it('puts undated references last and uses a stable identifier tie-breaker, not r
  ];
  expect(dossierReferencePreview(links).map(link=>link.id)).toEqual([1,3,5,9]);
 });
+
+
+it('shows only recorded study metadata without inferring a study design',()=>{
+ const entry={...base,type:'Article',category:'Publication'};
+ expect(referenceMetadata(entry)).toContain('Recorded type: Article');
+ expect(referenceMetadata(entry)).toContain('Recorded category: Publication');
+ expect(referenceMetadata({...entry,type:null,category:null}).some(s=>s.startsWith('Recorded type:'))).toBe(false);
+});
+it('compares stored DOI/PMID and links without scientific verification claims',()=>{
+ expect(referenceLinkConsistency({...base,url:'https://doi.org/10.1/test'})).toEqual({kind:'consistent',label:'Recorded DOI and link agree'});
+ expect(referenceLinkConsistency({...base,url:'https://doi.org/10.2/other'}).kind).toBe('mismatch');
+ expect(referenceLinkConsistency({...base,url:'https://pubmed.ncbi.nlm.nih.gov/12345/'}).kind).toBe('consistent');
+ expect(referenceLinkConsistency({...base,url:'https://pubmed.ncbi.nlm.nih.gov/12346/'}).kind).toBe('mismatch');
+ expect(referenceLinkConsistency({...base,url:'https://cftr2.org/',pmid:'12345'}).kind).toBe('unassessed');
+ expect(referenceLinkConsistency({...base,url:'https://doi.org/10.1/test',doi:null}).kind).toBe('unassessed');
+});
