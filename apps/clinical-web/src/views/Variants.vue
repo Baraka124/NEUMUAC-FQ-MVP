@@ -10,6 +10,7 @@ import {explainMultiTermMatch,rankVisibleSearchPage} from '../domain/searchPrese
 import {assessScientificDiscovery,parseDiscoveryTerms} from '../domain/compoundDiscovery';
 import {historicalDiscoveryHint} from '../domain/legacyDiscoveryHints';
 import {emptySearchReason} from '../domain/searchFeedback';
+import {confirmedDossierRecord} from '../domain/confirmedDossier';
 
 import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
 import {createScientificDossierSource,type ScientificDossier} from '../services/scientificDossier';
@@ -307,17 +308,20 @@ async function resolveSearch():Promise<void>{
 }
 async function loadDetail(id:unknown):Promise<void>{
   detailRequest?.abort();const run=++detailSequence;
-  const candidate=typeof id==='string'?rows.value.find(row=>row.id===id):undefined;
   selected.value=null;selectedFromSearch.value=false;detailNotice.value='';
   if(typeof id!=='string'||!source)return;
   const abort=new AbortController();detailRequest=abort;detailBusy.value=true;
-  try {const record=await source.get(id,abort.signal);if(run===detailSequence){
-    selected.value=record??candidate??null;
-    selectedFromSearch.value=!record&&Boolean(candidate);
-    if(!record&&candidate)detailNotice.value='The individual record could not be retrieved. Showing only fields returned by the search results; detailed scientific information remains unavailable.';
-    if(record||candidate)void revealSelectedRecord(id);
+  try {const record=await source.get(id,abort.signal);if(run===detailSequence&&!abort.signal.aborted){
+    // A list suggestion is not a verified dossier. Only the independently
+    // retrieved, identity-matching record may enter the scientific canvas.
+    selected.value=confirmedDossierRecord(id,record);
+    if(!selected.value)detailNotice.value='This variant record could not be verified. No scientific dossier is shown.';
+    else void revealSelectedRecord(id);
   }}
-  catch(e){if(!abort.signal.aborted&&run===detailSequence){selected.value=candidate??null;selectedFromSearch.value=Boolean(candidate);detailNotice.value=candidate?'The individual record could not be retrieved. Showing only fields returned by the search results; detailed scientific information remains unavailable.':formatReadStatus(e);}}
+  catch(e){if(!abort.signal.aborted&&run===detailSequence){
+    selected.value=null;
+    detailNotice.value=formatReadStatus(e);
+  }}
   finally {if(run===detailSequence)detailBusy.value=false;}
 }
 watch(()=>authController?.state.phase,()=>{current?.abort();detailRequest?.abort();rows.value=[];selected.value=null;page.value=0;void load();});
