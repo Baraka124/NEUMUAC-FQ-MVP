@@ -53,8 +53,17 @@ async function refresh(){
   if(!controller.signal.aborted&&run===sequence)error.value='Live references could not be retrieved.';
  }finally{if(run===sequence)loading.value=false;}
 }
-watch(query,()=>{page.value=0;});
-watch(focusId,()=>{page.value=0;expandedRows.value=[];});
+// Hash-route navigation can reuse this mounted view. Restore the actual
+// linked query and page instead of retaining a previous in-memory search.
+watch(()=>[route.query.q,route.query.page],()=>{
+ const raw=route.query.q;
+ const nextQuery=typeof raw==='string'&&/^[a-zA-Z0-9 _-]{0,70}$/.test(raw)?raw:'';
+ const rawPage=route.query.page;
+ const nextPage=typeof rawPage==='string'&&/^\\d{1,4}$/.test(rawPage)?Math.min(Number(rawPage),10000):0;
+ if(query.value!==nextQuery)query.value=nextQuery;
+ if(page.value!==nextPage)page.value=nextPage;
+});
+watch(focusId,()=>{expandedRows.value=[];});
 watch(page,()=>{expandedRows.value=[];});
 watch([query,page,focusId],()=>{clearTimeout(debounce);debounce=setTimeout(()=>{void refresh();},query.value?250:0);},{immediate:true});
 onUnmounted(()=>{abort?.abort();clearTimeout(debounce);});
@@ -67,7 +76,7 @@ onUnmounted(()=>{abort?.abort();clearTimeout(debounce);});
   <div v-if="focusId" class="nfq-variant-scope"><span>References for variant record #{{focusId}}</span><RouterLink to="/evidence">All records</RouterLink></div>
   <div v-if="!focusId" class="evidence-search-head" role="search" aria-label="Find recorded scientific sources">
    <label for="evidence-search">Find a source or reference</label>
-   <div class="nfq-science-search-line"><input id="evidence-search" v-model="query" type="search" placeholder="Title, source or PMID"/><button v-if="query" type="button" class="nfq-science-clear" @click="query=''">Clear search</button></div>
+   <div class="nfq-science-search-line"><input id="evidence-search" v-model="query" type="search" placeholder="Title, source or PMID" @input="page=0"/><button v-if="query" type="button" class="nfq-science-clear" @click="query='';page=0">Clear search</button></div>
   </div>
   <p v-if="loading" role="status">Loading current references…</p>
   <p v-else-if="error" role="alert" class="empty-result">{{error}}</p>
