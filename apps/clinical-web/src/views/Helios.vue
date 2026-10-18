@@ -1,6 +1,11 @@
 <script setup lang="ts">
-import {ref} from 'vue';
+import {computed,ref} from 'vue';
+import {describeHeliosReadState} from '../domain/heliosStatusPresentation';
+import type {HeliosReadState} from '../domain/heliosPublishedReview';
 const showContext=ref(false);
+// No authorized endpoint has been attached. Never infer access from a browser session.
+const reviewReadState=ref<HeliosReadState>({kind:'not-connected'});
+const reviewPresentation=computed(()=>describeHeliosReadState(reviewReadState.value));
 const selectedReviewId=ref<string|null>(null);
 function openReview(id:string){selectedReviewId.value=id;assessmentStep.value='record';selectedArea.value='evidence';}
 function closeReview(){selectedReviewId.value=null;selectedArea.value='queue';}
@@ -36,7 +41,7 @@ const areas=[
    <span class="helios-status-dot" aria-hidden="true"></span>
    <span>Read-only preparation</span>
    <span class="helios-status-sep" aria-hidden="true">·</span>
-   <span>Review records not connected</span>
+   <span>{{reviewPresentation.label}}</span>
   </div>
   <section class="helios-panel" aria-labelledby="helios-panel-title">
    <div class="helios-panel-heading">
@@ -52,6 +57,7 @@ const areas=[
     class="helios-area-detail" role="region" :aria-label="area.title">
     <h3>{{area.title}}</h3>
     <p>{{area.detail}}</p>
+    <div v-if="area.id==='queue'" class="helios-read-state" role="status">{{reviewPresentation.detail}}</div>
     <template v-if="area.id==='queue' && availableReviews.length">
      <div class="helios-proposal-list">
       <button v-for="review in availableReviews" :key="review.id" type="button"
