@@ -3,7 +3,7 @@ import { computed, nextTick, ref, watch, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import VariantFilterPanel from '../components/VariantFilterPanel.vue';
 import {cftr2LinkedReferences} from '../domain/externalReferenceTypes';
-import {referenceMetadata} from '../domain/referencePresentation';
+import {referenceMetadata,dossierReferencePreview} from '../domain/referencePresentation';
 import {safeResearchReturnPath,variantJourneyPath} from '../domain/researchJourney';
 import {authController,authSessionProvider} from '../services/authSession';
 import {explainMultiTermMatch,rankVisibleSearchPage} from '../domain/searchPresentation';
@@ -60,6 +60,7 @@ async function checkClinVar():Promise<void>{
 
 const linkedEvidence=ref<readonly LiveEvidenceReference[]>([]);
 const evidenceReady=ref(false);
+const previewEvidence=computed(()=>dossierReferencePreview(linkedEvidence.value));
 const cftr2References=computed(()=>cftr2LinkedReferences(linkedEvidence.value));
 const evidenceError=ref('');
 let evidenceAbort:AbortController|null=null;
@@ -189,7 +190,8 @@ watch(selected,async record=>{
 });
 watch(selected,async value=>{
  evidenceAbort?.abort(); linkedEvidence.value=[]; evidenceError.value='';evidenceReady.value=false;
- if(!value || !evidenceSource)return;
+ if(!value)return;
+ if(!evidenceSource){evidenceError.value='Recorded reference access is not configured.';return;}
  const controller=new AbortController(); evidenceAbort=controller;
  try {const result=await evidenceSource.forVariant(value.id,controller.signal);
    if(!controller.signal.aborted){linkedEvidence.value=result;evidenceReady.value=true;}
@@ -545,18 +547,25 @@ function select(id:string):void{
       </div>
      </section>
      <section v-if="!selectedFromSearch&&scientificDetailsOpen" class="variant-evidence-links" aria-label="Scientific references">
-      <h3 class="nfq-dossier-group-title">References</h3>
+      <div class="nfq-provenance-header">
+       <h3 class="nfq-dossier-group-title">References</h3>
+       <ContextHelp label="About recorded references" title="Recorded references and their limits">
+        <p>Source titles, publication years and identifiers are taken from the accessible research catalogue, not independently verified evidence assessments.</p>
+        <p>The dossier previews up to ten links, ordered by recorded publication year, with undated links last. This order does not measure study quality or clinical relevance. The evidence register offers additional pages.</p>
+       </ContextHelp>
+      </div>
       <div v-if="evidenceReady&&cftr2References.length" class="nfq-external-register" aria-label="CFTR2 source links">
        <span class="section-label">CFTR2 · LINKED REFERENCES</span>
        <ContextHelp label="About linked CFTR2 references" title="Linked CFTR2 records"><p>External CFTR2 links are recorded for this variant. The linked contents and conclusions have not been independently verified by NeumuacFQ.</p></ContextHelp>
        <ul><li v-for="item in cftr2References" :key="item.id"><a :href="item.url" rel="noopener noreferrer" target="_blank">{{item.title}} ↗</a></li></ul>
       </div>
-      <button class="disclosure-button" type="button" :disabled="!evidenceReady" :aria-expanded="showReferences" aria-controls="variant-reference-list" @click="showReferences=!showReferences"><span>{{showReferences?'Hide references':'Show references'}} · {{evidenceReady?linkedEvidence.length:evidenceError?'Unavailable':'Loading…'}}</span><span aria-hidden="true">{{showReferences?'−':'+'}}</span></button>
+      <button v-if="evidenceReady&&linkedEvidence.length" class="disclosure-button" type="button" :aria-expanded="showReferences" aria-controls="variant-reference-list" @click="showReferences=!showReferences"><span>{{showReferences?'Hide':'Show'}} references · {{previewEvidence.length}}{{linkedEvidence.length>previewEvidence.length?' of '+linkedEvidence.length:''}} recorded links</span><span aria-hidden="true">{{showReferences?'−':'+'}}</span></button>
       <p v-if="evidenceError" role="alert" class="rail-caption">{{evidenceError}}</p>
-      <p v-else-if="evidenceReady&&!linkedEvidence.length" class="rail-caption">No source links returned from this register; published evidence has not been assessed.</p>
-      <div id="variant-reference-list" v-show="showReferences">
-       <ul v-if="linkedEvidence.length" class="variant-evidence-list">
-        <li v-for="entry in linkedEvidence" :key="entry.id"><a :href="entry.url" target="_blank" rel="noopener noreferrer">{{entry.title}} ↗</a><span class="nfq-reference-meta">{{referenceMetadata(entry).join(" · ")}}</span></li>
+      <p v-else-if="!evidenceReady" role="status" class="rail-caption">Loading recorded references…</p>
+      <p v-else-if="!linkedEvidence.length" class="rail-caption">No source links returned from this register; published evidence has not been assessed.</p>
+      <div v-if="evidenceReady&&previewEvidence.length" id="variant-reference-list" v-show="showReferences">
+       <ul class="variant-evidence-list">
+        <li v-for="entry in previewEvidence" :key="entry.id"><a :href="entry.url" target="_blank" rel="noopener noreferrer">{{entry.title}} ↗</a><span class="nfq-reference-meta">{{referenceMetadata(entry).join(" · ")}}</span></li>
        </ul>
       </div>
       <RouterLink class="variant-evidence-browse" :to="{path:'/evidence',query:dossierReturn?{from:dossierReturn,variant:selected.id}:{}}">Browse the evidence register →</RouterLink>
