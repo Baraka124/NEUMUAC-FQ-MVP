@@ -226,8 +226,6 @@ const page=ref(typeof route.query.page==='string'&&/^\d{1,4}$/.test(route.query.
 const displayedRows=computed(()=>scientificInputAssessment.value.blocked?[]:
  (sort.value==='name-asc'&&page.value===0?rankVisibleSearchPage(rows.value,search.value):rows.value));
 const activeResultIndex=ref(-1);
-const previewCandidate=computed(()=>selected.value||detailBusy.value||route.params.id?null:
-    (displayedRows.value[activeResultIndex.value]??(search.value.trim()?displayedRows.value[0]:null)??null));
 let revealNextId:string|null=null;
 async function revealSelectedRecord(id:string):Promise<void>{
  if(revealNextId!==id)return;
@@ -338,7 +336,9 @@ watch([search,classFilter,sort,searchMode,page],updateWorklistRoute);
 function onSearchKeydown(event:KeyboardEvent):void{
  if(event.key==='Escape'){search.value='';return;}
  if(event.key==='ArrowDown'&&!pending.value&&!busy.value){event.preventDefault();focusResult(0);}
- if(event.key==='Enter'&&!pending.value&&!busy.value&&displayedRows.value.length){event.preventDefault();select(displayedRows.value[0].id);}
+ // Enter in the search field must not open the first substring result.
+ // It may only resolve an independently verified unambiguous exact identity.
+ if(event.key==='Enter'){event.preventDefault();if(!scientificInputAssessment.value.blocked)void resolveSearch();}
 }
 function onResultKeydown(event:KeyboardEvent,index:number):void{
  if(event.key==='ArrowDown'){event.preventDefault();focusResult(index+1);}
@@ -596,26 +596,11 @@ function select(id:string):void{
       </div>
      </div>
      </template>
-     <template v-else-if="previewCandidate">
-      <div class="research-preview" aria-label="Search result preview">
-       <span class="section-label">SEARCH PREVIEW · NOT OPENED</span>
-       <h2 id="selected-title">{{variantDisplayName(previewCandidate)}}</h2>
-       <p class="research-preview-intro">Recorded identity preview. Open the dossier for its scientific fields, references and history.</p>
-       <dl class="identity-grid">
-        <div><dt>Protein</dt><dd>{{previewCandidate.proteinName||'Not recorded'}}</dd></div>
-        <div><dt>cDNA</dt><dd>{{previewCandidate.cdnaName||'Not recorded'}}</dd></div>
-        <div><dt>Class (recorded)</dt><dd>{{previewCandidate.recordedClass||'Not recorded'}}</dd></div>
-        <div><dt>Recorded validations</dt><dd>{{previewCandidate.validationCount??'Not recorded'}}</dd></div>
-       </dl>
-       <button class="preview-open" type="button" @click="select(previewCandidate.id)">Open scientific dossier <span aria-hidden="true">→</span></button>
-       <p class="rail-caption">Textual match is not a clinical interpretation. Use ↑/↓ to explore results, Enter to open.</p>
-      </div>
-     </template>
      <template v-else>
       <div class="nfq-no-selection" aria-live="polite">
        <span class="section-label">SCIENTIFIC RECORD</span>
        <h2 id="selected-title">{{route.params.id?'Record unavailable':search.trim()&&!busy&&!error&&!displayedRows.length?'No matching variant':'Select a variant'}}</h2>
-       <p>{{route.params.id?'No accessible record was returned for this identifier.':search.trim()&&!busy&&!error&&!displayedRows.length?'No recorded variant matches the current search. Check the notation or try a recorded alias.':'Choose a variant from the results to examine its nomenclature and available references.'}}</p>
+       <p>{{route.params.id?'No accessible record was returned for this identifier.':search.trim()&&!busy&&!error&&!displayedRows.length?'No recorded variant matches the current search. Check the notation or try a recorded alias.':'Choose a result to open its dossier. An unambiguous exact match opens automatically.'}}</p>
       </div>
      </template>
     </article>
