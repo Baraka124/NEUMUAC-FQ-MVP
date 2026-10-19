@@ -41,3 +41,25 @@ describe('Helios server-verified read-only queue',()=>{
   await expect(fail.list()).rejects.toMatchObject({kind:'unavailable'});
  });
 });
+
+describe('Helios queue credentials under cancellation',()=>{
+ it('does not send a request if cancelled while awaiting token renewal',async()=>{
+  const abort=new AbortController(),send=vi.fn();
+  let finish:((jwt:string)=>void)|undefined;
+  const source=createHeliosQueueSource(cfg,{getAccessToken:()=>new Promise(done=>{finish=done;})},
+   send as typeof fetch);
+  const pending=source.list(0,abort.signal);
+  abort.abort();
+  finish!('old-session-token');
+  await expect(pending).rejects.toMatchObject({kind:'unavailable'});
+  expect(send).not.toHaveBeenCalled();
+ });
+ it('does not acquire a token when the load is already aborted',async()=>{
+  const abort=new AbortController(),getAccessToken=vi.fn(),send=vi.fn();
+  abort.abort();
+  const source=createHeliosQueueSource(cfg,{getAccessToken},send as typeof fetch);
+  await expect(source.list(0,abort.signal)).rejects.toMatchObject({kind:'unavailable'});
+  expect(getAccessToken).not.toHaveBeenCalled();
+  expect(send).not.toHaveBeenCalled();
+ });
+});
