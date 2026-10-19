@@ -87,4 +87,13 @@ jobs:
           PGPORT: '5432'
           PGDATABASE: review_test
         run: deno run --allow-net=127.0.0.1 --allow-env staging/review/006_private_queue_http_contract.mjs
+      - name: Verify immutable review ledger and lost-response retry recovery
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: postgres
+          PGPASSWORD: disposable-test-only
+          PGDATABASE: review_test
+        run: psql -X -v ON_ERROR_STOP=1 -f staging/review/007_recovery_audit_contract.sql
+
 
