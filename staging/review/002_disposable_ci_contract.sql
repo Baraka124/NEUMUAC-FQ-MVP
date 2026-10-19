@@ -229,5 +229,76 @@ do $append$ begin
  exception when sqlstate '55000' then null; end;
 end $append$;
 
+
+-- Verify review queue only with an authorized reviewer and private executor.
+-- A submitted item becomes visible as a bounded, redacted record.
+set role nfq_review_executor;
+set request.jwt.claim.sub='00000000-0000-0000-0000-000000000003';
+do $queue$ declare v jsonb;
+begin
+ v:=review_stage.review_queue(0);
+ if jsonb_typeof(v->'items')<>'array' or (v->>'offset')::int<>0 then
+  raise exception 'QUEUE STRUCTURE INVALID';
+ end if;
+ if not exists(
+  select 1 from jsonb_array_elements(v->'items') x
+  where x->>'decisionId'='NFQ-NOM-103' and x->>'phase'='under-review'
+ ) then raise exception 'PENDING REAL REVIEW FIXTURE MISSING'; end if;
+ if (v->'items')::text ~ '(proposer_id|reviewer_id|rationale|evidence_hash|actor_id)' then
+  raise exception 'QUEUE LEAKS REVIEWER OR SOURCE DETAILS';
+ end if;
+end $queue$;
+reset role;
+
+-- Contributor with membership but no reviewer role cannot list queue.
+set role nfq_review_executor;
+set request.jwt.claim.sub='00000000-0000-0000-0000-000000000001';
+do $denied$ begin
+ begin
+  perform review_stage.review_queue(0);
+  raise exception 'CONTRIBUTOR VIEWED REVIEWER QUEUE';
+ exception when insufficient_privilege then null; end;
+end $denied$;
+reset role;
+
+-- Revoked reviewer cannot list even with a still-enabled specialty grant.
+set role nfq_review_executor;
+set request.jwt.claim.sub='00000000-0000-0000-0000-000000000002';
+do $denied$ begin
+ begin
+  perform review_stage.review_queue(0);
+  raise exception 'REVOKED REVIEWER VIEWED QUEUE';
+ exception when insufficient_privilege then null; end;
+end $denied$;
+reset role;
+
+-- No direct browser RPC or table access.
+do $deny$ begin
+ if has_function_privilege('anon','review_stage.review_queue(integer)','EXECUTE')
+   or has_function_privilege('authenticated','review_stage.review_queue(integer)','EXECUTE')
+ then raise exception 'BROWSER CAN EXECUTE REVIEW QUEUE'; end if;
+end $deny$;
+
+set role authenticated;
+do $deny$ begin
+ begin
+  perform review_stage.review_queue(0);
+  raise exception 'AUTHENTICATED BROWSER ACCESSED PRIVATE QUEUE';
+ exception when insufficient_privilege then null; end;
+end $deny$;
+reset role;
+
+-- Deny invalid/unbounded page parameters even for authorized reviewers.
+set role nfq_review_executor;
+set request.jwt.claim.sub='00000000-0000-0000-0000-000000000003';
+do $pagination$ begin
+ begin
+  perform review_stage.review_queue(100000);
+  raise exception 'UNBOUNDED QUEUE OFFSET ACCEPTED';
+ exception when invalid_parameter_value then null; end;
+end $pagination$;
+reset role;
+
+
 select 'PHASE 14G2 PRIVATE STAGING TRANSACTION TESTS PASSED' as test_result;
 
