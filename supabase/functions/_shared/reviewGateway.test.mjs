@@ -97,3 +97,47 @@ test('strict submission boundary cannot be relabeled as scientific review or rel
  assert.equal(response.status,200);
  assert.equal(calls,1);
 });
+
+test('Supabase Auth rejects oversized or malformed tokens before any network access',async()=>{
+ let calls=0;
+ const verify=createSupabaseVerifier({
+  authOrigin:'https://cftr.supabase.co',
+  publishableKey:'sb_publishable_demo',
+  transport:async()=>{calls++;return new Response('{}',{status:401});}
+ });
+ for(const value of [null,42,'not-a-jwt','abc.def','x'.repeat(5000),token+' extra']){
+  assert.equal(await verify(value),null);
+ }
+ assert.equal(calls,0);
+});
+test('Supabase Auth requests are abortable and bounded when the provider stalls',async()=>{
+ let signal;
+ const verify=createSupabaseVerifier({
+  authOrigin:'https://cftr.supabase.co',publishableKey:'sb_publishable_demo',
+  authTimeoutMs:30,
+  transport:async (_url,init)=>{
+   signal=init.signal;
+   assert.equal(init.method,'GET');
+   assert.equal(init.cache,'no-store');
+   return new Promise((_resolve,reject)=>{
+    if(init.signal.aborted){reject(init.signal.reason);return;}
+    init.signal.addEventListener('abort',()=>reject(init.signal.reason),{once:true});
+   });
+  }
+ });
+ // AbortSignal.timeout uses an unref'd timer in Node. The mocked
+ // transport does not own a socket, so give CI a brief referenced timer.
+ const keepalive=setTimeout(()=>{},250);
+ try{
+  await assert.rejects(verify(token));
+  assert.ok(signal.aborted);
+ }finally{clearTimeout(keepalive)}
+});
+test('invalid Auth timeout configuration is refused before any provider request',()=>{
+ for(const ms of [0,9,10001,-1,NaN,'5000']){
+  assert.throws(()=>createSupabaseVerifier({
+   authOrigin:'https://cftr.supabase.co',
+   publishableKey:'sb_publishable_demo',authTimeoutMs:ms
+  }),/Invalid Auth timeout/);
+ }
+});
