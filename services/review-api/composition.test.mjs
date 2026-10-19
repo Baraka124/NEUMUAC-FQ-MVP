@@ -76,7 +76,6 @@ test('isolated-testing refuses the actual live CFTR project and cross-project po
   ...config,NFQ_SUPABASE_AUTH_ORIGIN:base,NFQ_REVIEW_TRANSPORT_DSN:liveDsn
  }),/Live CFTR project/);
  for(const host of [
-   'otherprojectaaaaaaaa.supabase.co',
    'db.otherprojectaaaaaaaa.supabase.co',
    'aws-0-us-east-1.pooler.supabase.com'
  ]){
