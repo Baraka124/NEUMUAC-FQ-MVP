@@ -65,7 +65,7 @@ watch(()=>authController?.state.phase,()=>{
 const assessmentStep=ref<'record'|'sources'|'uncertainty'>('record');
 const selectedArea=ref<'queue'|'evidence'|'signals'|'history'>('queue');
 const areas=[
- {id:'queue',title:'Review queue',detail:'Proposals, priority and ownership',state:'Awaiting authorized connection'},
+ {id:'queue',title:'Review queue',detail:'Recorded review decisions and stages',state:'Awaiting authorized connection'},
  {id:'evidence',title:'Evidence assessment',detail:'Proposed change and recorded supporting sources',state:'Scientific review pending'},
  {id:'signals',title:'Signals',detail:'Source scans, scientific drift and monitor targets',state:'Scans and monitoring not connected'},
  {id:'history',title:'History',detail:'Review chronology, validation and feedback',state:'Restricted until access review'}
@@ -121,7 +121,7 @@ const areas=[
     <div v-if="area.id==='queue'&&queueSource&&queuePage" class="helios-queue-pages" role="group" aria-label="Review queue pagination">
      <button type="button" :disabled="queueOffset===0||queuePhase==='loading'" @click="loadQueue(queueOffset-20)">Previous</button>
      <span>Page {{Math.floor(queueOffset/20)+1}}</span>
-     <button type="button" :disabled="!queuePage.hasMore||queuePhase==='loading'" @click="loadQueue(queueOffset+20)">Next</button>
+     <button type="button" :disabled="!queuePage.hasMore||queueOffset>=1000||queuePhase==='loading'" @click="loadQueue(queueOffset+20)">Next</button>
     </div>
     <p v-if="area.id==='queue'&&queueSource&&queuePhase==='sign-in-required'" class="helios-queue-access">
      <RouterLink to="/admin">Staff sign-in</RouterLink>
@@ -171,7 +171,7 @@ const areas=[
      </div>
      <div class="helios-empty-state" role="status">Evidence assessment is unavailable until authorized records and traceable sources are connected. No scientific decision is implied.</div>
     </template>
-    <div v-else class="helios-empty-state" role="status">{{area.state}}. No live records or review actions are shown.</div>
+    <div v-else-if="area.id==='queue'&&!queueSource" class="helios-empty-state" role="status">{{area.state}}. No review records or actions are connected.</div>
    </div>
   </section>
   <p class="helios-footnote">The existing research catalog remains available through <RouterLink to="/variants">Variants</RouterLink> and <RouterLink to="/evidence">Evidence</RouterLink>.</p>
