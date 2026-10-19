@@ -1,12 +1,12 @@
 // 14G6C: actual HTTP routes + trusted private command + disposable Postgres.
 // The fake verifyUser below is ONLY a fixture; no signed Supabase JWT is tested.
-import postgres from 'npm:postgres@3.4.7';
+import postgres from 'postgres';
 import {createReviewHttpServer} from '../../services/review-api/httpServer.mjs';
 import {createPrivateReviewExecutor} from '../../supabase/functions/_shared/privateReviewExecutor.mjs';
 
 const assert=(v,msg)=>{if(!v)throw new Error(msg)};
-if(!['127.0.0.1','localhost'].includes(Deno.env.get('PGHOST')||'') ||
- Deno.env.get('PGDATABASE')!=='review_test')
+if(!['127.0.0.1','localhost'].includes(process.env.PGHOST||'') ||
+ process.env.PGDATABASE!=='review_test')
  throw new Error('Do not run integration outside disposable PostgreSQL');
 
 const reviewerEng={userId:'11111111-1111-4111-8111-111111111113',sessionId:'cccccccc-cccc-4ccc-8ccc-cccccccccccc'};
@@ -36,7 +36,7 @@ const send=async(kind,actor,payload)=>{
  const response=await fetch(base+route,{method:'POST',headers:{
   origin:'https://fq.neumact.org','content-type':'application/json',
   authorization:'Bearer eyJhbGciOiJIUzI1NiJ9.'+actor+'.signature'},
-  body:JSON.stringify(payload)
+  body:JSON.stringify(payload),signal:AbortSignal.timeout(8000)
  });
  return {status:response.status,data:await response.json()};
 };
