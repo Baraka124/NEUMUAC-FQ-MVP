@@ -49,8 +49,8 @@ BEGIN
  IF current_user <> 'nfq_review_transport' THEN
   RAISE EXCEPTION 'Post-commit current_user retains privileged executor role';
  END IF;
- IF has_function_privilege(current_user,'review_stage.review_command(text,integer,integer,text,text,text,text,text)','EXECUTE') THEN
-  RAISE EXCEPTION 'Executor rights leaked from prior transaction';
+ IF has_schema_privilege(current_user,'review_stage','USAGE') THEN
+  RAISE EXCEPTION 'Private review schema leaked from prior transaction';
  END IF;
  IF coalesce(current_setting('request.jwt.claim.sub',true),'') <> '' THEN
   RAISE EXCEPTION 'Previous actor leaked from transaction';
