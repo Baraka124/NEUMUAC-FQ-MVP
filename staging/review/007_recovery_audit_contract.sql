@@ -89,25 +89,33 @@ $immutable$;
 
 -- Simulate a lost response and exact replay of the already committed release.
 -- State, review count, audit and idempotency must not change.
+-- Capture immutable audit baseline from test database owner; a restricted
+-- executor must never be granted raw audit table SELECT for this test.
+CREATE TEMP TABLE _nfq_retry_baseline AS SELECT
+ (SELECT COUNT(*) FROM review_stage.events WHERE decision_id='NFQ-NOM-101') AS events,
+ (SELECT COUNT(*) FROM review_stage.idempotency WHERE decision_id='NFQ-NOM-101') AS keys;
 SET ROLE nfq_review_executor;
 SET request.jwt.claim.sub='00000000-0000-0000-0000-000000000004';
 DO $retry$
-DECLARE before_events integer;before_keys integer;after_events integer;after_keys integer;
- v jsonb;
+DECLARE v jsonb;
 BEGIN
- SELECT COUNT(*) INTO before_events FROM review_stage.events WHERE decision_id='NFQ-NOM-101';
- SELECT COUNT(*) INTO before_keys FROM review_stage.idempotency WHERE decision_id='NFQ-NOM-101';
  v:=review_stage.review_command('NFQ-NOM-101',1,3,'release',null,null,
    'release-example01','Staging-only release');
  IF v->>'phase'<>'released' OR (v->>'replayed')::boolean<>true THEN
    RAISE EXCEPTION 'Retry did not return committed result';
  END IF;
+END
+$retry$;
+RESET ROLE;
+DO $verify_retry$
+DECLARE before_events integer;before_keys integer;after_events integer;after_keys integer;
+BEGIN
+ SELECT events,keys INTO before_events,before_keys FROM _nfq_retry_baseline;
  SELECT COUNT(*) INTO after_events FROM review_stage.events WHERE decision_id='NFQ-NOM-101';
  SELECT COUNT(*) INTO after_keys FROM review_stage.idempotency WHERE decision_id='NFQ-NOM-101';
  IF before_events<>after_events OR before_keys<>after_keys THEN
    RAISE EXCEPTION 'Lost-response replay appended duplicate audit';
  END IF;
 END
-$retry$;
-RESET ROLE;
+$verify_retry$;
 SELECT '14G5C AUDIT CHAIN, IMMUTABILITY AND LOST-RESPONSE RECOVERY PASSED' AS result;
