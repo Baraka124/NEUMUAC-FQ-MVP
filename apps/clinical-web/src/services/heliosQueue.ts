@@ -46,9 +46,31 @@ export function decodeHeliosQueuePage(value:unknown,expectedOffset:number):Helio
  });
  return {items,offset:expectedOffset,hasMore:v.hasMore};
 }
-export function createHeliosQueueSource(config:ReadOnlyConfig,session:ReadSessionProvider,transport:typeof fetch=fetch){
+/**
+ * The public catalog may remain on Supabase while an independently hosted,
+ * authenticated API (such as Railway) serves Helios.
+ * This is a build-time, non-secret endpoint setting, NOT a review permission.
+ * Never accept endpoint URLs from a search field or a server response.
+ */
+export function resolveHeliosQueueEndpoint(catalogOrigin:string,configuredApiOrigin?:string|null){
+ if(!configuredApiOrigin)return {url:catalogOrigin+'/functions/v1/nfq-review-queue',supabaseFunction:true} as const;
+ let parsed:URL;
+ try{parsed=new URL(configuredApiOrigin);}
+ catch{throw new HeliosQueueError('unavailable','Invalid configured review API origin');}
+ if(parsed.protocol!=='https:'||parsed.username||parsed.password||parsed.port||
+    parsed.search||parsed.hash||parsed.pathname!=='/'||
+    !parsed.hostname||parsed.hostname==='localhost'||
+    /^(?:\d+\.){3}\d+$/.test(parsed.hostname))
+   throw new HeliosQueueError('unavailable','Invalid configured review API origin');
+ return {url:parsed.origin+'/v1/helios/reviews',supabaseFunction:false} as const;
+}
+export function createHeliosQueueSource(
+ config:ReadOnlyConfig,session:ReadSessionProvider,transport:typeof fetch=fetch,
+ apiOrigin?:string|null
+){
  const base=validateReadOnlyConfig(config);
- const url=base.origin+'/functions/v1/nfq-review-queue';
+ const endpoint=resolveHeliosQueueEndpoint(base.origin,apiOrigin);
+ const url=endpoint.url;
  return {
   async list(offset=0,signal?:AbortSignal):Promise<HeliosQueuePage>{
    if(!Number.isSafeInteger(offset)||offset<0||offset>1000||offset%20!==0)
@@ -62,7 +84,8 @@ export function createHeliosQueueSource(config:ReadOnlyConfig,session:ReadSessio
    let response:Response;
    try{response=await transport(url+'?offset='+offset,{method:'GET',
     credentials:'omit',cache:'no-store',redirect:'error',signal,
-    headers:{Authorization:'Bearer '+token,apikey:config.publishableKey,Accept:'application/json'}});}
+    headers:{Authorization:'Bearer '+token,Accept:'application/json',
+     ...(endpoint.supabaseFunction?{apikey:config.publishableKey}:{})}});}
    catch(e){if(signal?.aborted)throw e;throw new HeliosQueueError('unavailable','Queue service unavailable');}
    if(response.status===401)throw new HeliosQueueError('sign-in-required','Session expired');
    if(response.status===403)throw new HeliosQueueError('access-denied','Review access not permitted');
@@ -80,6 +103,6 @@ export function configuredHeliosQueueSource(session:ReadSessionProvider|null|und
  if(import.meta.env.VITE_NFQ_HELIOS_QUEUE_ENABLED!=='true'||!session)return null;
  const cfg=readConfigFromEnvironment();
  if(!cfg)return null;
- try{return createHeliosQueueSource(cfg,session);}
+ try{return createHeliosQueueSource(cfg,session,fetch,import.meta.env.VITE_NFQ_REVIEW_API_ORIGIN);}
  catch{return null;}
 }
