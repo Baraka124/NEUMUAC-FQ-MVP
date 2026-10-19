@@ -1,0 +1,48 @@
+name: NeumuacFQ trusted review gateway contract
+on:
+  pull_request:
+    paths:
+      - 'supabase/functions/_shared/reviewGateway.mjs'
+      - 'supabase/functions/_shared/reviewGateway.test.mjs'
+      - 'supabase/functions/_shared/privateReviewExecutor.mjs'
+      - 'supabase/functions/_shared/privateReviewExecutor.test.mjs'
+      - 'supabase/functions/nfq-review/**'
+      - '.github/workflows/review-gateway-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/functions/_shared/reviewGateway.mjs'
+      - 'supabase/functions/_shared/reviewGateway.test.mjs'
+      - 'supabase/functions/_shared/privateReviewExecutor.mjs'
+      - 'supabase/functions/_shared/privateReviewExecutor.test.mjs'
+      - 'supabase/functions/nfq-review/**'
+      - '.github/workflows/review-gateway-contract.yml'
+permissions:
+  contents: read
+jobs:
+  auth-gateway:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Adversarial gateway and private transaction unit tests
+        run: node --test supabase/functions/_shared/reviewGateway.test.mjs supabase/functions/_shared/privateReviewExecutor.test.mjs
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Typecheck actual Edge Function candidate
+        run: deno check supabase/functions/nfq-review/index.ts
+      - name: Ensure production review connectivity is opt-in and browser code does not import secrets
+        run: |
+          set -euo pipefail
+          grep -q "NFQ_REVIEW_GATEWAY_ENABLED.*===.*true" supabase/functions/nfq-review/index.ts
+          grep -q "allowRelease:false" supabase/functions/nfq-review/index.ts
+          if grep -R -n -E 'NFQ_REVIEW_DB_URL|nfq_review_transport' apps/clinical-web/src; then
+            echo "Private review credential referenced from the browser bundle" >&2
+            exit 1
+          fi
