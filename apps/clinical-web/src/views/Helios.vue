@@ -171,7 +171,7 @@ const areas=[
      </div>
      <div class="helios-empty-state" role="status">Evidence assessment is unavailable until authorized records and traceable sources are connected. No scientific decision is implied.</div>
     </template>
-    <div v-else-if="area.id==='queue'&&!queueSource" class="helios-empty-state" role="status">{{area.state}}. No review records or actions are connected.</div>
+    <div v-else-if="area.id!=='queue'||!queueSource" class="helios-empty-state" role="status">{{area.state}}. No live records or review actions are shown.</div>
    </div>
   </section>
   <p class="helios-footnote">The existing research catalog remains available through <RouterLink to="/variants">Variants</RouterLink> and <RouterLink to="/evidence">Evidence</RouterLink>.</p>
