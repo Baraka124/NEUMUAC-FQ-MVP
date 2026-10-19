@@ -1,0 +1,36 @@
+name: NeumuacFQ backend-neutral review API contract
+on:
+  pull_request:
+    paths:
+      - 'services/review-api/**'
+      - 'supabase/functions/_shared/reviewQueueGateway.mjs'
+      - 'docs/architecture/PHASE-14G5-RAILWAY-API-CONTRACT.md'
+      - '.github/workflows/review-api-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'services/review-api/**'
+      - 'supabase/functions/_shared/reviewQueueGateway.mjs'
+      - '.github/workflows/review-api-contract.yml'
+permissions:
+  contents: read
+jobs:
+  http-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify portable GET-only, authorized review adapter
+        run: node --test services/review-api/httpServer.test.mjs
+      - name: Guard against production or backend connection assumptions
+        run: |
+          set -euo pipefail
+          if grep -R -n -E 'NFQ_REVIEW_DB_URL|SUPABASE_SERVICE_ROLE_KEY|DATABASE_URL' services/review-api; then
+            echo "Portable HTTP adapter may not handle private DB credentials" >&2
+            exit 1
+          fi
