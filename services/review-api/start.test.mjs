@@ -52,9 +52,16 @@ test('only narrow transport string and fixed options reach postgres adapter',asy
   });
   assert.equal(denied.status,401);
   const write=await fetch(base+'/v1/helios/submissions',{
-   method:'POST',headers:{Origin:'https://fq.neumact.org'}
+   method:'POST',headers:{Origin:'https://fq.neumact.org',
+    Authorization:'Bearer eyJhbGciOiJIUzI1NiJ9.e30.signature',
+    'content-type':'application/json'},
+   body:JSON.stringify({
+    decisionId:'NFQ-NOM-101',revision:1,expectedVersion:0,action:'submit',
+    idempotencyKey:'test-start-disabled',rationale:'Test proposal requires review'
+   })
   });
   assert.equal(write.status,503);
+  assert.deepEqual(await write.json(),{error:'not_connected'});
  }finally{await runtime.close()}
 });
 test('isolated process cannot bind a nonnumeric or over-range port',async()=>{
