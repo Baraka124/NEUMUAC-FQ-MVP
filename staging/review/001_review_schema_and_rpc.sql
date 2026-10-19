@@ -332,6 +332,67 @@ begin
 end;
 $body$;
 
+
+-- 14G4A: a deliberately narrow, read-only reviewer queue. Never expose
+-- review_stage tables or this private function to anon/authenticated.
+-- No proposer IDs, reviewers, rationale or unreviewed scientific claims.
+create function review_stage.review_queue(p_offset integer default 0)
+returns jsonb
+language plpgsql
+security definer
+set search_path=''
+as $queue$
+declare
+ v_actor uuid:=auth.uid();
+ v_row record;
+ v_count integer:=0;
+ v_items jsonb:='[]'::jsonb;
+ v_more boolean:=false;
+begin
+ if v_actor is null then
+  raise exception using errcode='28000',message='not_authenticated';
+ end if;
+ if p_offset is null or p_offset<0 or p_offset>1000 or p_offset%20<>0 then
+  raise exception using errcode='22023',message='invalid_page';
+ end if;
+ if not exists(
+  select 1 from public.nfq_research_memberships m
+  where m.user_id=v_actor and m.revoked_at is null
+    and m.role in ('reviewer','administrator')
+ ) or not exists(
+  select 1 from review_stage.actor_grants g
+  where g.actor_id=v_actor and g.enabled
+    and g.role_name in ('scientific','engineering','privacy','release-manager')
+ ) then
+  raise exception using errcode='42501',message='review_queue_denied';
+ end if;
+ for v_row in
+  select id,revision,kind,phase,row_version,created_at
+  from review_stage.decisions
+  where phase in ('under-review','ready-for-release')
+  order by created_at desc,id asc
+  limit 21 offset p_offset
+ loop
+  if v_count=20 then v_more:=true; exit; end if;
+  v_items:=v_items||jsonb_build_array(jsonb_build_object(
+    'decisionId',v_row.id,
+    'revision',v_row.revision,
+    'kind',v_row.kind,
+    'phase',v_row.phase,
+    'version',v_row.row_version,
+    'createdAt',to_char(v_row.created_at at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS"Z"')
+  ));
+  v_count:=v_count+1;
+ end loop;
+ return jsonb_build_object('items',v_items,'hasMore',v_more,'offset',p_offset);
+end;
+$queue$;
+
+revoke all on function review_stage.review_queue(integer)
+  from public,anon,authenticated;
+grant execute on function review_stage.review_queue(integer)
+  to nfq_review_executor;
+
 revoke all on function review_stage.review_command(
  text,integer,integer,text,text,text,text,text
 ) from public, anon, authenticated;
