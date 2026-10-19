@@ -25,3 +25,14 @@ All server-only values must be configured privately at deploy time; never place 
 - `PORT` — optional ephemeral port for isolated loopback tests. This implementation deliberately does not bind externally or accept Railway traffic.
 
 Production clinical review activation requires a **new explicitly reviewed phase**, not just flipping environment variables. The backend service package exists to reduce future migration work, not to bypass that gate.
+
+## Phase 14G8B — Explicit isolation of the live project
+
+For `NFQ_REVIEW_EXECUTION_SCOPE=isolated-testing`, the config rejects the known active
+CFTR Supabase project ref (`oxlkisjwfarseyqgeyuw`), regardless of valid-looking credentials.
+It requires a dedicated `db.<same-test-project>.supabase.co` hostname, standard database
+port and TLS `sslmode=require`. Pooler hostnames are deliberately not accepted in
+this **test-only** scope because their project mapping cannot be verified from
+the hostname alone. This is a defense-in-depth check, not certification that
+a different Supabase project is genuinely non-production. Live review activation
+still requires its own explicit security and scientific approval.

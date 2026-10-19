@@ -67,3 +67,27 @@ test('queue and both mutating paths remain disabled when only service is enabled
   }
  }finally{await new Promise(resolve=>server.close(resolve))}
 });
+
+test('isolated-testing refuses the actual live CFTR project and cross-project pooled hosts',()=>{
+ const productionRef='oxlkisjwfarseyqgeyuw';
+ const base='https://'+productionRef+'.supabase.co';
+ const liveDsn='postgres://nfq_review_transport:test-only@db.'+productionRef+'.supabase.co/postgres?sslmode=require';
+ assert.throws(()=>readReviewServiceConfig({
+  ...config,NFQ_SUPABASE_AUTH_ORIGIN:base,NFQ_REVIEW_TRANSPORT_DSN:liveDsn
+ }),/Live CFTR project/);
+ for(const host of [
+   'db.otherprojectaaaaaaaa.supabase.co',
+   'aws-0-us-east-1.pooler.supabase.com'
+ ]){
+  const x={...config,NFQ_REVIEW_TRANSPORT_DSN:
+   'postgres://nfq_review_transport:test-only@'+host+'/postgres?sslmode=require'};
+  assert.throws(()=>readReviewServiceConfig(x),/Isolated database host/);
+ }
+ for(const dsn of [
+  'postgres://nfq_review_transport:test-only@db.abcdefghijklmnopqrst.supabase.co:6543/postgres?sslmode=require',
+  'postgres://nfq_review_transport:test-only@db.abcdefghijklmnopqrst.supabase.co/postgres?sslmode=prefer',
+  'postgres://nfq_review_transport:test-only@db.abcdefghijklmnopqrst.supabase.co/postgres'
+ ]){
+  assert.throws(()=>readReviewServiceConfig({...config,NFQ_REVIEW_TRANSPORT_DSN:dsn}));
+ }
+});
