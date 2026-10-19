@@ -22,13 +22,13 @@ const reader=createPrivateReviewQueueReader({
  withTransaction:work=>db.begin(async tx=>
   work(async(statement,values)=>Array.from(await tx.unsafe(statement,values))))
 });
-const reviewer={userId:'00000000-0000-0000-0000-000000000003',
+const reviewer={userId:'11111111-1111-4111-8111-111111111113',
  sessionId:'cccccccc-cccc-4ccc-8ccc-cccccccccccc'};
-const contributor={userId:'00000000-0000-0000-0000-000000000001',
+const contributor={userId:'11111111-1111-4111-8111-111111111111',
  sessionId:'dddddddd-dddd-4ddd-8ddd-dddddddddddd'};
-const revokedReviewer={userId:'00000000-0000-0000-0000-000000000002',
+const revokedReviewer={userId:'11111111-1111-4111-8111-111111111112',
  sessionId:'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee'};
-const outsiders={userId:'00000000-0000-0000-0000-000000000009',
+const outsiders={userId:'11111111-1111-4111-8111-111111111119',
  sessionId:'ffffffff-ffff-4fff-8fff-ffffffffffff'};
 // No privileged identity/role can be supplied in query params or body.
 const tokens={
