@@ -125,8 +125,13 @@ test('Supabase Auth requests are abortable and bounded when the provider stalls'
    });
   }
  });
- await assert.rejects(verify(token));
- assert.ok(signal.aborted);
+ // AbortSignal.timeout uses an unref'd timer in Node. The mocked
+ // transport does not own a socket, so give CI a brief referenced timer.
+ const keepalive=setTimeout(()=>{},250);
+ try{
+  await assert.rejects(verify(token));
+  assert.ok(signal.aborted);
+ }finally{clearTimeout(keepalive)}
 });
 test('invalid Auth timeout configuration is refused before any provider request',()=>{
  for(const ms of [0,9,10001,-1,NaN,'5000']){
