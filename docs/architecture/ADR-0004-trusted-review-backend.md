@@ -1,7 +1,23 @@
 # ADR-0004 — Trusted scientific review and controlled release backend
 
-**Status:** Proposed architectural implementation · **Date:** 2026-10-14  
+**Status:** Isolated PostgreSQL transaction prototype verified; production connection not authorized · **Original ADR date:** 2026-10-14 · **Staging verification:** 2026-10-19  
 **Environment:** Offline workflow model only; no production Supabase policies, schema, edge function, UI, or Django deployment changed.
+
+
+## 2026-10-19 staging implementation and acceptance evidence
+
+PRs [#187](https://github.com/Baraka124/NEUMUAC-FQ-MVP/pull/187) and [#188](https://github.com/Baraka124/NEUMUAC-FQ-MVP/pull/188) are merged. Both executed on disposable PostgreSQL 17 through `.github/workflows/review-postgres-contract.yml`.
+
+- `staging/review/001_review_schema_and_rpc.sql` now defines `review_stage.review_command` in a non-exposed database schema, executable only by the dedicated `nfq_review_executor` role. The former public authenticated review RPC is not created in this staging design.
+- The command requires both a **current, non-revoked research membership** (`public.nfq_research_memberships`) and a separately authorized specialty grant. Reviewer and proposer independence, evidence digest, exact revision, row-version optimistic lock, atomic event insertion and idempotency-key matching are enforced within the transaction.
+- Fixture tests in `002_disposable_ci_contract.sql` deny direct anonymous/authenticated invocation; prohibit a revoked research member even with a surviving specialty grant; test duplicate keys, replays, stale version and forced event failure rollback; and verify the append-only review, idempotency and audit triggers.
+- `003_concurrent_review_contract.sh` starts **two separate database sessions**. One reviewer holds a row lock while the second, with a different valid specialty, attempts the same expected version. The second is observed blocked and then rejected; one review, one corresponding event, and a consistent version and idempotency count remain.
+- These tests use **simulated transaction-local identities** in a disposable database. They do **not** prove external JWT signature validation, protected connection-pool setup, production concurrency, production auditing, or live Supabase policy behavior.
+- **Future trusted service MUST verify the user token**, establish the authenticated subject in a private transaction, hold the executor credential exclusively on the server, enforce membership grant/revocation freshness and expose only narrowly scoped authorized request handlers. Never accept a subject/role asserted by a browser request body.
+- Shared authentication with neumDESK is a future verified identity integration boundary. Do not assume that a neumDESK client role or token already authorizes neumuacFQ scientific review.
+- **Do not deploy this staging SQL against the production Supabase project or turn on Helios writes.** Database grants locked down in 14G0–14G1 remain in force and need separate release assessment.
+
+This supersedes the original *proposed-only* implementation status below **only for isolated staging**. The full regulated scientific review feature remains unavailable in production.
 
 ## Decision
 
