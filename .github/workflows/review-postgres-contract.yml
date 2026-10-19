@@ -86,5 +86,5 @@ jobs:
           PGHOST: '127.0.0.1'
           PGPORT: '5432'
           PGDATABASE: review_test
-        run: deno run --allow-net=127.0.0.1 --allow-env=PGHOST,PGPORT,PGDATABASE staging/review/006_private_queue_http_contract.mjs
+        run: deno run --allow-net=127.0.0.1 --allow-env staging/review/006_private_queue_http_contract.mjs
 
