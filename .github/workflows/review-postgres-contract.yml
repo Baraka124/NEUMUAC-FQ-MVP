@@ -44,3 +44,11 @@ jobs:
           PGPASSWORD: disposable-test-only
           PGDATABASE: review_test
         run: psql -X -v ON_ERROR_STOP=1 -f staging/review/002_disposable_ci_contract.sql
+      - name: Verify competing reviewers serialize atomically
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: postgres
+          PGPASSWORD: disposable-test-only
+          PGDATABASE: review_test
+        run: bash staging/review/003_concurrent_review_contract.sh
