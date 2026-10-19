@@ -26,10 +26,10 @@ if(enabled && publicUrl && publicKey && dbUrl){
   verifyUser=createSupabaseVerifier({authOrigin:publicUrl,publishableKey:publicKey});
   const sql=postgres(dbUrl,{max:1,prepare:false,connect_timeout:5,idle_timeout:10});
   execute=createPrivateReviewExecutor({
-   withTransaction:work=>sql.begin(async tx=>{
+   withTransaction:(work:(query:(text:string,values:(string|number|null)[])=>Promise<unknown[]>)=>Promise<unknown>)=>sql.begin(async tx=>{
     // postgres.js uses parameterized .unsafe(text, values) within this
     // explicit transaction. No browser-supplied SQL names are interpolated.
-    return work((text:string,values:unknown[])=>tx.unsafe(text,values));
+    return work(async(text,values)=>Array.from(await tx.unsafe(text,values)));
    })
   });
   ready=true;
