@@ -60,3 +60,11 @@ jobs:
           PGPASSWORD: disposable-test-only
           PGDATABASE: review_test
         run: psql -X -v ON_ERROR_STOP=1 -f staging/review/004_private_session_contract.sql
+      - name: Verify dedicated transport remains least-privileged across transactions
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: postgres
+          PGPASSWORD: disposable-test-only
+          PGDATABASE: review_test
+        run: psql -X -v ON_ERROR_STOP=1 -f staging/review/005_transport_role_contract.sql
