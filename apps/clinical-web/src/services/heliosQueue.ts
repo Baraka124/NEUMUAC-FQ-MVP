@@ -37,7 +37,7 @@ export function decodeHeliosQueuePage(value:unknown,expectedOffset:number):Helio
      (x.phase!=='under-review'&&x.phase!=='ready-for-release')||
      !Number.isSafeInteger(x.revision)||(x.revision as number)<1||
      !Number.isSafeInteger(x.version)||(x.version as number)<0||
-     typeof x.createdAt!=='string'||!/^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\dZ$/.test(x.createdAt)||
+     typeof x.createdAt!=='string'||!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/.test(x.createdAt)||
      !Number.isFinite(Date.parse(x.createdAt)))
     throw new HeliosQueueError('unavailable','Invalid queue metadata');
   seen.add(x.decisionId);
