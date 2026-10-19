@@ -26,7 +26,7 @@ jobs:
         with:
           node-version: '22'
       - name: Verify portable GET-only, authorized review adapter
-        run: node --test services/review-api/httpServer.test.mjs services/review-api/composition.test.mjs
+        run: node --test services/review-api/httpServer.test.mjs services/review-api/composition.test.mjs services/review-api/authBoundary.test.mjs
       - name: Guard against production or backend connection assumptions
         run: |
           set -euo pipefail
