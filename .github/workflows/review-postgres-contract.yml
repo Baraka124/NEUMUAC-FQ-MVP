@@ -95,5 +95,19 @@ jobs:
           PGPASSWORD: disposable-test-only
           PGDATABASE: review_test
         run: psql -X -v ON_ERROR_STOP=1 -f staging/review/007_recovery_audit_contract.sql
+      - name: Provision isolated contributor and independent reviewer fixtures
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: postgres
+          PGPASSWORD: disposable-test-only
+          PGDATABASE: review_test
+        run: psql -X -v ON_ERROR_STOP=1 -f staging/review/008_write_http_fixture.sql
+      - name: Verify actual HTTP submission and review transactions against isolated PostgreSQL
+        env:
+          PGHOST: '127.0.0.1'
+          PGPORT: '5432'
+          PGDATABASE: review_test
+        run: deno run --allow-net=127.0.0.1 --allow-env staging/review/008_write_http_contract.mjs
 
 
