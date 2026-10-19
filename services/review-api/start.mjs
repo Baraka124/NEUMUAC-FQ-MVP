@@ -14,7 +14,7 @@ function portFrom(environment){
  const raw=environment.PORT??'0';
  if(!/^(?:0|[1-9]\d{0,4})$/.test(String(raw)))throw new Error('Invalid isolated service port');
  const value=Number(raw);
- if(value>65535)return 0; // Refuse invalid value below in next guard.
+ if(value>65535)throw new Error('Port outside supported range');
  return value;
 }
 export function createIsolatedReviewRuntime({environment=process.env,postgresFactory,authTransport=fetch}={}){
