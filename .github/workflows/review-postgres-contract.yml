@@ -52,3 +52,11 @@ jobs:
           PGPASSWORD: disposable-test-only
           PGDATABASE: review_test
         run: bash staging/review/003_concurrent_review_contract.sh
+      - name: Verify session revocation and transaction-local actor isolation
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: postgres
+          PGPASSWORD: disposable-test-only
+          PGDATABASE: review_test
+        run: psql -X -v ON_ERROR_STOP=1 -f staging/review/004_private_session_contract.sql
