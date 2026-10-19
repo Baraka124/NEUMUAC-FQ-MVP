@@ -17,11 +17,14 @@ export function createReviewHttpServer({
  executeReview=async()=>{throw new Error('Review writes disconnected');},
  enabled=false,
  submissionEnabled=false,
+ reviewerDecisionEnabled=false,
  allowedOrigin='https://fq.neumact.org'
 }={}){
  const handle=createReviewQueueGateway({verifyUser,readQueue,enabled,allowedOrigin});
  const handleSubmit=createReviewGateway({verifyUser,execute:executeReview,
    enabled:submissionEnabled,allowedOrigin,allowedAction:'submit',allowRelease:false});
+ const handleReview=createReviewGateway({verifyUser,execute:executeReview,
+   enabled:reviewerDecisionEnabled,allowedOrigin,allowedAction:'review',allowRelease:false});
  return createServer(async(req,res)=>{
   // Exact route contract; never proxy arbitrary URLs or leak request headers.
   let path;
@@ -33,7 +36,8 @@ export function createReviewHttpServer({
   }
   const queue=path.pathname==='/v1/helios/reviews';
   const submission=path.pathname==='/v1/helios/submissions';
-  if(!queue&&!submission){
+  const review=path.pathname==='/v1/helios/reviews/decisions';
+  if(!queue&&!submission&&!review){
    const reply=plain(404,JSON.stringify({error:'not_found'}));
    res.writeHead(reply.status,reply.headers);res.end(reply.body);return;
   }
@@ -42,7 +46,7 @@ export function createReviewHttpServer({
    const reply=plain(405,JSON.stringify({error:queue?'read_only':'method_denied'}));
    res.writeHead(reply.status,reply.headers);res.end(reply.body);return;
   }
-  if(submission&&path.search){
+  if((submission||review)&&path.search){
    const reply=plain(400,JSON.stringify({error:'invalid_request'}));
    res.writeHead(reply.status,reply.headers);res.end(reply.body);return;
   }
@@ -52,7 +56,7 @@ export function createReviewHttpServer({
    if(typeof req.headers.origin==='string')headers.set('origin',req.headers.origin);
    if(typeof req.headers.authorization==='string')headers.set('authorization',req.headers.authorization);
    if(typeof req.headers['content-type']==='string')headers.set('content-type',req.headers['content-type']);
-   if(submission&&req.method==='POST'){
+   if((submission||review)&&req.method==='POST'){
     // Hard cap enforced before constructing a Web Request. The downstream
     // handler independently parses and validates the small JSON command.
     const chunks=[];let n=0;let oversize=false;
@@ -65,10 +69,12 @@ export function createReviewHttpServer({
      req.resume();const reply=plain(413,JSON.stringify({error:'request_too_large'}));
      res.writeHead(reply.status,reply.headers);res.end(reply.body);return;
     }
-    response=await handleSubmit(new Request('http://127.0.0.1'+path.pathname,{
-     method:'POST',headers,body:Buffer.concat(chunks)
-    }));
-   }else response=await (queue?handle:handleSubmit)(new Request(
+    response=await (submission?handleSubmit:handleReview)(
+     new Request('http://127.0.0.1'+path.pathname,{
+      method:'POST',headers,body:Buffer.concat(chunks)
+     })
+    );
+   }else response=await (queue?handle:submission?handleSubmit:handleReview)(new Request(
     'http://127.0.0.1'+path.pathname+path.search,{method:req.method,headers}
    ));
   }catch{

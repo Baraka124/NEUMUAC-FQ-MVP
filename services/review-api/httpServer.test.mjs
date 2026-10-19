@@ -122,3 +122,72 @@ test('submission refuses invalid credentials and very large bodies before execut
   assert.equal(executed,0);
  });
 });
+
+const decision={decisionId:'NFQ-NOM-103',revision:1,expectedVersion:1,
+ action:'review',role:'scientific',vote:'approve',idempotencyKey:'review-science-0001',
+ rationale:'Independent source inspection supports recorded evidence'};
+const review=(base,body=decision,opts={})=>fetch(base+'/v1/helios/reviews/decisions'+(opts.path||''),{
+ method:opts.method||'POST',
+ headers:{origin,authorization:'Bearer '+token,'content-type':'application/json',...opts.headers},
+ body:opts.method==='GET'?undefined:JSON.stringify(body)
+});
+test('independent reviewer decision route is disabled even when submissions are enabled',async()=>{
+ await withServer({submissionEnabled:true,executeReview:async()=>{throw new Error('should not run');}},
+ async base=>{
+  const response=await review(base);
+  assert.equal(response.status,503);
+  assert.deepEqual(await response.json(),{error:'not_connected'});
+ });
+});
+test('review route permits review command only and returns redacted decision status',async()=>{
+ const invoked=[];
+ await withServer({
+  reviewerDecisionEnabled:true,verifyUser:async()=>actor,
+  executeReview:async(subject,command)=>{
+   invoked.push(subject,command);
+   return {decisionId:command.decisionId,revision:command.revision,version:2,
+     phase:'under-review',replayed:false,reviewerId:subject.userId,notes:'internal'};
+  }
+ },async base=>{
+  const res=await review(base);
+  assert.equal(res.status,200);
+  const body=await res.json();
+  assert.deepEqual(body,{decisionId:decision.decisionId,revision:1,version:2,
+   phase:'under-review',replayed:false});
+  assert.equal(JSON.stringify(body).includes(actor.userId),false);
+  assert.equal(invoked.length,2);
+  assert.equal(invoked[1].action,'review');
+  assert.equal(invoked[1].role,'scientific');
+  assert.equal((await review(base,{...decision,action:'submit',role:undefined,vote:undefined})).status,403);
+  assert.equal((await review(base,{...decision,action:'release',role:undefined,vote:undefined})).status,403);
+  assert.equal((await review(base,{...decision,actorId:actor.userId})).status,400);
+  assert.equal((await review(base,{...decision,role:'release-manager'})).status,400);
+  assert.equal((await review(base,{...decision,vote:'override'})).status,400);
+  assert.equal(invoked.length,2);
+ });
+});
+test('trusted PostgreSQL authorization, stale version, and missing evidence remain fail-closed',async()=>{
+ for(const [code,status] of [['42501',403],['40001',409],['23505',409],['23514',422]]){
+  await withServer({
+   reviewerDecisionEnabled:true,verifyUser:async()=>actor,
+   executeReview:async()=>{throw Object.assign(new Error('private database detail'),{code});}
+  },async base=>{
+   const res=await review(base);
+   assert.equal(res.status,status);
+   assert.equal((await res.text()).includes('private database detail'),false);
+  });
+ }
+});
+test('invalid origin, unauthorized token, GET and query manipulation cannot review',async()=>{
+ let count=0;
+ await withServer({
+  reviewerDecisionEnabled:true,verifyUser:async()=>actor,
+  executeReview:async()=>{count++;return {decisionId:decision.decisionId,revision:1,version:2,phase:'under-review'};}
+ },async base=>{
+  assert.equal((await review(base,decision,{headers:{origin:'https://attacker.example'}})).status,403);
+  assert.equal((await review(base,decision,{headers:{authorization:'Bearer bad'}})).status,401);
+  assert.equal((await review(base,decision,{method:'GET'})).status,405);
+  assert.equal((await review(base,decision,{path:'?act=release'})).status,400);
+  assert.equal(count,0);
+ });
+});
