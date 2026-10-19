@@ -95,5 +95,24 @@ jobs:
           PGPASSWORD: disposable-test-only
           PGDATABASE: review_test
         run: psql -X -v ON_ERROR_STOP=1 -f staging/review/007_recovery_audit_contract.sql
+      - name: Provision isolated contributor and independent reviewer fixtures
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: postgres
+          PGPASSWORD: disposable-test-only
+          PGDATABASE: review_test
+        run: psql -X -v ON_ERROR_STOP=1 -f staging/review/008_write_http_fixture.sql
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned PostgreSQL adapter inside disposable CI
+        run: npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund postgres@3.4.7
+      - name: Verify actual HTTP submission and review transactions against isolated PostgreSQL
+        env:
+          PGHOST: '127.0.0.1'
+          PGPORT: '5432'
+          PGDATABASE: review_test
+        run: node staging/review/008_write_http_contract.mjs
 
 
