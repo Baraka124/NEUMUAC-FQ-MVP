@@ -105,8 +105,11 @@ try{
   assert(response.status===403,'Revoked session retained review access');
   // No queue requests are allowed to create reviews/events in the first place.
   const verdict=await admin.unsafe(
-   "SELECT COUNT(*)::int AS n FROM review_stage.reviews WHERE decision_id='NFQ-NOM-103'");
-  assert(verdict[0].n===0,'GET review queue mutated a scientific review');
+   "SELECT (SELECT COUNT(*)::int FROM review_stage.reviews WHERE decision_id='NFQ-NOM-103') AS reviews, (SELECT COUNT(*)::int FROM review_stage.events WHERE decision_id='NFQ-NOM-103') AS events");
+  // Earlier disposable contract deliberately recorded one legitimate review
+  // and two events. All HTTP GETs must preserve that existing baseline.
+  assert(verdict[0].reviews===1&&verdict[0].events===2,
+   'HTTP GET modified the existing reviewer decision or audit baseline');
  }finally{await admin.end({timeout:2});}
  console.log('PASS: real-loopback HTTP + private PostgreSQL reviewer queue, '+counter+' requests, no writes');
 }finally{
