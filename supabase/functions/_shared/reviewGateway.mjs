@@ -112,17 +112,24 @@ export function createReviewGateway({verifyUser,execute,enabled=false,allowedOri
 }
 
 /** Verify token with the project's Auth API. Never trust decoded JWT alone. */
-export function createSupabaseVerifier({authOrigin,publishableKey,transport=fetch}){
+export function createSupabaseVerifier({authOrigin,publishableKey,transport=fetch,authTimeoutMs=5000}){
  let origin;
  try{origin=new URL(authOrigin);}
  catch{throw new Error('Invalid Auth URL');}
  if(origin.protocol!=='https:'||origin.pathname!=='/'||origin.search||
     origin.hash||origin.username||origin.password||!origin.hostname.endsWith('.supabase.co')||
     !publishableKey?.trim())throw new Error('Invalid server-side Auth configuration');
+ if(!Number.isSafeInteger(authTimeoutMs)||authTimeoutMs<10||authTimeoutMs>10000)
+  throw new Error('Invalid Auth timeout configuration');
  return async token=>{
+  // Cheap structural guard before contacting the remote Auth service.
+  // Cryptographic authority still belongs ONLY to the trusted Auth API.
+  if(typeof token!=='string'||token.length>4096||
+     !/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(token))
+   return null;
   const response=await transport(origin.origin+'/auth/v1/user',{
    method:'GET',headers:{Authorization:'Bearer '+token,apikey:publishableKey,
-     Accept:'application/json'},credentials:'omit',cache:'no-store',redirect:'error'
+     Accept:'application/json'},credentials:'omit',cache:'no-store',redirect:'error',signal:AbortSignal.timeout(authTimeoutMs)
   });
   if(response.status===401||response.status===403)return null;
   if(!response.ok)throw new Error('Auth unavailable');
