@@ -7,6 +7,7 @@ on:
       - 'supabase/functions/_shared/privateReviewExecutor.mjs'
       - 'supabase/functions/_shared/privateReviewExecutor.test.mjs'
       - 'supabase/functions/nfq-review/**'
+      - 'supabase/functions/nfq-review-queue/**'
       - '.github/workflows/review-gateway-contract.yml'
   push:
     branches: [main]
@@ -31,17 +32,18 @@ jobs:
         with:
           node-version: '22'
       - name: Adversarial gateway and private transaction unit tests
-        run: node --test supabase/functions/_shared/reviewGateway.test.mjs supabase/functions/_shared/privateReviewExecutor.test.mjs
+        run: node --test supabase/functions/_shared/reviewGateway.test.mjs supabase/functions/_shared/privateReviewExecutor.test.mjs supabase/functions/_shared/reviewQueueGateway.test.mjs
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
       - name: Typecheck actual Edge Function candidate
-        run: deno check supabase/functions/nfq-review/index.ts
+        run: deno check supabase/functions/nfq-review/index.ts supabase/functions/nfq-review-queue/index.ts
       - name: Ensure production review connectivity is opt-in and browser code does not import secrets
         run: |
           set -euo pipefail
           grep -q "NFQ_REVIEW_GATEWAY_ENABLED.*===.*true" supabase/functions/nfq-review/index.ts
           grep -q "allowRelease:false" supabase/functions/nfq-review/index.ts
+          grep -q "NFQ_REVIEW_QUEUE_ENABLED.*===.*true" supabase/functions/nfq-review-queue/index.ts
           if grep -R -n -E 'NFQ_REVIEW_DB_URL|nfq_review_transport' apps/clinical-web/src; then
             echo "Private review credential referenced from the browser bundle" >&2
             exit 1
