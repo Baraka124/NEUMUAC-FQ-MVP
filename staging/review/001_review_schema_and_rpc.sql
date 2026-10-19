@@ -106,10 +106,14 @@ end;
 $$;
 create trigger events_append_only before update or delete on review_stage.events
   for each row execute function review_stage.no_mutate_events();
+create trigger reviews_append_only before update or delete on review_stage.reviews
+  for each row execute function review_stage.no_mutate_events();
+create trigger idempotency_append_only before update or delete on review_stage.idempotency
+  for each row execute function review_stage.no_mutate_events();
 
--- RLS is defense in depth. The SECURITY DEFINER function is owned by the
--- schema owner and bypasses RLS; therefore its implementation MUST enforce
--- all role, actor and command checks. Direct API table writes are revoked.
+-- RLS is defense in depth. The private SECURITY DEFINER function is owned by
+-- the schema owner; it MUST enforce role and actor checks independently.
+-- Only the trusted executor receives function EXECUTE, never a browser role.
 alter table review_stage.decisions enable row level security;
 alter table review_stage.actor_grants enable row level security;
 alter table review_stage.evidence_checks enable row level security;
@@ -121,10 +125,11 @@ alter table review_stage.idempotency enable row level security;
 revoke all on all tables in schema review_stage from public, anon, authenticated;
 revoke all on all functions in schema review_stage from public, anon, authenticated;
 
--- The only authenticated caller surface. Identity via auth.uid() must be
--- provided by the VERIFIED Supabase/PostgREST JWT context. Local SQL tests
--- simulate that context; they do NOT prove JWT signature verification.
-create function public.nfq_stage_review_command(
+-- PRIVATE invocation surface. The future trusted server authenticates
+-- credentials, resolves the user identity and binds a transaction-local subject.
+-- This function is NOT exposed as a public/authenticated PostgREST RPC.
+-- Local tests simulate verified server identity; they cannot prove JWT checks.
+create function review_stage.review_command(
   p_decision_id text,
   p_revision integer,
   p_expected_version integer,
@@ -164,6 +169,19 @@ begin
           or p_role is null or p_role not in ('scientific','engineering','privacy')))
   then
     raise exception using errcode = '22023', message = 'invalid_command';
+  end if;
+
+  -- Verified research membership is separate from the specialty-review grant.
+  -- The trusted server MUST authenticate the JWT and supply the subject;
+  -- a browser may not connect as nfq_review_executor or choose this GUC.
+  if not exists (
+    select 1 from public.nfq_research_memberships m
+    where m.user_id = v_actor and m.revoked_at is null
+      and ( (p_action='submit' and m.role in ('contributor','reviewer','administrator'))
+         or (p_action='review' and m.role in ('reviewer','administrator'))
+         or (p_action='release' and m.role='administrator') )
+  ) then
+    raise exception using errcode='42501', message='active_membership_required';
   end if;
 
   -- This row lock is the serialization point. Every write and idempotency
@@ -314,10 +332,13 @@ begin
 end;
 $body$;
 
-revoke all on function public.nfq_stage_review_command(
+revoke all on function review_stage.review_command(
  text,integer,integer,text,text,text,text,text
 ) from public, anon, authenticated;
-grant execute on function public.nfq_stage_review_command(
+grant execute on function review_stage.review_command(
  text,integer,integer,text,text,text,text,text
-) to authenticated;
+) to nfq_review_executor;
+-- This role is held by a trusted application service, never by a browser.
+-- The schema is deliberately outside the exposed Supabase Data API.
+grant usage on schema review_stage to nfq_review_executor;
 commit;
