@@ -63,7 +63,7 @@ async function boundedJSON(request,maxBytes=4096){
  return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
 }
 /** No cookies or client-supplied actor/role ever determine authorization. */
-export function createReviewGateway({verifyUser,execute,enabled=false,allowedOrigin,allowRelease=false}){
+export function createReviewGateway({verifyUser,execute,enabled=false,allowedOrigin,allowRelease=false,allowedAction=null}){
  return async function handle(request){
   const origin=request.headers.get('origin');
   if(!allowedOrigin||!/^https:\/\/[^/]+$/.test(allowedOrigin))
@@ -85,6 +85,10 @@ export function createReviewGateway({verifyUser,execute,enabled=false,allowedOri
   try{command=decodeReviewCommand(await boundedJSON(request));}
   catch{return result(400,'invalid_request',allowedOrigin);}
   if(!command)return result(400,'invalid_command',allowedOrigin);
+  // A public route permits exactly one command class; browser cannot select
+  // reviewer authority or re-route a submission by changing JSON action.
+  if(allowedAction!==null&&command.action!==allowedAction)
+   return result(403,'action_not_permitted',allowedOrigin);
   if(command.action==='release'&&!allowRelease)
    return result(403,'release_not_enabled',allowedOrigin);
   let principal;

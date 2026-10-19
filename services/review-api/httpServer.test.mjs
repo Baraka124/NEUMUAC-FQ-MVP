@@ -76,3 +76,49 @@ test('revoked principal denied without revealing private failure or returning st
   assert.deepEqual(JSON.parse(body),{error:'access_denied'});
  });
 });
+
+const submission={decisionId:'NFQ-NOM-101',revision:1,expectedVersion:0,
+ action:'submit',idempotencyKey:'submit-fixture-01',
+ rationale:'Recorded source citation requires independent review'};
+const submit=(base,body=submission,opts={})=>fetch(base+'/v1/helios/submissions'+(opts.path||''),{
+ method:opts.method||'POST',headers:{origin,authorization:'Bearer '+token,
+ 'content-type':'application/json',...opts.headers},body:opts.method==='GET'?undefined:JSON.stringify(body)
+});
+test('contributor submit endpoint is independently disabled by default',async()=>{
+ await withServer({enabled:true,verifyUser:async()=>actor,readQueue:async()=>({items:[],hasMore:false,offset:0})},
+ async base=>{
+  const res=await submit(base);
+  assert.equal(res.status,503);assert.deepEqual(await res.json(),{error:'not_connected'});
+  assert.equal((await get(base)).status,200);
+ });
+});
+test('bounded submission accepts only a preverified decision submit command',async()=>{
+ const observed=[];
+ await withServer({submissionEnabled:true,verifyUser:async jwt=>{observed.push(jwt);return actor;},
+  executeReview:async(principal,command)=>{observed.push(principal,command);
+   return {decisionId:command.decisionId,revision:command.revision,version:1,phase:'under-review',replayed:false,eventId:'secret'};}},
+ async base=>{
+  const res=await submit(base);
+  assert.equal(res.status,200);
+  assert.deepEqual(await res.json(),{decisionId:'NFQ-NOM-101',revision:1,version:1,phase:'under-review',replayed:false});
+  assert.equal(observed[0],token);assert.deepEqual(observed[1],actor);
+  assert.equal(observed[2].action,'submit');
+  assert.equal((await submit(base,{...submission,action:'review',role:'scientific',vote:'approve'})).status,403);
+  assert.equal((await submit(base,{...submission,action:'release'})).status,403);
+  assert.equal((await submit(base,{...submission,userId:actor.userId})).status,400);
+  assert.equal((await submit(base,submission,{path:'?role=reviewer'})).status,400);
+  assert.equal((await submit(base,submission,{method:'GET'})).status,405);
+  assert.equal((await submit(base,submission,{headers:{origin:'https://other.example'}})).status,403);
+  assert.equal(observed.length,3);
+ });
+});
+test('submission refuses invalid credentials and very large bodies before execution',async()=>{
+ let executed=0;
+ await withServer({submissionEnabled:true,verifyUser:async()=>actor,
+  executeReview:async()=>{executed++;return {decisionId:'NFQ-NOM-101',revision:1,version:1,phase:'under-review'};}},
+ async base=>{
+  assert.equal((await submit(base,submission,{headers:{authorization:'Bearer wrong'}})).status,401);
+  assert.equal((await submit(base,{...submission,rationale:'X'.repeat(6000)})).status,413);
+  assert.equal(executed,0);
+ });
+});

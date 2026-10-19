@@ -84,3 +84,16 @@ test('Auth identity mismatch, revoked/invalid token and missing confirmed email 
   assert.equal(await verify(token),null);
  }
 });
+
+test('strict submission boundary cannot be relabeled as scientific review or release',async()=>{
+ let calls=0;
+ const gate=createReviewGateway({enabled:true,allowedOrigin:origin,allowedAction:'submit',
+  verifyUser:async()=>({userId,sessionId}),execute:async()=>{calls++;return ok;}});
+ const bad={...body,action:'review',role:'scientific',vote:'approve'};
+ assert.equal((await gate(request(bad))).status,403);
+ assert.equal((await gate(request({...body,action:'release'}))).status,403);
+ assert.equal(calls,0);
+ const response=await gate(request(body));
+ assert.equal(response.status,200);
+ assert.equal(calls,1);
+});
