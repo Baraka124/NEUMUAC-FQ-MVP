@@ -60,7 +60,7 @@ export function resolveHeliosQueueEndpoint(catalogOrigin:string,configuredApiOri
  if(parsed.protocol!=='https:'||parsed.username||parsed.password||parsed.port||
     parsed.search||parsed.hash||parsed.pathname!=='/'||
     !parsed.hostname||parsed.hostname==='localhost'||
-    /^(?:\\d+\\.){3}\\d+$/.test(parsed.hostname))
+    /^(?:\d+\.){3}\d+$/.test(parsed.hostname))
    throw new HeliosQueueError('unavailable','Invalid configured review API origin');
  return {url:parsed.origin+'/v1/helios/reviews',supabaseFunction:false} as const;
 }
