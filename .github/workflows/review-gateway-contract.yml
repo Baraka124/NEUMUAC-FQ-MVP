@@ -32,6 +32,11 @@ jobs:
           node-version: '22'
       - name: Adversarial gateway and private transaction unit tests
         run: node --test supabase/functions/_shared/reviewGateway.test.mjs supabase/functions/_shared/privateReviewExecutor.test.mjs
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Typecheck actual Edge Function candidate
+        run: deno check supabase/functions/nfq-review/index.ts
       - name: Ensure production review connectivity is opt-in and browser code does not import secrets
         run: |
           set -euo pipefail
