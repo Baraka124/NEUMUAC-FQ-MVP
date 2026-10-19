@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import {computed,ref} from 'vue';
+import {computed,ref,onMounted,onUnmounted,watch} from 'vue';
+import {authController} from '../services/authSession';
+import {configuredHeliosQueueSource,HeliosQueueError,type HeliosQueuePage} from '../services/heliosQueue';
 import {describeHeliosReadState} from '../domain/heliosStatusPresentation';
 import type {HeliosReadState} from '../domain/heliosPublishedReview';
 const showContext=ref(false);
@@ -10,11 +12,60 @@ const selectedReviewId=ref<string|null>(null);
 function openReview(id:string){selectedReviewId.value=id;assessmentStep.value='record';selectedArea.value='evidence';}
 function closeReview(){selectedReviewId.value=null;selectedArea.value='queue';}
 // No records are supplied until a server-authorized, provenance-reviewed endpoint exists.
-const availableReviews:readonly {id:string;label:string}[]=[];
+const queueSource=configuredHeliosQueueSource(authController);
+const queuePage=ref<HeliosQueuePage|null>(null);
+const queuePhase=ref<'not-connected'|'sign-in-required'|'loading'|'access-denied'|'empty'|'ready'|'unavailable'>(
+ queueSource?'loading':'not-connected'
+);
+const queueOffset=ref(0);
+const availableReviews=computed(()=>queuePage.value?.items??[]);
+const selectedReview=computed(()=>availableReviews.value.find(item=>item.decisionId===selectedReviewId.value)??null);
+const queueStatus=computed(()=>{
+ switch(queuePhase.value){
+  case 'not-connected':return {label:'Not connected',detail:'An authorized review queue has not been connected.'};
+  case 'loading':return {label:'Loading',detail:'Checking authorized review records…'};
+  case 'sign-in-required':return {label:'Sign-in required',detail:'Sign in with an authorized research account to access the review queue.'};
+  case 'access-denied':return {label:'Access restricted',detail:'This account does not have verified reviewer access.'};
+  case 'empty':return {label:'No pending reviews',detail:'No authorized pending review records were returned.'};
+  case 'ready':return {label:'Review queue · read only',detail:'Authorized decision metadata only. No scientific assessment or approval is implied.'};
+  case 'unavailable':return {label:'Unavailable',detail:'The authorized review queue could not be verified. No cached review data is shown.'};
+ }
+});
+let activeRequest:AbortController|null=null;
+let requestVersion=0;
+async function loadQueue(offset=0):Promise<void>{
+ if(!queueSource)return;
+ activeRequest?.abort();
+ const run=++requestVersion;
+ const controller=new AbortController();activeRequest=controller;
+ queuePage.value=null;
+ selectedReviewId.value=null;
+ queuePhase.value='loading';
+ try{
+  const page=await queueSource.list(offset,controller.signal);
+  if(controller.signal.aborted||run!==requestVersion)return;
+  queuePage.value=page;
+  queueOffset.value=offset;
+  queuePhase.value=page.items.length?'ready':'empty';
+ }catch(error){
+  if(controller.signal.aborted||run!==requestVersion)return;
+  queuePage.value=null;
+  queuePhase.value=error instanceof HeliosQueueError?error.kind:'unavailable';
+ }
+}
+onMounted(()=>{if(queueSource)void loadQueue();});
+onUnmounted(()=>{++requestVersion;activeRequest?.abort();});
+watch(()=>authController?.state.phase,()=>{
+ if(!queueSource)return;
+ ++requestVersion;activeRequest?.abort();queuePage.value=null;
+ selectedReviewId.value=null;queueOffset.value=0;
+ if(authController?.state.phase==='signed-in')void loadQueue();
+ else queuePhase.value='sign-in-required';
+});
 const assessmentStep=ref<'record'|'sources'|'uncertainty'>('record');
 const selectedArea=ref<'queue'|'evidence'|'signals'|'history'>('queue');
 const areas=[
- {id:'queue',title:'Review queue',detail:'Proposals, priority and ownership',state:'Awaiting authorized connection'},
+ {id:'queue',title:'Review queue',detail:'Recorded review decisions and stages',state:'Awaiting authorized connection'},
  {id:'evidence',title:'Evidence assessment',detail:'Proposed change and recorded supporting sources',state:'Scientific review pending'},
  {id:'signals',title:'Signals',detail:'Source scans, scientific drift and monitor targets',state:'Scans and monitoring not connected'},
  {id:'history',title:'History',detail:'Review chronology, validation and feedback',state:'Restricted until access review'}
@@ -41,12 +92,12 @@ const areas=[
    <span class="helios-status-dot" aria-hidden="true"></span>
    <span>Read-only preparation</span>
    <span class="helios-status-sep" aria-hidden="true">·</span>
-   <span>{{reviewPresentation.label}}</span>
+   <span>{{queueSource?queueStatus.label:reviewPresentation.label}}</span>
   </div>
   <section class="helios-panel" aria-labelledby="helios-panel-title">
    <div class="helios-panel-heading">
     <h2 id="helios-panel-title">Review workspace</h2>
-    <span class="helios-caption">No live decisions available</span>
+    <span class="helios-caption">{{queueSource?'Decision metadata only · no approvals':'No live decisions available'}}</span>
    </div>
    <div class="helios-area-nav" role="group" aria-label="Helios review areas">
     <button v-for="area in areas" :key="area.id" type="button" :data-testid="'helios-tab-'+area.id"
@@ -57,13 +108,24 @@ const areas=[
     class="helios-area-detail" role="region" :aria-label="area.title" :data-testid="'helios-panel-'+area.id">
     <h3>{{area.title}}</h3>
     <p>{{area.detail}}</p>
-    <div v-if="area.id==='queue'" class="helios-read-state" role="status" data-testid="helios-review-read-state">{{reviewPresentation.detail}}</div>
+    <div v-if="area.id==='queue'" class="helios-read-state" role="status" data-testid="helios-review-read-state">{{queueSource?queueStatus.detail:reviewPresentation.detail}}</div>
     <template v-if="area.id==='queue' && availableReviews.length">
      <div class="helios-proposal-list">
-      <button v-for="review in availableReviews" :key="review.id" type="button"
-       @click="openReview(review.id)">{{review.label}} <span aria-hidden="true">→</span></button>
+      <button v-for="review in availableReviews" :key="review.decisionId" type="button"
+       @click="openReview(review.decisionId)">
+       <span><strong>{{review.decisionId}}</strong> · {{review.kind==='alias-equivalence'?'Nomenclature':'Search disposition'}}</span>
+       <span>{{review.phase==='ready-for-release'?'Awaiting release':'Under review'}} <span aria-hidden="true">→</span></span>
+      </button>
      </div>
     </template>
+    <div v-if="area.id==='queue'&&queueSource&&queuePage" class="helios-queue-pages" role="group" aria-label="Review queue pagination">
+     <button type="button" :disabled="queueOffset===0||queuePhase==='loading'" @click="loadQueue(queueOffset-20)">Previous</button>
+     <span>Page {{Math.floor(queueOffset/20)+1}}</span>
+     <button type="button" :disabled="!queuePage.hasMore||queueOffset>=1000||queuePhase==='loading'" @click="loadQueue(queueOffset+20)">Next</button>
+    </div>
+    <p v-if="area.id==='queue'&&queueSource&&queuePhase==='sign-in-required'" class="helios-queue-access">
+     <RouterLink to="/admin">Staff sign-in</RouterLink>
+    </p>
     <template v-if="area.id==='signals'">
      <div class="helios-recovery-sections" aria-label="Scientific signal capabilities">
       <div><strong>Source assessment</strong><span class="helios-restricted" data-testid="helios-locked-capability" title="Unavailable in this build; authorization is not yet connected"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Internal and external evidence scans · Not connected</span></div>
@@ -82,7 +144,7 @@ const areas=[
     <template v-if="area.id==='evidence'">
      <div v-if="selectedReviewId" class="helios-selected-review">
       <button type="button" @click="closeReview">Back to review queue</button>
-      <span>Review {{selectedReviewId}}</span>
+      <span>Decision {{selectedReviewId}} · Read-only metadata</span>
      </div>
      <div class="helios-review-steps" role="group" aria-label="Evidence examination sequence">
       <button type="button" data-testid="helios-step-record" :aria-pressed="assessmentStep==='record'" @click="assessmentStep='record'">1. Comparison</button>
@@ -92,11 +154,11 @@ const areas=[
      <div class="helios-assessment-grid" aria-label="Evidence assessment structure">
       <section :hidden="assessmentStep!=='record'" class="helios-assessment-cell" aria-label="Recorded value">
        <span class="helios-assessment-label">Recorded value</span>
-       <p>Awaiting an authorized review record</p>
+       <p>{{selectedReview?'Selected '+selectedReview.kind.replace('-', ' ')+' record · No scientific values released.':'Awaiting an authorized review record'}}</p>
       </section>
       <section :hidden="assessmentStep!=='record'" class="helios-assessment-cell" aria-label="Proposed change">
        <span class="helios-assessment-label">Proposed change</span>
-       <p>No proposal selected</p>
+       <p>{{selectedReview?'Decision '+selectedReview.decisionId+' · Revision '+selectedReview.revision+'. Proposal details not yet authorized.':'No proposal selected'}}</p>
       </section>
       <section :hidden="assessmentStep!=='sources'" class="helios-assessment-cell" aria-label="Supporting evidence">
        <span class="helios-assessment-label">Supporting evidence</span>
@@ -109,7 +171,7 @@ const areas=[
      </div>
      <div class="helios-empty-state" role="status">Evidence assessment is unavailable until authorized records and traceable sources are connected. No scientific decision is implied.</div>
     </template>
-    <div v-else class="helios-empty-state" role="status">{{area.state}}. No live records or review actions are shown.</div>
+    <div v-else-if="area.id!=='queue'||!queueSource" class="helios-empty-state" role="status">{{area.state}}. No live records or review actions are shown.</div>
    </div>
   </section>
   <p class="helios-footnote">The existing research catalog remains available through <RouterLink to="/variants">Variants</RouterLink> and <RouterLink to="/evidence">Evidence</RouterLink>.</p>
@@ -198,4 +260,14 @@ const areas=[
 .helios-source-continuity{font-size:.8rem;line-height:1.55;color:var(--text-muted,#687381);margin:1rem 0 0}
 .helios-source-continuity a{text-decoration:underline;text-underline-offset:3px}
 .helios-source-continuity a:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+</style>
+
+<style scoped>
+.helios-queue-pages{display:flex;align-items:center;justify-content:space-between;gap:.7rem;margin:.9rem 0 .15rem;font-size:.78rem;color:var(--text-muted,#687381)}
+.helios-queue-pages button{border:1px solid var(--border,#dce2e7);background:transparent;border-radius:7px;padding:.55rem .8rem;font:inherit;color:inherit;cursor:pointer}
+.helios-queue-pages button:disabled{opacity:.4;cursor:not-allowed}
+.helios-queue-pages button:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.helios-queue-access a{text-decoration:underline;text-underline-offset:3px}
+.helios-proposal-list button strong{font-weight:600;letter-spacing:-.01em}
+@media(max-width:620px){.helios-proposal-list button{flex-direction:column;gap:.5rem}}
 </style>
