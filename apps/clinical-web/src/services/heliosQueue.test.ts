@@ -1,5 +1,5 @@
 import {describe,it,expect,vi} from 'vitest';
-import {createHeliosQueueSource,decodeHeliosQueuePage,HeliosQueueError} from './heliosQueue';
+import {createHeliosQueueSource,decodeHeliosQueuePage,HeliosQueueError,resolveHeliosQueueEndpoint} from './heliosQueue';
 const cfg={enabled:true,endpoint:'https://example.supabase.co',publishableKey:'sb_publishable_test_only'};
 const session={getAccessToken:vi.fn(async()=> 'real-user-jwt')};
 const item={decisionId:'NFQ-NOM-101',kind:'alias-equivalence',phase:'under-review',revision:1,version:2,createdAt:'2026-10-19T00:00:00Z'};
@@ -61,5 +61,33 @@ describe('Helios queue credentials under cancellation',()=>{
   await expect(source.list(0,abort.signal)).rejects.toMatchObject({kind:'unavailable'});
   expect(getAccessToken).not.toHaveBeenCalled();
   expect(send).not.toHaveBeenCalled();
+ });
+});
+
+describe('host-independent Helios backend contract (Railway-ready)',()=>{
+ it('keeps existing Supabase queue URL until explicitly configured',()=>{
+  expect(resolveHeliosQueueEndpoint('https://example.supabase.co'))
+   .toEqual({url:'https://example.supabase.co/functions/v1/nfq-review-queue',supabaseFunction:true});
+ });
+ it('accepts only a secure build-configured API origin and fixed path',()=>{
+  expect(resolveHeliosQueueEndpoint('https://example.supabase.co','https://review.example.org'))
+   .toEqual({url:'https://review.example.org/v1/helios/reviews',supabaseFunction:false});
+  for(const value of ['http://review.example.org','https://user:pass@review.example.org',
+   'https://review.example.org/path','https://review.example.org?token=x',
+   'https://localhost','https://127.0.0.1','/functions/v1/nfq-review-queue']){
+    expect(()=>resolveHeliosQueueEndpoint('https://example.supabase.co',value)).toThrow(HeliosQueueError);
+  }
+ });
+ it('sends a user bearer, but no Supabase API key or database credential, to the future API',async()=>{
+  const send=vi.fn(async()=>new Response(JSON.stringify({items:[],offset:0,hasMore:false}),{status:200}));
+  const source=createHeliosQueueSource(cfg,session,send as typeof fetch,'https://review.example.org');
+  expect((await source.list()).items).toEqual([]);
+  const [url,init]=send.mock.calls[0] as unknown as [string,RequestInit];
+  expect(url).toBe('https://review.example.org/v1/helios/reviews?offset=0');
+  expect(init.method).toBe('GET');
+  expect(init.credentials).toBe('omit');
+  expect(init.cache).toBe('no-store');
+  expect((init.headers as Record<string,string>).Authorization).toBe('Bearer real-user-jwt');
+  expect((init.headers as Record<string,string>).apikey).toBeUndefined();
  });
 });
