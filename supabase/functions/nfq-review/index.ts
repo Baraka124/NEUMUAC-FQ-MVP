@@ -10,8 +10,8 @@ const publicUrl=Deno.env.get('SUPABASE_URL')||'';
 const publicKey=Deno.env.get('SUPABASE_ANON_KEY')||'';
 const dbUrl=Deno.env.get('NFQ_REVIEW_DB_URL')||'';
 const allowedOrigin='https://fq.neumact.org';
-let verifyUser=async (_token:string)=>null;
-let execute=async (_principal:unknown,_command:unknown):Promise<never>=>{
+let verifyUser:(token:string)=>Promise<{userId:string;sessionId:string}|null>=async()=>null;
+let execute:(principal:any,command:any)=>Promise<any>=async()=>{
  throw new Error('Review backend not connected');
 };
 let ready=false;
