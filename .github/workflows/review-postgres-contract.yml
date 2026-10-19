@@ -68,3 +68,23 @@ jobs:
           PGPASSWORD: disposable-test-only
           PGDATABASE: review_test
         run: psql -X -v ON_ERROR_STOP=1 -f staging/review/005_transport_role_contract.sql
+      - name: Provision disposable least-privilege HTTP test identity
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: postgres
+          PGPASSWORD: disposable-test-only
+          PGDATABASE: review_test
+        run: psql -X -v ON_ERROR_STOP=1 -f staging/review/006_queue_http_fixture.sql
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Cache pinned PostgreSQL adapter only inside CI
+        run: deno cache staging/review/006_private_queue_http_contract.mjs
+      - name: Verify private queue over real loopback HTTP and PostgreSQL
+        env:
+          PGHOST: '127.0.0.1'
+          PGPORT: '5432'
+          PGDATABASE: review_test
+        run: deno run --allow-net=127.0.0.1 --allow-env staging/review/006_private_queue_http_contract.mjs
+
