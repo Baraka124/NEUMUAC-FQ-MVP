@@ -67,12 +67,23 @@ try{
    ['createdAt','decisionId','kind','phase','revision','version'].sort().join(','),
    'Response exposed private reviewer/proposer/evidence fields');
  }
+ // All requests share one PostgreSQL transport connection (max:1). Real
+ // parallel HTTP must never cache reviewer identity across transactions.
+ const parallelBefore=await Promise.all(Array.from({length:6},()=>get('reviewer')));
+ for(const concurrent of parallelBefore){
+  assert(concurrent.status===200,'Concurrent active reviewer was incorrectly denied');
+  const record=await concurrent.json();
+  assert(record.items.length>0,'Real database review data missing in concurrency check');
+ }
  for(const who of ['contributor','revoked','outsider']){
   response=await get(who);
   assert(response.status===403,who+' unexpectedly viewed private queue '+response.status);
   data=await response.json();
   assert(!JSON.stringify(data).includes('00000000'),'HTTP denied response leaks identities');
  }
+ // A denied contributor must not poison the same pooled DB connection.
+ response=await get('reviewer');
+ assert(response.status===200,'Previous denied actor leaked into authorized reviewer request');
  response=await get('reviewer','?offset=20');
  assert(response.status===200,'Valid pagination failed');
  response=await get('reviewer','?offset=1');
@@ -97,12 +108,20 @@ try{
   await admin.unsafe(
    "UPDATE public.nfq_research_memberships SET revoked_at=now() WHERE user_id=$1::uuid",
    [reviewer.userId]);
-  response=await get();
-  assert(response.status===403,'Revoked reviewer still has queue access');
+  const afterMembershipRevoked=await Promise.all(Array.from({length:8},()=>get()));
+  for(const denied of afterMembershipRevoked){
+   assert(denied.status===403,'Parallel request reused stale membership');
+   const result=await denied.json();
+   assert(result.error==='access_denied','Denied response contained unexpected data');
+  }
   await admin.unsafe(
    "DELETE FROM auth.sessions WHERE id=$1::uuid",[reviewer.sessionId]);
-  response=await get();
-  assert(response.status===403,'Revoked session retained review access');
+  const afterSessionRevoked=await Promise.all(Array.from({length:8},()=>get()));
+  for(const denied of afterSessionRevoked){
+   assert(denied.status===403,'Parallel request reused revoked session');
+   const result=await denied.json();
+   assert(result.error==='access_denied','Revoked session disclosed queue metadata');
+  }
   // No queue requests are allowed to create reviews/events in the first place.
   const verdict=await admin.unsafe(
    "SELECT (SELECT COUNT(*)::int FROM review_stage.reviews WHERE decision_id='NFQ-NOM-103') AS reviews, (SELECT COUNT(*)::int FROM review_stage.events WHERE decision_id='NFQ-NOM-103') AS events");
