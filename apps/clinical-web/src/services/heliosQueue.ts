@@ -53,7 +53,11 @@ export function createHeliosQueueSource(config:ReadOnlyConfig,session:ReadSessio
   async list(offset=0,signal?:AbortSignal):Promise<HeliosQueuePage>{
    if(!Number.isSafeInteger(offset)||offset<0||offset>1000||offset%20!==0)
     throw new HeliosQueueError('unavailable','Unsupported queue page');
+   // Abort may arrive while Supabase refreshes/restores a token. Never
+   // initiate a queue fetch with credentials from a cancelled session.
+   if(signal?.aborted)throw new HeliosQueueError('unavailable','Queue request interrupted');
    const token=await session.getAccessToken();
+   if(signal?.aborted)throw new HeliosQueueError('unavailable','Queue request interrupted');
    if(!token)throw new HeliosQueueError('sign-in-required','Sign in to view authorized reviews');
    let response:Response;
    try{response=await transport(url+'?offset='+offset,{method:'GET',
