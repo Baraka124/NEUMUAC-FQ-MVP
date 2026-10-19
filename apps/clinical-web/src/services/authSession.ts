@@ -66,8 +66,14 @@ export function createAuthController(auth:AuthPort) {
       }
     },
     async getAccessToken():Promise<string|null>{
+      // Do not promote a session fetched before sign-out or account switch.
+      // UI sessions grant no permissions; the server independently verifies JWT
+      // and its active session before returning private scientific records.
+      if(state.phase!=='signed-in')return null;
+      const requestSequence=sequence;
       try {
         const {data,error}=await auth.getSession();
+        if(requestSequence!==sequence||state.phase!=='signed-in')return null;
         if(error||!data.session?.access_token){++sequence;applySession(null);return null;}
         return data.session.access_token;
       }catch{return null;}
