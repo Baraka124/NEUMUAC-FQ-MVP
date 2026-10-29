@@ -141,3 +141,42 @@ test('invalid Auth timeout configuration is refused before any provider request'
   }),/Invalid Auth timeout/);
  }
 });
+
+test('Auth 200 with oversized declared response is rejected before parsing',async()=>{
+ const user={id:userId,email_confirmed_at:'2026-01-01T00:00:00Z'};
+ const verify=createSupabaseVerifier({
+  authOrigin:'https://cftr.supabase.co',publishableKey:'sb_publishable_demo',
+  transport:async()=>new Response(JSON.stringify(user),{
+   status:200,headers:{'content-length':'65537'}
+  })
+ });
+ await assert.rejects(verify(token),/Auth unavailable/);
+});
+test('Auth streamed response exceeding 64 KiB is canceled and never accepted',async()=>{
+ let canceled=false;
+ const verify=createSupabaseVerifier({
+  authOrigin:'https://cftr.supabase.co',publishableKey:'sb_publishable_demo',
+  transport:async()=>new Response(new ReadableStream({
+   start(controller){controller.enqueue(new Uint8Array(65537));},
+   cancel(){canceled=true;}
+  }),{status:200})
+ });
+ await assert.rejects(verify(token),/Auth unavailable/);
+ assert.equal(canceled,true);
+});
+test('Auth response parsing rejects invalid UTF-8 and malformed JSON',async()=>{
+ const verifyWithBody=body=>createSupabaseVerifier({
+  authOrigin:'https://cftr.supabase.co',publishableKey:'sb_publishable_demo',
+  transport:async()=>new Response(body,{status:200})
+ });
+ await assert.rejects(verifyWithBody(new Uint8Array([0xff,0xfe]))(token),/Auth unavailable/);
+ await assert.rejects(verifyWithBody('{"id":')(token),/Auth unavailable/);
+});
+test('bounded Auth parsing retains valid matching Supabase user identity',async()=>{
+ const user={id:userId,email_confirmed_at:'2026-01-01T00:00:00Z'};
+ const verify=createSupabaseVerifier({
+  authOrigin:'https://cftr.supabase.co',publishableKey:'sb_publishable_demo',
+  transport:async()=>new Response(JSON.stringify(user),{status:200})
+ });
+ assert.deepEqual(await verify(token),{userId,sessionId});
+});
