@@ -111,6 +111,40 @@ export function createReviewGateway({verifyUser,execute,enabled=false,allowedOri
  };
 }
 
+/**
+ * Bound the trusted Auth API response before parsing. A 200 response is still
+ * untrusted network input until its body has passed this limit and is parsed.
+ * No raw profile data or transport errors are included in client responses.
+ */
+async function readBoundedAuthUser(response,maxBytes=65536){
+ const stated=response.headers.get('content-length');
+ if(stated!==null&&(!/^[0-9]+$/.test(stated)||Number(stated)>maxBytes))
+  throw new Error('Auth unavailable');
+ if(!response.body)throw new Error('Auth unavailable');
+ const reader=response.body.getReader(),parts=[];
+ let size=0,done=false;
+ try{
+  while(true){
+   const next=await reader.read();
+   if(next.done){done=true;break;}
+   if(!(next.value instanceof Uint8Array))throw new Error('Auth unavailable');
+   size+=next.value.byteLength;
+   if(size>maxBytes)throw new Error('Auth unavailable');
+   parts.push(next.value);
+  }
+ }catch{
+  try{await reader.cancel();}catch{/* Transport is already unavailable. */}
+  throw new Error('Auth unavailable');
+ }finally{
+  if(!done)try{await reader.cancel();}catch{/* no-op */}
+  reader.releaseLock();
+ }
+ const bytes=new Uint8Array(size);let offset=0;
+ for(const part of parts){bytes.set(part,offset);offset+=part.byteLength;}
+ try{return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));}
+ catch{throw new Error('Auth unavailable');}
+}
+
 /** Verify token with the project's Auth API. Never trust decoded JWT alone. */
 export function createSupabaseVerifier({authOrigin,publishableKey,transport=fetch,authTimeoutMs=5000}){
  let origin;
@@ -133,7 +167,7 @@ export function createSupabaseVerifier({authOrigin,publishableKey,transport=fetc
   });
   if(response.status===401||response.status===403)return null;
   if(!response.ok)throw new Error('Auth unavailable');
-  const user=await response.json();
+  const user=await readBoundedAuthUser(response);
   if(!user||!uuid.test(user.id)||user.is_anonymous===true||
      !user.email_confirmed_at)return null;
   // The Auth API has verified this *same* token. Requiring matching subject
