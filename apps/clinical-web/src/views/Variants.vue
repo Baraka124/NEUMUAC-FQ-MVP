@@ -14,6 +14,7 @@ import {confirmedDossierRecord} from '../domain/confirmedDossier';
 
 import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
 import {createLegacyEtiSource,recordedEtiLabel,recordedTherapyFlag,type LegacyEtiRecord} from '../services/legacyEtiResponse';
+import SourceResponsePanel from '../components/SourceResponsePanel.vue';
 import {createScientificDossierSource,type ScientificDossier} from '../services/scientificDossier';
 import {clinVarVariationUrl} from '../domain/externalAuthority';
 import {retrieveClinVarSummary,type ClinVarAuthoritySummary} from '../services/liveClinVar';
@@ -546,6 +547,7 @@ function select(id:string):void{
           <p class="nfq-eti-legacy-note">A false historical flag is not proof of nonresponse. A recorded ETI label may be unknown or disagree with that flag. Database evidence levels and source labels are shown verbatim and are not verified research conclusions.</p>
           <RouterLink class="nfq-eti-citations" :to="{path:'/evidence',query:{variant:selected.id}}">Inspect linked research citations</RouterLink>
          </details>
+         <SourceResponsePanel :key="legacyEti.id" :variant-id="legacyEti.id" :legacy="legacyEti"/>
         </template>
        </section>
       </div><section v-if="!selectedFromSearch" class="dossier-science" aria-label="Additional scientific record details">
