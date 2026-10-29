@@ -65,7 +65,7 @@ describe('14H1 · historical ETI response parity without medical inference',()=>
   }
  });
  it('authenticated sessions must supply real bearer token and never use client role claims',async()=>{
-  const transport=vi.fn(async()=>new Response(JSON.stringify([row]),{status:200}));
+  const transport=vi.fn(async(_url:string,_init:RequestInit)=>new Response(JSON.stringify([row]),{status:200}));
   const restricted={...config,accessMode:'authenticated' as const};
   await expect(createLegacyEtiSource(restricted,transport as typeof fetch).get('18'))
     .rejects.toMatchObject({code:'authentication-required'});
