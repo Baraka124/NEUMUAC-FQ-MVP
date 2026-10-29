@@ -17,7 +17,7 @@ export interface LegacyEtiRecord {
  readonly lastEvidenceUpdate:string|null;
 }
 const columns='id,eti_prediction,therapy_responsive,eti_evidence_level,eti_evidence_tier,eti_authority_source,cftr2_eti_response,last_evidence_update';
-const idPattern=/^[1-9]\\d{0,17}$/;
+const idPattern=/^[1-9]\d{0,17}$/;
 
 function optionalText(value:unknown,field:string,max=220):string|null{
  if(value===null)return null;
@@ -39,7 +39,7 @@ export function decodeLegacyEtiRecord(value:unknown):LegacyEtiRecord{
  if(x.therapy_responsive!==null&&typeof x.therapy_responsive!=='boolean')
   throw new VariantConnectionError('schema-mismatch','Invalid legacy therapy response flag');
  const date=optionalText(x.last_evidence_update,'update date',10);
- if(date && (!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)||
+ if(date && (!/^\d{4}-\d{2}-\d{2}$/.test(date)||
    Number.isNaN(Date.parse(date+'T00:00:00Z'))||
    new Date(date+'T00:00:00Z').toISOString().slice(0,10)!==date))
   throw new VariantConnectionError('schema-mismatch','Invalid recorded evidence date');
@@ -78,7 +78,7 @@ export function createLegacyEtiSource(config:ReadOnlyConfig,transport:typeof fet
     if(!session)throw new VariantConnectionError('authentication-required','Staff session required');
     const jwt=await session.getAccessToken();
     if(!jwt||jwt===config.publishableKey||
-       !/^eyJ[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$/.test(jwt))
+       !/^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(jwt))
      throw new VariantConnectionError('authentication-required','Signed-in staff session required');
     headers.Authorization='Bearer '+jwt;
    }else if(mode==='anonymous'){
