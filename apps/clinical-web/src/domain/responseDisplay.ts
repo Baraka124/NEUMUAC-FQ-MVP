@@ -1,4 +1,5 @@
 import type {LegacyEtiCategory} from '../services/legacyEtiResponse';
+import type {RecordedModulatorResponse} from '../services/sourceSpecificResponse';
 
 /**
  * Display-only copy. Preserves the historical ETI value independently of
@@ -24,5 +25,17 @@ export function describeRecordedEti(value:LegacyEtiCategory|null):ResponseDispla
   default:return Object.freeze({
    label:'Not recorded',description:'No ETI category was returned for this record.',tone:'unresolved'
   });
+ }
+}
+
+/** Short source-register labels for a dense reference list. Not medical findings. */
+export function describeSourceFinding(value:RecordedModulatorResponse):string{
+ switch(value){
+  case 'responsive':return 'Responsive';
+  case 'non_responsive':return 'Non-responsive';
+  case 'mixed':return 'Mixed';
+  case 'inconclusive':return 'Inconclusive';
+  case 'unknown':return 'Unknown';
+  default:return 'Not recorded';
  }
 }
