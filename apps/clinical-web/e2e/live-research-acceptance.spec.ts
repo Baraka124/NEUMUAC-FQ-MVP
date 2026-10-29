@@ -101,3 +101,30 @@ test('deployed original ETI response classifications remain attributed and inspe
  await expect(region.getByText('A false historical flag is not proof of nonresponse.',{exact:false})).toBeVisible();
  await expect(region.getByRole('link',{name:'Inspect linked research citations'})).toBeVisible();
 });
+
+/**
+ * Opt-in real-source parity matrix, based on the read-only 2026-10-29 source
+ * inventory. These known recorded IDs are not fictitious browser fixtures.
+ * Any future data drift should fail acceptance and be examined, not silently
+ * accepted as a change in evidence or clinical classification.
+ */
+test('live original ETI category and source-specific response disagreement remains visible',async({page})=>{
+ await page.goto('/#/variants/14');
+ await expect(page.getByRole('heading',{name:'ETI response · original register'})).toBeVisible({timeout:25000});
+ await expect(page.getByText('Responsive · recorded legacy label')).toBeVisible({timeout:25000});
+ await expect(page.getByText('Non-responsive · source label')).toBeVisible({timeout:25000});
+ await expect(page.getByTestId('eti-parity-status')).toContainText('require comparison review');
+ await expect(page.getByTestId('eti-parity-signals')).toContainText('source-specific ETI label differs');
+ await expect(page.getByTestId('eti-parity-signals')).toContainText('historical therapy flag');
+ await expect(page.getByText('No document URL is recorded for this source.')).toBeVisible();
+});
+test('live recorded nonresponsive category is distinct from no source and from unknown',async({page})=>{
+ await page.goto('/#/variants/7');
+ await expect(page.getByText('Non-responsive · recorded legacy label')).toBeVisible({timeout:25000});
+ await expect(page.getByText('Non-responsive · source label')).toBeVisible({timeout:25000});
+ await expect(page.getByTestId('eti-parity-status')).toContainText('scientific verification pending');
+ await page.goto('/#/variants/44');
+ await expect(page.getByText('Unknown · recorded legacy label')).toBeVisible({timeout:25000});
+ await expect(page.getByText('No source-linked response rows in this register.',{exact:false})).toBeVisible({timeout:25000});
+ await expect(page.getByTestId('eti-parity-status')).toContainText('incomplete');
+});
