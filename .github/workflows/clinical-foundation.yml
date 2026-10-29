@@ -53,7 +53,8 @@ jobs:
 
   browser-smoke:
     name: Clinical browser / smoke
-    runs-on: ubuntu-latest
+    # Playwright 1.56 Chromium is not installable on the ubuntu-26.04 runner.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     defaults:
       run:
