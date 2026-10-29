@@ -76,7 +76,7 @@ function safeUrl(value:unknown):string|null{
 export function decodeResponseSource(value:unknown):ResponseSourceMetadata{
  const x=object(value);
  const year=x.year===null?null:x.year;
- if(year!==null&&(!Number.isInteger(year)||Number(year)<1900||Number(year)>2100))
+ if(year!==null&&(typeof year!=='number'||!Number.isInteger(year)||year<1900||year>2100))
   throw new VariantConnectionError('schema-mismatch','Invalid recorded publication year');
  if(x.is_active!==null&&typeof x.is_active!=='boolean')
   throw new VariantConnectionError('schema-mismatch','Invalid source activity flag');
@@ -96,7 +96,7 @@ interface ResponseRow {
 export function decodeResponseRow(value:unknown):ResponseRow{
  const x=object(value);
  const sample=x.sample_size===null?null:x.sample_size;
- if(sample!==null&&(!Number.isSafeInteger(sample)||Number(sample)<0))
+ if(sample!==null&&(typeof sample!=='number'||!Number.isSafeInteger(sample)||sample<0))
   throw new VariantConnectionError('schema-mismatch','Invalid recorded sample size');
  return Object.freeze({
   id:id(x.id),variantId:id(x.variant_id),sourceId:id(x.source_id),
