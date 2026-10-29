@@ -86,3 +86,18 @@ test('live scientific multi-term discovery preserves recorded identity and expla
  }
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
+
+test('deployed original ETI response classifications remain attributed and inspectable',async({page})=>{
+ // Live acceptance is opt-in. Never fabricate a response from fixture data.
+ await page.goto('/#/variants/18');
+ await expect(page.locator('#selected-title')).not.toContainText('Record unavailable',{timeout:25000});
+ const region=page.getByRole('region',{name:'ETI response · original register'});
+ await expect(region).toBeVisible();
+ const historical=region.locator('.nfq-eti-legacy-primary');
+ await expect(historical).toBeVisible({timeout:25000});
+ await expect(historical).toContainText(/recorded legacy label|No recorded ETI category/);
+ await region.getByText('Inspect recorded response fields and provenance').click();
+ await expect(region.getByText('Historical therapy response flag')).toBeVisible();
+ await expect(region.getByText('A false historical flag is not proof of nonresponse.',{exact:false})).toBeVisible();
+ await expect(region.getByRole('link',{name:'Inspect linked research citations'})).toBeVisible();
+});

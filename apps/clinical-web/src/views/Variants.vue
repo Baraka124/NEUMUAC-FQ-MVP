@@ -13,6 +13,7 @@ import {emptySearchReason} from '../domain/searchFeedback';
 import {confirmedDossierRecord} from '../domain/confirmedDossier';
 
 import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
+import {createLegacyEtiSource,recordedEtiLabel,recordedTherapyFlag,type LegacyEtiRecord} from '../services/legacyEtiResponse';
 import {createScientificDossierSource,type ScientificDossier} from '../services/scientificDossier';
 import {clinVarVariationUrl} from '../domain/externalAuthority';
 import {retrieveClinVarSummary,type ClinVarAuthoritySummary} from '../services/liveClinVar';
@@ -36,6 +37,11 @@ const liveMode = Boolean(config);
 const evidenceSource=config?createLiveEvidenceSource(config):null;
 const dossierSource=config?createScientificDossierSource(config):null;
 const dossier=ref<ScientificDossier|null>(null);
+const legacyEtiSource=config?createLegacyEtiSource(config,fetch,authSessionProvider):null;
+const legacyEti=ref<LegacyEtiRecord|null>(null);
+const legacyEtiError=ref('');
+const legacyEtiLoading=ref(false);
+let legacyEtiAbort:AbortController|null=null;
 const fieldInventory=computed(()=>dossier.value?scientificFieldInventory(dossier.value):null);
 const dossierError=ref('');
 let dossierAbort:AbortController|null=null;
@@ -210,6 +216,23 @@ watch(selected,async record=>{
  try{const data=await dossierSource.get(record.id,controller.signal);if(!controller.signal.aborted){dossier.value=data;if(!data)dossierError.value='No scientific metadata returned for this record.';}}
  catch{if(!controller.signal.aborted)dossierError.value='Scientific fields could not be loaded.';}
 });
+watch(selected,async record=>{
+ legacyEtiAbort?.abort();
+ legacyEti.value=null;legacyEtiError.value='';legacyEtiLoading.value=false;
+ if(!record||!legacyEtiSource)return;
+ const controller=new AbortController();legacyEtiAbort=controller;
+ legacyEtiLoading.value=true;
+ try{
+  const result=await legacyEtiSource.get(record.id,controller.signal);
+  if(!controller.signal.aborted&&selected.value?.id===record.id){
+   legacyEti.value=result;
+   if(!result)legacyEtiError.value='No recorded ETI response fields returned for this variant.';
+  }
+ }catch{
+  if(!controller.signal.aborted&&selected.value?.id===record.id)
+   legacyEtiError.value='Historical ETI response fields are unavailable for this record.';
+ }finally{if(!controller.signal.aborted)legacyEtiLoading.value=false;}
+});
 watch(selected,async value=>{
  evidenceAbort?.abort(); linkedEvidence.value=[]; evidenceError.value='';evidenceReady.value=false;
  if(!value)return;
@@ -349,7 +372,7 @@ watch(()=>authController?.state.phase,()=>{current?.abort();detailRequest?.abort
 watch([search,page,classFilter,sort,searchMode],()=>{clearTimeout(timer);current?.abort();exactRequest?.abort();++listSequence;++exactSequence;rows.value=[];hasMore.value=false;busy.value=false;completed.value=false;pending.value=!scientificInputAssessment.value.blocked;timer=setTimeout(()=>{void load();void resolveSearch();},search.value?250:0)},{immediate:true});
 watch([search,classFilter,sort,searchMode],()=>{page.value=0;});
 watch(()=>route.params.id,id=>{void loadDetail(id);},{immediate:true});
-onUnmounted(()=>{current?.abort();detailRequest?.abort();exactRequest?.abort();evidenceAbort?.abort();dossierAbort?.abort();clinVarAbort?.abort();briefAbort?.abort();historyAbort?.abort();clearTimeout(timer);});
+onUnmounted(()=>{current?.abort();detailRequest?.abort();exactRequest?.abort();evidenceAbort?.abort();dossierAbort?.abort();legacyEtiAbort?.abort();clinVarAbort?.abort();briefAbort?.abort();historyAbort?.abort();clearTimeout(timer);});
 function updateWorklistRoute():void {
  const query:Record<string,string>={};
  if(search.value.trim())query.q=search.value.trim();
@@ -500,6 +523,31 @@ function select(id:string):void{
         <div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div>
         <div><dt>Aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div>
        </dl>
+       <section class="nfq-eti-legacy" aria-labelledby="nfq-eti-response-heading">
+        <div class="nfq-eti-legacy-head">
+         <h3 id="nfq-eti-response-heading">ETI response · original register</h3><span>Historical record</span>
+        </div>
+        <p class="nfq-eti-legacy-note">These original database labels have not been independently adjudicated. They do not establish patient response, regulatory indication or treatment eligibility.</p>
+        <p v-if="legacyEtiLoading" role="status" class="nfq-eti-status">Loading recorded response…</p>
+        <p v-else-if="legacyEtiError" role="status" class="nfq-eti-status">{{legacyEtiError}}</p>
+        <p v-else-if="!legacyEtiSource" role="status" class="nfq-eti-status">Historical response source is not configured.</p>
+        <template v-else-if="legacyEti">
+         <div class="nfq-eti-legacy-primary"><span>ETI classification in original register</span><strong>{{recordedEtiLabel(legacyEti.recordedEtiCategory)}}</strong></div>
+         <details class="nfq-eti-legacy-details">
+          <summary>Inspect recorded response fields and provenance</summary>
+          <dl class="identity-grid nfq-supporting-fields">
+           <div><dt>Historical therapy response flag</dt><dd>{{recordedTherapyFlag(legacyEti.legacyTherapyFlag)}}</dd></div>
+           <div><dt>Recorded evidence level</dt><dd>{{legacyEti.recordedEvidenceLevel||'Not recorded'}}</dd></div>
+           <div><dt>Recorded evidence tier</dt><dd>{{legacyEti.recordedEvidenceTier||'Not recorded'}}</dd></div>
+           <div><dt>Recorded authority label</dt><dd>{{legacyEti.recordedAuthority||'Not recorded'}}</dd></div>
+           <div><dt>CFTR2 response field</dt><dd>{{legacyEti.recordedCftr2Response||'Not recorded'}}</dd></div>
+           <div><dt>Last recorded evidence update</dt><dd>{{legacyEti.lastEvidenceUpdate||'Not recorded'}}</dd></div>
+          </dl>
+          <p class="nfq-eti-legacy-note">A false historical flag is not proof of nonresponse. A recorded ETI label may be unknown or disagree with that flag. Database evidence levels and source labels are shown verbatim and are not verified research conclusions.</p>
+          <RouterLink class="nfq-eti-citations" :to="{path:'/evidence',query:{variant:selected.id}}">Inspect linked research citations</RouterLink>
+         </details>
+        </template>
+       </section>
       </div><section v-if="!selectedFromSearch" class="dossier-science" aria-label="Additional scientific record details">
       <p v-if="dossierError" role="alert">{{dossierError}}</p>
       <div class="nfq-details-control">
@@ -695,4 +743,20 @@ function select(id:string):void{
 .nfq-history-undated-label{font-size:11px;color:var(--muted,#526b7b);font-weight:600;margin:0 0 4px}
 .nfq-history-timeline li,.nfq-history-undated li{min-width:0;max-width:100%;overflow-wrap:anywhere}
 @media(max-width:640px){.nfq-history-time{font-size:10.5px}}
+
+.nfq-eti-legacy{margin-top:1rem;padding:1rem 1.15rem;border-top:1px solid var(--border,#dce2e7);background:var(--surface,#fff);border-radius:8px}
+.nfq-eti-legacy-head{display:flex;align-items:baseline;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
+.nfq-eti-legacy-head h3{margin:0;color:inherit;font-size:.94rem;font-weight:650}
+.nfq-eti-legacy-head span{font-size:.7rem;letter-spacing:.035em;text-transform:uppercase;color:var(--text-muted,#687381)}
+.nfq-eti-legacy-note{font-size:.76rem;line-height:1.6;color:var(--text-muted,#687381);margin:.6rem 0}
+.nfq-eti-status{font-size:.79rem;color:var(--text-muted,#687381);margin:.8rem 0 0}
+.nfq-eti-legacy-primary{display:flex;align-items:baseline;gap:.6rem 1.4rem;flex-wrap:wrap;margin-top:.8rem}
+.nfq-eti-legacy-primary span{font-size:.76rem;color:var(--text-muted,#687381)}
+.nfq-eti-legacy-primary strong{font-weight:650;font-size:.9rem;overflow-wrap:anywhere}
+.nfq-eti-legacy-details{margin-top:.8rem;border-top:1px solid var(--border,#dce2e7);padding-top:.7rem}
+.nfq-eti-legacy-details summary{font-size:.76rem;font-weight:600;cursor:pointer;padding:.25rem 0}
+.nfq-eti-legacy-details summary:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+.nfq-eti-legacy-details .identity-grid{margin-top:.8rem}
+.nfq-eti-citations{font-size:.77rem;font-weight:600;display:inline-block;margin-top:.3rem}
+@media(max-width:640px){.nfq-eti-legacy{padding:.85rem}.nfq-eti-legacy-primary{display:block}.nfq-eti-legacy-primary strong{display:block;margin-top:.25rem}}
 </style>
