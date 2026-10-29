@@ -13,7 +13,8 @@ import {emptySearchReason} from '../domain/searchFeedback';
 import {confirmedDossierRecord} from '../domain/confirmedDossier';
 
 import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
-import {createLegacyEtiSource,recordedEtiLabel,recordedTherapyFlag,type LegacyEtiRecord} from '../services/legacyEtiResponse';
+import {createLegacyEtiSource,recordedTherapyFlag,type LegacyEtiRecord} from '../services/legacyEtiResponse';
+import {describeRecordedEti} from '../domain/responseDisplay';
 import SourceResponsePanel from '../components/SourceResponsePanel.vue';
 import {createScientificDossierSource,type ScientificDossier} from '../services/scientificDossier';
 import {clinVarVariationUrl} from '../domain/externalAuthority';
@@ -524,31 +525,41 @@ function select(id:string):void{
         <div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div>
         <div><dt>Aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div>
        </dl>
-       <section class="nfq-eti-legacy" aria-labelledby="nfq-eti-response-heading">
-        <div class="nfq-eti-legacy-head">
-         <h3 id="nfq-eti-response-heading">ETI response · original register</h3><span>Historical record</span>
+       <section class="nfq-response-section" aria-labelledby="nfq-eti-response-heading">
+        <div class="nfq-response-heading">
+         <div class="nfq-response-heading-copy">
+          <span class="nfq-response-eyebrow">MODULATOR EVIDENCE</span>
+          <h3 id="nfq-eti-response-heading">ETI response</h3>
+         </div>
+         <ContextHelp label="About recorded ETI response" title="Interpreting the original data">
+          <p>These are historical research database categories and source findings, not verified patient responses or treatment recommendations.</p>
+          <p>Unknown, missing, and conflicting records remain distinct. A historical therapy-response flag cannot establish ETI efficacy.</p>
+         </ContextHelp>
         </div>
-        <p class="nfq-eti-legacy-note">These original database labels have not been independently adjudicated. They do not establish patient response, regulatory indication or treatment eligibility.</p>
-        <p v-if="legacyEtiLoading" role="status" class="nfq-eti-status">Loading recorded response…</p>
-        <p v-else-if="legacyEtiError" role="status" class="nfq-eti-status">{{legacyEtiError}}</p>
-        <p v-else-if="!legacyEtiSource" role="status" class="nfq-eti-status">Historical response source is not configured.</p>
-        <template v-else-if="legacyEti">
-         <div class="nfq-eti-legacy-primary"><span>ETI classification in original register</span><strong>{{recordedEtiLabel(legacyEti.recordedEtiCategory)}}</strong></div>
-         <details class="nfq-eti-legacy-details">
-          <summary>Inspect recorded response fields and provenance</summary>
-          <dl class="identity-grid nfq-supporting-fields">
-           <div><dt>Historical therapy response flag</dt><dd>{{recordedTherapyFlag(legacyEti.legacyTherapyFlag)}}</dd></div>
-           <div><dt>Recorded evidence level</dt><dd>{{legacyEti.recordedEvidenceLevel||'Not recorded'}}</dd></div>
-           <div><dt>Recorded evidence tier</dt><dd>{{legacyEti.recordedEvidenceTier||'Not recorded'}}</dd></div>
-           <div><dt>Recorded authority label</dt><dd>{{legacyEti.recordedAuthority||'Not recorded'}}</dd></div>
-           <div><dt>CFTR2 response field</dt><dd>{{legacyEti.recordedCftr2Response||'Not recorded'}}</dd></div>
-           <div><dt>Last recorded evidence update</dt><dd>{{legacyEti.lastEvidenceUpdate||'Not recorded'}}</dd></div>
-          </dl>
-          <p class="nfq-eti-legacy-note">A false historical flag is not proof of nonresponse. A recorded ETI label may be unknown or disagree with that flag. Database evidence levels and source labels are shown verbatim and are not verified research conclusions.</p>
-          <RouterLink class="nfq-eti-citations" :to="{path:'/evidence',query:{variant:selected.id}}">Inspect linked research citations</RouterLink>
-         </details>
+        <p v-if="legacyEtiLoading" role="status" class="nfq-response-loading">Loading recorded response…</p>
+        <p v-else-if="legacyEtiError" role="status" class="nfq-response-loading">{{legacyEtiError}}</p>
+        <p v-else-if="!legacyEtiSource" role="status" class="nfq-response-loading">The recorded response source is not configured.</p>
+        <div v-else-if="legacyEti" class="nfq-response-layout">
+         <div class="nfq-response-primary">
+          <span class="nfq-response-field">Recorded ETI category</span>
+          <strong class="nfq-response-status" :data-state="describeRecordedEti(legacyEti.recordedEtiCategory).tone" data-testid="eti-recorded-category">{{describeRecordedEti(legacyEti.recordedEtiCategory).label}}</strong>
+          <p class="nfq-response-status-hint">{{describeRecordedEti(legacyEti.recordedEtiCategory).description}}</p>
+          <details class="nfq-response-metadata">
+           <summary>Original database fields</summary>
+           <dl class="nfq-response-fields">
+            <div><dt>Therapy response flag</dt><dd>{{recordedTherapyFlag(legacyEti.legacyTherapyFlag)}}</dd></div>
+            <div><dt>ETI evidence level</dt><dd>{{legacyEti.recordedEvidenceLevel||'Not recorded'}}</dd></div>
+            <div><dt>Evidence tier</dt><dd>{{legacyEti.recordedEvidenceTier||'Not recorded'}}</dd></div>
+            <div><dt>Source label</dt><dd>{{legacyEti.recordedAuthority||'Not recorded'}}</dd></div>
+            <div><dt>CFTR2 response</dt><dd>{{legacyEti.recordedCftr2Response||'Not recorded'}}</dd></div>
+            <div><dt>Last evidence update</dt><dd>{{legacyEti.lastEvidenceUpdate||'Not recorded'}}</dd></div>
+           </dl>
+           <p class="nfq-response-detail-note">These source fields are reproduced as originally recorded and have not been clinically adjudicated.</p>
+          </details>
+          <RouterLink class="nfq-response-reference-link" :to="{path:'/evidence',query:{variant:selected.id}}">Browse variant references <span aria-hidden="true">↗</span></RouterLink>
+         </div>
          <SourceResponsePanel :key="legacyEti.id" :variant-id="legacyEti.id" :legacy="legacyEti"/>
-        </template>
+        </div>
        </section>
       </div><section v-if="!selectedFromSearch" class="dossier-science" aria-label="Additional scientific record details">
       <p v-if="dossierError" role="alert">{{dossierError}}</p>
@@ -746,19 +757,28 @@ function select(id:string):void{
 .nfq-history-timeline li,.nfq-history-undated li{min-width:0;max-width:100%;overflow-wrap:anywhere}
 @media(max-width:640px){.nfq-history-time{font-size:10.5px}}
 
-.nfq-eti-legacy{margin-top:1rem;padding:1rem 1.15rem;border-top:1px solid var(--border,#dce2e7);background:var(--surface,#fff);border-radius:8px}
-.nfq-eti-legacy-head{display:flex;align-items:baseline;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
-.nfq-eti-legacy-head h3{margin:0;color:inherit;font-size:.94rem;font-weight:650}
-.nfq-eti-legacy-head span{font-size:.7rem;letter-spacing:.035em;text-transform:uppercase;color:var(--text-muted,#687381)}
-.nfq-eti-legacy-note{font-size:.76rem;line-height:1.6;color:var(--text-muted,#687381);margin:.6rem 0}
-.nfq-eti-status{font-size:.79rem;color:var(--text-muted,#687381);margin:.8rem 0 0}
-.nfq-eti-legacy-primary{display:flex;align-items:baseline;gap:.6rem 1.4rem;flex-wrap:wrap;margin-top:.8rem}
-.nfq-eti-legacy-primary span{font-size:.76rem;color:var(--text-muted,#687381)}
-.nfq-eti-legacy-primary strong{font-weight:650;font-size:.9rem;overflow-wrap:anywhere}
-.nfq-eti-legacy-details{margin-top:.8rem;border-top:1px solid var(--border,#dce2e7);padding-top:.7rem}
-.nfq-eti-legacy-details summary{font-size:.76rem;font-weight:600;cursor:pointer;padding:.25rem 0}
-.nfq-eti-legacy-details summary:focus-visible{outline:2px solid currentColor;outline-offset:3px}
-.nfq-eti-legacy-details .identity-grid{margin-top:.8rem}
-.nfq-eti-citations{font-size:.77rem;font-weight:600;display:inline-block;margin-top:.3rem}
-@media(max-width:640px){.nfq-eti-legacy{padding:.85rem}.nfq-eti-legacy-primary{display:block}.nfq-eti-legacy-primary strong{display:block;margin-top:.25rem}}
+
+.nfq-response-section{margin-top:1rem;border:1px solid var(--border,#dce4e5);border-radius:12px;background:var(--surface,#fff);padding:1rem 1.15rem;min-width:0}
+.nfq-response-heading{display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:.85rem}
+.nfq-response-heading-copy{min-width:0}
+.nfq-response-eyebrow{font-size:.65rem;line-height:1.4;letter-spacing:.1em;font-weight:700;color:var(--text-muted,#687381)}
+.nfq-response-heading h3{font-size:1.02rem;line-height:1.3;letter-spacing:-.015em;font-weight:680;margin:.12rem 0 0;color:inherit}
+.nfq-response-loading{font-size:.79rem;color:var(--text-muted,#687381);margin:.6rem 0}
+.nfq-response-layout{display:grid;grid-template-columns:minmax(205px,.76fr) minmax(0,1.24fr);align-items:start;gap:1.1rem;min-width:0}
+.nfq-response-primary{display:flex;flex-direction:column;align-items:flex-start;min-width:0;padding:.3rem 0}
+.nfq-response-field{font-size:.72rem;font-weight:600;color:var(--text-muted,#687381)}
+.nfq-response-status{display:block;font-size:1.44rem;font-weight:680;letter-spacing:-.035em;line-height:1.2;margin:.25rem 0 0;overflow-wrap:anywhere}
+.nfq-response-status[data-state='unresolved']{color:var(--text-muted,#637580)}
+.nfq-response-status-hint{font-size:.74rem;color:var(--text-muted,#687381);line-height:1.55;max-width:34ch;margin:.36rem 0 .6rem}
+.nfq-response-metadata{width:100%;border-top:1px solid var(--border,#e0e6e7);padding-top:.65rem;margin-top:.4rem}
+.nfq-response-metadata summary{font-size:.76rem;font-weight:600;cursor:pointer;color:inherit;padding:.25rem 0}
+.nfq-response-metadata summary:focus-visible,.nfq-response-reference-link:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+.nfq-response-fields{display:grid;gap:.45rem;margin:.6rem 0}
+.nfq-response-fields>div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.7rem;align-items:baseline;font-size:.71rem}
+.nfq-response-fields dt{color:var(--text-muted,#687381)}
+.nfq-response-fields dd{margin:0;font-weight:550;text-align:right;overflow-wrap:anywhere}
+.nfq-response-detail-note{font-size:.71rem;line-height:1.5;color:var(--text-muted,#687381)}
+.nfq-response-reference-link{font-size:.75rem;font-weight:600;margin-top:.6rem;display:inline-flex;gap:.4rem;align-items:center;color:inherit}
+@media(max-width:820px){.nfq-response-layout{grid-template-columns:1fr;gap:.75rem}.nfq-response-primary{padding:0}.nfq-response-status-hint{max-width:none}}
+@media(max-width:600px){.nfq-response-section{padding:.85rem}.nfq-response-status{font-size:1.28rem}}
 </style>
