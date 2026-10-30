@@ -1,4 +1,4 @@
-import {test,expect,type Page} from '@playwright/test';
+import {test,expect,type Page,type Locator} from '@playwright/test';
 
 /** LOCAL TEST-ONLY fixtures. Never bundled into clinical src or connected to
  * production. These records exercise the immutable scientific state contract.
@@ -8,6 +8,10 @@ const variants:Record<string,Record<string,unknown>>={
  '19':{id:19,legacy_name:'G542X',cftr_class:'I',class_subtype:'exceptional',eti_prediction:'non_responsive',alyftrek_prediction:'unknown'},
  '35':{id:35,legacy_name:'3120+1G->A',cftr_class:'I',class_subtype:'true',eti_prediction:'non_responsive',alyftrek_prediction:'responsive',alyftrek_evidence_tier:'clinical_trial'}
 };
+async function expectFiveRows(panel:Locator):Promise<void>{
+ try{await expect(panel.locator('.nfq-therapy-row')).toHaveCount(5,{timeout:10000});}
+ catch(e){console.error('Contract dossier state:',(await panel.innerText()).slice(0,1500));throw e;}
+}
 const classFields={
  protein_name:null,cdna_name:null,alt_names:[],validation_count:0,
  eti_evidence_level:null,alyftrek_evidence_level:null,
@@ -19,6 +23,7 @@ const classFields={
 const eu=['Kaftrio (ETI)','Alyftrek (VTD)','Kalydeco (IVA)','Symkevi (TEZ/IVA)']
  .map((drug_name,i)=>({id:i+1,drug_name,eligible_rule:'Recorded EU rule',jurisdiction:'EU',regulator:'EMA',approval_date:null,is_active:true}));
 async function setup(page:Page,opts:{failFirstTherapy?:boolean}={}):Promise<void>{
+ page.on('requestfailed',r=>{if(r.url().includes('cftr-contract.invalid'))console.error('Contract API request failed:',r.url(),r.failure()?.errorText);});
  let failed=false;const methods:string[]=[];
  return page.route('https://cftr-contract.invalid/rest/v1/**',async route=>{
   const request=route.request(),url=new URL(request.url()),table=url.pathname.split('/').pop();
@@ -47,7 +52,7 @@ test('Class I exceptional record keeps its ETI and Alyftrek values in the five-r
  await setup(page);
  await page.goto('/#/variants/1');
  const panel=page.getByTestId('five-therapy-workspace');
- await expect(panel.locator('.nfq-therapy-row')).toHaveCount(5);
+ await expectFiveRows(panel);
  await expect(panel.locator('.nfq-therapy-context')).toContainText('exceptional');
  await expect(panel.locator('.nfq-therapy-row').nth(0).locator('.nfq-therapy-result')).toHaveText('Responsive');
  await expect(panel.locator('.nfq-therapy-row').nth(1).locator('.nfq-therapy-result')).toHaveText('Unknown');
@@ -61,7 +66,7 @@ test('Class I divergence opens an evidence workflow, not an auto-reclassificatio
  await setup(page);
  await page.goto('/#/variants/35');
  const panel=page.getByTestId('five-therapy-workspace');
- await expect(panel.locator('.nfq-therapy-row')).toHaveCount(5);
+ await expectFiveRows(panel);
  await expect(panel.locator('.nfq-therapy-row').nth(0).locator('.nfq-therapy-result')).toHaveText('Non-responsive');
  await expect(panel.locator('.nfq-therapy-row').nth(1).locator('.nfq-therapy-result')).toHaveText('Responsive');
  await panel.getByRole('button',{name:'Review details'}).click();
@@ -77,7 +82,7 @@ test('variant therapy errors offer genuine retry and never replace a failed valu
  await expect(panel.getByRole('alert')).toContainText('Could not load therapy responses.');
  await expect(panel.locator('.nfq-therapy-row')).toHaveCount(0);
  await panel.getByRole('button',{name:'Retry'}).click();
- await expect(panel.locator('.nfq-therapy-row')).toHaveCount(5);
+ await expectFiveRows(panel);
  await expect(panel.locator('.nfq-therapy-row').first().locator('.nfq-therapy-result')).toHaveText('Responsive');
 });
 
