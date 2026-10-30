@@ -218,7 +218,7 @@ watch(selected,async record=>{
  try{const data=await dossierSource.get(record.id,controller.signal);if(!controller.signal.aborted){dossier.value=data;if(!data)dossierError.value='No scientific metadata returned for this record.';}}
  catch{if(!controller.signal.aborted)dossierError.value='Scientific fields could not be loaded.';}
 });
-watch(selected,async record=>{
+async function loadEtiResponse(record:RealVariant|null):Promise<void>{
  legacyEtiAbort?.abort();
  legacyEti.value=null;legacyEtiError.value='';legacyEtiLoading.value=false;
  if(!record||!legacyEtiSource)return;
@@ -228,13 +228,23 @@ watch(selected,async record=>{
   const result=await legacyEtiSource.get(record.id,controller.signal);
   if(!controller.signal.aborted&&selected.value?.id===record.id){
    legacyEti.value=result;
-   if(!result)legacyEtiError.value='No recorded ETI response fields returned for this variant.';
+   if(!result)legacyEtiError.value='ETI response is not available for this variant.';
   }
  }catch{
   if(!controller.signal.aborted&&selected.value?.id===record.id)
-   legacyEtiError.value='Historical ETI response fields are unavailable for this record.';
- }finally{if(!controller.signal.aborted)legacyEtiLoading.value=false;}
-});
+   legacyEtiError.value='Could not load ETI response.';
+ }finally{if(!controller.signal.aborted&&selected.value?.id===record.id)legacyEtiLoading.value=false;}
+}
+function retryEtiResponse():void{if(selected.value)void loadEtiResponse(selected.value);}
+async function openVariantValidation():Promise<void>{
+ if(!selected.value||selectedFromSearch.value)return;
+ scientificDetailsOpen.value=true;
+ await nextTick();
+ const heading=document.getElementById('nfq-dossier-sources');
+ heading?.scrollIntoView({block:'start',behavior:'auto'});
+ heading?.focus({preventScroll:true});
+}
+watch(selected,record=>{void loadEtiResponse(record);});
 watch(selected,async value=>{
  evidenceAbort?.abort(); linkedEvidence.value=[]; evidenceError.value='';evidenceReady.value=false;
  if(!value)return;
@@ -533,14 +543,14 @@ function select(id:string):void{
          </ContextHelp>
         </div>
         <p v-if="legacyEtiLoading" role="status" class="nfq-response-loading">Loading ETI response…</p>
-        <p v-else-if="legacyEtiError" role="status" class="nfq-response-loading">{{legacyEtiError}}</p>
+        <div v-else-if="legacyEtiError" class="nfq-response-error" role="alert"><span>{{legacyEtiError}}</span><button type="button" :disabled="legacyEtiLoading" @click="retryEtiResponse">Retry</button></div>
         <p v-else-if="!legacyEtiSource" role="status" class="nfq-response-loading">ETI response is unavailable.</p>
         <div v-else-if="legacyEti" class="nfq-response-layout">
          <strong class="nfq-response-status" :data-state="describeRecordedEti(legacyEti.recordedEtiCategory).tone" data-testid="eti-recorded-category">{{describeRecordedEti(legacyEti.recordedEtiCategory).label}}</strong>
          <SourceResponsePanel :key="legacyEti.id" :variant-id="legacyEti.id" :legacy="legacyEti"/>
          <div class="nfq-response-actions">
           <details class="nfq-response-metadata">
-           <summary>Response details</summary>
+           <summary>Technical fields</summary>
            <dl class="nfq-response-fields">
             <div><dt>Therapy response flag</dt><dd>{{recordedTherapyFlag(legacyEti.legacyTherapyFlag)}}</dd></div>
             <div><dt>ETI evidence level</dt><dd>{{legacyEti.recordedEvidenceLevel||'Not recorded'}}</dd></div>
@@ -551,6 +561,7 @@ function select(id:string):void{
            </dl>
            
           </details>
+          <button v-if="!selectedFromSearch" type="button" class="nfq-response-validation-link" @click="openVariantValidation">Sources &amp; validation</button>
           <RouterLink class="nfq-response-reference-link" :to="{path:'/evidence',query:{variant:selected.id}}">Evidence &amp; curation <span aria-hidden="true">↗</span></RouterLink>
          </div>
         </div>
@@ -579,7 +590,7 @@ function select(id:string):void{
        </section>
        <section aria-labelledby="nfq-dossier-sources">
         <div class="nfq-provenance-header">
-         <h3 id="nfq-dossier-sources" class="nfq-dossier-group-title">Sources and validation</h3>
+         <h3 id="nfq-dossier-sources" class="nfq-dossier-group-title" tabindex="-1">Sources and validation</h3>
          <ContextHelp label="About recorded provenance" title="Recorded metadata and provenance">
           <p>These fields are reproduced from the research database. A recorded source name, confidence label or validation entry does not mean that the scientific assertion was independently verified.</p>
           <p v-if="fieldInventory">Recorded fields ({{fieldInventory.recorded.length}} of 10 inspected): {{fieldInventory.recorded.join(', ')||'None'}}.</p>
@@ -757,6 +768,9 @@ function select(id:string):void{
 .nfq-response-heading{display:flex;justify-content:space-between;align-items:center;gap:.7rem;margin-bottom:.55rem}
 .nfq-response-heading h3{font-size:.9rem;line-height:1.45;font-weight:690;letter-spacing:-.01em;margin:0;min-width:0}
 .nfq-response-loading{font-size:.79rem;line-height:1.5;color:var(--text-muted,#687381);margin:.5rem 0}
+.nfq-response-error{display:flex;align-items:center;gap:.5rem 1rem;flex-wrap:wrap;font-size:.79rem;color:var(--text-muted,#687381)}
+.nfq-response-error button{border:1px solid var(--border,#dce4e5);border-radius:7px;background:transparent;color:inherit;padding:.35rem .65rem;font:inherit;cursor:pointer}
+.nfq-response-error button:focus-visible{outline:2px solid currentColor;outline-offset:2px}
 .nfq-response-layout{min-width:0;display:grid;gap:.65rem}
 .nfq-response-status{display:block;font-size:1.03rem;font-weight:660;letter-spacing:-.015em;line-height:1.5;overflow-wrap:anywhere}
 .nfq-response-status[data-state='unresolved']{color:var(--text-muted,#637580)}
@@ -770,5 +784,7 @@ function select(id:string):void{
 .nfq-response-fields dd{margin:0;font-weight:550;text-align:right;overflow-wrap:anywhere}
 .nfq-response-detail-note{font-size:.7rem;line-height:1.5;color:var(--text-muted,#687381)}
 .nfq-response-reference-link{font-size:.74rem;font-weight:570;display:inline-flex;gap:.3rem;align-items:center;color:inherit;line-height:1.6}
+.nfq-response-validation-link{font:inherit;font-size:.74rem;font-weight:570;border:0;background:transparent;color:inherit;cursor:pointer;padding:.15rem 0;text-decoration:underline;text-underline-offset:3px}
+.nfq-response-validation-link:focus-visible{outline:2px solid currentColor;outline-offset:2px}
 @media(max-width:600px){.nfq-response-section{padding:.75rem .85rem}.nfq-response-heading h3{font-size:.85rem}.nfq-response-status{font-size:1rem}.nfq-response-actions{align-items:flex-start}}
 </style>

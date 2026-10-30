@@ -98,14 +98,16 @@ test('deployed original ETI response classifications remain attributed and inspe
  await expect(historical).toHaveText(/^(Responsive|Non-responsive|Unknown|Not recorded)$/);
  await expect(region).not.toContainText('MODULATOR EVIDENCE');
  await expect(region).not.toContainText('Recorded ETI category');
- await region.getByText('Response details').click();
+ await region.getByText('Technical fields').click();
  await expect(region.getByText('Therapy response flag')).toBeVisible();
  await expect(region.locator('.nfq-context-help summary')).toBeVisible();
  await expect(region.getByRole('link',{name:/Evidence & curation/})).toBeVisible();
+ await region.getByRole('button',{name:'Sources & validation'}).click();
+ await expect(page.getByRole('heading',{name:'Sources and validation'})).toBeVisible();
 });
 
 /**
- * Opt-in real-source parity matrix, based on the read-only 2026-10-29 source
+ * Opt-in source/response acceptance, based on the read-only 2026-10-29 source
  * inventory. These known recorded IDs are not fictitious browser fixtures.
  * Any future data drift should fail acceptance and be examined, not silently
  * accepted as a change in evidence or clinical classification.
@@ -114,20 +116,19 @@ test('live original ETI category and source-specific response disagreement remai
  await page.goto('/#/variants/14');
  await expect(page.getByRole('heading',{name:'ETI response'})).toBeVisible({timeout:25000});
  await expect(page.getByTestId('eti-recorded-category')).toHaveText('Responsive',{timeout:25000});
- await expect(page.getByRole('region',{name:'Recorded source findings'}).getByText('Non-responsive',{exact:true})).toBeVisible({timeout:25000});
- await expect(page.getByTestId('eti-parity-status')).toContainText('Recorded values disagree');
- await expect(page.getByTestId('eti-parity-signals')).toContainText('source-specific ETI label differs');
- await expect(page.getByTestId('eti-parity-signals')).toContainText('historical therapy flag');
+ await expect(page.getByRole('region',{name:'Source evidence'}).getByText('Non-responsive',{exact:true})).toBeVisible({timeout:25000});
+ await expect(page.getByTestId('eti-parity-status')).toContainText('Review needed');
+ await expect(page.getByRole('link',{name:'Review evidence'})).toHaveAttribute('href',/#\/evidence\?variant=14/);
  await expect(page.getByText('Document link not recorded')).toBeVisible();
 });
 test('live recorded nonresponsive category is distinct from no source and from unknown',async({page})=>{
  await page.goto('/#/variants/7');
  await expect(page.getByTestId('eti-recorded-category')).toHaveText('Non-responsive',{timeout:25000});
- await expect(page.getByRole('region',{name:'Recorded source findings'}).getByText('Non-responsive',{exact:true})).toBeVisible({timeout:25000});
- await expect(page.getByTestId('eti-parity-status')).toContainText('source verification pending');
+ await expect(page.getByRole('region',{name:'Source evidence'}).getByText('Non-responsive',{exact:true})).toBeVisible({timeout:25000});
+ await expect(page.getByTestId('eti-parity-status')).toHaveCount(0);
  await page.goto('/#/variants/44');
  await expect(page.getByTestId('eti-recorded-category')).toHaveText('Unknown',{timeout:25000});
- await expect(page.getByText('No source-specific response recorded for this variant.')).toBeVisible({timeout:25000});
+ await expect(page.getByText('No linked source findings.')).toBeVisible({timeout:25000});
  await expect(page.getByTestId('eti-parity-status')).toHaveCount(0);
 });
 
@@ -140,7 +141,7 @@ test('recorded ETI section remains readable on desktop and phone widths',async({
   await expect(section.getByTestId('eti-recorded-category')).toHaveText('Unknown',{timeout:25000});
   await expect(section).not.toContainText('Recorded ETI category');
   await expect(section).not.toContainText('Recorded in the original research register.');
-  await expect(section.getByRole('heading',{name:'Recorded source findings'})).toBeVisible();
+  await expect(section.getByRole('heading',{name:'Source evidence'})).toBeVisible();
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });

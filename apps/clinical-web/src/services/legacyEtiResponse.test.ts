@@ -12,7 +12,8 @@ describe('14H1 · historical ETI response parity without medical inference',()=>
   expect(record.recordedEtiCategory).toBe('non_responsive');
   expect(record.legacyTherapyFlag).toBe(false);
   expect(recordedEtiLabel(record.recordedEtiCategory)).toContain('recorded legacy label');
-  expect(recordedTherapyFlag(false)).toBe('No · historical flag');
+  expect(recordedTherapyFlag(false)).toBe('No');
+  expect(recordedTherapyFlag(true)).toBe('Yes');
   expect(recordedTherapyFlag(null)).toBe('Not recorded');
   expect(Object.isFrozen(record)).toBe(true);
  });

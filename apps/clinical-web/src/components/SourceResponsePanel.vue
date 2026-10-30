@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {computed,onUnmounted,ref,watch} from 'vue';
+import {RouterLink} from 'vue-router';
 import {createSourceSpecificResponseSource,type SourceSpecificResponse} from '../services/sourceSpecificResponse';
 import {describeSourceFinding} from '../domain/responseDisplay';
 import {assessRecordedResponseParity} from '../domain/recordedResponseParity';
@@ -12,12 +13,12 @@ const config=readConfigFromEnvironment();
 const source=config?createSourceSpecificResponseSource(config,fetch,authSessionProvider):null;
 const rows=ref<readonly SourceSpecificResponse[]>([]);
 const ready=ref(false),loading=ref(false),error=ref('');
+const retryCount=ref(0);
 let abort:AbortController|null=null;
 const parity=computed(()=>ready.value&&!error.value&&props.legacy.id===props.variantId?
  assessRecordedResponseParity(props.legacy,rows.value):null);
-const disagreements=computed(()=>parity.value?.signals.filter(signal=>
- ['category-flag-disagreement','category-source-disagreement','source-source-disagreement'].includes(signal.kind))||[]);
-watch(()=>props.variantId,async id=>{
+const needsValidation=computed(()=>parity.value?.state==='requires-review');
+watch([()=>props.variantId,retryCount],async ([id])=>{
  abort?.abort();rows.value=[];ready.value=false;loading.value=false;error.value='';
  if(!source)return;
  const controller=new AbortController();abort=controller;
@@ -27,7 +28,7 @@ watch(()=>props.variantId,async id=>{
   if(!controller.signal.aborted&&props.variantId===id){rows.value=found;ready.value=true;}
  }catch{
   if(!controller.signal.aborted&&props.variantId===id)
-   error.value='Source-specific response records could not be loaded.';
+   error.value='Could not load source evidence.';
  }finally{if(!controller.signal.aborted)loading.value=false;}
 },{immediate:true});
 onUnmounted(()=>abort?.abort());
@@ -36,13 +37,13 @@ onUnmounted(()=>abort?.abort());
 <template>
  <section class="nfq-source-response" aria-labelledby="nfq-source-response-title">
   <div class="source-head">
-   <h4 id="nfq-source-response-title">Recorded source findings</h4>
-   <span v-if="ready&&rows.length" class="source-count">{{rows.length}} {{rows.length===1?'source':'sources'}}</span>
+   <h4 id="nfq-source-response-title">Source evidence</h4>
+   <span v-if="ready&&rows.length" class="source-count">{{rows.length}} {{rows.length===1?'record':'records'}}</span>
   </div>
   <p v-if="loading" role="status" class="source-status">Loading source records…</p>
-  <p v-else-if="error" role="status" class="source-status">{{error}}</p>
-  <p v-else-if="!source" role="status" class="source-status">Source register not configured.</p>
-  <p v-else-if="ready&&!rows.length" role="status" class="source-empty">No source-specific response recorded for this variant.</p>
+  <div v-else-if="error" role="alert" class="source-error"><span>{{error}}</span><button type="button" @click="retryCount++">Retry</button></div>
+  <p v-else-if="!source" role="status" class="source-status">Source evidence unavailable.</p>
+  <p v-else-if="ready&&!rows.length" role="status" class="source-empty">No linked source findings.</p>
   <div v-else-if="ready" class="source-list">
    <article v-for="item in rows" :key="item.id" class="source-row">
     <div class="source-row-heading">
@@ -60,14 +61,10 @@ onUnmounted(()=>abort?.abort());
     </div>
    </article>
   </div>
-  <div v-if="ready&&disagreements.length" class="source-disagreement" role="note" data-testid="eti-parity-status">
-   <strong>Recorded values disagree</strong>
-   <ul data-testid="eti-parity-signals">
-    <li v-for="signal in disagreements" :key="signal.kind">{{signal.description}}<span v-if="signal.evidenceIds.length"> Source row #{{signal.evidenceIds.join(', #')}}.</span></li>
-   </ul>
+  <div v-if="ready&&needsValidation" class="source-review" data-testid="eti-parity-status">
+   <span>Review needed</span>
+   <RouterLink :to="{path:'/evidence',query:{variant:variantId}}">Review evidence</RouterLink>
   </div>
-  <p v-else-if="ready&&rows.length&&parity?.state==='incomplete'" class="source-qualification" data-testid="eti-parity-status">Comparison incomplete · some original response fields are unknown or missing.</p>
-  <p v-else-if="ready&&rows.length&&parity?.state==='aligned-recorded-fields'" class="source-qualification" data-testid="eti-parity-status">Recorded fields agree · source verification pending.</p>
  </section>
 </template>
 
@@ -89,11 +86,11 @@ onUnmounted(()=>abort?.abort());
 .source-findings dd{margin:0;font-weight:670}
 .source-foot{display:flex;justify-content:space-between;align-items:baseline;gap:.4rem .9rem;flex-wrap:wrap;font-size:.68rem;line-height:1.4;color:var(--text-muted,#687381)}
 .source-foot a{color:inherit;font-weight:600}
-.source-disagreement{margin-top:.7rem;border-left:2px solid #b18b53;padding:.35rem 0 .35rem .65rem}
-.source-disagreement>strong{font-size:.76rem;font-weight:680}
-.source-disagreement ul{padding-left:1rem;font-size:.72rem;line-height:1.5;margin:.45rem 0 0}
-.source-disagreement li+li{margin-top:.25rem}
-.source-qualification{border-top:1px solid var(--border,#e1e6e8);margin:.65rem 0 0;padding-top:.5rem;font-size:.71rem;line-height:1.5;color:var(--text-muted,#687381)}
+.source-error{display:flex;gap:.5rem 1rem;align-items:center;flex-wrap:wrap;font-size:.76rem;color:var(--text-muted,#687381);padding:.25rem 0}
+.source-error button{font:inherit;color:inherit;border:1px solid var(--border,#dce4e5);border-radius:7px;background:transparent;cursor:pointer;padding:.3rem .65rem}
+.source-error button:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.source-review{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.4rem .8rem;margin-top:.7rem;padding-top:.6rem;border-top:1px solid var(--border,#e1e6e8);font-size:.76rem;font-weight:600}
+.source-review a{color:inherit;text-decoration:underline;text-underline-offset:3px}
 @media(max-width:820px){.nfq-source-response{padding:.6rem 0 0}}
 @media(max-width:600px){.source-row-heading span{white-space:normal}}
 </style>
