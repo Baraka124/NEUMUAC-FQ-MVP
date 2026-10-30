@@ -38,9 +38,7 @@ describe('14H18 independent frozen legacy differential matrix',()=>{
   });
  }
  it('stays source-exact on the Class I subtype and therapy divergences',()=>{
-  const exceptions:[
-   [string,'responsive'|'non_responsive','unknown'|'responsive',string]
-  ]=[
+  const exceptions:readonly (readonly [string,'responsive'|'non_responsive','unknown'|'responsive',string])[]=[
    ['1','responsive','unknown','exceptional'],
    ['19','non_responsive','unknown','exceptional'],
    ['35','non_responsive','responsive','true'],
