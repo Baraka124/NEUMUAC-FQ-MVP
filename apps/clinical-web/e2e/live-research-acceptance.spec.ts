@@ -213,3 +213,24 @@ test('live genotype navigation reveals results, preserves keyboard focus and off
  await expect(page.getByRole('searchbox',{name:'Search variant 1'})).toBeFocused();
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
+
+test('live Class I exception acceptance retains ETI and Alyftrek as independent response fields',async({page})=>{
+ const cases=[
+  {id:'1',subtype:'exceptional',eti:'Responsive',aly:'Unknown'},
+  {id:'19',subtype:'exceptional',eti:'Non-responsive',aly:'Unknown'},
+  {id:'35',subtype:'true',eti:'Non-responsive',aly:'Responsive'},
+  {id:'86',subtype:'true',eti:'Non-responsive',aly:'Responsive'},
+  {id:'351',subtype:'true',eti:'Non-responsive',aly:'Responsive'}
+ ] as const;
+ for(const item of cases){
+  await page.goto('/#/variants/'+item.id);
+  const panel=page.getByTestId('five-therapy-workspace');
+  await expect(panel).toBeVisible({timeout:30000});
+  await expect(panel.locator('.nfq-therapy-row')).toHaveCount(5,{timeout:30000});
+  await expect(panel.locator('.nfq-therapy-context')).toContainText(item.subtype);
+  await expect(panel.locator('.nfq-therapy-row').nth(0).locator('.nfq-therapy-result')).toHaveText(item.eti);
+  await expect(panel.locator('.nfq-therapy-row').nth(1).locator('.nfq-therapy-result')).toHaveText(item.aly);
+  await expect(panel.locator('.nfq-therapy-row').nth(4)).toContainText('Genotype rules');
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
