@@ -1,0 +1,36 @@
+#!/usr/bin/env node
+// Offline and read-only scientific coverage inspection. Accepts non-patient JSON profiles.
+import {readFileSync,writeFileSync} from 'node:fs';
+const [source,destination]=process.argv.slice(2);
+if(!source||!destination)throw Error('Usage: node scripts/audit-therapy-snapshot.mjs variants.json audit.json');
+const rows=JSON.parse(readFileSync(source,'utf8'));
+if(!Array.isArray(rows))throw Error('Expected array of variant therapy profiles');
+const ids=['ETI','ALYFTREK','IVACAFTOR','TEZACAFTOR_IVACAFTOR','LUMACAFTOR_IVACAFTOR'];
+const count=Object.fromEntries(ids.map(id=>[id,{present:0,responsive:0,nonResponsive:0,unknown:0,notRecorded:0}]));
+const report={recordCount:rows.length,coverage:count,duplicateIds:[],incompleteProfiles:[],invalidResponses:[],historicalDisagreements:[],recordedClassIExceptions:[]};
+const seen=new Set();
+for(const profile of rows){
+ const id=String(profile?.variantId??'');
+ if(!/^[1-9]\d{0,17}$/.test(id))throw Error('Invalid variant record ID');
+ if(seen.has(id))report.duplicateIds.push(id);
+ seen.add(id);
+ const entries=Array.isArray(profile.entries)?profile.entries:[];
+ if(entries.length!==5||new Set(entries.map(x=>x.therapy)).size!==5||ids.some(x=>!entries.some(e=>e.therapy===x)))report.incompleteProfiles.push(id);
+ for(const therapy of ids){
+  const entry=entries.find(e=>e.therapy===therapy);
+  if(!entry)continue;
+  const group=count[therapy];group.present++;
+  if(!['responsive','non_responsive','unknown',null].includes(entry.response)){report.invalidResponses.push({id,therapy});continue;}
+  if(entry.response==='responsive')group.responsive++;
+  else if(entry.response==='non_responsive')group.nonResponsive++;
+  else if(entry.response==='unknown')group.unknown++;
+  else group.notRecorded++;
+  if(therapy==='ETI'||therapy==='ALYFTREK'){
+   const flag=profile.legacyDrugFlags?.[therapy==='ETI'?'eti':'alyftrek'];
+   if(typeof flag==='boolean'&&['responsive','non_responsive'].includes(entry.response)&&flag!==(entry.response==='responsive'))report.historicalDisagreements.push({id,therapy});
+   if(/^\s*(class\s*)?i\s*$/i.test(profile.functionalClass??'')&&entry.response==='responsive')report.recordedClassIExceptions.push({id,therapy,subtype:profile.classSubtype??null});
+  }else if(entry.response!==null)report.invalidResponses.push({id,therapy,reason:'Rule-only therapy must not carry variant response'});
+ }
+}
+writeFileSync(destination,JSON.stringify(report,null,2)+'\n',{flag:'wx'});
+console.log('Wrote local audit:',destination,'records:',rows.length);

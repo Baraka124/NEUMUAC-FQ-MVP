@@ -106,6 +106,7 @@ onUnmounted(()=>active?.abort());
       <div class="nfq-therapy-name">
        <strong>{{therapy.label}}</strong>
        <small v-if="therapy.id==='ETI'">Kaftrio / Trikafta</small>
+       <small class="nfq-therapy-source-type">{{entry?.coverage==='variant-response'?'Recorded variant response':'Genotype rule only'}}</small>
       </div>
       <span :data-testid="therapy.id==='ETI'?'eti-recorded-category':undefined" class="nfq-therapy-result" :class="{'nfq-therapy-unknown':entry?.response==='unknown'||entry?.response===null}">{{resultLabel(entry)}}</span>
       <button type="button" class="nfq-therapy-inspect" :aria-expanded="selectedDrug===therapy.id" :aria-controls="'nfq-therapy-details-'+therapy.id" @click="switchDetails(therapy.id)">{{selectedDrug===therapy.id?'Close':'Details'}}</button>
