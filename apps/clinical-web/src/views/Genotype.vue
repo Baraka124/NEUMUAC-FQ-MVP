@@ -5,6 +5,7 @@ import {createReadOnlyRepository,readConfigFromEnvironment,variantDisplayName,ty
 import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
 import {pairRecordId,pairSelectionQuery} from '../domain/pairSelection';
 import ContextHelp from '../components/ContextHelp.vue';
+import PairModulatorReview from '../components/PairModulatorReview.vue';
 import {portableComparisonLink} from '../domain/portableComparisonLink';
 import {pairResearchMarkdown} from '../domain/pairResearchExport';
 
@@ -208,6 +209,7 @@ onUnmounted(()=>{stopReads(0);stopReads(1);});
    </section>
   </div>
   <p v-if="sameVariant" role="status" class="nfq-pair-duplicate">Same record selected twice. This does not establish homozygosity.</p>
+  <PairModulatorReview v-if="chosen[0].value&&chosen[1].value" :key="chosen[0].value.id+'-'+chosen[1].value.id" :first="chosen[0].value" :second="chosen[1].value"/>
  </div>
 </template>
 
