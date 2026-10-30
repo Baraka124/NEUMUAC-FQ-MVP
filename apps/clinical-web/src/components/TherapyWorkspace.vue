@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import {computed,onUnmounted,ref,watch} from 'vue';
 import {RouterLink} from 'vue-router';
-import {THERAPIES,type VariantTherapyProfile,type TherapyEntry,type RecordedResponse} from '../domain/therapyRegistry';
+import {THERAPIES,type VariantTherapyProfile,type TherapyEntry} from '../domain/therapyRegistry';
+import {classIReviewSignals} from '../domain/classIReviewSignals';
+import {buildTherapyReviewBrief} from '../domain/therapyReviewBrief';
 import {createVariantTherapySource} from '../services/variantTherapySource';
 import {readConfigFromEnvironment} from '../services/liveVariants';
 import {authSessionProvider} from '../services/authSession';
@@ -22,6 +24,19 @@ const source=config?createVariantTherapySource(config,fetch,authSessionProvider)
 const profile=ref<VariantTherapyProfile|null>(null);
 const loading=ref(false),error=ref(''),retry=ref(0);
 const selectedDrug=ref<string|null>('ETI');
+const reviewOpen=ref(false),reviewStatus=ref('');
+const reviewSignals=computed(()=>profile.value?classIReviewSignals(profile.value):[]);
+const relevantReviewSignals=computed(()=>reviewSignals.value.filter(x=>x.kind!=='validation-not-recorded'));
+function downloadReviewBrief():void{
+ if(!profile.value)return;
+ try{
+  const report=buildTherapyReviewBrief(profile.value,reviewSignals.value);
+  const url=URL.createObjectURL(new Blob([report],{type:'text/markdown;charset=utf-8'}));
+  const anchor=document.createElement('a');anchor.href=url;anchor.download='neumuacFQ-therapy-review-'+profile.value.variantId+'.md';
+  document.body.appendChild(anchor);anchor.click();anchor.remove();URL.revokeObjectURL(url);
+  reviewStatus.value='Review brief prepared for download.';
+ }catch{reviewStatus.value='Could not prepare the review brief.';}
+}
 let active:AbortController|null=null;
 const rows=computed(()=>{
  const found=new Map(profile.value?.entries.map(item=>[item.therapy,item])??[]);
@@ -46,7 +61,7 @@ watch([()=>props.variantId,retry],async ([id])=>{
   if(!controller.signal.aborted&&props.variantId===id)error.value='Could not load therapy responses.';
  }finally{if(!controller.signal.aborted&&props.variantId===id)loading.value=false;}
 },{immediate:true});
-watch(()=>props.variantId,()=>{selectedDrug.value='ETI';});
+watch(()=>props.variantId,()=>{selectedDrug.value='ETI';reviewOpen.value=false;reviewStatus.value='';});
 onUnmounted(()=>active?.abort());
 </script>
 
@@ -65,7 +80,14 @@ onUnmounted(()=>active?.abort());
    <div class="nfq-therapy-context">
     <span>CFTR class <strong>{{profile.functionalClass||'Not recorded'}}</strong></span>
     <span v-if="profile.classSubtype">Subtype <strong>{{profile.classSubtype}}</strong></span>
+    <button v-if="relevantReviewSignals.length" type="button" class="nfq-review-trigger" :aria-expanded="reviewOpen" aria-controls="nfq-therapy-review" @click="reviewOpen=!reviewOpen">{{reviewOpen?'Hide review':'Review details'}}</button>
    </div>
+   <section v-if="reviewOpen&&relevantReviewSignals.length" id="nfq-therapy-review" class="nfq-therapy-review" aria-label="Response review details">
+    <h4>Review details</h4>
+    <ul><li v-for="item in relevantReviewSignals" :key="item.kind">{{item.message}}</li></ul>
+    <div class="nfq-therapy-review-actions"><button type="button" @click="emit('openValidation')">Open validation history</button><RouterLink :to="{path:'/evidence',query:{variant:variantId}}">Inspect evidence</RouterLink><button type="button" @click="downloadReviewBrief">Download review brief</button></div>
+    <p v-if="reviewStatus" role="status">{{reviewStatus}}</p>
+   </section>
    <div class="nfq-therapy-rows">
     <div v-for="{therapy,entry} in rows" :key="therapy.id" class="nfq-therapy-row" :class="{'nfq-therapy-selected':selectedDrug===therapy.id}">
      <div class="nfq-therapy-row-main">
@@ -123,6 +145,15 @@ onUnmounted(()=>active?.abort());
 .nfq-therapy-profile{min-width:0}
 .nfq-therapy-context{display:flex;flex-wrap:wrap;gap:.5rem 1rem;color:var(--text-muted,#687381);font-size:.72rem;padding:0 0 .7rem}
 .nfq-therapy-context strong{font-weight:640;color:inherit;margin-left:.3rem}
+.nfq-review-trigger{font:inherit;font-size:.72rem;font-weight:600;cursor:pointer;border:0;background:transparent;color:inherit;text-decoration:underline;text-underline-offset:3px;padding:.1rem .2rem}
+.nfq-review-trigger:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+.nfq-therapy-review{border-top:1px solid var(--border,#e1e6e8);padding:.7rem 0;font-size:.76rem;line-height:1.55}
+.nfq-therapy-review h4{font-size:.78rem;margin:0 0 .4rem}
+.nfq-therapy-review ul{padding-left:1.2rem;margin:.3rem 0 .65rem}
+.nfq-therapy-review-actions{display:flex;gap:.6rem 1rem;flex-wrap:wrap;align-items:center}
+.nfq-therapy-review-actions button{font:inherit;font-size:.73rem;cursor:pointer;background:transparent;color:inherit;border:1px solid var(--border,#dce4e5);border-radius:6px;padding:.3rem .6rem}
+.nfq-therapy-review-actions a{color:inherit;font-size:.73rem}
+.nfq-therapy-review-actions button:focus-visible,.nfq-therapy-review-actions a:focus-visible{outline:2px solid currentColor;outline-offset:2px}
 .nfq-therapy-rows{border-top:1px solid var(--border,#e1e6e8)}
 .nfq-therapy-row{border-bottom:1px solid var(--border,#e1e6e8);min-width:0}
 .nfq-therapy-row-main{display:grid;grid-template-columns:minmax(150px,1fr) minmax(135px,1fr) auto;gap:.75rem;align-items:center;min-height:3.4rem}
