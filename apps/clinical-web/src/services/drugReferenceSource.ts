@@ -1,5 +1,6 @@
 import {resolveTherapyName,type CoreModulatorId} from '../domain/therapyRegistry';
 import {readConfigFromEnvironment,validateReadOnlyConfig,VariantConnectionError,type ReadOnlyConfig,type ReadSessionProvider} from './liveVariants';
+import {authSessionProvider} from './authSession';
 
 export interface RegulatoryRecord {
  readonly id:number;
@@ -114,5 +115,5 @@ export function createDrugReferenceSource(config:ReadOnlyConfig,transport:typeof
 }
 export function configuredDrugReferenceSource(){
  const config=readConfigFromEnvironment();
- return config?createDrugReferenceSource(config):null;
+ return config?createDrugReferenceSource(config,fetch,authSessionProvider):null;
 }
