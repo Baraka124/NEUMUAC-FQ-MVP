@@ -38,7 +38,7 @@ onUnmounted(()=>abort?.abort());
  <section class="nfq-source-response" aria-labelledby="nfq-source-response-title">
   <div class="source-head">
    <h4 id="nfq-source-response-title">Source evidence</h4>
-   <span v-if="ready&&rows.length" class="source-count">{{rows.length}} {{rows.length===1?'source':'sources'}}</span>
+   <span v-if="ready&&rows.length" class="source-count">{{rows.length}} {{rows.length===1?'record':'records'}}</span>
   </div>
   <p v-if="loading" role="status" class="source-status">Loading source records…</p>
   <div v-else-if="error" role="alert" class="source-error"><span>{{error}}</span><button type="button" @click="retryCount++">Retry</button></div>
