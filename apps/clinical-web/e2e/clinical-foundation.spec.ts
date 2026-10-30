@@ -1028,3 +1028,14 @@ test('unconnected variant dossier does not invent review chronology or audit act
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+test('genotype result navigation is not shown before two real variant records have loaded',async({page})=>{
+ for(const width of [320,390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/genotype?a=18&b=383');
+  await expect(page.getByTestId('pair-results-navigation')).toHaveCount(0);
+  await expect(page.getByRole('button',{name:'View therapy comparison'})).toHaveCount(0);
+  await expect(page.getByTestId('pair-five-regimen-research')).toHaveCount(0);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
