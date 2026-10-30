@@ -85,7 +85,7 @@ onUnmounted(()=>active?.abort());
    <section v-if="reviewOpen&&relevantReviewSignals.length" id="nfq-therapy-review" class="nfq-therapy-review" aria-label="Response review details">
     <h4>Review details</h4>
     <ul><li v-for="item in relevantReviewSignals" :key="item.kind">{{item.message}}</li></ul>
-    <div class="nfq-therapy-review-actions"><button type="button" @click="emit('openValidation')">Sources & validation</button><RouterLink :to="{path:'/evidence',query:{variant:variantId}}">Inspect evidence</RouterLink><button type="button" @click="downloadReviewBrief">Download review brief</button></div>
+    <div class="nfq-therapy-review-actions"><button type="button" @click="emit('openValidation')">Sources & validation</button><RouterLink :to="{path:'/evidence',query:{variant:variantId,from:'/variants/'+variantId}}">Inspect evidence</RouterLink><button type="button" @click="downloadReviewBrief">Download review brief</button></div>
     <p v-if="reviewStatus" role="status">{{reviewStatus}}</p>
    </section>
    <div class="nfq-therapy-rows">
@@ -128,7 +128,7 @@ onUnmounted(()=>active?.abort());
       </template>
       <div class="nfq-therapy-actions">
        <button type="button" @click="emit('openValidation')">Sources &amp; validation</button>
-       <RouterLink :to="{path:'/evidence',query:{variant:variantId}}">Evidence &amp; curation</RouterLink>
+       <RouterLink :to="{path:'/evidence',query:{variant:variantId,from:'/variants/'+variantId}}">Evidence &amp; curation</RouterLink>
       </div>
      </div>
     </div>
