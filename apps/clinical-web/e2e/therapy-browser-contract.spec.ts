@@ -99,6 +99,7 @@ test('genotype selection reveals five rule outcomes and four EU references, keep
  await expect(page.getByRole('heading',{name:'Five-modulator research rules'})).toBeFocused();
  const pair=page.getByTestId('pair-five-regimen-research');
  await expect(pair.locator('.pair-drugs-row')).toHaveCount(5);
+ await expect(navigate.getByTestId('pair-data-readiness')).toContainText('Five-regimen comparison ready');
  await expect(pair.locator('.pair-drugs-row').nth(1).locator('.pair-drugs-result')).toHaveText('Rule matched');
  await page.getByRole('button',{name:'Edit variants'}).click();
  await expect(page.getByRole('searchbox',{name:'Search variant 1'})).toBeFocused();
@@ -107,5 +108,21 @@ test('genotype selection reveals five rule outcomes and four EU references, keep
  await expect(refs.locator('.drug-register-entry')).toHaveCount(5);
  await refs.locator('.drug-register-entry').last().getByRole('button',{name:'Details'}).click();
  await expect(refs).toContainText('No EU rule in this register');
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
+
+test('pair status remains failed until the actual therapy evidence retry succeeds',async({page})=>{
+ const outage={failTherapy:true};
+ await setup(page,outage);
+ await page.goto('/#/genotype?a=1&b=35');
+ const navigation=page.getByTestId('pair-results-navigation');
+ await expect(navigation).toBeVisible();
+ await expect(navigation.getByTestId('pair-data-readiness')).toContainText('Therapy comparison failed');
+ const pair=page.getByTestId('pair-five-regimen-research');
+ await expect(pair.locator('.pair-drugs-row')).toHaveCount(0);
+ outage.failTherapy=false;
+ await pair.getByRole('button',{name:'Retry'}).click();
+ await expect(pair.locator('.pair-drugs-row')).toHaveCount(5);
+ await expect(navigation.getByTestId('pair-data-readiness')).toContainText('Five-regimen comparison ready');
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
