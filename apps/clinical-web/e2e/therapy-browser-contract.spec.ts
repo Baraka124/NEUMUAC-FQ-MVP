@@ -18,7 +18,7 @@ const classFields={
 };
 const eu=['Kaftrio (ETI)','Alyftrek (VTD)','Kalydeco (IVA)','Symkevi (TEZ/IVA)']
  .map((drug_name,i)=>({id:i+1,drug_name,eligible_rule:'Recorded EU rule',jurisdiction:'EU',regulator:'EMA',approval_date:null,is_active:true}));
-function setup(page:Page,opts:{failFirstTherapy?:boolean}={}){
+async function setup(page:Page,opts:{failFirstTherapy?:boolean}={}):Promise<void>{
  let failed=false;const methods:string[]=[];
  return page.route('https://cftr-contract.invalid/rest/v1/**',async route=>{
   const request=route.request(),url=new URL(request.url()),table=url.pathname.split('/').pop();
@@ -44,7 +44,7 @@ function setup(page:Page,opts:{failFirstTherapy?:boolean}={}){
 }
 
 test('Class I exceptional record keeps its ETI and Alyftrek values in the five-row dossier',async({page})=>{
- setup(page);
+ await setup(page);
  await page.goto('/#/variants/1');
  const panel=page.getByTestId('five-therapy-workspace');
  await expect(panel.locator('.nfq-therapy-row')).toHaveCount(5);
@@ -58,7 +58,7 @@ test('Class I exceptional record keeps its ETI and Alyftrek values in the five-r
 });
 
 test('Class I divergence opens an evidence workflow, not an auto-reclassification',async({page})=>{
- setup(page);
+ await setup(page);
  await page.goto('/#/variants/35');
  const panel=page.getByTestId('five-therapy-workspace');
  await expect(panel.locator('.nfq-therapy-row')).toHaveCount(5);
@@ -71,7 +71,7 @@ test('Class I divergence opens an evidence workflow, not an auto-reclassificatio
 });
 
 test('variant therapy errors offer genuine retry and never replace a failed value',async({page})=>{
- setup(page,{failFirstTherapy:true});
+ await setup(page,{failFirstTherapy:true});
  await page.goto('/#/variants/1');
  const panel=page.getByTestId('five-therapy-workspace');
  await expect(panel.getByRole('alert')).toContainText('Could not load therapy responses.');
@@ -82,7 +82,7 @@ test('variant therapy errors offer genuine retry and never replace a failed valu
 });
 
 test('genotype selection reveals five rule outcomes and four EU references, keeping Orkambi gap',async({page})=>{
- setup(page);
+ await setup(page);
  await page.goto('/#/genotype?a=1&b=35');
  const navigate=page.getByTestId('pair-results-navigation');
  await expect(navigate).toBeVisible();
