@@ -63,7 +63,7 @@ onUnmounted(()=>abort?.abort());
   </div>
   <div v-if="ready&&needsValidation" class="source-review" data-testid="eti-parity-status">
    <span>Review needed</span>
-   <RouterLink :to="{path:'/evidence',query:{variant:variantId}}">Review evidence</RouterLink>
+   <RouterLink :to="{path:'/evidence',query:{variant:variantId,from:'/variants/'+variantId}}">Review evidence</RouterLink>
   </div>
  </section>
 </template>
