@@ -7,17 +7,25 @@ import {assessRecordedResponseParity} from '../domain/recordedResponseParity';
 import {readConfigFromEnvironment} from '../services/liveVariants';
 import {authSessionProvider} from '../services/authSession';
 import type {LegacyEtiRecord} from '../services/legacyEtiResponse';
+import type {RecordedResponse} from '../domain/therapyRegistry';
+import {assessAlyftrekSourceParity} from '../domain/alyftrekSourceParity';
 
-const props=defineProps<{variantId:string;legacy:LegacyEtiRecord}>();
+const props=defineProps<{variantId:string;legacy?:LegacyEtiRecord;therapy?:'ETI'|'ALYFTREK';recordedCategory?:RecordedResponse}>();
 const config=readConfigFromEnvironment();
 const source=config?createSourceSpecificResponseSource(config,fetch,authSessionProvider):null;
 const rows=ref<readonly SourceSpecificResponse[]>([]);
 const ready=ref(false),loading=ref(false),error=ref('');
 const retryCount=ref(0);
 let abort:AbortController|null=null;
-const parity=computed(()=>ready.value&&!error.value&&props.legacy.id===props.variantId?
+const selectedTherapy=computed(()=>props.therapy??'ETI');
+const visibleRows=computed(()=>selectedTherapy.value==='ALYFTREK'?
+ rows.value.filter(row=>row.alyftrek!==null):rows.value);
+const parity=computed(()=>ready.value&&!error.value&&selectedTherapy.value==='ETI'&&
+ props.legacy?.id===props.variantId?
  assessRecordedResponseParity(props.legacy,rows.value):null);
-const needsValidation=computed(()=>parity.value?.state==='requires-review');
+const alyftrekParity=computed(()=>ready.value&&!error.value&&selectedTherapy.value==='ALYFTREK'?
+ assessAlyftrekSourceParity(props.variantId,props.recordedCategory??null,rows.value):null);
+const needsValidation=computed(()=>parity.value?.state==='requires-review'||alyftrekParity.value?.state==='requires-review');
 watch([()=>props.variantId,retryCount],async ([id])=>{
  abort?.abort();rows.value=[];ready.value=false;loading.value=false;error.value='';
  if(!source)return;
@@ -35,24 +43,24 @@ onUnmounted(()=>abort?.abort());
 </script>
 
 <template>
- <section class="nfq-source-response" aria-labelledby="nfq-source-response-title">
+ <section class="nfq-source-response" :aria-labelledby="'nfq-source-response-title-'+selectedTherapy">
   <div class="source-head">
-   <h4 id="nfq-source-response-title">Source evidence</h4>
-   <span v-if="ready&&rows.length" class="source-count">{{rows.length}} {{rows.length===1?'record':'records'}}</span>
+   <h4 :id="'nfq-source-response-title-'+selectedTherapy">{{selectedTherapy==='ALYFTREK'?'Alyftrek source evidence':'Source evidence'}}</h4>
+   <span v-if="ready&&visibleRows.length" class="source-count">{{visibleRows.length}} {{visibleRows.length===1?'record':'records'}}</span>
   </div>
   <p v-if="loading" role="status" class="source-status">Loading source records…</p>
   <div v-else-if="error" role="alert" class="source-error"><span>{{error}}</span><button type="button" @click="retryCount++">Retry</button></div>
   <p v-else-if="!source" role="status" class="source-status">Source evidence unavailable.</p>
-  <p v-else-if="ready&&!rows.length" role="status" class="source-empty">No linked source findings.</p>
+  <p v-else-if="ready&&!visibleRows.length" role="status" class="source-empty">{{selectedTherapy==='ALYFTREK'?'No linked Alyftrek response findings in this register.':'No linked source findings.'}}</p>
   <div v-else-if="ready" class="source-list">
-   <article v-for="item in rows" :key="item.id" class="source-row">
+   <article v-for="item in visibleRows" :key="item.id" class="source-row">
     <div class="source-row-heading">
      <strong>{{item.source.name}}</strong>
      <span>{{item.source.year??'Undated'}} · row #{{item.id}}</span>
     </div>
     <dl class="source-findings">
-     <div><dt>ETI</dt><dd>{{describeSourceFinding(item.eti)}}</dd></div>
-     <div v-if="item.alyftrek!==null"><dt>Alyftrek</dt><dd>{{describeSourceFinding(item.alyftrek)}}</dd></div>
+     <div v-if="selectedTherapy==='ETI'"><dt>ETI</dt><dd>{{describeSourceFinding(item.eti)}}</dd></div>
+     <div v-if="selectedTherapy==='ALYFTREK'||item.alyftrek!==null"><dt>Alyftrek</dt><dd>{{describeSourceFinding(item.alyftrek)}}</dd></div>
     </dl>
     <div class="source-foot">
      <span>{{item.source.type.replaceAll('_',' ')}}</span>
