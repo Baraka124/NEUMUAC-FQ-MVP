@@ -36,8 +36,8 @@ onUnmounted(()=>abort?.abort());
 <template>
  <section class="nfq-source-response" aria-labelledby="nfq-source-response-title">
   <div class="source-head">
-   <h4 id="nfq-source-response-title">Source evidence</h4>
-   <span v-if="ready" class="source-count">{{rows.length}} linked {{rows.length===1?'record':'records'}}</span>
+   <h4 id="nfq-source-response-title">Recorded source findings</h4>
+   <span v-if="ready&&rows.length" class="source-count">{{rows.length}} {{rows.length===1?'source':'sources'}}</span>
   </div>
   <p v-if="loading" role="status" class="source-status">Loading source records…</p>
   <p v-else-if="error" role="status" class="source-status">{{error}}</p>
@@ -72,18 +72,18 @@ onUnmounted(()=>abort?.abort());
 </template>
 
 <style scoped>
-.nfq-source-response{min-width:0;border-left:1px solid var(--border,#dce4e5);padding:.2rem 0 .1rem 1.1rem;margin:0}
-.source-head{display:flex;align-items:baseline;justify-content:space-between;gap:.55rem;flex-wrap:wrap;margin-bottom:.55rem}
+.nfq-source-response{min-width:0;border-top:1px solid var(--border,#dce4e5);padding:.65rem 0 .05rem;margin:0}
+.source-head{display:flex;align-items:baseline;justify-content:space-between;gap:.55rem;flex-wrap:wrap;margin-bottom:.35rem}
 .source-head h4{font-size:.82rem;font-weight:680;margin:0}
 .source-count{font-size:.7rem;color:var(--text-muted,#687381);font-variant-numeric:tabular-nums}
 .source-status,.source-empty{font-size:.76rem;color:var(--text-muted,#687381);line-height:1.5;margin:.6rem 0}
 .source-empty{max-width:39ch}
 .source-list{display:grid;gap:.6rem;margin:0}
-.source-row{border-top:1px solid var(--border,#e1e6e8);padding:.55rem 0 0;min-width:0}
+.source-row{border-top:1px solid var(--border,#e1e6e8);padding:.45rem 0 .1rem;min-width:0}
 .source-row-heading{display:flex;justify-content:space-between;align-items:baseline;gap:.4rem;flex-wrap:wrap}
 .source-row-heading strong{font-size:.77rem;line-height:1.4;font-weight:650}
 .source-row-heading span{font-size:.68rem;color:var(--text-muted,#687381);white-space:nowrap}
-.source-findings{display:flex;gap:.6rem 1rem;flex-wrap:wrap;margin:.6rem 0 .45rem}
+.source-findings{display:flex;gap:.5rem 1rem;flex-wrap:wrap;margin:.4rem 0 .3rem}
 .source-findings>div{display:flex;align-items:baseline;gap:.35rem;font-size:.75rem}
 .source-findings dt{color:var(--text-muted,#687381)}
 .source-findings dd{margin:0;font-weight:670}
@@ -94,6 +94,6 @@ onUnmounted(()=>abort?.abort());
 .source-disagreement ul{padding-left:1rem;font-size:.72rem;line-height:1.5;margin:.45rem 0 0}
 .source-disagreement li+li{margin-top:.25rem}
 .source-qualification{border-top:1px solid var(--border,#e1e6e8);margin:.65rem 0 0;padding-top:.5rem;font-size:.71rem;line-height:1.5;color:var(--text-muted,#687381)}
-@media(max-width:820px){.nfq-source-response{border-left:0;border-top:1px solid var(--border,#dce4e5);padding:.85rem 0 0}}
+@media(max-width:820px){.nfq-source-response{padding:.6rem 0 0}}
 @media(max-width:600px){.source-row-heading span{white-space:normal}}
 </style>
