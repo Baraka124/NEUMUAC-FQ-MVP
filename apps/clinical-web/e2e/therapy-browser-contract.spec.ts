@@ -56,7 +56,7 @@ test('Class I exceptional record keeps its ETI and Alyftrek values in the five-r
  await expect(panel.getByTestId('eti-recorded-category')).toHaveText('Responsive');
  await expect(panel.getByTestId('eti-recorded-category')).toHaveCount(1);
  await expect(panel.getByRole('region',{name:'ETI evidence details'})).toBeVisible();
- await expect(panel.getByRole('region',{name:'ETI evidence details'})).toBeFocused();
+ await expect(panel.locator('.nfq-therapy-detail')).toBeFocused();
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
 
