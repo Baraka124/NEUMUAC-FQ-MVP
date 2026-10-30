@@ -23,7 +23,7 @@ const config=readConfigFromEnvironment();
 const source=config?createVariantTherapySource(config,fetch,authSessionProvider):null;
 const profile=ref<VariantTherapyProfile|null>(null);
 const loading=ref(false),error=ref(''),retry=ref(0);
-const selectedDrug=ref<string|null>('ETI');
+const selectedDrug=ref<string|null>(null);
 const reviewOpen=ref(false),reviewStatus=ref('');
 const reviewSignals=computed(()=>profile.value?classIReviewSignals(profile.value):[]);
 const relevantReviewSignals=computed(()=>reviewSignals.value.filter(x=>x.kind!=='validation-not-recorded'));
@@ -61,7 +61,7 @@ watch([()=>props.variantId,retry],async ([id])=>{
   if(!controller.signal.aborted&&props.variantId===id)error.value='Could not load therapy responses.';
  }finally{if(!controller.signal.aborted&&props.variantId===id)loading.value=false;}
 },{immediate:true});
-watch(()=>props.variantId,()=>{selectedDrug.value='ETI';reviewOpen.value=false;reviewStatus.value='';});
+watch(()=>props.variantId,()=>{selectedDrug.value=null;reviewOpen.value=false;reviewStatus.value='';});
 onUnmounted(()=>active?.abort());
 </script>
 
@@ -85,7 +85,7 @@ onUnmounted(()=>active?.abort());
    <section v-if="reviewOpen&&relevantReviewSignals.length" id="nfq-therapy-review" class="nfq-therapy-review" aria-label="Response review details">
     <h4>Review details</h4>
     <ul><li v-for="item in relevantReviewSignals" :key="item.kind">{{item.message}}</li></ul>
-    <div class="nfq-therapy-review-actions"><button type="button" @click="emit('openValidation')">Open validation history</button><RouterLink :to="{path:'/evidence',query:{variant:variantId}}">Inspect evidence</RouterLink><button type="button" @click="downloadReviewBrief">Download review brief</button></div>
+    <div class="nfq-therapy-review-actions"><button type="button" @click="emit('openValidation')">Sources & validation</button><RouterLink :to="{path:'/evidence',query:{variant:variantId}}">Inspect evidence</RouterLink><button type="button" @click="downloadReviewBrief">Download review brief</button></div>
     <p v-if="reviewStatus" role="status">{{reviewStatus}}</p>
    </section>
    <div class="nfq-therapy-rows">
