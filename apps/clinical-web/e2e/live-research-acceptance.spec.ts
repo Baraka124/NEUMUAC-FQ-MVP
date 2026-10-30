@@ -102,6 +102,8 @@ test('deployed original ETI response classifications remain attributed and inspe
  await expect(region.getByText('Therapy response flag')).toBeVisible();
  await expect(region.locator('.nfq-context-help summary')).toBeVisible();
  await expect(region.getByRole('link',{name:/Evidence & curation/})).toBeVisible();
+ await region.getByRole('button',{name:'Sources & validation'}).click();
+ await expect(page.getByRole('heading',{name:'Sources and validation'})).toBeVisible();
 });
 
 /**
