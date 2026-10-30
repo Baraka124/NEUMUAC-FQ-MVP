@@ -7,7 +7,7 @@ const rows=JSON.parse(readFileSync(source,'utf8'));
 if(!Array.isArray(rows))throw Error('Expected array of variant therapy profiles');
 const ids=['ETI','ALYFTREK','IVACAFTOR','TEZACAFTOR_IVACAFTOR','LUMACAFTOR_IVACAFTOR'];
 const count=Object.fromEntries(ids.map(id=>[id,{present:0,responsive:0,nonResponsive:0,unknown:0,notRecorded:0}]));
-const report={recordCount:rows.length,coverage:count,duplicateIds:[],incompleteProfiles:[],invalidResponses:[],historicalDisagreements:[],recordedClassIExceptions:[]};
+const report={recordCount:rows.length,coverage:count,duplicateIds:[],incompleteProfiles:[],invalidResponses:[],invalidCoverage:[],historicalDisagreements:[],recordedClassIExceptions:[]};
 const seen=new Set();
 for(const profile of rows){
  const id=String(profile?.variantId??'');
@@ -20,6 +20,8 @@ for(const profile of rows){
   const entry=entries.find(e=>e.therapy===therapy);
   if(!entry)continue;
   const group=count[therapy];group.present++;
+  const expectedCoverage=(therapy==='ETI'||therapy==='ALYFTREK')?'variant-response':'genotype-rule-only';
+  if(entry.coverage!==expectedCoverage)report.invalidCoverage.push({id,therapy,expected:expectedCoverage});
   if(!['responsive','non_responsive','unknown',null].includes(entry.response)){report.invalidResponses.push({id,therapy});continue;}
   if(entry.response==='responsive')group.responsive++;
   else if(entry.response==='non_responsive')group.nonResponsive++;
@@ -27,10 +29,11 @@ for(const profile of rows){
   else group.notRecorded++;
   if(therapy==='ETI'||therapy==='ALYFTREK'){
    const flag=profile.legacyDrugFlags?.[therapy==='ETI'?'eti':'alyftrek'];
+   if(flag!==undefined&&flag!==null&&typeof flag!=='boolean')report.invalidCoverage.push({id,therapy,reason:'Malformed historical flag'});
    if(typeof flag==='boolean'&&['responsive','non_responsive'].includes(entry.response)&&flag!==(entry.response==='responsive'))report.historicalDisagreements.push({id,therapy});
    if(/^\s*(class\s*)?i\s*$/i.test(profile.functionalClass??'')&&entry.response==='responsive')report.recordedClassIExceptions.push({id,therapy,subtype:profile.classSubtype??null});
   }else if(entry.response!==null)report.invalidResponses.push({id,therapy,reason:'Rule-only therapy must not carry variant response'});
  }
 }
 writeFileSync(destination,JSON.stringify(report,null,2)+'\n',{flag:'wx'});
-console.log('Wrote local audit:',destination,'records:',rows.length);
+console.log('Wrote local audit:',destination,'records:',rows.length,'violations:',report.invalidCoverage.length+report.invalidResponses.length+report.incompleteProfiles.length);

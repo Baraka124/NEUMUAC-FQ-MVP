@@ -45,7 +45,8 @@ const rows=computed(()=>{
  return THERAPIES.map(therapy=>({therapy,entry:found.get(therapy.id)??null}));
 });
 function resultLabel(entry:TherapyEntry|null):string{
- if(!entry||entry.coverage==='genotype-rule-only')return 'Genotype rules';
+ if(!entry)return 'Not available';
+ if(entry.coverage==='genotype-rule-only')return 'Genotype rules';
  return describeRecordedEti(entry.response).label;
 }
 async function switchDetails(id:string):Promise<void>{
@@ -179,6 +180,7 @@ onUnmounted(()=>active?.abort());
 .nfq-therapy-row{border-bottom:1px solid var(--border,#e1e6e8);min-width:0}
 .nfq-therapy-row-main{display:grid;grid-template-columns:minmax(150px,1fr) minmax(135px,1fr) auto;gap:.75rem;align-items:center;min-height:3.4rem}
 .nfq-therapy-name{min-width:0;display:flex;align-items:baseline;gap:.35rem .65rem;flex-wrap:wrap}
+.nfq-therapy-source-type{flex-basis:100%;font-size:.67rem;line-height:1.3;color:var(--text-muted,#687381)}
 .nfq-therapy-name strong{font-size:.82rem;font-weight:660}
 .nfq-therapy-name small{font-size:.69rem;color:var(--text-muted,#687381)}
 .nfq-therapy-result{font-size:.8rem;font-weight:600;overflow-wrap:anywhere}
