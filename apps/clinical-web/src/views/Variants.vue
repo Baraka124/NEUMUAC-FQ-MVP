@@ -527,23 +527,19 @@ function select(id:string):void{
        </dl>
        <section class="nfq-response-section" aria-labelledby="nfq-eti-response-heading">
         <div class="nfq-response-heading">
-         <div class="nfq-response-heading-copy">
-          <span class="nfq-response-eyebrow">MODULATOR EVIDENCE</span>
-          <h3 id="nfq-eti-response-heading">ETI response</h3>
-         </div>
-         <ContextHelp label="About recorded ETI response" title="Interpreting the original data">
-          <p>These are historical research database categories and source findings, not verified patient responses or treatment recommendations.</p>
-          <p>Unknown, missing, and conflicting records remain distinct. A historical therapy-response flag cannot establish ETI efficacy.</p>
+         <h3 id="nfq-eti-response-heading">ETI <span>· Historical research classification</span></h3>
+         <ContextHelp label="Interpret ETI classification" title="About this classification">
+          <p>This is the original database classification for this variant. It is not an independently verified treatment outcome, clinical recommendation, or prediction for an individual patient.</p>
+          <p>Source disagreements are shown separately. A historical therapy-response flag does not establish ETI efficacy.</p>
          </ContextHelp>
         </div>
-        <p v-if="legacyEtiLoading" role="status" class="nfq-response-loading">Loading recorded response…</p>
+        <p v-if="legacyEtiLoading" role="status" class="nfq-response-loading">Loading historical classification…</p>
         <p v-else-if="legacyEtiError" role="status" class="nfq-response-loading">{{legacyEtiError}}</p>
-        <p v-else-if="!legacyEtiSource" role="status" class="nfq-response-loading">The recorded response source is not configured.</p>
+        <p v-else-if="!legacyEtiSource" role="status" class="nfq-response-loading">Historical response source not configured.</p>
         <div v-else-if="legacyEti" class="nfq-response-layout">
-         <div class="nfq-response-primary">
-          <span class="nfq-response-field">Recorded ETI category</span>
-          <strong class="nfq-response-status" :data-state="describeRecordedEti(legacyEti.recordedEtiCategory).tone" data-testid="eti-recorded-category">{{describeRecordedEti(legacyEti.recordedEtiCategory).label}}</strong>
-          <p class="nfq-response-status-hint">{{describeRecordedEti(legacyEti.recordedEtiCategory).description}}</p>
+         <strong class="nfq-response-status" :data-state="describeRecordedEti(legacyEti.recordedEtiCategory).tone" data-testid="eti-recorded-category">{{describeRecordedEti(legacyEti.recordedEtiCategory).label}}</strong>
+         <SourceResponsePanel :key="legacyEti.id" :variant-id="legacyEti.id" :legacy="legacyEti"/>
+         <div class="nfq-response-actions">
           <details class="nfq-response-metadata">
            <summary>Original database fields</summary>
            <dl class="nfq-response-fields">
@@ -554,11 +550,10 @@ function select(id:string):void{
             <div><dt>CFTR2 response</dt><dd>{{legacyEti.recordedCftr2Response||'Not recorded'}}</dd></div>
             <div><dt>Last evidence update</dt><dd>{{legacyEti.lastEvidenceUpdate||'Not recorded'}}</dd></div>
            </dl>
-           <p class="nfq-response-detail-note">These source fields are reproduced as originally recorded and have not been clinically adjudicated.</p>
+           <p class="nfq-response-detail-note">Original fields reproduced without scientific adjudication.</p>
           </details>
-          <RouterLink class="nfq-response-reference-link" :to="{path:'/evidence',query:{variant:selected.id}}">Browse variant references <span aria-hidden="true">↗</span></RouterLink>
+          <RouterLink class="nfq-response-reference-link" :to="{path:'/evidence',query:{variant:selected.id}}">Research references <span aria-hidden="true">↗</span></RouterLink>
          </div>
-         <SourceResponsePanel :key="legacyEti.id" :variant-id="legacyEti.id" :legacy="legacyEti"/>
         </div>
        </section>
       </div><section v-if="!selectedFromSearch" class="dossier-science" aria-label="Additional scientific record details">
@@ -758,27 +753,24 @@ function select(id:string):void{
 @media(max-width:640px){.nfq-history-time{font-size:10.5px}}
 
 
-.nfq-response-section{margin-top:1rem;border:1px solid var(--border,#dce4e5);border-radius:12px;background:var(--surface,#fff);padding:1rem 1.15rem;min-width:0}
-.nfq-response-heading{display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:.85rem}
-.nfq-response-heading-copy{min-width:0}
-.nfq-response-eyebrow{font-size:.65rem;line-height:1.4;letter-spacing:.1em;font-weight:700;color:var(--text-muted,#687381)}
-.nfq-response-heading h3{font-size:1.02rem;line-height:1.3;letter-spacing:-.015em;font-weight:680;margin:.12rem 0 0;color:inherit}
-.nfq-response-loading{font-size:.79rem;color:var(--text-muted,#687381);margin:.6rem 0}
-.nfq-response-layout{display:grid;grid-template-columns:minmax(205px,.76fr) minmax(0,1.24fr);align-items:start;gap:1.1rem;min-width:0}
-.nfq-response-primary{display:flex;flex-direction:column;align-items:flex-start;min-width:0;padding:.3rem 0}
-.nfq-response-field{font-size:.72rem;font-weight:600;color:var(--text-muted,#687381)}
-.nfq-response-status{display:block;font-size:1.44rem;font-weight:680;letter-spacing:-.035em;line-height:1.2;margin:.25rem 0 0;overflow-wrap:anywhere}
+
+.nfq-response-section{margin-top:1rem;border:1px solid var(--border,#dce4e5);border-radius:10px;background:var(--surface,#fff);padding:.9rem 1rem;min-width:0}
+.nfq-response-heading{display:flex;justify-content:space-between;align-items:center;gap:.7rem;margin-bottom:.55rem}
+.nfq-response-heading h3{font-size:.9rem;line-height:1.45;font-weight:690;letter-spacing:-.01em;margin:0;min-width:0}
+.nfq-response-heading h3 span{font-weight:450;color:var(--text-muted,#687381);letter-spacing:0}
+.nfq-response-loading{font-size:.79rem;line-height:1.5;color:var(--text-muted,#687381);margin:.5rem 0}
+.nfq-response-layout{min-width:0;display:grid;gap:.65rem}
+.nfq-response-status{display:block;font-size:1.03rem;font-weight:660;letter-spacing:-.015em;line-height:1.5;overflow-wrap:anywhere}
 .nfq-response-status[data-state='unresolved']{color:var(--text-muted,#637580)}
-.nfq-response-status-hint{font-size:.74rem;color:var(--text-muted,#687381);line-height:1.55;max-width:34ch;margin:.36rem 0 .6rem}
-.nfq-response-metadata{width:100%;border-top:1px solid var(--border,#e0e6e7);padding-top:.65rem;margin-top:.4rem}
-.nfq-response-metadata summary{font-size:.76rem;font-weight:600;cursor:pointer;color:inherit;padding:.25rem 0}
+.nfq-response-actions{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:.35rem 1rem;border-top:1px solid var(--border,#e0e6e7);padding-top:.5rem}
+.nfq-response-metadata{min-width:min(270px,100%);max-width:100%}
+.nfq-response-metadata summary{font-size:.74rem;font-weight:560;cursor:pointer;color:var(--text-muted,#687381);padding:.2rem 0}
 .nfq-response-metadata summary:focus-visible,.nfq-response-reference-link:focus-visible{outline:2px solid currentColor;outline-offset:3px}
-.nfq-response-fields{display:grid;gap:.45rem;margin:.6rem 0}
+.nfq-response-fields{display:grid;gap:.4rem;margin:.65rem 0}
 .nfq-response-fields>div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.7rem;align-items:baseline;font-size:.71rem}
 .nfq-response-fields dt{color:var(--text-muted,#687381)}
 .nfq-response-fields dd{margin:0;font-weight:550;text-align:right;overflow-wrap:anywhere}
-.nfq-response-detail-note{font-size:.71rem;line-height:1.5;color:var(--text-muted,#687381)}
-.nfq-response-reference-link{font-size:.75rem;font-weight:600;margin-top:.6rem;display:inline-flex;gap:.4rem;align-items:center;color:inherit}
-@media(max-width:820px){.nfq-response-layout{grid-template-columns:1fr;gap:.75rem}.nfq-response-primary{padding:0}.nfq-response-status-hint{max-width:none}}
-@media(max-width:600px){.nfq-response-section{padding:.85rem}.nfq-response-status{font-size:1.28rem}}
+.nfq-response-detail-note{font-size:.7rem;line-height:1.5;color:var(--text-muted,#687381)}
+.nfq-response-reference-link{font-size:.74rem;font-weight:570;display:inline-flex;gap:.3rem;align-items:center;color:inherit;line-height:1.6}
+@media(max-width:600px){.nfq-response-section{padding:.75rem .85rem}.nfq-response-heading h3{font-size:.85rem}.nfq-response-status{font-size:1rem}.nfq-response-actions{align-items:flex-start}}
 </style>

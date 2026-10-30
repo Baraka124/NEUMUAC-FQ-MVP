@@ -91,15 +91,15 @@ test('deployed original ETI response classifications remain attributed and inspe
  // Live acceptance is opt-in. Never fabricate a response from fixture data.
  await page.goto('/#/variants/18');
  await expect(page.locator('#selected-title')).not.toContainText('Record unavailable',{timeout:25000});
- const region=page.getByRole('region',{name:'ETI response'});
+ const region=page.getByRole('region',{name:'ETI · Historical research classification'});
  await expect(region).toBeVisible();
  const historical=region.getByTestId('eti-recorded-category');
  await expect(historical).toBeVisible({timeout:25000});
- await expect(historical).toHaveText(/^(Responsive|Non-responsive|Unknown|Not recorded)$/);
+ await expect(historical).toHaveText(/^(Classified as responsive|Classified as non-responsive|Classification unknown|No classification recorded)$/);
  await region.getByText('Original database fields').click();
  await expect(region.getByText('Therapy response flag')).toBeVisible();
  await expect(region.locator('.nfq-context-help summary')).toBeVisible();
- await expect(region.getByRole('link',{name:/Browse variant references/})).toBeVisible();
+ await expect(region.getByRole('link',{name:/Research references/})).toBeVisible();
 });
 
 /**
@@ -110,8 +110,8 @@ test('deployed original ETI response classifications remain attributed and inspe
  */
 test('live original ETI category and source-specific response disagreement remains visible',async({page})=>{
  await page.goto('/#/variants/14');
- await expect(page.getByRole('heading',{name:'ETI response'})).toBeVisible({timeout:25000});
- await expect(page.getByTestId('eti-recorded-category')).toHaveText('Responsive',{timeout:25000});
+ await expect(page.getByRole('heading',{name:'ETI · Historical research classification'})).toBeVisible({timeout:25000});
+ await expect(page.getByTestId('eti-recorded-category')).toHaveText('Classified as responsive',{timeout:25000});
  await expect(page.getByRole('region',{name:'Source evidence'}).getByText('Non-responsive',{exact:true})).toBeVisible({timeout:25000});
  await expect(page.getByTestId('eti-parity-status')).toContainText('Recorded values disagree');
  await expect(page.getByTestId('eti-parity-signals')).toContainText('source-specific ETI label differs');
@@ -120,11 +120,11 @@ test('live original ETI category and source-specific response disagreement remai
 });
 test('live recorded nonresponsive category is distinct from no source and from unknown',async({page})=>{
  await page.goto('/#/variants/7');
- await expect(page.getByTestId('eti-recorded-category')).toHaveText('Non-responsive',{timeout:25000});
+ await expect(page.getByTestId('eti-recorded-category')).toHaveText('Classified as non-responsive',{timeout:25000});
  await expect(page.getByRole('region',{name:'Source evidence'}).getByText('Non-responsive',{exact:true})).toBeVisible({timeout:25000});
  await expect(page.getByTestId('eti-parity-status')).toContainText('source verification pending');
  await page.goto('/#/variants/44');
- await expect(page.getByTestId('eti-recorded-category')).toHaveText('Unknown',{timeout:25000});
+ await expect(page.getByTestId('eti-recorded-category')).toHaveText('Classification unknown',{timeout:25000});
  await expect(page.getByText('No source-specific response recorded for this variant.')).toBeVisible({timeout:25000});
  await expect(page.getByTestId('eti-parity-status')).toHaveCount(0);
 });
@@ -133,9 +133,9 @@ test('recorded ETI section remains readable on desktop and phone widths',async({
  for(const viewport of [{width:1366,height:900},{width:390,height:844}]){
   await page.setViewportSize(viewport);
   await page.goto('/#/variants/44');
-  const section=page.getByRole('region',{name:'ETI response'});
+  const section=page.getByRole('region',{name:'ETI · Historical research classification'});
   await expect(section).toBeVisible({timeout:25000});
-  await expect(section.getByTestId('eti-recorded-category')).toHaveText('Unknown',{timeout:25000});
+  await expect(section.getByTestId('eti-recorded-category')).toHaveText('Classification unknown',{timeout:25000});
   await expect(section.getByRole('heading',{name:'Source evidence'})).toBeVisible();
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
