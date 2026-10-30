@@ -2,9 +2,11 @@
 // Offline and read-only scientific coverage inspection. Accepts non-patient JSON profiles.
 import {readFileSync,writeFileSync} from 'node:fs';
 const [source,destination]=process.argv.slice(2);
+if(source===destination)throw Error('Input and output must differ');
 if(!source||!destination)throw Error('Usage: node scripts/audit-therapy-snapshot.mjs variants.json audit.json');
 const rows=JSON.parse(readFileSync(source,'utf8'));
 if(!Array.isArray(rows))throw Error('Expected array of variant therapy profiles');
+if(rows.length>100000)throw Error('Snapshot exceeds audit record limit');
 const ids=['ETI','ALYFTREK','IVACAFTOR','TEZACAFTOR_IVACAFTOR','LUMACAFTOR_IVACAFTOR'];
 const count=Object.fromEntries(ids.map(id=>[id,{present:0,responsive:0,nonResponsive:0,unknown:0,notRecorded:0}]));
 const report={recordCount:rows.length,coverage:count,duplicateIds:[],incompleteProfiles:[],invalidResponses:[],invalidCoverage:[],historicalDisagreements:[],recordedClassIExceptions:[]};
