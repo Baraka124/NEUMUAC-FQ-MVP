@@ -37,5 +37,6 @@ for(const profile of rows){
   }else if(entry.response!==null)report.invalidResponses.push({id,therapy,reason:'Rule-only therapy must not carry variant response'});
  }
 }
+report.reviewRequired=rows.length===0||report.duplicateIds.length>0||report.incompleteProfiles.length>0||report.invalidResponses.length>0||report.invalidCoverage.length>0||report.historicalDisagreements.length>0;
 writeFileSync(destination,JSON.stringify(report,null,2)+'\n',{flag:'wx'});
 console.log('Wrote local audit:',destination,'records:',rows.length,'violations:',report.invalidCoverage.length+report.invalidResponses.length+report.incompleteProfiles.length);
