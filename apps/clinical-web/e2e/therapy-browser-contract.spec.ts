@@ -126,3 +126,19 @@ test('pair status remains failed until the actual therapy evidence retry succeed
  await expect(navigation.getByTestId('pair-data-readiness')).toContainText('Five-regimen comparison ready');
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
+
+test('Alyftrek owns its source inspection even for Class I variant with no linked Alyftrek paper',async({page})=>{
+ await setup(page);
+ await page.goto('/#/variants/35');
+ const workspace=page.getByTestId('five-therapy-workspace');
+ await expectFiveRows(workspace);
+ await expect(workspace.locator('.nfq-therapy-row').nth(0).locator('.nfq-therapy-result')).toHaveText('Non-responsive');
+ await expect(workspace.locator('.nfq-therapy-row').nth(1).locator('.nfq-therapy-result')).toHaveText('Responsive');
+ await workspace.locator('.nfq-therapy-row').nth(1).getByRole('button',{name:'Details',exact:true}).click();
+ const sources=workspace.getByRole('region',{name:'Alyftrek source evidence'});
+ await expect(sources).toBeVisible();
+ await expect(sources).toContainText('No linked Alyftrek response findings in this register.');
+ await expect(workspace.locator('.nfq-therapy-row').nth(0).locator('.nfq-therapy-detail')).toHaveCount(0);
+ await expect(workspace.locator('.nfq-therapy-row').nth(1).locator('.nfq-therapy-detail')).toBeFocused();
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
