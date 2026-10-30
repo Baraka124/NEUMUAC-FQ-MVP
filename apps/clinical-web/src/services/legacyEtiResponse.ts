@@ -62,7 +62,7 @@ export function recordedEtiLabel(value:LegacyEtiRecord['recordedEtiCategory']):s
  return 'No recorded ETI category';
 }
 export function recordedTherapyFlag(value:boolean|null):string{
- return value===true?'Yes · historical flag':value===false?'No · historical flag':'Not recorded';
+ return value===true?'Yes':value===false?'No':'Not recorded';
 }
 
 export function createLegacyEtiSource(config:ReadOnlyConfig,transport:typeof fetch=fetch,session?:ReadSessionProvider){
