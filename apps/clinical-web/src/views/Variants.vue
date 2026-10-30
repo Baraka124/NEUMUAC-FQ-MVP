@@ -13,9 +13,8 @@ import {emptySearchReason} from '../domain/searchFeedback';
 import {confirmedDossierRecord} from '../domain/confirmedDossier';
 
 import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
-import {createLegacyEtiSource,recordedTherapyFlag,type LegacyEtiRecord} from '../services/legacyEtiResponse';
-import {describeRecordedEti} from '../domain/responseDisplay';
-import SourceResponsePanel from '../components/SourceResponsePanel.vue';
+import {createLegacyEtiSource,type LegacyEtiRecord} from '../services/legacyEtiResponse';
+import TherapyWorkspace from '../components/TherapyWorkspace.vue';
 import {createScientificDossierSource,type ScientificDossier} from '../services/scientificDossier';
 import {clinVarVariationUrl} from '../domain/externalAuthority';
 import {retrieveClinVarSummary,type ClinVarAuthoritySummary} from '../services/liveClinVar';
@@ -535,37 +534,15 @@ function select(id:string):void{
         <div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div>
         <div><dt>Aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div>
        </dl>
-       <section class="nfq-response-section" aria-labelledby="nfq-eti-response-heading">
-        <div class="nfq-response-heading">
-         <h3 id="nfq-eti-response-heading">ETI response</h3>
-         <ContextHelp label="About ETI response" title="ETI response">
-          <p>This field shows the ETI response category stored for the selected variant. Source information and validation history are available in the dossier.</p>
-         </ContextHelp>
-        </div>
-        <p v-if="legacyEtiLoading" role="status" class="nfq-response-loading">Loading ETI response…</p>
-        <div v-else-if="legacyEtiError" class="nfq-response-error" role="alert"><span>{{legacyEtiError}}</span><button type="button" :disabled="legacyEtiLoading" @click="retryEtiResponse">Retry</button></div>
-        <p v-else-if="!legacyEtiSource" role="status" class="nfq-response-loading">ETI response is unavailable.</p>
-        <div v-else-if="legacyEti" class="nfq-response-layout">
-         <strong class="nfq-response-status" :data-state="describeRecordedEti(legacyEti.recordedEtiCategory).tone" data-testid="eti-recorded-category">{{describeRecordedEti(legacyEti.recordedEtiCategory).label}}</strong>
-         <SourceResponsePanel :key="legacyEti.id" :variant-id="legacyEti.id" :legacy="legacyEti"/>
-         <div class="nfq-response-actions">
-          <details class="nfq-response-metadata">
-           <summary>Technical fields</summary>
-           <dl class="nfq-response-fields">
-            <div><dt>Therapy response flag</dt><dd>{{recordedTherapyFlag(legacyEti.legacyTherapyFlag)}}</dd></div>
-            <div><dt>ETI evidence level</dt><dd>{{legacyEti.recordedEvidenceLevel||'Not recorded'}}</dd></div>
-            <div><dt>Evidence tier</dt><dd>{{legacyEti.recordedEvidenceTier||'Not recorded'}}</dd></div>
-            <div><dt>Source label</dt><dd>{{legacyEti.recordedAuthority||'Not recorded'}}</dd></div>
-            <div><dt>CFTR2 response</dt><dd>{{legacyEti.recordedCftr2Response||'Not recorded'}}</dd></div>
-            <div><dt>Last evidence update</dt><dd>{{legacyEti.lastEvidenceUpdate||'Not recorded'}}</dd></div>
-           </dl>
-           
-          </details>
-          <button v-if="!selectedFromSearch" type="button" class="nfq-response-validation-link" @click="openVariantValidation">Sources &amp; validation</button>
-          <RouterLink class="nfq-response-reference-link" :to="{path:'/evidence',query:{variant:selected.id}}">Evidence &amp; curation <span aria-hidden="true">↗</span></RouterLink>
-         </div>
-        </div>
-       </section>
+       <TherapyWorkspace
+        :key="selected.id"
+        :variant-id="selected.id"
+        :legacy-eti="legacyEti"
+        :legacy-loading="legacyEtiLoading"
+        :legacy-error="legacyEtiError"
+        @retry-legacy="retryEtiResponse"
+        @open-validation="openVariantValidation"
+       />
       </div><section v-if="!selectedFromSearch" class="dossier-science" aria-label="Additional scientific record details">
       <p v-if="dossierError" role="alert">{{dossierError}}</p>
       <div class="nfq-details-control">
@@ -764,27 +741,4 @@ function select(id:string):void{
 
 
 
-.nfq-response-section{margin-top:1rem;border:1px solid var(--border,#dce4e5);border-radius:10px;background:var(--surface,#fff);padding:.9rem 1rem;min-width:0}
-.nfq-response-heading{display:flex;justify-content:space-between;align-items:center;gap:.7rem;margin-bottom:.55rem}
-.nfq-response-heading h3{font-size:.9rem;line-height:1.45;font-weight:690;letter-spacing:-.01em;margin:0;min-width:0}
-.nfq-response-loading{font-size:.79rem;line-height:1.5;color:var(--text-muted,#687381);margin:.5rem 0}
-.nfq-response-error{display:flex;align-items:center;gap:.5rem 1rem;flex-wrap:wrap;font-size:.79rem;color:var(--text-muted,#687381)}
-.nfq-response-error button{border:1px solid var(--border,#dce4e5);border-radius:7px;background:transparent;color:inherit;padding:.35rem .65rem;font:inherit;cursor:pointer}
-.nfq-response-error button:focus-visible{outline:2px solid currentColor;outline-offset:2px}
-.nfq-response-layout{min-width:0;display:grid;gap:.65rem}
-.nfq-response-status{display:block;font-size:1.03rem;font-weight:660;letter-spacing:-.015em;line-height:1.5;overflow-wrap:anywhere}
-.nfq-response-status[data-state='unresolved']{color:var(--text-muted,#637580)}
-.nfq-response-actions{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:.35rem 1rem;border-top:1px solid var(--border,#e0e6e7);padding-top:.5rem}
-.nfq-response-metadata{min-width:min(270px,100%);max-width:100%}
-.nfq-response-metadata summary{font-size:.74rem;font-weight:560;cursor:pointer;color:var(--text-muted,#687381);padding:.2rem 0}
-.nfq-response-metadata summary:focus-visible,.nfq-response-reference-link:focus-visible{outline:2px solid currentColor;outline-offset:3px}
-.nfq-response-fields{display:grid;gap:.4rem;margin:.65rem 0}
-.nfq-response-fields>div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.7rem;align-items:baseline;font-size:.71rem}
-.nfq-response-fields dt{color:var(--text-muted,#687381)}
-.nfq-response-fields dd{margin:0;font-weight:550;text-align:right;overflow-wrap:anywhere}
-.nfq-response-detail-note{font-size:.7rem;line-height:1.5;color:var(--text-muted,#687381)}
-.nfq-response-reference-link{font-size:.74rem;font-weight:570;display:inline-flex;gap:.3rem;align-items:center;color:inherit;line-height:1.6}
-.nfq-response-validation-link{font:inherit;font-size:.74rem;font-weight:570;border:0;background:transparent;color:inherit;cursor:pointer;padding:.15rem 0;text-decoration:underline;text-underline-offset:3px}
-.nfq-response-validation-link:focus-visible{outline:2px solid currentColor;outline-offset:2px}
-@media(max-width:600px){.nfq-response-section{padding:.75rem .85rem}.nfq-response-heading h3{font-size:.85rem}.nfq-response-status{font-size:1rem}.nfq-response-actions{align-items:flex-start}}
 </style>
