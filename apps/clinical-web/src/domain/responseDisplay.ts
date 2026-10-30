@@ -8,22 +8,22 @@ import type {RecordedModulatorResponse} from '../services/sourceSpecificResponse
 export type ResponseDisplayTone='unresolved'|'recorded';
 export interface ResponseDisplay {
  readonly label:string;
- readonly description:string;
  readonly tone:ResponseDisplayTone;
 }
+/** The label is one complete sentence fragment, never an isolated clinical verdict. */
 export function describeRecordedEti(value:LegacyEtiCategory|null):ResponseDisplay{
  switch(value){
   case 'responsive':return Object.freeze({
-   label:'Responsive',description:'Recorded in the original research register.',tone:'recorded'
+   label:'Classified as responsive',tone:'recorded'
   });
   case 'non_responsive':return Object.freeze({
-   label:'Non-responsive',description:'Recorded in the original research register.',tone:'recorded'
+   label:'Classified as non-responsive',tone:'recorded'
   });
   case 'unknown':return Object.freeze({
-   label:'Unknown',description:'No ETI category determined in the original register.',tone:'unresolved'
+   label:'Classification unknown',tone:'unresolved'
   });
   default:return Object.freeze({
-   label:'Not recorded',description:'No ETI category was returned for this record.',tone:'unresolved'
+   label:'No classification recorded',tone:'unresolved'
   });
  }
 }
