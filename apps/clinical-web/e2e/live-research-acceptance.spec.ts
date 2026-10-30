@@ -200,3 +200,16 @@ test('live drug reference panel reveals an actionable read without claiming curr
  await expect(panel.getByRole('button',{name:'Close'})).toBeVisible();
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
+
+test('live genotype navigation reveals results, preserves keyboard focus and offers return to variant selection',async({page})=>{
+ await page.goto('/#/genotype?a=1&b=35');
+ const ready=page.getByTestId('pair-results-navigation');
+ await expect(ready).toBeVisible({timeout:30000});
+ await expect(ready).toContainText('Both variants selected');
+ await ready.getByRole('button',{name:'View therapy comparison'}).click();
+ const target=page.getByRole('heading',{name:'Five-modulator research rules'});
+ await expect(target).toBeFocused();
+ await page.getByRole('button',{name:'Edit variants'}).click();
+ await expect(page.getByRole('searchbox',{name:'Search variant 1'})).toBeFocused();
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});

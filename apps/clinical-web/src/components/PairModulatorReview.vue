@@ -14,6 +14,11 @@ const profiles=ref<readonly [VariantTherapyProfile,VariantTherapyProfile]|null>(
 const phase=ref<'loading'|'ready'|'unavailable'|'error'>('loading');
 const attempts=ref(0);
 const detail=ref<string|null>(null);
+function editSelectedVariants():void{
+ const field=document.getElementById('genotype-search-0');
+ field?.scrollIntoView({block:'start',behavior:'auto'});
+ field?.focus({preventScroll:true});
+}
 let active:AbortController|null=null;
 const outcomes=computed(()=>{
  if(!profiles.value)return [];
@@ -40,11 +45,12 @@ onUnmounted(()=>active?.abort());
 <template>
  <section class="pair-drugs" aria-labelledby="pair-drugs-title" data-testid="pair-five-regimen-research">
   <div class="pair-drugs-head">
-   <h2 id="pair-drugs-title">Five-modulator research rules</h2>
+   <h2 id="pair-drugs-title" tabindex="-1">Five-modulator research rules</h2>
+   <div class="pair-drugs-actions"><button type="button" @click="editSelectedVariants">Edit variants</button>
    <ContextHelp label="About genotype research rules" title="Pair-rule context">
     <p>The results reproduce the original research calculator's candidate-matching rules for two selected variant records. Two selected records do not establish a patient's genotype or allelic phase.</p>
     <p>A rule match is not a current regulatory indication, clinical response prediction or prescription decision.</p>
-   </ContextHelp>
+   </ContextHelp></div>
   </div>
   <p v-if="phase==='loading'" class="pair-drugs-status" role="status">Loading therapy evidence for both variants…</p>
   <div v-else-if="phase==='error'" role="alert" class="pair-drugs-status">Therapy research data could not be loaded. <button type="button" @click="attempts++">Retry</button></div>
@@ -67,7 +73,11 @@ onUnmounted(()=>active?.abort());
 <style scoped>
 .pair-drugs{margin-top:1rem;padding:1rem;border:1px solid var(--border,#dce4e5);border-radius:10px;min-width:0}
 .pair-drugs-head{display:flex;align-items:center;justify-content:space-between;gap:1rem}
-.pair-drugs-head h2{font-size:1rem;margin:0;letter-spacing:-.01em}
+.pair-drugs-head h2{font-size:1rem;margin:0;letter-spacing:-.01em;scroll-margin-top:4rem;outline-offset:4px}
+.pair-drugs-actions{display:flex;align-items:center;gap:.45rem;flex:0 0 auto}
+.pair-drugs-actions button{font:inherit;font-size:.73rem;cursor:pointer;border:1px solid var(--border,#dce4e5);color:inherit;background:transparent;border-radius:6px;padding:.35rem .65rem}
+.pair-drugs-actions button:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+@media(max-width:500px){.pair-drugs-head{align-items:flex-start}.pair-drugs-actions{gap:.25rem}}
 .pair-drugs-status,.pair-drugs-context{font-size:.76rem;color:var(--text-muted,#687381);line-height:1.5;margin:.55rem 0}
 .pair-drugs-rows{border-top:1px solid var(--border,#dce4e5)}
 .pair-drugs-row{border-bottom:1px solid var(--border,#dce4e5)}

@@ -30,6 +30,7 @@ const citationAborts:[AbortController|null,AbortController|null]=[null,null];
 const sequence=[0,0],restoreSequence=[0,0];
 const debounce:[ReturnType<typeof setTimeout>|undefined,ReturnType<typeof setTimeout>|undefined]=[undefined,undefined];
 const sameVariant=computed(()=>Boolean(chosen[0].value&&chosen[1].value&&chosen[0].value.id===chosen[1].value.id));
+const hasPair=computed(()=>Boolean(chosen[0].value&&chosen[1].value));
 const shareNotice=ref('');
 const canShare=computed(()=>Boolean(chosen[0].value&&chosen[1].value));
 const canExport=computed(()=>canShare.value&&referenceState[0].value==='loaded'&&referenceState[1].value==='loaded');
@@ -123,6 +124,18 @@ async function lookup(slot:Slot):Promise<void>{
   if(!controller.signal.aborted&&run===sequence[slot])error[slot].value='Variant search is unavailable.';
  }finally{if(run===sequence[slot])pending[slot].value=false;}
 }
+function retrySlot(slot:Slot):void{
+ const id=routeId(slot);
+ if(id)void restoreSlot(slot,id);
+ else void lookup(slot);
+}
+function focusTherapyResults():void{
+ const target=document.getElementById('pair-drugs-title');
+ if(!target)return;
+ const prefersReduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ target.scrollIntoView({behavior:prefersReduced?'auto':'smooth',block:'start'});
+ target.focus({preventScroll:true});
+}
 function changed(slot:Slot){
  const hadRoute=routeId(slot)!==null;
  stopReads(slot);resetReferences(slot);
@@ -139,10 +152,7 @@ async function select(slot:Slot,record:RealVariant):Promise<void>{
  if(chosen[0].value&&chosen[1].value){
   await nextTick();
   const target=document.getElementById('pair-drugs-title');
-  if(target&&target.getBoundingClientRect().top>window.innerHeight-140){
-   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-   target.scrollIntoView({behavior:reduced?'auto':'smooth',block:'start'});
-  }
+  if(target&&target.getBoundingClientRect().top>window.innerHeight-140)focusTherapyResults();
  }
 }
 async function clear(slot:Slot):Promise<void>{
@@ -184,7 +194,7 @@ onUnmounted(()=>{stopReads(0);stopReads(1);});
     <label :for="'genotype-search-'+slot">Search variant {{slot+1}}</label>
     <input :id="'genotype-search-'+slot" v-model="input[slot].value" type="search" autocomplete="off" placeholder="Name, HGVS or alias" @input="changed(slot)"/>
     <p v-if="pending[slot].value" role="status" class="nfq-pair-status">Retrieving recorded variants…</p>
-    <p v-if="error[slot].value" role="alert" class="nfq-pair-status">{{error[slot].value}}</p>
+    <div v-if="error[slot].value" role="alert" class="nfq-pair-recovery"><span>{{error[slot].value}}</span><button type="button" @click="retrySlot(slot)">Retry</button></div>
     <div v-if="results[slot].value.length&&!chosen[slot].value" class="genotype-suggestions">
      <button v-for="item in results[slot].value" :key="item.id" type="button" @click="select(slot,item)">
       <strong>{{variantDisplayName(item)}}</strong><span>{{item.proteinName||item.cdnaName||'Additional notation not recorded'}}</span>
@@ -218,6 +228,10 @@ onUnmounted(()=>{stopReads(0);stopReads(1);});
    </section>
   </div>
   <p v-if="sameVariant" role="status" class="nfq-pair-duplicate">Same record selected twice. This does not establish homozygosity.</p>
+  <div v-if="hasPair" class="nfq-pair-ready" data-testid="pair-results-navigation">
+   <span>Both variants selected <span class="nfq-pair-ready-sep" aria-hidden="true">·</span> Five-regimen comparison available</span>
+   <button type="button" aria-controls="pair-drugs-title" @click="focusTherapyResults">View therapy comparison</button>
+  </div>
   <PairModulatorReview v-if="chosen[0].value&&chosen[1].value" :key="chosen[0].value.id+'-'+chosen[1].value.id" :first="chosen[0].value" :second="chosen[1].value"/>
   <DrugReferencePanel v-if="chosen[0].value&&chosen[1].value"/>
  </div>
@@ -229,5 +243,10 @@ onUnmounted(()=>{stopReads(0);stopReads(1);});
 .nfq-pair-heading-actions button:disabled{opacity:.5;cursor:not-allowed}
 .nfq-pair-heading-actions button:focus-visible{outline:2px solid #218466;outline-offset:3px}
 .nfq-pair-copy-status{color:#557463;font-size:12px;margin:0 0 12px}
+.nfq-pair-ready{display:flex;flex-wrap:wrap;gap:.45rem 1rem;align-items:center;justify-content:space-between;padding:.65rem 0;margin:.5rem 0;border-top:1px solid var(--border,#dce4e5);border-bottom:1px solid var(--border,#dce4e5);font-size:.79rem}
+.nfq-pair-ready-sep{margin:0 .15rem;color:var(--text-muted,#687381)}
+.nfq-pair-ready button,.nfq-pair-recovery button{font:inherit;font-size:.74rem;border:1px solid var(--border,#dce4e5);border-radius:6px;background:transparent;color:inherit;padding:.35rem .65rem;cursor:pointer}
+.nfq-pair-ready button:focus-visible,.nfq-pair-recovery button:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+.nfq-pair-recovery{display:flex;align-items:center;flex-wrap:wrap;gap:.4rem .75rem;font-size:.79rem;line-height:1.45;color:var(--text-muted,#687381);margin:.5rem 0}
 @media(max-width:560px){.genotype-page .nfq-pair-heading{display:flex;flex-wrap:wrap;min-width:0}.nfq-pair-heading h1{min-width:0}.nfq-pair-heading-actions{flex:1 1 100%;width:100%;max-width:100%;min-width:0;margin-left:0;justify-content:flex-end;flex-wrap:wrap;box-sizing:border-box}.nfq-pair-heading-actions button{max-width:100%;font-size:11px;padding:7px 9px;white-space:normal;overflow-wrap:anywhere}}
 </style>
