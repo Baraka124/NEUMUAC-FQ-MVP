@@ -527,7 +527,7 @@ function select(id:string):void{
        </dl>
        <section class="nfq-response-section" aria-labelledby="nfq-eti-response-heading">
         <div class="nfq-response-heading">
-         <h3 id="nfq-eti-response-heading">ETI <span>· Historical research classification</span></h3>
+         <h3 id="nfq-eti-response-heading">ETI</h3>
          <ContextHelp label="Interpret ETI classification" title="About this classification">
           <p>This is the original database classification for this variant. It is not an independently verified treatment outcome, clinical recommendation, or prediction for an individual patient.</p>
           <p>Source disagreements are shown separately. A historical therapy-response flag does not establish ETI efficacy.</p>
@@ -757,7 +757,6 @@ function select(id:string):void{
 .nfq-response-section{margin-top:1rem;border:1px solid var(--border,#dce4e5);border-radius:10px;background:var(--surface,#fff);padding:.9rem 1rem;min-width:0}
 .nfq-response-heading{display:flex;justify-content:space-between;align-items:center;gap:.7rem;margin-bottom:.55rem}
 .nfq-response-heading h3{font-size:.9rem;line-height:1.45;font-weight:690;letter-spacing:-.01em;margin:0;min-width:0}
-.nfq-response-heading h3 span{font-weight:450;color:var(--text-muted,#687381);letter-spacing:0}
 .nfq-response-loading{font-size:.79rem;line-height:1.5;color:var(--text-muted,#687381);margin:.5rem 0}
 .nfq-response-layout{min-width:0;display:grid;gap:.65rem}
 .nfq-response-status{display:block;font-size:1.03rem;font-weight:660;letter-spacing:-.015em;line-height:1.5;overflow-wrap:anywhere}
