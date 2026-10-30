@@ -1,4 +1,5 @@
 import type {ModulatorId} from './modulatorEvidence';
+import type {HistoricalModulatorFlags} from './historicalModulatorFlags';
 
 /** Five distinct regimens implemented by the frozen five-drug calculator.
  * Brand aliases do not create additional therapies.
@@ -46,6 +47,7 @@ export interface VariantTherapyProfile {
  readonly functionalClass:string|null;
  readonly classSubtype:string|null;
  readonly validationCount:number|null;
+ readonly legacyDrugFlags:HistoricalModulatorFlags;
  readonly entries:readonly TherapyEntry[];
 }
 export interface TherapyEntry {
@@ -65,6 +67,7 @@ export function projectVariantTherapies(input:{
  etiEvidenceLevel:string|null;alyftrekEvidenceLevel:string|null;
  etiEvidenceTier:string|null;alyftrekEvidenceTier:string|null;
  etiAuthority:string|null;alyftrekAuthority:string|null;
+ legacyDrugFlags?:HistoricalModulatorFlags;
 }):VariantTherapyProfile{
  const entries=THERAPIES.map(t=>Object.freeze({
   therapy:t.id,
@@ -77,6 +80,7 @@ export function projectVariantTherapies(input:{
  return Object.freeze({
   variantId:input.id,functionalClass:input.functionalClass,
   classSubtype:input.classSubtype,validationCount:input.validationCount,
+  legacyDrugFlags:input.legacyDrugFlags??Object.freeze({eti:null,alyftrek:null}),
   entries:Object.freeze(entries)
  });
 }

@@ -1,8 +1,9 @@
 import {validateReadOnlyConfig,VariantConnectionError,type ReadOnlyConfig,type ReadSessionProvider} from './liveVariants';
 import {projectVariantTherapies,type RecordedResponse,type VariantTherapyProfile} from '../domain/therapyRegistry';
+import {decodeHistoricalModulatorFlags} from '../domain/historicalModulatorFlags';
 
 const exactId=/^[1-9]\d{0,17}$/;
-const columns='id,cftr_class,class_subtype,validation_count,eti_prediction,alyftrek_prediction,eti_evidence_level,alyftrek_evidence_level,eti_evidence_tier,alyftrek_evidence_tier,eti_authority_source,alyftrek_authority_source';
+const columns='id,cftr_class,class_subtype,validation_count,eti_prediction,alyftrek_prediction,eti_evidence_level,alyftrek_evidence_level,eti_evidence_tier,alyftrek_evidence_tier,eti_authority_source,alyftrek_authority_source,therapy_responsive_drugs';
 function record(input:unknown):Record<string,unknown>{
  if(!input||typeof input!=='object'||Array.isArray(input))
   throw new VariantConnectionError('schema-mismatch','Invalid therapy record');
@@ -43,7 +44,8 @@ export function decodeVariantTherapyProfile(input:unknown):VariantTherapyProfile
   etiEvidenceTier:optionalText(row,'eti_evidence_tier'),
   alyftrekEvidenceTier:optionalText(row,'alyftrek_evidence_tier'),
   etiAuthority:optionalText(row,'eti_authority_source'),
-  alyftrekAuthority:optionalText(row,'alyftrek_authority_source')
+  alyftrekAuthority:optionalText(row,'alyftrek_authority_source'),
+  legacyDrugFlags:decodeHistoricalModulatorFlags(row.therapy_responsive_drugs??null)
  });
 }
 export function createVariantTherapySource(config:ReadOnlyConfig,transport:typeof fetch=fetch,session?:ReadSessionProvider){
