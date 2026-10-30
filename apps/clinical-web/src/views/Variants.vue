@@ -236,6 +236,14 @@ async function loadEtiResponse(record:RealVariant|null):Promise<void>{
  }finally{if(!controller.signal.aborted&&selected.value?.id===record.id)legacyEtiLoading.value=false;}
 }
 function retryEtiResponse():void{if(selected.value)void loadEtiResponse(selected.value);}
+async function openVariantValidation():Promise<void>{
+ if(!selected.value||selectedFromSearch.value)return;
+ scientificDetailsOpen.value=true;
+ await nextTick();
+ const heading=document.getElementById('nfq-dossier-sources');
+ heading?.scrollIntoView({block:'start',behavior:'auto'});
+ heading?.focus({preventScroll:true});
+}
 watch(selected,record=>{void loadEtiResponse(record);});
 watch(selected,async value=>{
  evidenceAbort?.abort(); linkedEvidence.value=[]; evidenceError.value='';evidenceReady.value=false;
@@ -553,6 +561,7 @@ function select(id:string):void{
            </dl>
            
           </details>
+          <button v-if="!selectedFromSearch" type="button" class="nfq-response-validation-link" @click="openVariantValidation">Sources &amp; validation</button>
           <RouterLink class="nfq-response-reference-link" :to="{path:'/evidence',query:{variant:selected.id}}">Evidence &amp; curation <span aria-hidden="true">↗</span></RouterLink>
          </div>
         </div>
@@ -581,7 +590,7 @@ function select(id:string):void{
        </section>
        <section aria-labelledby="nfq-dossier-sources">
         <div class="nfq-provenance-header">
-         <h3 id="nfq-dossier-sources" class="nfq-dossier-group-title">Sources and validation</h3>
+         <h3 id="nfq-dossier-sources" class="nfq-dossier-group-title" tabindex="-1">Sources and validation</h3>
          <ContextHelp label="About recorded provenance" title="Recorded metadata and provenance">
           <p>These fields are reproduced from the research database. A recorded source name, confidence label or validation entry does not mean that the scientific assertion was independently verified.</p>
           <p v-if="fieldInventory">Recorded fields ({{fieldInventory.recorded.length}} of 10 inspected): {{fieldInventory.recorded.join(', ')||'None'}}.</p>
@@ -775,5 +784,7 @@ function select(id:string):void{
 .nfq-response-fields dd{margin:0;font-weight:550;text-align:right;overflow-wrap:anywhere}
 .nfq-response-detail-note{font-size:.7rem;line-height:1.5;color:var(--text-muted,#687381)}
 .nfq-response-reference-link{font-size:.74rem;font-weight:570;display:inline-flex;gap:.3rem;align-items:center;color:inherit;line-height:1.6}
+.nfq-response-validation-link{font:inherit;font-size:.74rem;font-weight:570;border:0;background:transparent;color:inherit;cursor:pointer;padding:.15rem 0;text-decoration:underline;text-underline-offset:3px}
+.nfq-response-validation-link:focus-visible{outline:2px solid currentColor;outline-offset:2px}
 @media(max-width:600px){.nfq-response-section{padding:.75rem .85rem}.nfq-response-heading h3{font-size:.85rem}.nfq-response-status{font-size:1rem}.nfq-response-actions{align-items:flex-start}}
 </style>
