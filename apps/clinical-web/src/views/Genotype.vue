@@ -2,6 +2,8 @@
 import {computed,ref,watch,onUnmounted,nextTick} from 'vue';
 import {useRoute,useRouter,RouterLink} from 'vue-router';
 import {createReadOnlyRepository,readConfigFromEnvironment,variantDisplayName,type RealVariant} from '../services/liveVariants';
+import {authController,authSessionProvider} from '../services/authSession';
+import {pendingPairRestoration} from '../domain/pendingPairRestoration';
 import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
 import {pairRecordId,pairSelectionQuery} from '../domain/pairSelection';
 import ContextHelp from '../components/ContextHelp.vue';
@@ -12,7 +14,7 @@ import {pairResearchMarkdown} from '../domain/pairResearchExport';
 
 const route=useRoute(),router=useRouter();
 const cfg=readConfigFromEnvironment();
-const variants=cfg?createReadOnlyRepository(cfg):null;
+const variants=cfg?createReadOnlyRepository(cfg,fetch,authSessionProvider):null;
 const evidence=cfg?createLiveEvidenceSource(cfg):null;
 type Slot=0|1;
 type ReferenceState='idle'|'loading'|'loaded'|'error'|'unavailable';
@@ -168,6 +170,16 @@ watch(()=>[routeId(0),routeId(1)] as const,([first,second])=>{
  if(initialRoute||second!==previousIds[1])void restoreSlot(1,second);
  previousIds=[first,second];initialRoute=false;
 },{immediate:true});
+watch(()=>authController?.state.phase,phase=>{
+ // A signed-in staff session may arrive after deep-link restoration attempted.
+ // Retry only the missing members; never clear already restored research records.
+ const ids=[routeId(0),routeId(1)] as const;
+ const selected=[chosen[0].value?.id??null,chosen[1].value?.id??null] as const;
+ for(const slot of pendingPairRestoration(ids,selected,phase,cfg?.accessMode)){
+  const id=ids[slot];
+  if(id)void restoreSlot(slot,id);
+ }
+});
 onUnmounted(()=>{stopReads(0);stopReads(1);});
 </script>
 
