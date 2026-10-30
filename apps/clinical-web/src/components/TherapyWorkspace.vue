@@ -134,6 +134,9 @@ onUnmounted(()=>active?.abort());
         </template>
        </section>
       </template>
+      <template v-if="therapy.id==='ALYFTREK'">
+       <SourceResponsePanel :key="variantId+'-alyftrek'" :variant-id="variantId" therapy="ALYFTREK" :recorded-category="entry?.response??null"/>
+      </template>
       <div class="nfq-therapy-actions">
        <button type="button" @click="emit('openValidation')">Sources &amp; validation</button>
        <RouterLink :to="{path:'/evidence',query:{variant:variantId,from:'/variants/'+variantId}}">Evidence &amp; curation</RouterLink>
