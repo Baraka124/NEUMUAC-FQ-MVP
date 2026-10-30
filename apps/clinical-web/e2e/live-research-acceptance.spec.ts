@@ -90,7 +90,7 @@ test('live scientific multi-term discovery preserves recorded identity and expla
 test('deployed original ETI response classifications remain attributed and inspectable',async({page})=>{
  // Live acceptance is opt-in. Never fabricate a response from fixture data.
  await page.goto('/#/variants/18');
- await page.getByTestId('five-therapy-workspace').getByRole('button',{name:'Details'}).first().click();
+ await page.getByTestId('five-therapy-workspace').getByRole('button',{name:'Details',exact:true}).first().click();
  await expect(page.locator('#selected-title')).not.toContainText('Record unavailable',{timeout:25000});
  const region=page.getByRole('region',{name:'ETI response'});
  await expect(region).toBeVisible();
@@ -115,7 +115,7 @@ test('deployed original ETI response classifications remain attributed and inspe
  */
 test('live original ETI category and source-specific response disagreement remains visible',async({page})=>{
  await page.goto('/#/variants/14');
- await page.getByTestId('five-therapy-workspace').getByRole('button',{name:'Details'}).first().click();
+ await page.getByTestId('five-therapy-workspace').getByRole('button',{name:'Details',exact:true}).first().click();
  await expect(page.getByRole('heading',{name:'ETI response'})).toBeVisible({timeout:25000});
  await expect(page.getByTestId('eti-recorded-category')).toHaveText('Responsive',{timeout:25000});
  await expect(page.getByRole('region',{name:'Source evidence'}).getByText('Non-responsive',{exact:true})).toBeVisible({timeout:25000});
@@ -125,12 +125,12 @@ test('live original ETI category and source-specific response disagreement remai
 });
 test('live recorded nonresponsive category is distinct from no source and from unknown',async({page})=>{
  await page.goto('/#/variants/7');
- await page.getByTestId('five-therapy-workspace').getByRole('button',{name:'Details'}).first().click();
+ await page.getByTestId('five-therapy-workspace').getByRole('button',{name:'Details',exact:true}).first().click();
  await expect(page.getByTestId('eti-recorded-category')).toHaveText('Non-responsive',{timeout:25000});
  await expect(page.getByRole('region',{name:'Source evidence'}).getByText('Non-responsive',{exact:true})).toBeVisible({timeout:25000});
  await expect(page.getByTestId('eti-parity-status')).toHaveCount(0);
  await page.goto('/#/variants/44');
- await page.getByTestId('five-therapy-workspace').getByRole('button',{name:'Details'}).first().click();
+ await page.getByTestId('five-therapy-workspace').getByRole('button',{name:'Details',exact:true}).first().click();
  await expect(page.getByTestId('eti-recorded-category')).toHaveText('Unknown',{timeout:25000});
  await expect(page.getByText('No linked source findings.')).toBeVisible({timeout:25000});
  await expect(page.getByTestId('eti-parity-status')).toHaveCount(0);
@@ -140,7 +140,7 @@ test('recorded ETI section remains readable on desktop and phone widths',async({
  for(const viewport of [{width:1366,height:900},{width:390,height:844}]){
   await page.setViewportSize(viewport);
   await page.goto('/#/variants/44');
- await page.getByTestId('five-therapy-workspace').getByRole('button',{name:'Details'}).first().click();
+ await page.getByTestId('five-therapy-workspace').getByRole('button',{name:'Details',exact:true}).first().click();
   const section=page.getByRole('region',{name:'ETI response'});
   await expect(section).toBeVisible({timeout:25000});
   await expect(section.getByTestId('eti-recorded-category')).toHaveText('Unknown',{timeout:25000});
@@ -153,7 +153,7 @@ test('recorded ETI section remains readable on desktop and phone widths',async({
 
 test('live five-regimen workspace keeps Class I exceptions and separated ETI/Alyftrek responses',async({page})=>{
  await page.goto('/#/variants/35');
- await page.getByTestId('five-therapy-workspace').getByRole('button',{name:'Details'}).first().click();
+ await page.getByTestId('five-therapy-workspace').getByRole('button',{name:'Details',exact:true}).first().click();
  const workspace=page.getByTestId('five-therapy-workspace');
  await expect(workspace).toBeVisible({timeout:25000});
  await expect(workspace.getByText('Alyftrek',{exact:true})).toBeVisible({timeout:25000});
@@ -169,7 +169,7 @@ test('live five-regimen workspace keeps Class I exceptions and separated ETI/Aly
 });
 test('live five-regimen exceptional Class I remains ETI-responsive without class-wide rewrite',async({page})=>{
  await page.goto('/#/variants/1');
- await page.getByTestId('five-therapy-workspace').getByRole('button',{name:'Details'}).first().click();
+ await page.getByTestId('five-therapy-workspace').getByRole('button',{name:'Details',exact:true}).first().click();
  const workspace=page.getByTestId('five-therapy-workspace');
  await expect(workspace).toBeVisible({timeout:25000});
  await expect(workspace).toContainText('exceptional',{timeout:25000});
