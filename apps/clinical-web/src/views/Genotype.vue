@@ -4,6 +4,7 @@ import {useRoute,useRouter,RouterLink} from 'vue-router';
 import {createReadOnlyRepository,readConfigFromEnvironment,variantDisplayName,type RealVariant} from '../services/liveVariants';
 import {authController,authSessionProvider} from '../services/authSession';
 import {pendingPairRestoration} from '../domain/pendingPairRestoration';
+import {pairReadinessText,type PairReadiness} from '../domain/pairReadiness';
 import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
 import {pairRecordId,pairSelectionQuery} from '../domain/pairSelection';
 import ContextHelp from '../components/ContextHelp.vue';
@@ -33,6 +34,7 @@ const sequence=[0,0],restoreSequence=[0,0];
 const debounce:[ReturnType<typeof setTimeout>|undefined,ReturnType<typeof setTimeout>|undefined]=[undefined,undefined];
 const sameVariant=computed(()=>Boolean(chosen[0].value&&chosen[1].value&&chosen[0].value.id===chosen[1].value.id));
 const hasPair=computed(()=>Boolean(chosen[0].value&&chosen[1].value));
+const pairReadiness=ref<PairReadiness>('loading');
 const shareNotice=ref('');
 const canShare=computed(()=>Boolean(chosen[0].value&&chosen[1].value));
 const canExport=computed(()=>canShare.value&&referenceState[0].value==='loaded'&&referenceState[1].value==='loaded');
@@ -61,7 +63,7 @@ async function copyComparisonLink():Promise<void>{
   shareNotice.value='Record comparison link copied. Opened records must be verified again.';
  }catch{shareNotice.value='The comparison link could not be copied. Clipboard access may be restricted.';}
 }
-watch([chosen[0],chosen[1]],()=>{shareNotice.value='';exportNotice.value='';});
+watch([chosen[0],chosen[1]],()=>{shareNotice.value='';exportNotice.value='';pairReadiness.value='loading';});
 
 
 function routeId(slot:Slot):string|null{return pairRecordId(route.query[slot===0?'a':'b']);}
@@ -241,10 +243,10 @@ onUnmounted(()=>{stopReads(0);stopReads(1);});
   </div>
   <p v-if="sameVariant" role="status" class="nfq-pair-duplicate">Same record selected twice. This does not establish homozygosity.</p>
   <div v-if="hasPair" class="nfq-pair-ready" data-testid="pair-results-navigation">
-   <span>Both variants selected <span class="nfq-pair-ready-sep" aria-hidden="true">·</span> Five-regimen comparison available</span>
+   <span role="status" aria-live="polite" data-testid="pair-data-readiness">Both variants selected <span class="nfq-pair-ready-sep" aria-hidden="true">·</span> {{pairReadinessText(pairReadiness)}}</span>
    <button type="button" aria-controls="pair-drugs-title" @click="focusTherapyResults">View therapy comparison</button>
   </div>
-  <PairModulatorReview v-if="chosen[0].value&&chosen[1].value" :key="chosen[0].value.id+'-'+chosen[1].value.id" :first="chosen[0].value" :second="chosen[1].value"/>
+  <PairModulatorReview v-if="chosen[0].value&&chosen[1].value" :key="chosen[0].value.id+'-'+chosen[1].value.id" :first="chosen[0].value" :second="chosen[1].value" @phase-change="pairReadiness=$event"/>
   <DrugReferencePanel v-if="chosen[0].value&&chosen[1].value"/>
  </div>
 </template>
