@@ -96,6 +96,8 @@ test('deployed original ETI response classifications remain attributed and inspe
  const historical=region.getByTestId('eti-recorded-category');
  await expect(historical).toBeVisible({timeout:25000});
  await expect(historical).toHaveText(/^(Classified as responsive|Classified as non-responsive|Classification unknown|No classification recorded)$/);
+ await expect(region).not.toContainText('MODULATOR EVIDENCE');
+ await expect(region).not.toContainText('Recorded ETI category');
  await region.getByText('Original database fields').click();
  await expect(region.getByText('Therapy response flag')).toBeVisible();
  await expect(region.locator('.nfq-context-help summary')).toBeVisible();
@@ -112,7 +114,7 @@ test('live original ETI category and source-specific response disagreement remai
  await page.goto('/#/variants/14');
  await expect(page.getByRole('heading',{name:'ETI · Historical research classification'})).toBeVisible({timeout:25000});
  await expect(page.getByTestId('eti-recorded-category')).toHaveText('Classified as responsive',{timeout:25000});
- await expect(page.getByRole('region',{name:'Source evidence'}).getByText('Non-responsive',{exact:true})).toBeVisible({timeout:25000});
+ await expect(page.getByRole('region',{name:'Recorded source findings'}).getByText('Non-responsive',{exact:true})).toBeVisible({timeout:25000});
  await expect(page.getByTestId('eti-parity-status')).toContainText('Recorded values disagree');
  await expect(page.getByTestId('eti-parity-signals')).toContainText('source-specific ETI label differs');
  await expect(page.getByTestId('eti-parity-signals')).toContainText('historical therapy flag');
@@ -121,7 +123,7 @@ test('live original ETI category and source-specific response disagreement remai
 test('live recorded nonresponsive category is distinct from no source and from unknown',async({page})=>{
  await page.goto('/#/variants/7');
  await expect(page.getByTestId('eti-recorded-category')).toHaveText('Classified as non-responsive',{timeout:25000});
- await expect(page.getByRole('region',{name:'Source evidence'}).getByText('Non-responsive',{exact:true})).toBeVisible({timeout:25000});
+ await expect(page.getByRole('region',{name:'Recorded source findings'}).getByText('Non-responsive',{exact:true})).toBeVisible({timeout:25000});
  await expect(page.getByTestId('eti-parity-status')).toContainText('source verification pending');
  await page.goto('/#/variants/44');
  await expect(page.getByTestId('eti-recorded-category')).toHaveText('Classification unknown',{timeout:25000});
@@ -136,7 +138,9 @@ test('recorded ETI section remains readable on desktop and phone widths',async({
   const section=page.getByRole('region',{name:'ETI · Historical research classification'});
   await expect(section).toBeVisible({timeout:25000});
   await expect(section.getByTestId('eti-recorded-category')).toHaveText('Classification unknown',{timeout:25000});
-  await expect(section.getByRole('heading',{name:'Source evidence'})).toBeVisible();
+  await expect(section).not.toContainText('Recorded ETI category');
+  await expect(section).not.toContainText('Recorded in the original research register.');
+  await expect(section.getByRole('heading',{name:'Recorded source findings'})).toBeVisible();
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
