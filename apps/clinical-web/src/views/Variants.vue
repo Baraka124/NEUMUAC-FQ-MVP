@@ -379,7 +379,12 @@ async function loadDetail(id:unknown):Promise<void>{
   }}
   finally {if(run===detailSequence)detailBusy.value=false;}
 }
-watch(()=>authController?.state.phase,()=>{current?.abort();detailRequest?.abort();rows.value=[];selected.value=null;page.value=0;void load();});
+watch(()=>authController?.state.phase,()=>{
+ current?.abort();detailRequest?.abort();rows.value=[];selected.value=null;page.value=0;
+ void load();
+ const id=route.params.id;
+ if(typeof id==='string'&&/^[1-9]\d{0,17}$/.test(id))void loadDetail(id);
+});
 watch([search,page,classFilter,sort,searchMode],()=>{clearTimeout(timer);current?.abort();exactRequest?.abort();++listSequence;++exactSequence;rows.value=[];hasMore.value=false;busy.value=false;completed.value=false;pending.value=!scientificInputAssessment.value.blocked;timer=setTimeout(()=>{void load();void resolveSearch();},search.value?250:0)},{immediate:true});
 watch([search,classFilter,sort,searchMode],()=>{page.value=0;});
 watch(()=>route.params.id,id=>{void loadDetail(id);},{immediate:true});
