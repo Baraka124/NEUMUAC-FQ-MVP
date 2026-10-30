@@ -12,7 +12,8 @@
     "test:e2e:contract": "playwright test --config playwright.contract.config.ts",
     "test:differential": "tsx tests/compare.mts",
     "test:e2e:live": "playwright test --config playwright.live.config.ts",
-    "test:release": "node --test tests/public-release-audit.test.mjs"
+    "test:release": "node --test tests/public-release-audit.test.mjs",
+    "test:migration": "node --test tests/audit-therapy-snapshot.test.mjs"
   },
   "dependencies": {
     "vue": "3.5.18",
