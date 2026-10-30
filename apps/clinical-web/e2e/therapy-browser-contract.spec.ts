@@ -22,9 +22,9 @@ const classFields={
 };
 const eu=['Kaftrio (ETI)','Alyftrek (VTD)','Kalydeco (IVA)','Symkevi (TEZ/IVA)']
  .map((drug_name,i)=>({id:i+1,drug_name,eligible_rule:'Recorded EU rule',jurisdiction:'EU',regulator:'EMA',approval_date:null,is_active:true}));
-async function setup(page:Page,opts:{failFirstTherapy?:boolean}={}):Promise<void>{
+async function setup(page:Page,opts:{failTherapy?:boolean}={}):Promise<void>{
  page.on('requestfailed',r=>{if(r.url().includes('cftr-contract.invalid'))console.error('Contract API request failed:',r.url(),r.failure()?.errorText);});
- let failed=false;const methods:string[]=[];
+ const methods:string[]=[];
  return page.route('https://cftr-contract.invalid/rest/v1/**',async route=>{
   const request=route.request(),url=new URL(request.url()),table=url.pathname.split('/').pop();
   if(request.method()==='OPTIONS'){
@@ -33,9 +33,8 @@ async function setup(page:Page,opts:{failFirstTherapy?:boolean}={}):Promise<void
   methods.push(request.method());
   if(request.method()!=='GET'){await route.fulfill({status:405,body:'No writes supported'});return;}
   const id=url.searchParams.get('id')?.replace(/^eq\./,'');
-  if(table==='variants'&&opts.failFirstTherapy&&!failed&&
+  if(table==='variants'&&opts.failTherapy&&
      (url.searchParams.get('select')||'').includes('class_subtype')){
-   failed=true;
    await route.fulfill({status:503,headers:{'access-control-allow-origin':'*'},body:'Service unavailable'});return;
   }
   let response:unknown[]=[];
@@ -79,11 +78,13 @@ test('Class I divergence opens an evidence workflow, not an auto-reclassificatio
 });
 
 test('variant therapy errors offer genuine retry and never replace a failed value',async({page})=>{
- await setup(page,{failFirstTherapy:true});
+ const outage={failTherapy:true};
+ await setup(page,outage);
  await page.goto('/#/variants/1');
  const panel=page.getByTestId('five-therapy-workspace');
  await expect(panel.getByRole('alert')).toContainText('Could not load therapy responses.');
  await expect(panel.locator('.nfq-therapy-row')).toHaveCount(0);
+ outage.failTherapy=false;
  await panel.getByRole('button',{name:'Retry'}).click();
  await expectFiveRows(panel);
  await expect(panel.locator('.nfq-therapy-row').first().locator('.nfq-therapy-result')).toHaveText('Responsive');
