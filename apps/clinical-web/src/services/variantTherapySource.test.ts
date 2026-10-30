@@ -19,6 +19,13 @@ describe('14H11 exact-variant therapy source',()=>{
   expect(data.entries.map(x=>x.response)).toEqual(['responsive','unknown',null,null,null]);
   expect(data.entries[1].evidenceTier).toBe('class_rule');
  });
+ it('keeps independently recorded historical JSON booleans separate from response fields',()=>{
+  const data=decodeVariantTherapyProfile({...row,id:19,eti_prediction:'non_responsive',
+   therapy_responsive_drugs:{eti:true}});
+  expect(data.entries[0].response).toBe('non_responsive');
+  expect(data.legacyDrugFlags).toEqual({eti:true,alyftrek:null});
+  expect(()=>decodeVariantTherapyProfile({...row,therapy_responsive_drugs:{eti:'true'}})).toThrow();
+ });
  it('accepts Class I exceptional with nonresponse and ordinary Class I with Alyftrek response',()=>{
   const g=decodeVariantTherapyProfile({...row,id:19,eti_prediction:'non_responsive'});
   expect(g.entries[0].response).toBe('non_responsive');
@@ -46,6 +53,7 @@ describe('14H11 exact-variant therapy source',()=>{
   expect(url.searchParams.get('id')).toBe('eq.1');
   expect(url.searchParams.get('limit')).toBe('2');
   expect(url.searchParams.get('select')).toContain('alyftrek_prediction');
+  expect(url.searchParams.get('select')).toContain('therapy_responsive_drugs');
   expect(url.searchParams.get('select')).not.toContain('clinician_note');
   expect(opts.method).toBe('GET');
   expect(opts.credentials).toBe('omit');
