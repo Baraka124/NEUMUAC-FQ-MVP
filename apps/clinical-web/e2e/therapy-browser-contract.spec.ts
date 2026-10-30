@@ -5,8 +5,8 @@ import {test,expect,type Page,type Locator} from '@playwright/test';
  */
 const variants:Record<string,Record<string,unknown>>={
  '1':{id:1,legacy_name:'E831X',cftr_class:'I',class_subtype:'exceptional',eti_prediction:'responsive',alyftrek_prediction:'unknown'},
- '19':{id:19,legacy_name:'G542X',cftr_class:'I',class_subtype:'exceptional',eti_prediction:'non_responsive',alyftrek_prediction:'unknown'},
- '35':{id:35,legacy_name:'3120+1G->A',cftr_class:'I',class_subtype:'true',eti_prediction:'non_responsive',alyftrek_prediction:'responsive',alyftrek_evidence_tier:'clinical_trial'}
+ '19':{id:19,legacy_name:'G542X',cftr_class:'I',class_subtype:'exceptional',eti_prediction:'non_responsive',alyftrek_prediction:'unknown',therapy_responsive_drugs:{eti:true}},
+ '35':{id:35,legacy_name:'3120+1G->A',cftr_class:'I',class_subtype:'true',eti_prediction:'non_responsive',alyftrek_prediction:'responsive',alyftrek_evidence_tier:'clinical_trial',therapy_responsive_drugs:{eti:false,alyftrek:true}}
 };
 async function expectFiveRows(panel:Locator):Promise<void>{
  try{await expect(panel.locator('.nfq-therapy-row')).toHaveCount(5,{timeout:10000});}
@@ -141,4 +141,27 @@ test('Alyftrek owns its source inspection even for Class I variant with no linke
  await expect(workspace.locator('.nfq-therapy-row').nth(0).locator('.nfq-therapy-detail')).toHaveCount(0);
  await expect(workspace.locator('.nfq-therapy-row').nth(1).locator('.nfq-therapy-detail')).toBeFocused();
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
+
+test('G542X keeps ETI non-responsive while its historical boolean discrepancy remains inspectable',async({page})=>{
+ await setup(page);
+ await page.goto('/#/variants/19');
+ const workspace=page.getByTestId('five-therapy-workspace');
+ await expectFiveRows(workspace);
+ await expect(workspace.locator('.nfq-therapy-row').first().locator('.nfq-therapy-result')).toHaveText('Non-responsive');
+ await workspace.locator('.nfq-therapy-row').first().getByRole('button',{name:'Details',exact:true}).click();
+ await expect(workspace.getByTestId('therapy-historical-flag-disagreement')).toContainText('historical flag differs');
+ await expect(workspace.locator('.nfq-therapy-row').first()).toContainText('Historical drug flag: Yes');
+ await expect(workspace.getByTestId('eti-recorded-category')).toHaveText('Non-responsive');
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
+test('Alyftrek Class I response retains its independent true historical flag without ETI reclassification',async({page})=>{
+ await setup(page);
+ await page.goto('/#/variants/35');
+ const workspace=page.getByTestId('five-therapy-workspace');
+ await expectFiveRows(workspace);
+ await workspace.locator('.nfq-therapy-row').nth(1).getByRole('button',{name:'Details',exact:true}).click();
+ await expect(workspace.locator('.nfq-therapy-row').nth(1)).toContainText('Historical drug flag: Yes');
+ await expect(workspace.getByTestId('therapy-historical-flag-disagreement')).toHaveCount(0);
+ await expect(workspace.locator('.nfq-therapy-row').first().locator('.nfq-therapy-result')).toHaveText('Non-responsive');
 });
