@@ -20,33 +20,33 @@ const emit=defineEmits<{retryLegacy:[];openValidation:[]}>();
 const config=readConfigFromEnvironment();
 const source=config?createVariantTherapySource(config,fetch,authSessionProvider):null;
 const profile=ref<VariantTherapyProfile|null>(null);
-const loading=ref(false),error=ref(''),retrieved=ref(false),retry=ref(0);
-const selectedDrug=ref<string|null>(null);
+const loading=ref(false),error=ref(''),retry=ref(0);
+const selectedDrug=ref<string|null>('ETI');
 let active:AbortController|null=null;
 const rows=computed(()=>{
  const found=new Map(profile.value?.entries.map(item=>[item.therapy,item])??[]);
  return THERAPIES.map(therapy=>({therapy,entry:found.get(therapy.id)??null}));
 });
-function resultLabel(entry:TherapyEntry|null,drug:string):string{
+function resultLabel(entry:TherapyEntry|null):string{
  if(!entry||entry.coverage==='genotype-rule-only')return 'Genotype rules';
  return describeRecordedEti(entry.response).label;
 }
 function switchDetails(id:string):void{selectedDrug.value=selectedDrug.value===id?null:id;}
 watch([()=>props.variantId,retry],async ([id])=>{
- active?.abort();profile.value=null;error.value='';retrieved.value=false;loading.value=false;
+ active?.abort();profile.value=null;error.value='';loading.value=false;
  if(!source)return;
  const controller=new AbortController();active=controller;loading.value=true;
  try{
   const result=await source.get(id,controller.signal);
   if(!controller.signal.aborted&&props.variantId===id){
-   profile.value=result;retrieved.value=true;
+   profile.value=result;
    if(!result)error.value='Therapy profile unavailable for this variant.';
   }
  }catch{
   if(!controller.signal.aborted&&props.variantId===id)error.value='Could not load therapy responses.';
  }finally{if(!controller.signal.aborted&&props.variantId===id)loading.value=false;}
 },{immediate:true});
-watch(()=>props.variantId,()=>{selectedDrug.value=null;});
+watch(()=>props.variantId,()=>{selectedDrug.value='ETI';});
 onUnmounted(()=>active?.abort());
 </script>
 
@@ -73,7 +73,7 @@ onUnmounted(()=>active?.abort());
        <strong>{{therapy.label}}</strong>
        <small v-if="therapy.id==='ETI'">Kaftrio / Trikafta</small>
       </div>
-      <span class="nfq-therapy-result" :class="{'nfq-therapy-unknown':entry?.response==='unknown'||entry?.response===null}">{{resultLabel(entry,therapy.id)}}</span>
+      <span class="nfq-therapy-result" :class="{'nfq-therapy-unknown':entry?.response==='unknown'||entry?.response===null}">{{resultLabel(entry)}}</span>
       <button type="button" class="nfq-therapy-inspect" :aria-expanded="selectedDrug===therapy.id" :aria-controls="'nfq-therapy-details-'+therapy.id" @click="switchDetails(therapy.id)">{{selectedDrug===therapy.id?'Close':'Details'}}</button>
      </div>
      <div v-if="selectedDrug===therapy.id" :id="'nfq-therapy-details-'+therapy.id" class="nfq-therapy-detail">
