@@ -30,7 +30,7 @@
 | NFQ-012 | Scientific evidence | CFTR2 curated authority and reference context | Not migrated | Legacy CFTR2/proxy integration | Licensing/provenance and authoritative variant linking approved |
 | NFQ-013 | Scientific evidence | Additional external scientific sources | Not migrated | NCBI, gnomAD, LOVD, trials and DOI links | Bounded connectors, rate-limits, source versions and safe fallbacks |
 | NFQ-014 | Classification | CFTR functional-class rules and subtype | Partial | variants class fields, cftr_class_rules | Versioned class interpretation and negative controls validated |
-| NFQ-015 | Classification | Modulator evidence ETI / Alyftrek | Not migrated | Legacy treatment context | Jurisdiction- and evidence-aware reference, no patient recommendations |
+| NFQ-015 | Classification | Modulator evidence ETI / Alyftrek | Partial | PRs #222–#225: five-regimen registry, ETI/Alyftrek source projections and variant UI | Source/response completeness, clinician acceptance and review submissions remain outstanding |
 | NFQ-016 | Classification | Clinician versus curator scientific projections | Not migrated | Legacy clinical/curation modes | Field-level authorization and view parity assessed |
 | NFQ-017 | Classification | Scientific nomenclature decision governance | Staged only | ADR-0003, differential exception register | Independent review approvals and versioned release gates |
 | NFQ-018 | Curation | Contributor draft and evidence submission | Not migrated | Legacy edit/save; proposal records | Verified authorship, drafts, conflict-safe write and audit |
@@ -41,7 +41,7 @@
 | NFQ-023 | Helios | Helios approval/reject and trace | Staged only | Legacy approve and audit flows | Human decision, conflict resolution and transactional audit tests |
 | NFQ-024 | Genotype | Two-variant exploratory comparison | Partial | Legacy compound genotype; Vue pair workspace | Nomenclature/evidence comparison, saved stable URL and coverage |
 | NFQ-025 | Genotype | Allelic phase and genotype interpretation | Not migrated | Legacy computeCompoundGenotype | Intended use approval, uncertainty and data source verification |
-| NFQ-026 | Genotype | Jurisdiction-aware drug reference context | Not migrated | Legacy therapy and geography logic | Documented authority dates, regulatory differences, no unsupported advice |
+| NFQ-026 | Genotype | Jurisdiction-aware drug reference context | Partial | PRs #226–#227: bounded five-regimen rule comparison and four legacy EU reference rows | Verify current regulator rules, safety sources, Orkambi gap and live production access |
 | NFQ-027 | Intelligence | Source-link coverage and gaps | Partial | Vue live coverage; legacy dashboard | Coverage reconciles, classification/data completeness and action priority |
 | NFQ-028 | Intelligence | Search trends and analytics reconciliation | Not migrated | trending_variants_weekly, search_history_log | Privacy-safe trends, denominator and reconciliation tests |
 | NFQ-029 | Intelligence | Curation priority and triage queue | Not migrated | curation_priority_queue, research_gaps | Explainable priorities; separate missing data from scientific certainty |
@@ -184,3 +184,15 @@ NFQ-010, 018–023, 028–029, 031–038 are **not declared complete**. The sour
 ## Phases 4F-13A–13B — recorded research history chronology
 
 **NFQ-021 remains Partial; authorized curation/audit remains unimplemented.** The existing, redacted validation and conflict metadata can now be presented as a newest-first recorded timeline: validation, detection and recorded resolution moments are distinct, and undated records are visibly separated. Ill-formed dates, mismatched IDs, duplicate events and impossible detection/resolution ordering fail closed. This is *not* independent audit integrity, scientific validation, a clinical decision or reviewer attribution. Public table access governance and real-record chronology acceptance remain outstanding. See `docs/plans/PHASE-4F-13A-RECORDED-CHRONOLOGY-CONTRACT.md` and `docs/plans/PHASE-4F-13B-VARIANT-REVIEW-TIMELINE.md`.
+
+## Phases 14H11–14H18 — five-modulator restoration and acceptance boundaries
+
+**NFQ-014/015/024/026/038 remain Partial.** The original five-modulator identities, ETI/Alyftrek variant responses, Class I exceptional subtypes, reference register, exact research pair-rule comparisons and accessible navigation have modern implementations. PRs #222–#229 carry source implementations, regression tests and documentation.
+
+**NFQ-025 remains Not migrated:** comparing two recorded variants does not establish patient genotype phase, clinical interpretation, treatment eligibility, or personalized dosing. The original's intended-use/authority decisions cannot be declared accepted by a pair-rule match.
+
+**NFQ-018/019/022/023 remain Not migrated/Staged:** downloading a review brief and opening references is not scientific validation submission, Helios authorization or signed approval.
+
+**NFQ-015 cannot be marked Complete** while record-level scientific citation provenance, independent review, real production/browser acceptance, and legacy parity across all original therapy functions remain incomplete. Historical EU rule rows are not current SmPC/regulator evidence. The original contains Orkambi genotype logic without a matching drug-jurisdiction row.
+
+**NFQ-038 cannot be marked Complete** until desktop/mobile visual acceptance at fq.neumact.org, real-data error/retry/reveal workflows, and clinician sign-off have been demonstrated.
