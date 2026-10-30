@@ -6,12 +6,15 @@ import {createVariantTherapySource} from '../services/variantTherapySource';
 import {readConfigFromEnvironment,type RealVariant} from '../services/liveVariants';
 import {authSessionProvider} from '../services/authSession';
 import ContextHelp from './ContextHelp.vue';
+import type {PairReadiness} from '../domain/pairReadiness';
 
 const props=defineProps<{first:RealVariant;second:RealVariant}>();
+const emit=defineEmits<{phaseChange:[phase:PairReadiness]}>();
 const config=readConfigFromEnvironment();
 const source=config?createVariantTherapySource(config,fetch,authSessionProvider):null;
 const profiles=ref<readonly [VariantTherapyProfile,VariantTherapyProfile]|null>(null);
-const phase=ref<'loading'|'ready'|'unavailable'|'error'>('loading');
+const phase=ref<PairReadiness>('loading');
+watch(phase,value=>emit('phaseChange',value),{immediate:true});
 const attempts=ref(0);
 const detail=ref<string|null>(null);
 function editSelectedVariants():void{
