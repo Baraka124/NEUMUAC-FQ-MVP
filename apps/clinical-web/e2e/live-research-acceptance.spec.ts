@@ -177,3 +177,26 @@ test('live five-regimen exceptional Class I remains ETI-responsive without class
  await expect(workspace.getByText('Alyftrek',{exact:true})).toBeVisible();
  await expect(workspace.getByText('Unknown',{exact:true})).toBeVisible();
 });
+
+test('live five-regimen pair rule comparison opens in the same research workspace',async({page})=>{
+ await page.goto('/#/genotype?a=1&b=35');
+ const panel=page.getByTestId('pair-five-regimen-research');
+ await expect(panel).toBeVisible({timeout:30000});
+ await expect(panel.locator('.pair-drugs-row')).toHaveCount(5,{timeout:30000});
+ await expect(panel).toContainText('ETI');
+ await expect(panel).toContainText('Alyftrek');
+ await expect(panel).toContainText('Orkambi');
+ await expect(panel.getByRole('button',{name:'Details'}).first()).toBeVisible();
+ await panel.getByRole('button',{name:'Details'}).first().click();
+ await expect(panel.getByRole('button',{name:'Close'})).toBeVisible();
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
+test('live drug reference panel reveals an actionable read without claiming current approval',async({page})=>{
+ await page.goto('/#/genotype?a=1&b=35');
+ const panel=page.getByRole('region',{name:'Drug references'});
+ await expect(panel).toBeVisible({timeout:30000});
+ await panel.getByRole('button',{name:'Explore references'}).click();
+ await expect(panel.getByText('Original EU rule register and safety references')).toBeVisible();
+ await expect(panel.getByRole('button',{name:'Close'})).toBeVisible();
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});

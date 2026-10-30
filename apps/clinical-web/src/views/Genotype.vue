@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import {computed,ref,watch,onUnmounted} from 'vue';
+import {computed,ref,watch,onUnmounted,nextTick} from 'vue';
 import {useRoute,useRouter,RouterLink} from 'vue-router';
 import {createReadOnlyRepository,readConfigFromEnvironment,variantDisplayName,type RealVariant} from '../services/liveVariants';
 import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
 import {pairRecordId,pairSelectionQuery} from '../domain/pairSelection';
 import ContextHelp from '../components/ContextHelp.vue';
 import PairModulatorReview from '../components/PairModulatorReview.vue';
+import DrugReferencePanel from '../components/DrugReferencePanel.vue';
 import {portableComparisonLink} from '../domain/portableComparisonLink';
 import {pairResearchMarkdown} from '../domain/pairResearchExport';
 
@@ -135,6 +136,14 @@ async function select(slot:Slot,record:RealVariant):Promise<void>{
  results[slot].value=[];error[slot].value='';
  void loadCitations(slot,record.id);
  await router.replace({path:'/genotype',query:pairSelectionQuery(route.query,slot,record.id)});
+ if(chosen[0].value&&chosen[1].value){
+  await nextTick();
+  const target=document.getElementById('pair-drugs-title');
+  if(target&&target.getBoundingClientRect().top>window.innerHeight-140){
+   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+   target.scrollIntoView({behavior:reduced?'auto':'smooth',block:'start'});
+  }
+ }
 }
 async function clear(slot:Slot):Promise<void>{
  stopReads(slot);resetReferences(slot);
@@ -210,6 +219,7 @@ onUnmounted(()=>{stopReads(0);stopReads(1);});
   </div>
   <p v-if="sameVariant" role="status" class="nfq-pair-duplicate">Same record selected twice. This does not establish homozygosity.</p>
   <PairModulatorReview v-if="chosen[0].value&&chosen[1].value" :key="chosen[0].value.id+'-'+chosen[1].value.id" :first="chosen[0].value" :second="chosen[1].value"/>
+  <DrugReferencePanel v-if="chosen[0].value&&chosen[1].value"/>
  </div>
 </template>
 
