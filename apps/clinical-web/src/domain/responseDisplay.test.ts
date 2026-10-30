@@ -3,8 +3,8 @@ import {describeRecordedEti,describeSourceFinding} from './responseDisplay';
 
 describe('14H5 restrained research response presentation',()=>{
  it('preserves all historical categories without attaching medical certainty',()=>{
-  expect(describeRecordedEti('responsive').label).toBe('Historically classified as responsive');
-  expect(describeRecordedEti('non_responsive').label).toBe('Historically classified as non-responsive');
+  expect(describeRecordedEti('responsive').label).toBe('Responsive');
+  expect(describeRecordedEti('non_responsive').label).toBe('Non-responsive');
   expect(describeRecordedEti('responsive').tone).toBe('recorded');
   expect(describeRecordedEti('non_responsive').tone).toBe('recorded');
  });
@@ -13,10 +13,10 @@ describe('14H5 restrained research response presentation',()=>{
    const status=describeRecordedEti(value);
    expect(status.tone).toBe('unresolved');
    expect(status.label).not.toMatch(/non-responsive|eligible/i);
-   expect(status.label).toMatch(/unknown|No historical classification recorded/i);
+   expect(status.label).toMatch(/unknown|Not recorded/i);
   }
-  expect(describeRecordedEti('unknown').label).toBe('Historical classification unknown');
-  expect(describeRecordedEti(null).label).toBe('No historical classification recorded');
+  expect(describeRecordedEti('unknown').label).toBe('Unknown');
+  expect(describeRecordedEti(null).label).toBe('Not recorded');
  });
  it('keeps ETI and Alyftrek source rows readable without claiming patient-level results',()=>{
   expect(describeSourceFinding('responsive')).toBe('Responsive');
