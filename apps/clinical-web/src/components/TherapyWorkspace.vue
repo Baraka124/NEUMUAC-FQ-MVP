@@ -50,8 +50,9 @@ function resultLabel(entry:TherapyEntry|null):string{
  return describeRecordedEti(entry.response).label;
 }
 async function switchDetails(id:string):Promise<void>{
- selectedDrug.value=selectedDrug.value===id?null:id;
- if(selectedDrug.value!==id)return;
+ const isClosing=selectedDrug.value===id;
+ selectedDrug.value=isClosing?null:id;
+ if(isClosing){await nextTick();document.getElementById('nfq-therapy-trigger-'+id)?.focus({preventScroll:true});return;}
  await nextTick();
  const panel=document.getElementById('nfq-therapy-details-'+id);
  if(!panel)return;
@@ -107,10 +108,10 @@ onUnmounted(()=>active?.abort());
       <div class="nfq-therapy-name">
        <strong>{{therapy.label}}</strong>
        <small v-if="therapy.id==='ETI'">Kaftrio / Trikafta</small>
-       <small class="nfq-therapy-source-type">{{entry?.coverage==='variant-response'?'Recorded variant response':'Genotype rule only'}}</small>
+       <small class="nfq-therapy-source-type">{{!entry?'Source unavailable':entry.coverage==='variant-response'?'Recorded variant response':'Genotype rule only'}}</small>
       </div>
       <span :data-testid="therapy.id==='ETI'?'eti-recorded-category':undefined" class="nfq-therapy-result" :class="{'nfq-therapy-unknown':entry?.response==='unknown'||entry?.response===null}">{{resultLabel(entry)}}</span>
-      <button type="button" class="nfq-therapy-inspect" :aria-expanded="selectedDrug===therapy.id" :aria-controls="'nfq-therapy-details-'+therapy.id" @click="switchDetails(therapy.id)">{{selectedDrug===therapy.id?'Close':'Details'}}</button>
+      <button type="button" class="nfq-therapy-inspect" :id="'nfq-therapy-trigger-'+therapy.id" :aria-expanded="selectedDrug===therapy.id" :aria-controls="'nfq-therapy-details-'+therapy.id" @click="switchDetails(therapy.id)">{{selectedDrug===therapy.id?'Close':'Details'}}</button>
      </div>
      <div v-if="selectedDrug===therapy.id" :id="'nfq-therapy-details-'+therapy.id" class="nfq-therapy-detail" tabindex="-1">
       <template v-if="entry?.coverage==='variant-response'">
