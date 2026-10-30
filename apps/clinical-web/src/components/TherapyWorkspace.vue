@@ -3,6 +3,7 @@ import {computed,nextTick,onUnmounted,ref,watch} from 'vue';
 import {RouterLink} from 'vue-router';
 import {THERAPIES,type VariantTherapyProfile,type TherapyEntry} from '../domain/therapyRegistry';
 import {classIReviewSignals} from '../domain/classIReviewSignals';
+import {historicalFlagFindings} from '../domain/historicalModulatorFlags';
 import {buildTherapyReviewBrief} from '../domain/therapyReviewBrief';
 import {createVariantTherapySource} from '../services/variantTherapySource';
 import {readConfigFromEnvironment} from '../services/liveVariants';
@@ -26,6 +27,7 @@ const loading=ref(false),error=ref(''),retry=ref(0);
 const selectedDrug=ref<string|null>(null);
 const reviewOpen=ref(false),reviewStatus=ref('');
 const reviewSignals=computed(()=>profile.value?classIReviewSignals(profile.value):[]);
+const historicalFlags=computed(()=>profile.value?historicalFlagFindings(profile.value):[]);
 const relevantReviewSignals=computed(()=>reviewSignals.value.filter(x=>x.kind!=='validation-not-recorded'));
 function downloadReviewBrief():void{
  if(!profile.value)return;
@@ -117,6 +119,13 @@ onUnmounted(()=>active?.abort());
        </dl>
       </template>
       <p v-else class="nfq-therapy-note">Genotype-level rules exist in the original calculator. Variant-level response is not recorded for this regimen.</p>
+      <div v-if="therapy.id==='ETI'||therapy.id==='ALYFTREK'" class="nfq-therapy-flag-check">
+       <span>Historical drug flag: <strong>{{historicalFlags.find(x=>x.therapy===therapy.id)?.flag===true?'Yes':historicalFlags.find(x=>x.therapy===therapy.id)?.flag===false?'No':'Not recorded'}}</strong></span>
+       <p v-if="historicalFlags.find(x=>x.therapy===therapy.id)?.state==='different-recorded-fields'" role="status" data-testid="therapy-historical-flag-disagreement">
+        This historical flag differs from the recorded therapy response. Review original source data; the classification has not changed.
+       </p>
+       <p v-else class="nfq-therapy-note">An archived boolean field, shown for data integrity, not proof of therapy response.</p>
+      </div>
       <template v-if="therapy.id==='ETI'">
        <section class="nfq-response-section" aria-label="ETI evidence details">
         <p v-if="legacyLoading" role="status" class="nfq-therapy-state">Loading technical fields…</p>
@@ -181,6 +190,9 @@ onUnmounted(()=>active?.abort());
 .nfq-therapy-meta dt{font-size:.69rem;color:var(--text-muted,#687381)}
 .nfq-therapy-meta dd{font-size:.77rem;margin:.18rem 0 0;overflow-wrap:anywhere}
 .nfq-therapy-note{font-size:.75rem;line-height:1.55;color:var(--text-muted,#687381);margin:.3rem 0 .65rem}
+.nfq-therapy-flag-check{margin:.6rem 0;padding:.5rem 0;border-top:1px solid var(--border,#e1e6e8);font-size:.74rem;line-height:1.5}
+.nfq-therapy-flag-check p{margin:.25rem 0 0;max-width:68ch;color:var(--text-muted,#687381)}
+.nfq-therapy-flag-check strong{font-weight:660}
 .nfq-response-section{padding:.4rem 0;margin:.5rem 0;border-top:1px solid var(--border,#e1e6e8)}
 .nfq-therapy-technical summary{font-size:.74rem;cursor:pointer}
 .nfq-therapy-actions{display:flex;gap:.6rem 1rem;align-items:center;flex-wrap:wrap;padding-top:.55rem}
