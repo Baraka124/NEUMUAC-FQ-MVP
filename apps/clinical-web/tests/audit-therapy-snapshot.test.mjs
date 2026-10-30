@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import {mkdtempSync,writeFileSync,readFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
-const script=new URL('../scripts/audit-therapy-snapshot.mjs',import.meta.url).pathname;
+const script=fileURLToPath(new URL('../scripts/audit-therapy-snapshot.mjs',import.meta.url));
 const therapies=['ETI','ALYFTREK','IVACAFTOR','TEZACAFTOR_IVACAFTOR','LUMACAFTOR_IVACAFTOR'];
 function variant(){
  return {variantId:'123',functionalClass:'I',classSubtype:'exceptional',legacyDrugFlags:{eti:true,alyftrek:false},
@@ -24,6 +25,7 @@ function run(rows){
 test('five independent therapies and discrepancies retain original response',()=>{
  const report=run([variant()]);
  assert.equal(report.recordCount,1);
+ assert.equal(report.reviewRequired,true);
  assert.equal(report.historicalDisagreements.length,2);
  assert.equal(report.recordedClassIExceptions.length,1);
  assert.equal(report.recordedClassIExceptions[0].therapy,'ALYFTREK');
@@ -44,4 +46,16 @@ test('recorded response cannot silently populate genotype-rule-only therapy',()=
  const report=run([item]);
  assert.equal(report.invalidResponses.length,1);
  assert.equal(report.invalidCoverage.length,1);
+});
+
+test('missing historical boolean is not interpreted as nonresponse',()=>{
+ const item=variant();item.legacyDrugFlags={eti:null,alyftrek:null};
+ const result=run([item]);
+ assert.equal(result.historicalDisagreements.length,0);
+});
+
+test('empty source inventory is not accepted as successful migration',()=>{
+ const report=run([]);
+ assert.equal(report.recordCount,0);
+ assert.equal(report.reviewRequired,true);
 });
