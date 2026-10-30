@@ -527,21 +527,20 @@ function select(id:string):void{
        </dl>
        <section class="nfq-response-section" aria-labelledby="nfq-eti-response-heading">
         <div class="nfq-response-heading">
-         <h3 id="nfq-eti-response-heading">ETI</h3>
-         <ContextHelp label="Interpret ETI classification" title="About this classification">
-          <p>This is the original database classification for this variant. It is not an independently verified treatment outcome, clinical recommendation, or prediction for an individual patient.</p>
-          <p>Source disagreements are shown separately. A historical therapy-response flag does not establish ETI efficacy.</p>
+         <h3 id="nfq-eti-response-heading">ETI response</h3>
+         <ContextHelp label="About ETI response" title="ETI response">
+          <p>This field shows the ETI response category stored for the selected variant. Source information and validation history are available in the dossier.</p>
          </ContextHelp>
         </div>
-        <p v-if="legacyEtiLoading" role="status" class="nfq-response-loading">Loading historical classification…</p>
+        <p v-if="legacyEtiLoading" role="status" class="nfq-response-loading">Loading ETI response…</p>
         <p v-else-if="legacyEtiError" role="status" class="nfq-response-loading">{{legacyEtiError}}</p>
-        <p v-else-if="!legacyEtiSource" role="status" class="nfq-response-loading">Historical response source not configured.</p>
+        <p v-else-if="!legacyEtiSource" role="status" class="nfq-response-loading">ETI response is unavailable.</p>
         <div v-else-if="legacyEti" class="nfq-response-layout">
          <strong class="nfq-response-status" :data-state="describeRecordedEti(legacyEti.recordedEtiCategory).tone" data-testid="eti-recorded-category">{{describeRecordedEti(legacyEti.recordedEtiCategory).label}}</strong>
          <SourceResponsePanel :key="legacyEti.id" :variant-id="legacyEti.id" :legacy="legacyEti"/>
          <div class="nfq-response-actions">
           <details class="nfq-response-metadata">
-           <summary>Original database fields</summary>
+           <summary>Response details</summary>
            <dl class="nfq-response-fields">
             <div><dt>Therapy response flag</dt><dd>{{recordedTherapyFlag(legacyEti.legacyTherapyFlag)}}</dd></div>
             <div><dt>ETI evidence level</dt><dd>{{legacyEti.recordedEvidenceLevel||'Not recorded'}}</dd></div>
@@ -550,9 +549,9 @@ function select(id:string):void{
             <div><dt>CFTR2 response</dt><dd>{{legacyEti.recordedCftr2Response||'Not recorded'}}</dd></div>
             <div><dt>Last evidence update</dt><dd>{{legacyEti.lastEvidenceUpdate||'Not recorded'}}</dd></div>
            </dl>
-           <p class="nfq-response-detail-note">Original fields reproduced without scientific adjudication.</p>
+           
           </details>
-          <RouterLink class="nfq-response-reference-link" :to="{path:'/evidence',query:{variant:selected.id}}">Research references <span aria-hidden="true">↗</span></RouterLink>
+          <RouterLink class="nfq-response-reference-link" :to="{path:'/evidence',query:{variant:selected.id}}">Evidence &amp; curation <span aria-hidden="true">↗</span></RouterLink>
          </div>
         </div>
        </section>
