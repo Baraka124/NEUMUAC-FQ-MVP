@@ -6,7 +6,7 @@ import {test,expect,type Page} from '@playwright/test';
 const variants:Record<string,Record<string,unknown>>={
  '1':{id:1,legacy_name:'E831X',cftr_class:'I',class_subtype:'exceptional',eti_prediction:'responsive',alyftrek_prediction:'unknown'},
  '19':{id:19,legacy_name:'G542X',cftr_class:'I',class_subtype:'exceptional',eti_prediction:'non_responsive',alyftrek_prediction:'unknown'},
- '35':{id:35,legacy_name:'3120+1G>A',cftr_class:'I',class_subtype:'true',eti_prediction:'non_responsive',alyftrek_prediction:'responsive'}
+ '35':{id:35,legacy_name:'3120+1G->A',cftr_class:'I',class_subtype:'true',eti_prediction:'non_responsive',alyftrek_prediction:'responsive',alyftrek_evidence_tier:'clinical_trial'}
 };
 const classFields={
  protein_name:null,cdna_name:null,alt_names:[],validation_count:0,
@@ -93,6 +93,7 @@ test('genotype selection reveals five rule outcomes and four EU references, keep
  await expect(page.getByRole('heading',{name:'Five-modulator research rules'})).toBeFocused();
  const pair=page.getByTestId('pair-five-regimen-research');
  await expect(pair.locator('.pair-drugs-row')).toHaveCount(5);
+ await expect(pair.locator('.pair-drugs-row').nth(1).locator('.pair-drugs-result')).toHaveText('Rule matched');
  await page.getByRole('button',{name:'Edit variants'}).click();
  await expect(page.getByRole('searchbox',{name:'Search variant 1'})).toBeFocused();
  const refs=page.getByRole('region',{name:'Drug references'});
