@@ -69,11 +69,35 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
-      - run: npm run test:e2e:contract
       - name: Upload failure artifacts
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: clinical-browser-traces
+          path: apps/clinical-web/test-results/
+          retention-days: 7
+
+  browser-contract:
+    name: Connected five-therapy browser contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: apps/clinical-web
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e:contract
+      - name: Upload contract failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: five-therapy-contract-traces
           path: apps/clinical-web/test-results/
           retention-days: 7
