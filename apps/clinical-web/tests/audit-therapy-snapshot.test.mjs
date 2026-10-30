@@ -25,6 +25,7 @@ function run(rows){
 test('five independent therapies and discrepancies retain original response',()=>{
  const report=run([variant()]);
  assert.equal(report.recordCount,1);
+ assert.equal(report.reviewRequired,true);
  assert.equal(report.historicalDisagreements.length,2);
  assert.equal(report.recordedClassIExceptions.length,1);
  assert.equal(report.recordedClassIExceptions[0].therapy,'ALYFTREK');
@@ -51,4 +52,10 @@ test('missing historical boolean is not interpreted as nonresponse',()=>{
  const item=variant();item.legacyDrugFlags={eti:null,alyftrek:null};
  const result=run([item]);
  assert.equal(result.historicalDisagreements.length,0);
+});
+
+test('empty source inventory is not accepted as successful migration',()=>{
+ const report=run([]);
+ assert.equal(report.recordCount,0);
+ assert.equal(report.reviewRequired,true);
 });
