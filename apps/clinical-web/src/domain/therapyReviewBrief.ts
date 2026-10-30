@@ -27,7 +27,7 @@ export function buildTherapyReviewBrief(
  for(const entry of profile.entries){
   const therapy=getTherapy(entry.therapy);
   lines.push('- '+therapy.label+': '+(entry.coverage==='variant-response'?
-   safe(entry.response).replace('non_responsive','non-responsive'):'Genotype rules only')+
+   safe(entry.response==='non_responsive'?'non-responsive':entry.response):'Genotype rules only')+
    (entry.coverage==='variant-response'?' | evidence level: '+safe(entry.evidenceLevel)+
      ' | tier: '+safe(entry.evidenceTier)+' | source label: '+safe(entry.authoritySource):''));
  }
