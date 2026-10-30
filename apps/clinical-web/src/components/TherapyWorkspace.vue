@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed,onUnmounted,ref,watch} from 'vue';
+import {computed,nextTick,onUnmounted,ref,watch} from 'vue';
 import {RouterLink} from 'vue-router';
 import {THERAPIES,type VariantTherapyProfile,type TherapyEntry} from '../domain/therapyRegistry';
 import {classIReviewSignals} from '../domain/classIReviewSignals';
@@ -33,8 +33,8 @@ function downloadReviewBrief():void{
   const report=buildTherapyReviewBrief(profile.value,reviewSignals.value);
   const url=URL.createObjectURL(new Blob([report],{type:'text/markdown;charset=utf-8'}));
   const anchor=document.createElement('a');anchor.href=url;anchor.download='neumuacFQ-therapy-review-'+profile.value.variantId+'.md';
-  document.body.appendChild(anchor);anchor.click();anchor.remove();URL.revokeObjectURL(url);
-  reviewStatus.value='Review brief prepared for download.';
+  document.body.appendChild(anchor);anchor.click();anchor.remove();window.setTimeout(()=>URL.revokeObjectURL(url),5000);
+  reviewStatus.value='Review brief download requested.';
  }catch{reviewStatus.value='Could not prepare the review brief.';}
 }
 let active:AbortController|null=null;
@@ -46,7 +46,17 @@ function resultLabel(entry:TherapyEntry|null):string{
  if(!entry||entry.coverage==='genotype-rule-only')return 'Genotype rules';
  return describeRecordedEti(entry.response).label;
 }
-function switchDetails(id:string):void{selectedDrug.value=selectedDrug.value===id?null:id;}
+async function switchDetails(id:string):Promise<void>{
+ selectedDrug.value=selectedDrug.value===id?null:id;
+ if(selectedDrug.value!==id)return;
+ await nextTick();
+ const panel=document.getElementById('nfq-therapy-details-'+id);
+ if(!panel)return;
+ panel.focus({preventScroll:true});
+ const rect=panel.getBoundingClientRect();
+ if(rect.top<0||rect.top>window.innerHeight-80)
+  panel.scrollIntoView({block:'nearest',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+}
 watch([()=>props.variantId,retry],async ([id])=>{
  active?.abort();profile.value=null;error.value='';loading.value=false;
  if(!source)return;
@@ -95,10 +105,10 @@ onUnmounted(()=>active?.abort());
        <strong>{{therapy.label}}</strong>
        <small v-if="therapy.id==='ETI'">Kaftrio / Trikafta</small>
       </div>
-      <span class="nfq-therapy-result" :class="{'nfq-therapy-unknown':entry?.response==='unknown'||entry?.response===null}">{{resultLabel(entry)}}</span>
+      <span :data-testid="therapy.id==='ETI'?'eti-recorded-category':undefined" class="nfq-therapy-result" :class="{'nfq-therapy-unknown':entry?.response==='unknown'||entry?.response===null}">{{resultLabel(entry)}}</span>
       <button type="button" class="nfq-therapy-inspect" :aria-expanded="selectedDrug===therapy.id" :aria-controls="'nfq-therapy-details-'+therapy.id" @click="switchDetails(therapy.id)">{{selectedDrug===therapy.id?'Close':'Details'}}</button>
      </div>
-     <div v-if="selectedDrug===therapy.id" :id="'nfq-therapy-details-'+therapy.id" class="nfq-therapy-detail">
+     <div v-if="selectedDrug===therapy.id" :id="'nfq-therapy-details-'+therapy.id" class="nfq-therapy-detail" tabindex="-1">
       <template v-if="entry?.coverage==='variant-response'">
        <dl class="nfq-therapy-meta">
         <div><dt>Evidence level</dt><dd>{{entry.evidenceLevel||'Not recorded'}}</dd></div>
@@ -108,9 +118,7 @@ onUnmounted(()=>active?.abort());
       </template>
       <p v-else class="nfq-therapy-note">Genotype-level rules exist in the original calculator. Variant-level response is not recorded for this regimen.</p>
       <template v-if="therapy.id==='ETI'">
-       <section class="nfq-response-section" aria-labelledby="nfq-eti-response-heading">
-        <div class="nfq-eti-heading"><h4 id="nfq-eti-response-heading">ETI response</h4><ContextHelp label="About ETI response" title="ETI response"><p>Variant response, evidence and technical fields are displayed separately. Review actions are available from this dossier.</p></ContextHelp></div>
-        <strong class="nfq-eti-inline" data-testid="eti-recorded-category">{{entry?describeRecordedEti(entry.response).label:'Not recorded'}}</strong>
+       <section class="nfq-response-section" aria-label="ETI evidence details">
         <p v-if="legacyLoading" role="status" class="nfq-therapy-state">Loading technical fields…</p>
         <div v-else-if="legacyError" role="alert" class="nfq-therapy-error"><span>{{legacyError}}</span><button type="button" @click="emit('retryLegacy')">Retry</button></div>
         <template v-else-if="legacyEti">
@@ -165,15 +173,12 @@ onUnmounted(()=>active?.abort());
 .nfq-therapy-inspect,.nfq-therapy-actions button,.nfq-therapy-error button{font:inherit;border:1px solid var(--border,#dce4e5);border-radius:6px;background:transparent;color:inherit;cursor:pointer;padding:.35rem .65rem;font-size:.73rem}
 .nfq-therapy-inspect:focus-visible,.nfq-therapy-actions button:focus-visible,.nfq-therapy-error button:focus-visible{outline:2px solid currentColor;outline-offset:3px}
 .nfq-therapy-selected{background:transparent}
-.nfq-therapy-detail{padding:.45rem 0 .8rem;max-width:100%;min-width:0}
+.nfq-therapy-detail{padding:.45rem 0 .8rem;max-width:100%;min-width:0;outline-offset:2px;scroll-margin-top:3rem}
 .nfq-therapy-meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem;margin:.3rem 0 .7rem}
 .nfq-therapy-meta dt{font-size:.69rem;color:var(--text-muted,#687381)}
 .nfq-therapy-meta dd{font-size:.77rem;margin:.18rem 0 0;overflow-wrap:anywhere}
 .nfq-therapy-note{font-size:.75rem;line-height:1.55;color:var(--text-muted,#687381);margin:.3rem 0 .65rem}
 .nfq-response-section{padding:.4rem 0;margin:.5rem 0;border-top:1px solid var(--border,#e1e6e8)}
-.nfq-eti-heading{display:flex;justify-content:space-between;align-items:center;gap:.7rem}
-.nfq-response-section h4{font-size:.78rem;margin:.3rem 0 .2rem}
-.nfq-eti-inline{display:inline-block;font-size:.8rem;margin:.12rem 0 .4rem}
 .nfq-therapy-technical summary{font-size:.74rem;cursor:pointer}
 .nfq-therapy-actions{display:flex;gap:.6rem 1rem;align-items:center;flex-wrap:wrap;padding-top:.55rem}
 .nfq-therapy-actions a{color:inherit;font-size:.74rem;font-weight:580}
