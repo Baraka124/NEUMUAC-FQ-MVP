@@ -9,6 +9,7 @@
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest run src",
     "test:e2e": "playwright test",
+    "test:e2e:contract": "playwright test --config playwright.contract.config.ts",
     "test:differential": "tsx tests/compare.mts",
     "test:e2e:live": "playwright test --config playwright.live.config.ts"
   },
