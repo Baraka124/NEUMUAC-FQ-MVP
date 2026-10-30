@@ -14,16 +14,16 @@ export interface ResponseDisplay {
 export function describeRecordedEti(value:LegacyEtiCategory|null):ResponseDisplay{
  switch(value){
   case 'responsive':return Object.freeze({
-   label:'Classified as responsive',tone:'recorded'
+   label:'Historically classified as responsive',tone:'recorded'
   });
   case 'non_responsive':return Object.freeze({
-   label:'Classified as non-responsive',tone:'recorded'
+   label:'Historically classified as non-responsive',tone:'recorded'
   });
   case 'unknown':return Object.freeze({
-   label:'Classification unknown',tone:'unresolved'
+   label:'Historical classification unknown',tone:'unresolved'
   });
   default:return Object.freeze({
-   label:'No classification recorded',tone:'unresolved'
+   label:'No historical classification recorded',tone:'unresolved'
   });
  }
 }
