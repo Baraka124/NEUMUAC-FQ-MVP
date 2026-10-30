@@ -145,3 +145,28 @@ test('recorded ETI section remains readable on desktop and phone widths',async({
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+test('live five-regimen workspace keeps Class I exceptions and separated ETI/Alyftrek responses',async({page})=>{
+ await page.goto('/#/variants/35');
+ const workspace=page.getByTestId('five-therapy-workspace');
+ await expect(workspace).toBeVisible({timeout:25000});
+ await expect(workspace.getByText('Alyftrek',{exact:true})).toBeVisible({timeout:25000});
+ await expect(workspace.getByText('Orkambi',{exact:true})).toBeVisible();
+ await expect(workspace.getByText('Symkevi / Symdeko',{exact:true})).toBeVisible();
+ await expect(workspace.getByText('Kalydeco',{exact:true})).toBeVisible();
+ await expect(workspace.getByTestId('eti-recorded-category')).toHaveText('Non-responsive',{timeout:25000});
+ await expect(workspace.getByText('Responsive',{exact:true})).toBeVisible();
+ await workspace.getByRole('button',{name:'Review details'}).click();
+ await expect(workspace.getByRole('region',{name:'Response review details'})).toContainText('ETI and Alyftrek have different');
+ await expect(workspace.getByRole('link',{name:'Inspect evidence'})).toHaveAttribute('href',/#\/evidence\?variant=35/);
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
+test('live five-regimen exceptional Class I remains ETI-responsive without class-wide rewrite',async({page})=>{
+ await page.goto('/#/variants/1');
+ const workspace=page.getByTestId('five-therapy-workspace');
+ await expect(workspace).toBeVisible({timeout:25000});
+ await expect(workspace).toContainText('exceptional',{timeout:25000});
+ await expect(workspace.getByTestId('eti-recorded-category')).toHaveText('Responsive',{timeout:25000});
+ await expect(workspace.getByText('Alyftrek',{exact:true})).toBeVisible();
+ await expect(workspace.getByText('Unknown',{exact:true})).toBeVisible();
+});
