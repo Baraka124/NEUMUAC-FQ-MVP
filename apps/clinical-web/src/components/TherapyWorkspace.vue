@@ -109,7 +109,7 @@ onUnmounted(()=>active?.abort());
       <p v-else class="nfq-therapy-note">Genotype-level rules exist in the original calculator. Variant-level response is not recorded for this regimen.</p>
       <template v-if="therapy.id==='ETI'">
        <section class="nfq-response-section" aria-labelledby="nfq-eti-response-heading">
-        <h4 id="nfq-eti-response-heading">ETI response</h4>
+        <div class="nfq-eti-heading"><h4 id="nfq-eti-response-heading">ETI response</h4><ContextHelp label="About ETI response" title="ETI response"><p>Variant response, evidence and technical fields are displayed separately. Review actions are available from this dossier.</p></ContextHelp></div>
         <strong class="nfq-eti-inline" data-testid="eti-recorded-category">{{entry?describeRecordedEti(entry.response).label:'Not recorded'}}</strong>
         <p v-if="legacyLoading" role="status" class="nfq-therapy-state">Loading technical fields…</p>
         <div v-else-if="legacyError" role="alert" class="nfq-therapy-error"><span>{{legacyError}}</span><button type="button" @click="emit('retryLegacy')">Retry</button></div>
@@ -171,6 +171,7 @@ onUnmounted(()=>active?.abort());
 .nfq-therapy-meta dd{font-size:.77rem;margin:.18rem 0 0;overflow-wrap:anywhere}
 .nfq-therapy-note{font-size:.75rem;line-height:1.55;color:var(--text-muted,#687381);margin:.3rem 0 .65rem}
 .nfq-response-section{padding:.4rem 0;margin:.5rem 0;border-top:1px solid var(--border,#e1e6e8)}
+.nfq-eti-heading{display:flex;justify-content:space-between;align-items:center;gap:.7rem}
 .nfq-response-section h4{font-size:.78rem;margin:.3rem 0 .2rem}
 .nfq-eti-inline{display:inline-block;font-size:.8rem;margin:.12rem 0 .4rem}
 .nfq-therapy-technical summary{font-size:.74rem;cursor:pointer}
