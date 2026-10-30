@@ -13,7 +13,7 @@ describe('14H5 restrained research response presentation',()=>{
    const status=describeRecordedEti(value);
    expect(status.tone).toBe('unresolved');
    expect(status.label).not.toMatch(/non-responsive|eligible/i);
-   expect(status.label).toMatch(/unknown|No classification recorded/);
+   expect(status.label).toMatch(/unknown|No historical classification recorded/i);
   }
   expect(describeRecordedEti('unknown').label).toBe('Historical classification unknown');
   expect(describeRecordedEti(null).label).toBe('No historical classification recorded');
