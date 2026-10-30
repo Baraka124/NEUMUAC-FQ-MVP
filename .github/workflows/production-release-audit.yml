@@ -1,0 +1,57 @@
+name: neumuacFQ public production release audit
+on:
+  workflow_dispatch:
+    inputs:
+      run_live_browser:
+        description: 'Also run public, read-only clinical browser acceptance after the release matches'
+        type: boolean
+        required: false
+        default: false
+permissions:
+  contents: read
+jobs:
+  release:
+    name: Compare public build to selected main commit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require main branch
+        run: test "$GITHUB_REF" = 'refs/heads/main'
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate offline release probe
+        working-directory: apps/clinical-web
+        run: node --test tests/public-release-audit.test.mjs
+      - name: Verify deployed revision without credentials
+        working-directory: apps/clinical-web
+        env:
+          NFQ_EXPECTED_COMMIT: ${{ github.sha }}
+        run: node scripts/check-public-release.mjs
+
+  browser:
+    name: Optional public research workflow acceptance
+    if: ${{ inputs.run_live_browser }}
+    needs: release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: apps/clinical-web
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Read-only public clinical acceptance
+        env:
+          NFQ_LIVE_ACCEPTANCE: '1'
+          NFQ_LIVE_BASE_URL: https://fq.neumact.org
+        run: npm run test:e2e:live

@@ -39,7 +39,9 @@ jobs:
           path: apps/clinical-web/search-differential-report.json
           if-no-files-found: ignore
           retention-days: 14
+      - run: npm run test:release
       - run: npm run build
+      - run: node scripts/check-built-release.mjs
       - name: Verify real-data-only source boundaries
         run: |
           if grep -RIE 'https?://[a-z0-9-]+\\.supabase\\.co|service_role.{0,25}(eyJ|sk_)' src --include='*.ts' --include='*.vue'; then
