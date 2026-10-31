@@ -59,3 +59,12 @@ test('empty source inventory is not accepted as successful migration',()=>{
  assert.equal(report.recordCount,0);
  assert.equal(report.reviewRequired,true);
 });
+
+test('a source inventory with no contradictions does not falsely request review',()=>{
+ const row=variant();
+ row.functionalClass='II';
+ row.legacyDrugFlags={eti:false,alyftrek:true};
+ const report=run([row]);
+ assert.equal(report.reviewRequired,false);
+ assert.equal(report.historicalDisagreements.length,0);
+});
