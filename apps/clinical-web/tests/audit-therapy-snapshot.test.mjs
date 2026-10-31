@@ -80,3 +80,12 @@ test('malformed therapy entry does not count as a valid migration',()=>{
   assert.match(result.stderr,/Invalid therapy entry/);
  }finally{rmSync(dir,{recursive:true,force:true});}
 });
+
+test('reconciliation summary distinguishes total and unique variant IDs',()=>{
+ const report=run([variant(),variant()]);
+ assert.equal(report.reviewSummary.totalVariants,2);
+ assert.equal(report.reviewSummary.uniqueVariantIds,1);
+ assert.equal(report.reviewSummary.duplicateIdCount,1);
+ assert.equal(report.reviewSummary.recordedClassIResponsiveExceptions,2);
+ assert.equal(report.reviewRequired,true);
+});
