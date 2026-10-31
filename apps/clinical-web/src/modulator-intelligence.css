@@ -1,0 +1,40 @@
+/* 14H54–56 · Modulator Intelligence, presentation only. */
+.nfq-therapy{background:#fff!important;border:1px solid #d5e2db!important;border-radius:7px!important;padding:22px 24px!important;box-shadow:0 2px 10px rgba(12,49,34,.035)}
+.nfq-therapy-heading{align-items:flex-start!important;margin-bottom:18px!important}
+.nfq-therapy-title-group{display:grid;gap:5px;min-width:0}
+.nfq-therapy-kicker{font-size:10px;font-weight:750;letter-spacing:.12em;color:#477765}
+.nfq-therapy-heading h3{font-size:22px!important;letter-spacing:-.035em!important;line-height:1.2;color:#153c30}
+.nfq-therapy-summary{font-size:12px;color:#64786f}
+.nfq-therapy-context{background:#f6f9f6;padding:11px 13px!important;border:1px solid #e1e9e3;border-radius:5px;margin:0 0 18px;gap:8px 20px!important}
+.nfq-therapy-rows{border-top:0!important}
+.nfq-therapy-section-label{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:6px 12px;color:#34634f;font-size:10px;letter-spacing:.095em;font-weight:760;margin:14px 0 8px;padding:13px 0 8px;border-top:1px solid #dae5dc}
+.nfq-therapy-row:first-child .nfq-therapy-section-label{border-top:0;margin-top:0}
+.nfq-therapy-section-label span{font-size:11px;color:#798a81;font-weight:500;letter-spacing:0}
+.nfq-therapy-row{border-bottom:1px solid #e4ebe6!important}
+.nfq-therapy-row-main{grid-template-columns:minmax(0,1.25fr) minmax(120px,.7fr) auto!important;min-height:74px!important;gap:12px 20px!important;padding:10px 4px!important}
+.nfq-therapy-name{gap:4px 10px!important}
+.nfq-therapy-name strong{font-size:15px!important;font-weight:720!important;color:#183d31}
+.nfq-therapy-name small{font-size:11px!important;color:#6a7e72}
+.nfq-therapy-source-type{font-size:11px!important;flex-basis:100%}
+.nfq-therapy-result{font-size:14px!important;font-weight:690!important;line-height:1.4;color:#245a43!important}
+.nfq-therapy-unknown{color:#60776a!important;font-weight:560!important}
+.nfq-therapy-inspect{min-height:40px!important;white-space:nowrap;padding:8px 12px!important;border:1px solid #c8dad0!important;color:#22543f!important;background:#fff!important;border-radius:4px!important;font-weight:670!important}
+.nfq-therapy-inspect[aria-expanded=true]{background:#eaf3ec!important;border-color:#8db6a1!important}
+.nfq-therapy-inspect:hover{background:#f0f6f1!important}
+.nfq-therapy-detail{border-left:2px solid #428e6a;padding:16px 16px 20px!important;margin:0 0 14px 5px;background:#f9fbf9;border-radius:0 3px 3px 0}
+.nfq-therapy-actions{padding-top:12px!important;border-top:1px solid #e4ece6}
+@media(max-width:760px){
+ .nfq-therapy{padding:15px 14px!important;border-radius:5px!important}
+ .nfq-therapy-heading{margin-bottom:14px!important}
+ .nfq-therapy-heading h3{font-size:21px!important}
+ .nfq-therapy-summary{font-size:11px}
+ .nfq-therapy-section-label{align-items:flex-start;margin:13px 0 5px;gap:4px}
+ .nfq-therapy-section-label span{flex-basis:100%;font-size:11px}
+ .nfq-therapy-row-main{grid-template-columns:minmax(0,1fr) auto!important;gap:4px 8px!important;padding:12px 0!important}
+ .nfq-therapy-name{grid-column:1;grid-row:1;display:flex;flex-wrap:wrap}
+ .nfq-therapy-name strong{font-size:15px!important}
+ .nfq-therapy-result{grid-column:1;grid-row:2;font-size:13px!important}
+ .nfq-therapy-inspect{grid-column:2;grid-row:1/span 2;padding:7px 9px!important;min-width:0!important;font-size:11px!important}
+ .nfq-therapy-context{padding:10px!important}
+ .nfq-therapy-detail{padding:12px 10px 16px!important;margin-left:0}
+}
