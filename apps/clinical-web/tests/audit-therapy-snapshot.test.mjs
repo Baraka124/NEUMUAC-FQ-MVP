@@ -68,3 +68,15 @@ test('a source inventory with no contradictions does not falsely request review'
  assert.equal(report.reviewRequired,false);
  assert.equal(report.historicalDisagreements.length,0);
 });
+
+test('malformed therapy entry does not count as a valid migration',()=>{
+ const dir=mkdtempSync(join(tmpdir(),'nfq-audit-invalid-'));
+ try{
+  const input=join(dir,'input.json'),output=join(dir,'output.json');
+  const row=variant();row.entries[0]=null;
+  writeFileSync(input,JSON.stringify([row]));
+  const result=spawnSync(process.execPath,[script,input,output],{encoding:'utf8'});
+  assert.notEqual(result.status,0);
+  assert.match(result.stderr,/Invalid therapy entry/);
+ }finally{rmSync(dir,{recursive:true,force:true});}
+});
