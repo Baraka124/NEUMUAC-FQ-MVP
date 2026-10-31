@@ -46,7 +46,7 @@ const rows=computed(()=>{
 });
 function resultLabel(entry:TherapyEntry|null):string{
  if(!entry)return 'Not available';
- if(entry.coverage==='genotype-rule-only')return 'Genotype rules';
+ if(entry.coverage==='genotype-rule-only')return 'No variant response';
  return describeRecordedEti(entry.response).label;
 }
 async function switchDetails(id:string):Promise<void>{
@@ -82,7 +82,7 @@ onUnmounted(()=>active?.abort());
 <template>
  <section class="nfq-therapy" aria-labelledby="nfq-therapy-heading" data-testid="five-therapy-workspace">
   <div class="nfq-therapy-heading">
-   <h3 id="nfq-therapy-heading">Modulator response</h3>
+   <div class="nfq-therapy-title-group"><span class="nfq-therapy-kicker">CFTR MODULATOR INTELLIGENCE</span><h3 id="nfq-therapy-heading">Therapeutic profile</h3><span class="nfq-therapy-summary">Five independent therapy records · Variant {{variantId}}</span></div>
    <ContextHelp label="About modulator results" title="Response and genotype rules">
     <p>ETI and Alyftrek have recorded variant-response fields. The other three modulators are included for their genotype-rule coverage; no variant-response value is inferred from CFTR class.</p>
    </ContextHelp>
@@ -103,15 +103,16 @@ onUnmounted(()=>active?.abort());
     <p v-if="reviewStatus" role="status">{{reviewStatus}}</p>
    </section>
    <div class="nfq-therapy-rows">
+    <div class="nfq-therapy-section-label">THERAPY EVIDENCE <span>Recorded responses and research rules are distinct</span></div>
     <div v-for="{therapy,entry} in rows" :key="therapy.id" class="nfq-therapy-row" :class="{'nfq-therapy-selected':selectedDrug===therapy.id}">
      <div class="nfq-therapy-row-main">
       <div class="nfq-therapy-name">
        <strong>{{therapy.label}}</strong>
        <small v-if="therapy.id==='ETI'">Kaftrio / Trikafta</small>
-       <small class="nfq-therapy-source-type">{{!entry?'Source unavailable':entry.coverage==='variant-response'?'Recorded variant response':'Genotype rule only'}}</small>
+       <small class="nfq-therapy-source-type">{{!entry?'Source unavailable':entry.coverage==='variant-response'?'Recorded variant response':'Genotype assessment not performed'}}</small>
       </div>
       <span :data-testid="therapy.id==='ETI'?'eti-recorded-category':undefined" class="nfq-therapy-result" :class="{'nfq-therapy-unknown':entry?.response==='unknown'||entry?.response===null}">{{resultLabel(entry)}}</span>
-      <button type="button" class="nfq-therapy-inspect" :id="'nfq-therapy-trigger-'+therapy.id" :aria-expanded="selectedDrug===therapy.id" :aria-controls="'nfq-therapy-details-'+therapy.id" @click="switchDetails(therapy.id)">{{selectedDrug===therapy.id?'Close':'Details'}}</button>
+      <button type="button" class="nfq-therapy-inspect" :id="'nfq-therapy-trigger-'+therapy.id" :aria-expanded="selectedDrug===therapy.id" :aria-controls="'nfq-therapy-details-'+therapy.id" @click="switchDetails(therapy.id)">{{selectedDrug===therapy.id?'Close evidence':entry?.coverage==='genotype-rule-only'?'Inspect rules':'Inspect evidence'}}</button>
      </div>
      <div v-if="selectedDrug===therapy.id" :id="'nfq-therapy-details-'+therapy.id" class="nfq-therapy-detail" tabindex="-1">
       <template v-if="entry?.coverage==='variant-response'">
@@ -121,7 +122,7 @@ onUnmounted(()=>active?.abort());
         <div><dt>Source</dt><dd>{{entry.authoritySource||'Not recorded'}}</dd></div>
        </dl>
       </template>
-      <p v-else class="nfq-therapy-note">Genotype-level rules exist in the original calculator. Variant-level response is not recorded for this regimen.</p>
+      <p v-else class="nfq-therapy-note">The original calculator contains genotype-level research rules for this regimen. No result has been calculated for the current genotype here. This variant does not have a separately recorded therapy-response category.</p>
       <div v-if="therapy.id==='ETI'||therapy.id==='ALYFTREK'" class="nfq-therapy-flag-check">
        <span>Historical drug flag: <strong>{{historicalFlags.find(x=>x.therapy===therapy.id)?.flag===true?'Yes':historicalFlags.find(x=>x.therapy===therapy.id)?.flag===false?'No':'Not recorded'}}</strong></span>
        <p v-if="historicalFlags.find(x=>x.therapy===therapy.id)?.state==='different-recorded-fields'" role="status" data-testid="therapy-historical-flag-disagreement">
