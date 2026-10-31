@@ -1,0 +1,84 @@
+/* neumuuacFQ / Ultra-system signature v1. Shared research shell + responsive hierarchy.
+   Presentation-only. Does not change scientific records, authorization or discovery. */
+:root{
+ --nfq-forest:#153b34;--nfq-forest-deep:#102d29;--nfq-ink:#1c302c;
+ --nfq-muted:#5f746e;--nfq-line:#d9e3df;--nfq-canvas:#f5f7f5;
+ --nfq-surface:#ffffff;--nfq-accent:#2a725d;
+ --ink:var(--nfq-ink);--muted:var(--nfq-muted);--line:var(--nfq-line);
+ --nav:var(--nfq-forest-deep);--paper:var(--nfq-surface);--focus:#287c62;
+}
+body{background:var(--nfq-canvas);color:var(--nfq-ink);font-size:14px}
+.sidebar{background:var(--nfq-forest-deep);padding-top:27px}
+.wordmark{margin-bottom:37px}
+.workspace-nav{gap:3px}
+.workspace-nav a{border-radius:5px;letter-spacing:.003em;min-height:44px}
+.workspace-nav a.router-link-exact-active,.workspace-nav a.variant-route-active{background:#245247;box-shadow:inset 3px 0 #a8d2bf}
+.institution-header{height:66px;min-height:66px;background:#fff;border-color:var(--nfq-line);box-shadow:0 1px 0 rgba(15,54,41,.025)}
+.workspace-frame{background:var(--nfq-canvas)}
+main{padding-top:25px}
+.page{padding-top:24px}
+.page h1{color:#183c31;font-size:clamp(27px,2.6vw,39px);font-weight:710;line-height:1.15;letter-spacing:-.038em}
+.page h2{color:#234b3f;letter-spacing:-.02em}
+.eyebrow,.section-label{color:#517769;letter-spacing:.08em}
+.intro{line-height:1.6;max-width:68ch}
+.surface,.record-rail,.record-overview,.record-section,.unselected-record{border-color:var(--nfq-line);border-radius:6px;box-shadow:0 1px 3px rgba(19,48,38,.025)}
+.surface p{line-height:1.6}
+button,input,select,textarea{accent-color:var(--nfq-accent)}
+input,select,textarea{max-width:100%}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #24765e;outline-offset:3px}
+.page-footer{border-color:var(--nfq-line)}
+/* Scientific search: large identifiers, restrained status and true selected-record hierarchy */
+.record-list{gap:5px}
+.record-list button{background:#fff;border-color:#e3eae6;border-radius:5px}
+.record-list button.record-selected{background:#f1f7f3;border-color:#78a996;box-shadow:inset 3px 0 #26765b}
+.record-first strong{font-size:14px;color:#203f34}
+.record-rail input{min-height:46px;border-color:#c7d5ce;border-radius:5px}
+.facet-set button{border-radius:4px}
+.facet-set button[aria-pressed=true]{background:#e7f2eb;color:#1d5b43;border-color:#a1c7b0}
+/* Therapy evidence is a scientific comparison, not another decorative card */
+.nfq-therapy{border-color:var(--nfq-line)!important;border-radius:6px!important;padding:18px 20px!important}
+.nfq-therapy-heading h3{font-size:17px!important;color:#173b31;letter-spacing:-.02em}
+.nfq-therapy-row-main{min-height:65px!important;gap:12px!important}
+.nfq-therapy-name strong{font-size:14px!important;color:#1c3a30}
+.nfq-therapy-source-type{font-size:11px!important;line-height:1.5!important;letter-spacing:.005em}
+.nfq-therapy-result{font-size:14px!important;color:#1e4839}
+.nfq-therapy-inspect{min-height:40px!important;padding:8px 12px!important;border-radius:5px!important;font-weight:620!important}
+.nfq-therapy-detail{padding:16px 0 20px!important;line-height:1.55}
+.nfq-therapy-meta dt,.nfq-therapy-note,.nfq-therapy-meta dd{font-size:12px!important}
+/* Shared research surfaces: reduce UI noise, keep controls predictable. */
+.variant-page .variant-export-actions{border-top:1px solid var(--nfq-line)}
+.nfq-evidence-heading h1,.genotype-page .nfq-pair-heading h1{font-weight:700;letter-spacing:-.035em}
+@media(max-width:760px){
+ html,body,#app{max-width:100%;overflow-x:clip}
+ .app-frame{min-height:100dvh}
+ .institution-header{height:58px;min-height:58px;padding:0 14px;gap:8px}
+ .mobile-menu-button{min-height:42px;border-radius:5px;padding:0 11px}
+ .workspace-launcher-trigger{min-width:0;max-width:42vw}
+ .workspace-launcher-trigger kbd{display:none}
+ .header-environment{min-width:0;max-width:30vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ main{padding:16px 14px 38px}
+ .page{padding-top:15px}
+ .page h1{font-size:29px;line-height:1.15;margin:9px 0 12px}
+ .intro{font-size:13px;line-height:1.55;margin-bottom:19px}
+ .surface,.variant-columns .surface,.record-overview,.record-section,.unselected-record,.record-rail{padding:17px;border-radius:5px}
+ .mobile-nav{padding:12px 14px;gap:3px;grid-template-columns:1fr}
+ .mobile-nav a{background:#fff;border-bottom:1px solid var(--nfq-line);border-radius:0;min-height:46px;display:flex;align-items:center}
+ .mobile-nav a.router-link-exact-active{background:#eef6f0;color:#15513b}
+ .nfq-therapy{padding:14px 15px!important}
+ .nfq-therapy-row-main{grid-template-columns:minmax(0,1fr) auto!important;gap:7px 10px!important;padding:12px 0!important}
+ .nfq-therapy-name strong{font-size:14px!important}
+ .nfq-therapy-result{font-size:13px!important;grid-column:1!important;grid-row:2!important}
+ .nfq-therapy-inspect{grid-column:2!important;grid-row:1/span 2!important;min-width:68px}
+ .nfq-therapy-meta{grid-template-columns:1fr 1fr!important;gap:12px}
+ .record-layout,.variant-columns,.columns{grid-template-columns:minmax(0,1fr)}
+ .page-footer{padding:14px;font-size:11px}
+}
+@media(max-width:370px){
+ .institution-header{padding:0 10px}
+ main{padding-inline:11px}
+ .nfq-therapy-meta{grid-template-columns:1fr!important}
+ .header-environment{max-width:22vw}
+}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{scroll-behavior:auto!important}
+}
