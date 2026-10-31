@@ -38,3 +38,11 @@
  .nfq-therapy-context{padding:10px!important}
  .nfq-therapy-detail{padding:12px 10px 16px!important;margin-left:0}
 }
+
+/* 14H58: meaningful progression into the original genotype research functionality. */
+.nfq-therapy-rule-context{display:grid;justify-items:start;gap:12px;max-width:68ch}
+.nfq-therapy-genotype-link{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:9px 14px;background:#e9f3ec;color:#21573e;border:1px solid #b9d6c5;border-radius:4px;text-decoration:none;font-size:12px;font-weight:720}
+.nfq-therapy-genotype-link:hover{background:#dbece0}
+.nfq-therapy-genotype-link:focus-visible{outline:2px solid #257653;outline-offset:3px}
+.nfq-therapy-row[data-therapy="ETI"] .nfq-therapy-result,.nfq-therapy-row[data-therapy="ALYFTREK"] .nfq-therapy-result{font-weight:760!important}
+@media(max-width:760px){.nfq-therapy-rule-context{width:100%}.nfq-therapy-genotype-link{width:100%;max-width:280px}}
