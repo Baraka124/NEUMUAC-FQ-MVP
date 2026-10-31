@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 // Offline and read-only scientific coverage inspection. Accepts non-patient JSON profiles.
-import {readFileSync,writeFileSync} from 'node:fs';
+import {readFileSync,writeFileSync,realpathSync} from 'node:fs';
+import {resolve} from 'node:path';
 const [source,destination]=process.argv.slice(2);
-if(source===destination)throw Error('Input and output must differ');
+if(source&&destination&&resolve(source)===resolve(destination))throw Error('Input and output must differ');
 if(!source||!destination)throw Error('Usage: node scripts/audit-therapy-snapshot.mjs variants.json audit.json');
+if(realpathSync(source)===resolve(destination))throw Error('Input and output must differ');
 const rows=JSON.parse(readFileSync(source,'utf8'));
 if(!Array.isArray(rows))throw Error('Expected array of variant therapy profiles');
 if(rows.length>100000)throw Error('Snapshot exceeds audit record limit');
@@ -17,6 +19,7 @@ for(const profile of rows){
  if(seen.has(id))report.duplicateIds.push(id);
  seen.add(id);
  const entries=Array.isArray(profile.entries)?profile.entries:[];
+ if(entries.some(entry=>entry===null||typeof entry!=='object'||Array.isArray(entry)))throw Error('Invalid therapy entry');
  if(entries.length!==5||new Set(entries.map(x=>x.therapy)).size!==5||ids.some(x=>!entries.some(e=>e.therapy===x)))report.incompleteProfiles.push(id);
  for(const therapy of ids){
   const entry=entries.find(e=>e.therapy===therapy);
