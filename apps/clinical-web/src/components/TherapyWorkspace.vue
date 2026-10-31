@@ -103,8 +103,10 @@ onUnmounted(()=>active?.abort());
     <p v-if="reviewStatus" role="status">{{reviewStatus}}</p>
    </section>
    <div class="nfq-therapy-rows">
-    <div class="nfq-therapy-section-label">THERAPY EVIDENCE <span>Recorded responses and research rules are distinct</span></div>
+    
     <div v-for="{therapy,entry} in rows" :key="therapy.id" class="nfq-therapy-row" :class="{'nfq-therapy-selected':selectedDrug===therapy.id}">
+     <div v-if="therapy.id==='ETI'" class="nfq-therapy-section-label">RECORDED VARIANT RESPONSES <span>Independent scientific categories</span></div>
+     <div v-if="therapy.id==='IVACAFTOR'" class="nfq-therapy-section-label">GENOTYPE RESEARCH RULES <span>Assessment not performed</span></div>
      <div class="nfq-therapy-row-main">
       <div class="nfq-therapy-name">
        <strong>{{therapy.label}}</strong>
