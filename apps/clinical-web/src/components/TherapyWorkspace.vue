@@ -50,6 +50,12 @@ function resultLabel(entry:TherapyEntry|null):string{
  if(entry.coverage==='genotype-rule-only')return 'No variant response';
  return describeRecordedEti(entry.response).label;
 }
+async function jumpToTherapyGroup(id:string):Promise<void>{
+ await nextTick();
+ const target=document.getElementById('nfq-therapy-trigger-'+id);
+ target?.focus({preventScroll:true});
+ target?.scrollIntoView({block:'nearest',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+}
 async function switchDetails(id:string):Promise<void>{
  const isClosing=selectedDrug.value===id;
  selectedDrug.value=isClosing?null:id;
@@ -103,11 +109,15 @@ onUnmounted(()=>active?.abort());
     <div class="nfq-therapy-review-actions"><button type="button" @click="emit('openValidation')">Sources & validation</button><RouterLink :to="{path:'/evidence',query:{variant:variantId,from:'/variants/'+variantId}}">Inspect evidence</RouterLink><button type="button" @click="downloadReviewBrief">Download review brief</button></div>
     <p v-if="reviewStatus" role="status">{{reviewStatus}}</p>
    </section>
+   <nav class="nfq-therapy-jump" aria-label="Therapy research navigation">
+    <a href="#nfq-recorded-therapies" @click.prevent="jumpToTherapyGroup('ETI')">Recorded responses <span>2</span></a>
+    <a href="#nfq-genotype-therapies" @click.prevent="jumpToTherapyGroup('IVACAFTOR')">Genotype rules <span>3</span></a>
+   </nav>
    <div class="nfq-therapy-rows">
     
     <div v-for="{therapy,entry} in rows" :key="therapy.id" class="nfq-therapy-row" :data-therapy="therapy.id" :class="{'nfq-therapy-selected':selectedDrug===therapy.id}">
-     <div v-if="therapy.id==='ETI'" class="nfq-therapy-section-label">RECORDED VARIANT RESPONSES <span>Independent scientific categories</span></div>
-     <div v-if="therapy.id==='IVACAFTOR'" class="nfq-therapy-section-label">GENOTYPE RESEARCH RULES <span>Assessment not performed</span></div>
+     <div v-if="therapy.id==='ETI'" id="nfq-recorded-therapies" class="nfq-therapy-section-label">RECORDED VARIANT RESPONSES <span>Independent scientific categories</span></div>
+     <div v-if="therapy.id==='IVACAFTOR'" id="nfq-genotype-therapies" class="nfq-therapy-section-label">GENOTYPE RESEARCH RULES <span>Assessment not performed</span></div>
      <div class="nfq-therapy-row-main">
       <div class="nfq-therapy-name">
        <strong>{{therapy.label}}</strong>
@@ -117,7 +127,7 @@ onUnmounted(()=>active?.abort());
       <span :data-testid="therapy.id==='ETI'?'eti-recorded-category':undefined" class="nfq-therapy-result" :class="{'nfq-therapy-unknown':entry?.response==='unknown'||entry?.response===null}">{{resultLabel(entry)}}</span>
       <button type="button" class="nfq-therapy-inspect" :id="'nfq-therapy-trigger-'+therapy.id" :aria-expanded="selectedDrug===therapy.id" :aria-controls="'nfq-therapy-details-'+therapy.id" @click="switchDetails(therapy.id)">{{selectedDrug===therapy.id?'Close details':entry?.coverage==='genotype-rule-only'?'Assessment context':'Source evidence'}}</button>
      </div>
-     <div v-if="selectedDrug===therapy.id" :id="'nfq-therapy-details-'+therapy.id" class="nfq-therapy-detail" tabindex="-1">
+     <div v-if="selectedDrug===therapy.id" :id="'nfq-therapy-details-'+therapy.id" class="nfq-therapy-detail" role="region" :aria-label="therapy.label+' research details'" tabindex="-1">
       <template v-if="entry?.coverage==='variant-response'">
        <dl class="nfq-therapy-meta">
         <div><dt>Evidence level</dt><dd>{{entry.evidenceLevel||'Not recorded'}}</dd></div>
