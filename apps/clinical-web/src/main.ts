@@ -5,6 +5,7 @@ import {router} from './router';
 import './styles.css';
 import './ultra-system.css';
 import './modulator-intelligence.css';
+import './variant-discovery-system.css';
 import {authController} from './services/authSession';
 if(authController)void authController.initialize();
 createApp(App).use(createPinia()).use(router).mount('#app');

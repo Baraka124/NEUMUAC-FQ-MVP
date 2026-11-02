@@ -511,7 +511,12 @@ function select(id:string):void{
     </RouterLink>
    </section>
    <div class="record-content">
-    <article class="record-overview" aria-labelledby="selected-title">
+    <nav v-if="selected" class="nfq-dossier-jump" aria-label="Selected variant sections">
+      <a href="#nfq-variant-identity">Identity</a>
+      <a href="#nfq-variant-therapy">Therapies</a>
+      <a v-if="!selectedFromSearch" href="#nfq-variant-science">Scientific detail</a>
+    </nav>
+    <article id="nfq-variant-identity" class="record-overview" aria-labelledby="selected-title">
      <p v-if="detailBusy" role="status">Loading record…</p>
      <template v-else-if="selected">
       <p v-if="detailNotice" role="status" class="nfq-detail-notice">{{detailNotice}} <button type="button" @click="loadDetail(selected.id)">Retry full record</button></p>
@@ -539,6 +544,7 @@ function select(id:string):void{
         <div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div>
         <div><dt>Aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div>
        </dl>
+       <div id="nfq-variant-therapy" class="nfq-dossier-therapy-anchor">
        <TherapyWorkspace
         :key="selected.id"
         :variant-id="selected.id"
@@ -548,7 +554,8 @@ function select(id:string):void{
         @retry-legacy="retryEtiResponse"
         @open-validation="openVariantValidation"
        />
-      </div><section v-if="!selectedFromSearch" class="dossier-science" aria-label="Additional scientific record details">
+       </div>
+      </div><section id="nfq-variant-science" v-if="!selectedFromSearch" class="dossier-science" aria-label="Additional scientific record details">
       <p v-if="dossierError" role="alert">{{dossierError}}</p>
       <div class="nfq-details-control">
        <button type="button" class="nfq-details-trigger" :aria-expanded="scientificDetailsOpen" aria-controls="nfq-secondary-science" @click="scientificDetailsOpen=!scientificDetailsOpen">
