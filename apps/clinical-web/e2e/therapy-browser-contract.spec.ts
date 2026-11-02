@@ -167,3 +167,19 @@ test('Alyftrek Class I response retains its independent true historical flag wit
  await expect(workspace.getByTestId('therapy-historical-flag-disagreement')).toHaveCount(0);
  await expect(workspace.locator('.nfq-therapy-row').first().locator('.nfq-therapy-result')).toHaveText('Non-responsive');
 });
+
+test('compact phone keeps scientific therapy findings navigable without horizontal overflow',async({page})=>{
+ await page.setViewportSize({width:320,height:690});
+ await setup(page);
+ await page.goto('/#/variants/35');
+ const workspace=page.getByTestId('five-therapy-workspace');
+ await expectFiveRows(workspace);
+ await expect(workspace.getByRole('navigation',{name:'Therapy research navigation'})).toBeVisible();
+ await workspace.getByRole('link',{name:/Genotype rules/}).click();
+ await expect(workspace.locator('.nfq-therapy-row').nth(2).getByRole('button',{name:'Assessment context'})).toBeFocused();
+ await workspace.locator('.nfq-therapy-row').nth(2).getByRole('button',{name:'Assessment context'}).click();
+ await expect(workspace.locator('.nfq-therapy-row').nth(2).getByRole('region',{name:/Kalydeco research details/})).toBeVisible();
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ await expect(workspace.locator('.nfq-therapy-row').first().locator('.nfq-therapy-result')).toHaveText('Non-responsive');
+ await expect(workspace.locator('.nfq-therapy-row').nth(1).locator('.nfq-therapy-result')).toHaveText('Responsive');
+});
