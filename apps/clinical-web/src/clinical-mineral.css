@@ -1,0 +1,40 @@
+/* Clinical Mineral / neumuuacFQ · 14H84–86.
+   Restrained biomedical research palette. Source values and permissions unaffected. */
+:root{
+ --nfq-graphite:#292f33;--nfq-titanium:#65717a;--nfq-porcelain:#f5f5f2;
+ --nfq-teal:#197b82;--nfq-copper:#ae7753;--nfq-mineral-line:#dce1de;
+ --nfq-ink:#292f33;--nfq-muted:#65717a;--nfq-line:#dce1de;
+ --nfq-canvas:#f5f5f2;--nfq-surface:#ffffff;--nfq-accent:#197b82;
+ --ink:#292f33;--muted:#65717a;--line:#dce1de;--paper:#fff;--accent:#197b82;--nav:#292f33;--focus:#197b82;
+}
+body,.workspace-frame{background:#f5f5f2!important;color:#292f33!important}
+@media(min-width:761px){
+ .sidebar{background:#292f33!important;border-right:1px solid #485158!important;color:#e5e9e8!important}
+ .wordmark{border-bottom-color:#4c575d!important}
+ .wordmark-text small,.sidebar-caption{color:#b7c1c3!important}
+ .workspace-nav a{color:#dce2e2!important}
+ .workspace-nav a:hover{background:#424d53!important}
+ .workspace-nav a[aria-current="page"],.workspace-nav a.router-link-exact-active,.workspace-nav a.variant-route-active{background:#e4e9e8!important;color:#26353a!important;border-color:#cdd6d5!important;box-shadow:inset 3px 0 #197b82!important}
+ .workspace-nav a[aria-current="page"] .nav-glyph,.workspace-nav a.variant-route-active .nav-glyph{stroke:#197b82!important}
+ .sidebar-collapsed .workspace-nav a[aria-current="page"]{box-shadow:inset 3px 0 #197b82!important}
+}
+.institution-header{background:#fff!important;border-bottom-color:#dce1de!important}
+.header-path,.page h2{color:#43515a!important}
+.page h1,.variant-page .variant-heading h1,.variant-page .nfq-identity-title h2,.nfq-evidence-heading h1,.helios-head h1{color:#292f33!important}
+.page h2,.nfq-therapy-heading h3,.variant-page .rail-topline h2{color:#38444b!important}
+.eyebrow,.section-label,.nfq-therapy-kicker{color:#65717a!important}
+.surface,.record-overview,.record-rail,.nfq-therapy{background:#fff!important;border-color:#dce1de!important;box-shadow:none!important}
+.variant-page .record-list button.record-selected,.record-list button.record-selected{background:#eef3f3!important;border-color:#a4bec0!important;box-shadow:inset 3px 0 #197b82!important}
+.variant-page .record-list button .record-first strong,.nfq-therapy-name strong{color:#292f33!important}
+.nfq-therapy-row[data-therapy="ETI"] .nfq-therapy-row-main,.nfq-therapy-row[data-therapy="ALYFTREK"] .nfq-therapy-row-main{background:#f8f9f8!important}
+.nfq-therapy-jump a,.nfq-dossier-jump a,.nfq-therapy-genotype-link{background:#fff!important;color:#245f66!important;border-color:#cbd8d8!important}
+.nfq-therapy-jump a:hover,.nfq-dossier-jump a:hover,.nfq-therapy-genotype-link:hover{background:#edf3f3!important}
+.nfq-therapy-result{color:#33454d!important}
+.nfq-therapy-meta dt,.nfq-therapy-source-type{color:#65717a!important}
+.nfq-therapy-inspect,.nfq-therapy-genotype-link{border-radius:4px!important}
+.helios-context{background:#f5f6f4!important;border-left-color:#65717a!important}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline-color:#197b82!important}
+@media(max-width:760px){
+ .mobile-nav a.router-link-exact-active{background:#e5eeee!important;color:#245f66!important;box-shadow:inset 3px 0 #197b82!important}
+ .variant-page .record-overview{background:#fff!important}
+}

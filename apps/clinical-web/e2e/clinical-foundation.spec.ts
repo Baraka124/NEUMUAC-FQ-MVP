@@ -75,12 +75,8 @@ test('public research needs no sign-in and admin never exposes unapproved writes
 
 test('sidebar expands, contracts and persists preference without hiding navigation', async ({ page }) => {
   await page.goto('/#/variants');
-  const wideDesktop = page.viewportSize()!.width > 1180;
   if (page.viewportSize()!.width > 760) {
-    if (!wideDesktop) {
-      await expect(page.locator('.app-frame')).toHaveClass(/sidebar-collapsed/);
-      await page.getByRole('button',{name:'Expand sidebar'}).click();
-    }
+    await expect(page.locator('.app-frame')).not.toHaveClass(/sidebar-collapsed/);
     const toggle = page.getByRole('button',{name:'Collapse sidebar'});
     await expect(toggle).toBeVisible();
     await toggle.click();
