@@ -18,6 +18,7 @@ function read(path){
 }
 const original=read(originalPath),migrated=read(migratedPath);
 const missing=[],unexpected=[],different=[];
+const trackedFields=['evidenceLevel','evidenceTier','authoritySource'];
 for(const [id,source] of original){
  const target=migrated.get(id);
  if(!target){missing.push(id);continue;}
@@ -34,6 +35,11 @@ for(const [id,source] of original){
    return value;
   }
   if(response(source)!==response(target))different.push({variantId:id,field:therapy+' response'});
+  const sourceEntry=source.entries.find(e=>e.therapy===therapy);
+  const targetEntry=target.entries.find(e=>e.therapy===therapy);
+  for(const field of trackedFields){
+   if((sourceEntry[field]??null)!==(targetEntry[field]??null))different.push({variantId:id,field:therapy+' '+field});
+  }
  }
 }
 for(const id of migrated.keys())if(!original.has(id))unexpected.push(id);
