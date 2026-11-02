@@ -55,8 +55,10 @@ test('Class I exceptional record keeps its ETI and Alyftrek values in the five-r
  await expect(panel.locator('.nfq-therapy-context')).toContainText('exceptional');
  await expect(panel.locator('.nfq-therapy-row').nth(0).locator('.nfq-therapy-result')).toHaveText('Responsive');
  await expect(panel.locator('.nfq-therapy-row').nth(1).locator('.nfq-therapy-result')).toHaveText('Unknown');
- await expect(panel.locator('.nfq-therapy-row').nth(4).locator('.nfq-therapy-result')).toHaveText('Genotype rules');
- await panel.getByRole('button',{name:'Details',exact:true}).first().click();
+ await expect(panel.locator('.nfq-therapy-row').nth(4).locator('.nfq-therapy-result')).toHaveText('No variant response');
+ await panel.locator('.nfq-therapy-row').nth(4).getByRole('button',{name:'Assessment context'}).click();
+ await expect(panel.locator('.nfq-therapy-row').nth(4).getByRole('link',{name:'Open genotype workspace'})).toHaveAttribute('href',/#\/genotype/);
+ await panel.getByRole('button',{name:'Source evidence',exact:true}).first().click();
  await expect(panel.getByTestId('eti-recorded-category')).toHaveText('Responsive');
  await expect(panel.getByTestId('eti-recorded-category')).toHaveCount(1);
  await expect(panel.getByRole('region',{name:'ETI evidence details'})).toBeVisible();
@@ -134,7 +136,7 @@ test('Alyftrek owns its source inspection even for Class I variant with no linke
  await expectFiveRows(workspace);
  await expect(workspace.locator('.nfq-therapy-row').nth(0).locator('.nfq-therapy-result')).toHaveText('Non-responsive');
  await expect(workspace.locator('.nfq-therapy-row').nth(1).locator('.nfq-therapy-result')).toHaveText('Responsive');
- await workspace.locator('.nfq-therapy-row').nth(1).getByRole('button',{name:'Details',exact:true}).click();
+ await workspace.locator('.nfq-therapy-row').nth(1).getByRole('button',{name:'Source evidence',exact:true}).click();
  const sources=workspace.getByRole('region',{name:'Alyftrek source evidence'});
  await expect(sources).toBeVisible();
  await expect(sources).toContainText('No linked Alyftrek response findings in this register.');
@@ -149,7 +151,7 @@ test('G542X keeps ETI non-responsive while its historical boolean discrepancy re
  const workspace=page.getByTestId('five-therapy-workspace');
  await expectFiveRows(workspace);
  await expect(workspace.locator('.nfq-therapy-row').first().locator('.nfq-therapy-result')).toHaveText('Non-responsive');
- await workspace.locator('.nfq-therapy-row').first().getByRole('button',{name:'Details',exact:true}).click();
+ await workspace.locator('.nfq-therapy-row').first().getByRole('button',{name:'Source evidence',exact:true}).click();
  await expect(workspace.getByTestId('therapy-historical-flag-disagreement')).toContainText('historical flag differs');
  await expect(workspace.locator('.nfq-therapy-row').first()).toContainText('Historical drug flag: Yes');
  await expect(workspace.getByTestId('eti-recorded-category')).toHaveText('Non-responsive');
@@ -160,7 +162,7 @@ test('Alyftrek Class I response retains its independent true historical flag wit
  await page.goto('/#/variants/35');
  const workspace=page.getByTestId('five-therapy-workspace');
  await expectFiveRows(workspace);
- await workspace.locator('.nfq-therapy-row').nth(1).getByRole('button',{name:'Details',exact:true}).click();
+ await workspace.locator('.nfq-therapy-row').nth(1).getByRole('button',{name:'Source evidence',exact:true}).click();
  await expect(workspace.locator('.nfq-therapy-row').nth(1)).toContainText('Historical drug flag: Yes');
  await expect(workspace.getByTestId('therapy-historical-flag-disagreement')).toHaveCount(0);
  await expect(workspace.locator('.nfq-therapy-row').first().locator('.nfq-therapy-result')).toHaveText('Non-responsive');
