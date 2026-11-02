@@ -1,0 +1,43 @@
+/* 14H81-83 Institutional research shell: structural replacement of earlier shell rules.
+   Scientific data, source classifications and route permissions are unchanged. */
+@media(min-width:761px){
+ .app-frame:not(.sidebar-collapsed){grid-template-columns:clamp(242px,18vw,274px) minmax(0,1fr)}
+ .app-frame.sidebar-collapsed{grid-template-columns:76px minmax(0,1fr)}
+ .sidebar{background:#15352e!important;padding:26px 15px 18px!important;border-right:1px solid #274b3e;overflow-x:visible}
+ .sidebar-scroll{min-width:0}
+ .wordmark{display:flex;align-items:center;padding:9px 10px 23px;margin:0 0 21px!important;border-bottom:1px solid #355448}
+ .wordmark-text strong{font-size:18px;line-height:1.35;letter-spacing:-.04em}
+ .wordmark-text small{font-size:11px;color:#a9c5b6;letter-spacing:.015em}
+ .sidebar-caption{font-size:10px;letter-spacing:.12em;color:#a9c4b5;margin:0 0 9px;padding-inline:11px}
+ .workspace-nav{gap:3px}
+ .workspace-nav a{border:1px solid transparent;border-radius:4px;min-height:44px!important;padding:10px 11px!important;color:#d5e5da!important;font-size:12.5px;font-weight:570;line-height:1.3}
+ .workspace-nav a:hover{background:#254b3d!important;color:#fff!important}
+ .workspace-nav a.router-link-exact-active,.workspace-nav a.variant-route-active,.workspace-nav a[aria-current="page"]{background:#e7f0e9!important;color:#174532!important;border-color:#c4ddca!important;box-shadow:inset 3px 0 #388961!important;font-weight:750}
+ .workspace-nav a[aria-current="page"] .nav-glyph,.workspace-nav a.variant-route-active .nav-glyph{stroke:#1b6649!important}
+ .nav-glyph{flex:none;width:19px;height:19px}
+ .nav-name{display:block;min-width:0;overflow-wrap:anywhere;white-space:normal!important}
+ .sidebar-toggle{top:30px!important;right:-15px!important;border-radius:5px!important;width:30px!important;height:30px!important;background:#fbfdfb}
+ .sidebar-collapsed .sidebar{padding-inline:9px!important}
+ .sidebar-collapsed .wordmark{padding:7px 0 23px;justify-content:center}
+ .sidebar-collapsed .workspace-nav a{padding:10px 6px!important;justify-content:center}
+ .sidebar-collapsed .workspace-nav a[aria-current="page"]{box-shadow:inset 3px 0 #388961!important}
+ .sidebar-collapsed .sidebar-toggle{right:-15px!important}
+ .institution-header{padding-inline:clamp(24px,3vw,44px)!important}
+ main{width:100%;max-width:1700px;padding:22px clamp(24px,3vw,44px) 56px}
+ .page{padding-top:16px!important}
+}
+.workspace-frame{background:#f7f9f7!important}
+.institution-header{height:62px!important;min-height:62px!important;box-shadow:none!important;border-bottom:1px solid #dee6df!important}
+.header-path{letter-spacing:.05em;color:#456c59}
+.workspace-launcher-trigger{border-radius:4px!important}
+.page h1{font-weight:730!important;letter-spacing:-.042em!important;color:#1d4133!important}
+.page h2{color:#254c3a!important}
+.surface,.record-overview,.record-rail{box-shadow:none!important}
+@media(max-width:760px){
+ .institution-header{height:58px!important;min-height:58px!important}
+ main{padding-top:12px!important}
+ .page{padding-top:9px!important}
+ .mobile-nav{box-shadow:0 12px 24px rgba(20,54,38,.12);max-height:calc(100dvh - 58px);overflow-y:auto}
+ .mobile-nav a{font-weight:610;border-radius:3px!important}
+ .mobile-nav a.router-link-exact-active{box-shadow:inset 3px 0 #438366}
+}
