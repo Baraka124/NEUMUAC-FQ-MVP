@@ -56,6 +56,8 @@ test('Class I exceptional record keeps its ETI and Alyftrek values in the five-r
  await expect(panel.locator('.nfq-therapy-row').nth(0).locator('.nfq-therapy-result')).toHaveText('Responsive');
  await expect(panel.locator('.nfq-therapy-row').nth(1).locator('.nfq-therapy-result')).toHaveText('Unknown');
  await expect(panel.locator('.nfq-therapy-row').nth(4).locator('.nfq-therapy-result')).toHaveText('No variant response');
+ await panel.locator('.nfq-therapy-row').nth(4).getByRole('button',{name:'Assessment context'}).click();
+ await expect(panel.locator('.nfq-therapy-row').nth(4).getByRole('link',{name:'Open genotype workspace'})).toHaveAttribute('href',/#\/genotype/);
  await panel.getByRole('button',{name:'Source evidence',exact:true}).first().click();
  await expect(panel.getByTestId('eti-recorded-category')).toHaveText('Responsive');
  await expect(panel.getByTestId('eti-recorded-category')).toHaveCount(1);
