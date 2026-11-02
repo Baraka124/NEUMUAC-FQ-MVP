@@ -29,3 +29,20 @@ test('missing and unexpected variant identifiers are both reported',()=>{
  assert.deepEqual(result.missingVariantIds,['35']);
  assert.deepEqual(result.unexpectedVariantIds,['36']);
 });
+
+test('changed evidence tier and authority are not silently accepted as scientific parity',()=>{
+ const source=make(),target=make();
+ source.entries[0].evidenceTier='clinical_trial';
+ source.entries[0].authoritySource='original-register';
+ target.entries[0].evidenceTier='class_rule';
+ target.entries[0].authoritySource='migration-register';
+ const result=compare([source],[target]);
+ assert.deepEqual(result.differentFields.map(x=>x.field),['ETI evidenceTier','ETI authoritySource']);
+ assert.equal(result.matched,false);
+});
+test('missing evidence provenance is distinguished from a recorded source',()=>{
+ const source=make(),target=make();
+ source.entries[1].evidenceLevel='published';
+ const result=compare([source],[target]);
+ assert.deepEqual(result.differentFields.map(x=>x.field),['ALYFTREK evidenceLevel']);
+});
