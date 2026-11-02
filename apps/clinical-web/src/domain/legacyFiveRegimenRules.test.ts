@@ -58,3 +58,37 @@ describe('14H15 frozen five-regimen research-rule parity',()=>{
   expect(()=>compareLegacyFiveRegimens({...a,id:'3'},b)).toThrow();
  });
 });
+
+describe('14H63–65 five-regimen behavioral parity matrix',()=>{
+ it('is symmetric under swapping the two selected research variants',()=>{
+  const a=v('31','F508del','II',null,'responsive','unknown','frt_assay');
+  const b=v('32','G551D','III',null,'unknown','unknown');
+  const forward=compareLegacyFiveRegimens(a,b);
+  const reversed=compareLegacyFiveRegimens(b,a);
+  expect(forward).toEqual(reversed);
+  expect(forward.find(x=>x.therapy==='TEZACAFTOR_IVACAFTOR')?.outcome).toBe('match');
+  expect(forward.find(x=>x.therapy==='LUMACAFTOR_IVACAFTOR')?.outcome).toBe('not-matched');
+ });
+ it('does not turn a recorded ETI response into rule match without qualifying source tier',()=>{
+  const a=v('41','G542X','I','exceptional','responsive','unknown');
+  const b=v('42','D110E','I',null,'non_responsive','unknown');
+  expect(result(a,b,'ETI')?.outcome).toBe('needs-evidence');
+  expect(result(a,b,'IVACAFTOR')?.outcome).toBe('not-matched');
+  expect(a.profile.entries.find(x=>x.therapy==='ETI')?.response).toBe('responsive');
+ });
+ it('preserves three rule-only therapies as unrecorded variant responses even for a matching pair',()=>{
+  const a=v('51','F508del','II',null,'responsive','unknown','class_rule');
+  const b=v('52','F508del','II',null,'responsive','unknown','class_rule');
+  for(const id of ['IVACAFTOR','TEZACAFTOR_IVACAFTOR','LUMACAFTOR_IVACAFTOR']){
+   expect(a.profile.entries.find(x=>x.therapy===id)?.response).toBeNull();
+  }
+  expect(result(a,b,'LUMACAFTOR_IVACAFTOR')?.outcome).toBe('match');
+ });
+ it('keeps all five regimens present on a mismatched Class I pair',()=>{
+  const a=v('61','E831X','I','exceptional','responsive','unknown');
+  const b=v('62','G542X','I','exceptional','non_responsive','unknown');
+  expect(compareLegacyFiveRegimens(a,b).map(x=>x.therapy)).toEqual([
+   'ETI','ALYFTREK','IVACAFTOR','TEZACAFTOR_IVACAFTOR','LUMACAFTOR_IVACAFTOR'
+  ]);
+ });
+});
