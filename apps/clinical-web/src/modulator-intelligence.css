@@ -46,3 +46,17 @@
 .nfq-therapy-genotype-link:focus-visible{outline:2px solid #257653;outline-offset:3px}
 .nfq-therapy-row[data-therapy="ETI"] .nfq-therapy-result,.nfq-therapy-row[data-therapy="ALYFTREK"] .nfq-therapy-result{font-weight:760!important}
 @media(max-width:760px){.nfq-therapy-rule-context{width:100%}.nfq-therapy-genotype-link{width:100%;max-width:280px}}
+
+/* Research-workspace navigation, evidence focus and mobile comparison density. */
+.nfq-therapy-jump{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 14px;padding:0 0 14px;border-bottom:1px solid #dae4dc}
+.nfq-therapy-jump a{display:inline-flex;gap:10px;align-items:center;justify-content:space-between;border:1px solid #cbded2;border-radius:4px;background:#f8faf8;text-decoration:none;padding:10px 13px;min-height:43px;color:#244e3b;font-size:12px;font-weight:660}
+.nfq-therapy-jump a span{border-left:1px solid #d4e3d9;padding-left:10px;font-variant-numeric:tabular-nums;color:#527767}
+.nfq-therapy-jump a:hover{background:#edf5ef}
+.nfq-therapy-section-label{scroll-margin-top:75px}
+.nfq-therapy-row[data-therapy="ETI"] .nfq-therapy-row-main,.nfq-therapy-row[data-therapy="ALYFTREK"] .nfq-therapy-row-main{background:linear-gradient(90deg,#f8fbf8,white 65%);padding-left:10px!important;padding-right:10px!important}
+.nfq-therapy-detail:focus{outline:2px solid #3b8463;outline-offset:2px}
+.nfq-therapy-meta{gap:12px!important}
+.nfq-therapy-meta > div{min-width:0}
+.nfq-therapy-meta dd{overflow-wrap:anywhere}
+@media(max-width:760px){.nfq-therapy-jump{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.nfq-therapy-jump a{padding:8px 9px;font-size:11px;gap:4px}.nfq-therapy-row[data-therapy="ETI"] .nfq-therapy-row-main,.nfq-therapy-row[data-therapy="ALYFTREK"] .nfq-therapy-row-main{padding:12px 7px!important}.nfq-therapy-section-label{scroll-margin-top:64px}}
+@media(max-width:360px){.nfq-therapy-jump{grid-template-columns:1fr}}
