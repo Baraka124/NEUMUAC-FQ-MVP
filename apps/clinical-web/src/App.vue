@@ -31,11 +31,11 @@ let compactQuery: MediaQueryList | null = null;
 let manualPreference: boolean | null = null;
 
 function syncSidebarToViewport(): void {
-  sidebarCollapsed.value = manualPreference ?? Boolean(compactQuery?.matches);
+  sidebarCollapsed.value = manualPreference ?? false;
 }
 
 onMounted(() => {
-  compactQuery = window.matchMedia('(max-width: 1180px)');
+  compactQuery = window.matchMedia('(max-width: 760px)');
   try {
     const stored = window.localStorage.getItem(NAV_STORAGE_KEY);
     manualPreference = stored === 'true' ? true : stored === 'false' ? false : null;
@@ -84,9 +84,10 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
         <span v-if="!sidebarCollapsed" class="wordmark-text"><strong>neumuacFQ</strong><small>CFTR variant research</small></span>
       </RouterLink>
 
-      <div v-if="!sidebarCollapsed" class="sidebar-caption">WORKSPACES</div>
+      <div v-if="!sidebarCollapsed" class="sidebar-caption">RESEARCH WORKSPACES</div>
       <nav id="primary-workspace-nav" class="workspace-nav" aria-label="Workspaces">
         <RouterLink v-for="section in availableSections" :key="section.path" :to="section.path"
+          :aria-current="(route.path===section.path || (section.path==='/variants' && route.path.startsWith('/variants/')))?'page':undefined"
           :aria-label="section.name" :title="sidebarCollapsed ? section.name : undefined"
           :class="{ 'variant-route-active': section.path === '/variants' && route.path.startsWith('/variants/') }">
           <svg class="nav-glyph" viewBox="0 0 24 24" width="21" height="21" fill="none"
