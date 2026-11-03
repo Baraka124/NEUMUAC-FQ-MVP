@@ -52,6 +52,8 @@ test('Class I exceptional record keeps its ETI and Alyftrek values in the five-r
  await page.goto('/#/variants/1');
  const panel=page.getByTestId('five-therapy-workspace');
  await expectFiveRows(panel);
+ await expect(panel.locator('.nfq-therapy-column-head')).toBeVisible();
+ await expect(panel.locator('.nfq-therapy-column-head')).toContainText('Recorded result / rule coverage');
  await expect(panel.locator('.nfq-therapy-context')).toContainText('exceptional');
  await expect(panel.locator('.nfq-therapy-row').nth(0).locator('.nfq-therapy-result')).toHaveText('Responsive');
  await expect(panel.locator('.nfq-therapy-row').nth(1).locator('.nfq-therapy-result')).toHaveText('Unknown');
