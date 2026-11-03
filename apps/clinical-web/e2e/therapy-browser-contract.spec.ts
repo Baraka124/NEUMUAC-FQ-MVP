@@ -331,3 +331,58 @@ test('Comparison edits retain only validated variant origin; untrusted return UR
  await page.goto('/#/evidence?variant=35&from='+encodeURIComponent('https://untrusted.example'));
  await expect(page.getByTestId('evidence-context-return')).toHaveCount(0);
 });
+
+
+async function openGlobalWorkspace(page:Page,name:string):Promise<void>{
+ if(page.viewportSize()!.width<=760){
+  await page.getByRole('button',{name:'Workspaces',exact:true}).click();
+  await page.getByRole('navigation',{name:'Mobile workspaces'}).getByRole('link',{name,exact:true}).click();
+ }else{
+  await page.getByRole('navigation',{name:'Workspaces',exact:true}).getByRole('link',{name,exact:true}).click();
+ }
+}
+
+test('Main navigation stays connected to the active CFTR variant through evidence, comparison and coverage',async({page})=>{
+ await setup(page);
+ await page.goto('/#/variants/35?q=3120&class=I');
+ await expectFiveRows(page.getByTestId('five-therapy-workspace'));
+ await openGlobalWorkspace(page,'Evidence & Curation');
+ await expect(page).toHaveURL(/#\/evidence\?variant=35/);
+ await expect(page.getByTestId('evidence-context-return')).toContainText('Return to variant dossier');
+ await page.getByTestId('evidence-context-return').click();
+ await expect(page.getByRole('searchbox',{name:'Variant name, HGVS or recorded alias'})).toHaveValue('3120');
+ await openGlobalWorkspace(page,'Genotype');
+ await expect(page).toHaveURL(/#\/genotype\?a=35/);
+ await expect(page.locator('#genotype-search-0')).toHaveValue(/3120/);
+ await openGlobalWorkspace(page,'Evidence & Curation');
+ await expect(page.getByTestId('evidence-context-return')).toContainText('Return to variant comparison');
+ await page.getByTestId('evidence-context-return').click();
+ await expect(page.locator('#genotype-search-0')).toHaveValue(/3120/);
+ await page.getByTestId('comparison-context-return').click();
+ await expect(page.getByRole('searchbox',{name:'Variant name, HGVS or recorded alias'})).toHaveValue('3120');
+ await openGlobalWorkspace(page,'Research coverage');
+ await expect(page.getByTestId('coverage-context-return')).toContainText('Return to variant dossier');
+ await page.getByTestId('coverage-context-return').click();
+ await expect(page.getByRole('searchbox',{name:'Variant name, HGVS or recorded alias'})).toHaveValue('3120');
+ await openGlobalWorkspace(page,'Variants');
+ await expect(page).toHaveURL(/#\/variants\?/);
+ await expect(page.getByRole('searchbox',{name:'Variant name, HGVS or recorded alias'})).toHaveValue('3120');
+ const filters=await page.evaluate(()=>Object.fromEntries(new URLSearchParams(location.hash.slice(location.hash.indexOf('?')+1))));
+ expect(filters.class).toBe('I');
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
+
+test('Workspace switcher opens variant-scoped evidence and allows return to the exact dossier',async({page})=>{
+ await setup(page);
+ await page.goto('/#/variants/35?q=3120&class=I&sort=name-desc');
+ await expectFiveRows(page.getByTestId('five-therapy-workspace'));
+ await page.getByRole('button',{name:'Open workspace switcher'}).click();
+ const launcher=page.getByRole('dialog',{name:'Research workspace switcher'});
+ await launcher.getByRole('button',{name:/Evidence & Curation/}).click();
+ await expect(page.getByTestId('evidence-context-return')).toBeVisible();
+ await page.getByTestId('evidence-context-return').click();
+ await expect(page.getByRole('searchbox',{name:'Variant name, HGVS or recorded alias'})).toHaveValue('3120');
+ const filters=await page.evaluate(()=>Object.fromEntries(new URLSearchParams(location.hash.slice(location.hash.indexOf('?')+1))));
+ expect(filters.class).toBe('I');
+ expect(filters.sort).toBe('name-desc');
+});
