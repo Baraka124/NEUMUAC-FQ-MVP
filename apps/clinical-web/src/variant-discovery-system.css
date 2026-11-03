@@ -34,3 +34,21 @@
 }
 @media(max-width:360px){.nfq-dossier-jump{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(prefers-reduced-motion:reduce){.variant-page .record-list button{transition:none}}
+
+/* 14H92 — quiet, numbered scientific reading sequence, without decorative dashboards. */
+.nfq-dossier-identity-heading{display:flex;justify-content:space-between;align-items:baseline;gap:12px;border-bottom:1px solid #dce1de;padding-bottom:12px;margin-bottom:20px}
+.nfq-dossier-overline{display:block;color:#65717a;font-size:10px;font-weight:760;letter-spacing:.105em;text-transform:uppercase}
+.nfq-dossier-record-kind{font-size:11px;color:#65717a}
+.variant-page .nfq-dossier-primary .record-identity{margin-bottom:18px}
+.variant-page .nfq-dossier-identity{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px;padding-block:16px 22px}
+.variant-page .nfq-dossier-identity>div{min-width:0;padding:11px 0;border-bottom:1px solid #e8ebea}
+.variant-page .nfq-dossier-identity dd{overflow-wrap:anywhere}
+.nfq-dossier-therapy-anchor{display:block;border-top:1px solid #dce1de;padding-top:24px;margin-top:4px}
+.nfq-dossier-section-intro{display:flex;align-items:end;justify-content:space-between;gap:14px 28px;margin:0 0 16px}
+.nfq-dossier-section-intro h3{color:#292f33;font-weight:730;font-size:clamp(18px,1.6vw,24px);line-height:1.25;letter-spacing:-.025em;margin:5px 0 0}
+.nfq-dossier-section-intro p{max-width:44ch;line-height:1.5;font-size:12px;color:#65717a;margin:0}
+.nfq-dossier-therapy-anchor>.nfq-therapy{margin-top:0}
+.nfq-dossier-science-intro{border-top:1px solid #dce1de;padding-top:23px;margin-top:28px}
+#nfq-variant-identity:focus,#nfq-variant-therapy:focus,#nfq-variant-science:focus{outline:2px solid #197b82;outline-offset:3px}
+@media(max-width:900px){.nfq-dossier-section-intro{display:block}.nfq-dossier-section-intro p{max-width:70ch;margin-top:10px}}
+@media(max-width:560px){.variant-page .nfq-dossier-identity{grid-template-columns:minmax(0,1fr);gap:0;padding-block:11px 17px}.nfq-dossier-identity-heading{margin-bottom:12px}.nfq-dossier-record-kind{display:none}.nfq-dossier-therapy-anchor{padding-top:18px}.nfq-dossier-section-intro h3{font-size:20px}}
