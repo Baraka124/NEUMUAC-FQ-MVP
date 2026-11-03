@@ -285,16 +285,16 @@ test('Variant evidence round trip restores the exact record, search terms and cl
  await page.getByTestId('evidence-context-return').click();
  await expect(page).toHaveURL(/#\/variants\/35\?/);
  await expect(page.getByRole('searchbox',{name:'Variant name, HGVS or recorded alias'})).toHaveValue('3120');
- const routeQuery=await page.evaluate(()=>new URLSearchParams(location.hash.split('?')[1]));
- expect(routeQuery.get('class')).toBe('I');
- expect(routeQuery.get('sort')).toBe('name-desc');
+ const routeQuery=await page.evaluate(()=>Object.fromEntries(new URLSearchParams(location.hash.split('?')[1])));
+ expect(routeQuery.class).toBe('I');
+ expect(routeQuery.sort).toBe('name-desc');
  await expect(page.getByTestId('five-therapy-workspace')).toBeVisible();
  await page.getByTestId('variant-context-return').click();
  await expect(page).toHaveURL(/#\/variants\?/);
  await expect(page.getByRole('searchbox',{name:'Variant name, HGVS or recorded alias'})).toHaveValue('3120');
- const worklistQuery=await page.evaluate(()=>new URLSearchParams(location.hash.split('?')[1]));
- expect(worklistQuery.get('class')).toBe('I');
- expect(worklistQuery.get('sort')).toBe('name-desc');
+ const worklistQuery=await page.evaluate(()=>Object.fromEntries(new URLSearchParams(location.hash.split('?')[1])));
+ expect(worklistQuery.class).toBe('I');
+ expect(worklistQuery.sort).toBe('name-desc');
 });
 
 test('Variant, comparison and evidence preserve a bounded navigation trail through both return hops',async({page})=>{
