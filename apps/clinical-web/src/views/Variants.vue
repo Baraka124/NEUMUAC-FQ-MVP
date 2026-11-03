@@ -283,7 +283,7 @@ const showReferences=ref(false);
 // A selected dossier takes visual priority over the long result list on phones.
 // Desktop worklists remain fully visible, and users can expand results at any time.
 const mobileResultsExpanded=ref(false);
-watch(selected,value=>{showReferences.value=false;scientificDetailsOpen.value=false;mobileResultsExpanded.value=false;if(value)showSearchInfo.value=false;});
+watch(()=>selected.value?.id,id=>{showReferences.value=false;scientificDetailsOpen.value=false;mobileResultsExpanded.value=false;if(id)showSearchInfo.value=false;});
 const page=ref(typeof route.query.page==='string'&&/^\d{1,4}$/.test(route.query.page)?Number(route.query.page):0);
 const displayedRows=computed(()=>scientificInputAssessment.value.blocked?[]:
  (sort.value==='name-asc'&&page.value===0?rankVisibleSearchPage(rows.value,search.value):rows.value));
