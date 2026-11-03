@@ -17,3 +17,12 @@
  .evidence-page,.helios-workspace{min-width:0;overflow-wrap:anywhere}
  .helios-context{padding:10px 12px!important}
 }
+
+/* 14H96 · Connected research trail: a return path, never a second search. */
+.nfq-research-trail{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 17px;border-bottom:1px solid #dce1de;margin:0 0 17px;padding:9px 0 13px;min-width:0}
+.nfq-research-trail a{display:inline-flex;align-items:center;min-height:40px;padding:7px 0;color:#245f66;font-size:12px;font-weight:710;text-decoration:none;text-underline-offset:3px;overflow-wrap:anywhere}
+.nfq-research-trail a:hover{text-decoration:underline}
+.nfq-research-trail a:focus-visible,.nfq-pair-source-link:focus-visible{outline:2px solid #197b82;outline-offset:3px}
+.nfq-research-trail-current{color:#65717a;font-size:11px;font-weight:620}
+.nfq-pair-source-link{display:inline-flex;min-height:40px;align-items:center;margin-top:11px;color:#245f66;font-size:12px;font-weight:670;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+@media(max-width:620px){.nfq-research-trail{align-items:flex-start;gap:2px 10px;margin-bottom:12px;padding:5px 0 10px}.nfq-research-trail a{font-size:12px}.nfq-research-trail-current{padding:11px 0;font-size:10px}}

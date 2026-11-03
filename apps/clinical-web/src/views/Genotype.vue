@@ -7,6 +7,7 @@ import {pendingPairRestoration} from '../domain/pendingPairRestoration';
 import {pairReadinessText,type PairReadiness} from '../domain/pairReadiness';
 import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
 import {pairRecordId,pairSelectionQuery} from '../domain/pairSelection';
+import {safeResearchReturnPath,workspaceJourneyPath} from '../domain/researchJourney';
 import ContextHelp from '../components/ContextHelp.vue';
 import PairModulatorReview from '../components/PairModulatorReview.vue';
 import DrugReferencePanel from '../components/DrugReferencePanel.vue';
@@ -14,6 +15,8 @@ import {portableComparisonLink} from '../domain/portableComparisonLink';
 import {pairResearchMarkdown} from '../domain/pairResearchExport';
 
 const route=useRoute(),router=useRouter();
+const returnToVariant=computed(()=>safeResearchReturnPath(route.query.from,'variant'));
+const comparisonReturn=computed(()=>workspaceJourneyPath('/genotype',{a:pairRecordId(route.query.a)||undefined,b:pairRecordId(route.query.b)||undefined,from:returnToVariant.value||undefined}));
 const cfg=readConfigFromEnvironment();
 const variants=cfg?createReadOnlyRepository(cfg,fetch,authSessionProvider):null;
 const evidence=cfg?createLiveEvidenceSource(cfg):null;
@@ -197,6 +200,7 @@ onUnmounted(()=>{stopReads(0);stopReads(1);});
     <p>The optional Markdown export requires both complete reference reads and contains recorded source metadata only. It is not a clinical report.</p>
    </ContextHelp></div>
   </header>
+  <nav v-if="returnToVariant" class="nfq-research-trail" aria-label="Research return path"><RouterLink :to="returnToVariant" data-testid="comparison-context-return">← Return to variant dossier</RouterLink><span class="nfq-research-trail-current" aria-current="page">Variant comparison</span></nav>
   <p v-if="shareNotice" role="status" class="nfq-pair-copy-status">{{shareNotice}}</p>
   <p v-if="exportNotice" role="status" class="nfq-pair-copy-status">{{exportNotice}}</p>
   <div class="genotype-comparison">
@@ -221,7 +225,7 @@ onUnmounted(()=>{stopReads(0);stopReads(1);});
       <div><dt>cDNA</dt><dd>{{chosen[slot].value!.cdnaName||'Not recorded'}}</dd></div>
       <div><dt>Aliases</dt><dd>{{chosen[slot].value!.aliases.join(', ')||'Not recorded'}}</dd></div>
      </dl>
-     <RouterLink :to="'/variants/'+chosen[slot].value!.id">Open variant record →</RouterLink>
+     <RouterLink :to="{path:'/variants/'+chosen[slot].value!.id,query:comparisonReturn?{from:comparisonReturn}:{}}">Open variant record →</RouterLink>
      <section class="genotype-references">
       <button type="button" class="disclosure-button" :aria-expanded="showCitations[slot].value" @click="showCitations[slot].value=!showCitations[slot].value">
        <span>Recorded references{{referenceState[slot].value==='loaded'?' · '+citations[slot].value.length:''}}</span>
@@ -235,9 +239,10 @@ onUnmounted(()=>{stopReads(0);stopReads(1);});
        <ul v-else-if="referenceState[slot].value==='loaded'">
         <li v-for="item in citations[slot].value.slice(0,8)" :key="item.id"><a :href="item.url" target="_blank" rel="noopener noreferrer">{{item.title}} ↗</a></li>
        </ul>
-       <RouterLink v-if="referenceState[slot].value==='loaded'&&citations[slot].value.length>8" :to="{path:'/evidence',query:{variant:chosen[slot].value!.id}}">View all {{citations[slot].value.length}} recorded references →</RouterLink>
+       <RouterLink v-if="referenceState[slot].value==='loaded'&&citations[slot].value.length>8" :to="{path:'/evidence',query:{variant:chosen[slot].value!.id,...(comparisonReturn?{from:comparisonReturn}:{})}}">View all {{citations[slot].value.length}} recorded references →</RouterLink>
       </div>
      </section>
+     <RouterLink class="nfq-pair-source-link" :to="{path:'/evidence',query:{variant:chosen[slot].value!.id,...(comparisonReturn?{from:comparisonReturn}:{})}}">Browse recorded evidence ↗</RouterLink>
     </template>
    </section>
   </div>

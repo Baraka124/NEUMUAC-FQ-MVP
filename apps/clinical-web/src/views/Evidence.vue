@@ -15,7 +15,8 @@ const route=useRoute();
 const focusId=computed(()=>typeof route.query.variant==='string'&&/^[1-9]\d{0,17}$/.test(route.query.variant)?route.query.variant:null);
 // Explicit but invalid variant scopes must never silently broaden to all evidence.
 const invalidVariantScope=computed(()=>route.query.variant!==undefined&&!focusId.value);
-const returnToVariant=computed(()=>safeResearchReturnPath(route.query.from,'variant'));
+const returnToResearch=computed(()=>safeResearchReturnPath(route.query.from,'research'));
+const returnLabel=computed(()=>returnToResearch.value?.startsWith('/genotype')?'Return to variant comparison':'Return to variant dossier');
 const savedWorkspace=computed(()=>workspaceJourneyPath('/evidence',{q:query.value,page:String(page.value),variant:focusId.value||undefined}));
 const shareableView=computed(()=>invalidVariantScope.value?null:workspaceJourneyPath('/evidence',{q:focusId.value?undefined:query.value.trim(),page:String(page.value),variant:focusId.value||undefined}));
 const config=readConfigFromEnvironment();
@@ -126,7 +127,10 @@ watch([query,page,focusId,invalidVariantScope],()=>{exportNotice.value='';});
  <div class="page evidence-page nfq-science-ui">
   <header class="nfq-evidence-heading"><div class="nfq-evidence-heading-copy"><span class="nfq-evidence-overline">RESEARCH LIBRARY / RECORDED SOURCES</span><h1>Evidence & provenance</h1><p class="nfq-evidence-deck">Explore catalogued scientific references, inspect source identifiers and review recorded metadata. Catalog entries are not independent scientific verification.</p></div><div class="nfq-evidence-heading-actions"><button type="button" data-testid="evidence-copy-view" @click="copyEvidenceView">Copy view link</button><ContextHelp label="About recorded references" title="Recorded reference details"><p>Links, source categories and publication types are catalog-recorded metadata. They do not independently establish study design, quality, pathogenicity or clinical relevance.</p><p>Identifier consistency compares the stored DOI or PMID with its linked URL. Agreement is not external verification; a mismatch should be checked against the original source. PubMed publication types can be requested explicitly from NCBI for a recorded PMID. Those indexing labels are not an independently validated study-design assessment.</p></ContextHelp></div></header>
   <p v-if="shareStatus" role="status" class="nfq-evidence-share-status">{{shareStatus}}</p>
-  <RouterLink v-if="returnToVariant" class="nfq-journey-return" :to="returnToVariant">← Return to variant dossier</RouterLink>
+  <nav v-if="returnToResearch" class="nfq-research-trail" aria-label="Research return path">
+   <RouterLink :to="returnToResearch" data-testid="evidence-context-return">← {{returnLabel}}</RouterLink>
+   <span class="nfq-research-trail-current" aria-current="page">Evidence &amp; provenance</span>
+  </nav>
   <div v-if="focusId" class="nfq-variant-scope"><span>References for variant record #{{focusId}}</span><RouterLink to="/evidence">All records</RouterLink></div>
   <div v-if="!focusId" class="evidence-search-head" role="search" aria-label="Find recorded scientific sources">
    <label for="evidence-search">Find a source or reference</label>

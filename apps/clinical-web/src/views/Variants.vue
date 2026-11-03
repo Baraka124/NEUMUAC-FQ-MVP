@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import VariantFilterPanel from '../components/VariantFilterPanel.vue';
 import {cftr2LinkedReferences} from '../domain/externalReferenceTypes';
 import {referenceMetadata,dossierReferencePreview} from '../domain/referencePresentation';
-import {safeResearchReturnPath,variantJourneyPath} from '../domain/researchJourney';
+import {safeResearchReturnPath,variantJourneyPath,variantWorklistJourneyPath} from '../domain/researchJourney';
 import {authController,authSessionProvider} from '../services/authSession';
 import {explainMultiTermMatch,rankVisibleSearchPage} from '../domain/searchPresentation';
 import {assessScientificDiscovery,parseDiscoveryTerms} from '../domain/compoundDiscovery';
@@ -32,6 +32,8 @@ import { createReadOnlyRepository, readConfigFromEnvironment, variantDisplayName
 const route=useRoute(),router=useRouter();
 const sourceWorkspace=computed(()=>safeResearchReturnPath(route.query.from,'workspace'));
 const dossierReturn=computed(()=>variantJourneyPath(String(route.params.id||''),Object.fromEntries(Object.entries(route.query).filter(([key])=>key!=='from'))));
+const worklistReturn=computed(()=>variantWorklistJourneyPath(Object.fromEntries(Object.entries(route.query).filter(([key])=>key!=='from')))||'/variants');
+const contextReturnLabel=computed(()=>sourceWorkspace.value?.startsWith('/evidence')?'Return to evidence search':sourceWorkspace.value?.startsWith('/genotype')?'Return to variant comparison':sourceWorkspace.value?.startsWith('/intelligence')?'Return to research coverage':'Back to variant results');
 const config=readConfigFromEnvironment();
 let source:RealVariantSource|null=null;
 const liveMode = Boolean(config);
@@ -518,6 +520,10 @@ function select(id:string):void{
     </RouterLink>
    </section>
    <div class="record-content">
+    <nav v-if="selected" class="nfq-research-trail" aria-label="Research return path">
+     <RouterLink :to="sourceWorkspace||worklistReturn" data-testid="variant-context-return">← {{contextReturnLabel}}</RouterLink>
+     <span class="nfq-research-trail-current" aria-current="page">Variant dossier</span>
+    </nav>
     <nav v-if="selected" class="nfq-dossier-jump" aria-label="Selected variant sections">
       <a href="#nfq-variant-identity" @click.prevent="navigateDossierSection('identity')">Identity</a>
       <a href="#nfq-variant-therapy" @click.prevent="navigateDossierSection('therapy')">Therapies</a>
@@ -531,7 +537,6 @@ function select(id:string):void{
        <div class="nfq-dossier-identity-heading"><span class="nfq-dossier-overline">01 / Variant identity</span><span class="nfq-dossier-record-kind">Recorded CFTR variant</span></div>
        <div class="record-identity">
         <div>
-         <RouterLink class="record-return nfq-mobile-return" :to="{path:'/variants',query:route.query}">← Back to results</RouterLink>
          <div class="nfq-identity-title">
           <h2 id="selected-title">{{variantDisplayName(selected)}}</h2>
           <span v-if="dossier?.functionalClass||selected.recordedClass" class="nfq-class-annotation"><span class="nfq-class-caption">Recorded class</span><strong>{{dossier?.functionalClass||selected.recordedClass}}</strong></span>
@@ -545,7 +550,6 @@ function select(id:string):void{
          <button v-if="!selectedFromSearch" type="button" class="nfq-save-record" data-testid="copy-variant-record-link" @click="copyVariantLink">Copy link</button>
        </div>
        <p v-if="shareNotice" role="status" class="nfq-saved-feedback">{{shareNotice}}</p>
-       <RouterLink v-if="sourceWorkspace" class="nfq-journey-return" :to="sourceWorkspace">← Return to {{sourceWorkspace.startsWith("/evidence")?"evidence":"research coverage"}}</RouterLink>
        <dl class="identity-grid nfq-dossier-identity" aria-label="Variant nomenclature">
         <div><dt>Legacy name</dt><dd>{{selected.legacyName||'Not recorded'}}</dd></div>
         <div><dt>Protein notation</dt><dd>{{selected.proteinName||'Not recorded'}}<small v-if="selected.proteinName?.trim()==='p.?'" class="nfq-unknown-consequence">Protein consequence unknown</small></dd></div>
@@ -556,6 +560,7 @@ function select(id:string):void{
         <div class="nfq-dossier-section-intro"><div><span class="nfq-dossier-overline">02 / Therapeutic evidence</span><h3>Modulator research</h3></div><p>Recorded variant responses and genotype research rules are presented separately. A recorded category is not a treatment recommendation.</p></div>
        <TherapyWorkspace
         :key="selected.id"
+        :return-path="dossierReturn"
         :variant-id="selected.id"
         :legacy-eti="legacyEti"
         :legacy-loading="legacyEtiLoading"

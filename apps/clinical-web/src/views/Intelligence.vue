@@ -69,7 +69,7 @@ onUnmounted(()=>abort?.abort());
 <template>
  <div class="page intelligence-page nfq-science-ui">
   <header class="nfq-coverage-heading">
-   <div><h1>Research coverage</h1><RouterLink v-if="returnToVariant" class="nfq-journey-return" :to="returnToVariant">← Return to variant dossier</RouterLink></div>
+   <div><h1>Research coverage</h1></div>
    <ContextHelp label="About research coverage" title="Understanding research coverage">
     <p>This view counts links stored between accessible CFTR variant records and reference entries.</p>
     <p>A link is a catalog association, not a measure of scientific strength, validity, pathogenicity or clinical priority.</p>
@@ -77,6 +77,10 @@ onUnmounted(()=>abort?.abort());
     <p>No individual search history or geographic location is used.</p>
    </ContextHelp>
   </header>
+  <nav v-if="returnToVariant" class="nfq-research-trail" aria-label="Research return path">
+   <RouterLink :to="returnToVariant" data-testid="coverage-context-return">← Return to variant dossier</RouterLink>
+   <span class="nfq-research-trail-current" aria-current="page">Research coverage</span>
+  </nav>
   <p v-if="loading" role="status">Retrieving the complete live variant and reference-link registers…</p>
   <p v-else-if="error" role="alert" class="empty-result">{{error}} <button type="button" @click="refresh">Retry</button></p>
   <template v-else-if="report">
