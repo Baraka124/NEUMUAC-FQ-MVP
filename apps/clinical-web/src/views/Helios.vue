@@ -73,15 +73,14 @@ const areas=[
 </script>
 
 <template>
- <div clas  <header class="helios-head">
+ <div class="page helios-workspace">
+  <header class="helios-head">
    <h1>Helios</h1>
    <ContextHelp label="About Helios and current access limitations" title="Scientific review workspace">
     <p>Helios provides read-only preparation for scientific review. Reviewer decisions, claims and audit actions remain unavailable until server-side authorization and source provenance have been verified.</p>
     <p>No synthetic review records are shown. A research sign-in does not imply reviewer permission.</p>
    </ContextHelp>
   </header>
-c review records.
-  </div>
   <div class="helios-current" role="status" data-testid="helios-status-banner">
    <span class="helios-status-dot" aria-hidden="true"></span>
    <span>Read-only preparation</span>
