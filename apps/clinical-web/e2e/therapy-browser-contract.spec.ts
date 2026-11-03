@@ -204,3 +204,19 @@ test('Dossier section navigation preserves the selected variant route and focuse
  await expect(page).toHaveURL(/#\/variants\/1(?:\?|$)/);
  await expect(page.locator('#nfq-variant-identity')).toBeFocused();
 });
+
+
+test('Dossier hierarchy presents identity, modulator evidence and expanded provenance in order',async({page})=>{
+ await setup(page);
+ await page.goto('/#/variants/1');
+ const panel=page.getByTestId('five-therapy-workspace');
+ await expectFiveRows(panel);
+ await expect(page.locator('.nfq-dossier-identity-heading')).toContainText('Variant identity');
+ await expect(page.locator('.nfq-dossier-therapy-anchor .nfq-dossier-section-intro')).toContainText('Modulator research');
+ await expect(page.locator('.nfq-dossier-science-intro')).toContainText('Evidence & provenance');
+ const navigation=page.getByRole('navigation',{name:'Selected variant sections'});
+ await navigation.getByRole('link',{name:'Scientific detail'}).click();
+ await expect(page.locator('#nfq-variant-science')).toBeFocused();
+ await expect(page.locator('#nfq-secondary-science')).toBeVisible();
+ await expect(page).toHaveURL(/#\/variants\/1(?:\?|$)/);
+});
