@@ -220,3 +220,23 @@ test('Dossier hierarchy presents identity, modulator evidence and expanded prove
  await expect(page.locator('#nfq-secondary-science')).toBeVisible();
  await expect(page).toHaveURL(/#\/variants\/1(?:\?|$)/);
 });
+
+
+test('Therapy coverage groups present two recorded responses and three genotype rules without inferred values',async({page})=>{
+ await setup(page);
+ await page.goto('/#/variants/35');
+ const panel=page.getByTestId('five-therapy-workspace');
+ await expectFiveRows(panel);
+ const recorded=panel.getByRole('region',{name:'Recorded variant responses'});
+ const rules=panel.getByRole('region',{name:'Genotype research rules'});
+ await expect(recorded.locator('.nfq-therapy-row')).toHaveCount(2);
+ await expect(rules.locator('.nfq-therapy-row')).toHaveCount(3);
+ await expect(recorded.locator('.nfq-therapy-row').nth(0).locator('.nfq-therapy-result')).toHaveText('Non-responsive');
+ await expect(recorded.locator('.nfq-therapy-row').nth(1).locator('.nfq-therapy-result')).toHaveText('Responsive');
+ for(const row of await rules.locator('.nfq-therapy-row').all()){
+  await expect(row.locator('.nfq-therapy-result')).toHaveText('No variant response');
+ }
+ await panel.getByRole('navigation',{name:'Therapy research navigation'}).getByRole('link',{name:/Genotype rules/}).click();
+ await expect(rules.getByRole('button',{name:'Assessment context'}).first()).toBeFocused();
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});

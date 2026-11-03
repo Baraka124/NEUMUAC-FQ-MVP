@@ -45,6 +45,10 @@ const rows=computed(()=>{
  const found=new Map(profile.value?.entries.map(item=>[item.therapy,item])??[]);
  return THERAPIES.map(therapy=>({therapy,entry:found.get(therapy.id)??null}));
 });
+const therapyGroups=computed(()=>[
+ {id:'recorded',anchor:'nfq-recorded-therapies',title:'Recorded variant responses',note:'Independent scientific categories',entries:rows.value.filter(row=>row.therapy.responseField!==null)},
+ {id:'genotype',anchor:'nfq-genotype-therapies',title:'Genotype research rules',note:'Assessment not performed',entries:rows.value.filter(row=>row.therapy.responseField===null)}
+]);
 function resultLabel(entry:TherapyEntry|null):string{
  if(!entry)return 'Not available';
  if(entry.coverage==='genotype-rule-only')return 'No variant response';
@@ -116,9 +120,12 @@ onUnmounted(()=>active?.abort());
    <div class="nfq-therapy-rows">
     <div class="nfq-therapy-column-head" aria-hidden="true"><span>Therapy regimen</span><span>Recorded result / rule coverage</span><span>Inspect source</span></div>
     
-    <div v-for="{therapy,entry} in rows" :key="therapy.id" class="nfq-therapy-row" :data-therapy="therapy.id" :class="{'nfq-therapy-selected':selectedDrug===therapy.id}">
-     <div v-if="therapy.id==='ETI'" id="nfq-recorded-therapies" class="nfq-therapy-section-label">RECORDED VARIANT RESPONSES <span>Independent scientific categories</span></div>
-     <div v-if="therapy.id==='IVACAFTOR'" id="nfq-genotype-therapies" class="nfq-therapy-section-label">GENOTYPE RESEARCH RULES <span>Assessment not performed</span></div>
+    <section v-for="group in therapyGroups" :key="group.id" class="nfq-therapy-group" :aria-labelledby="'nfq-therapy-group-title-'+group.id">
+     <header :id="group.anchor" class="nfq-therapy-section-label">
+      <h4 :id="'nfq-therapy-group-title-'+group.id">{{group.title}}</h4>
+      <span>{{group.note}}</span>
+     </header>
+     <div v-for="{therapy,entry} in group.entries" :key="therapy.id" class="nfq-therapy-row" :data-therapy="therapy.id" :class="{'nfq-therapy-selected':selectedDrug===therapy.id}">
      <div class="nfq-therapy-row-main">
       <div class="nfq-therapy-name">
        <strong>{{therapy.label}}</strong>
@@ -169,7 +176,8 @@ onUnmounted(()=>active?.abort());
        <RouterLink :to="{path:'/evidence',query:{variant:variantId,from:'/variants/'+variantId}}">Evidence &amp; curation</RouterLink>
       </div>
      </div>
-    </div>
+     </div>
+    </section>
    </div>
   </div>
  </section>
