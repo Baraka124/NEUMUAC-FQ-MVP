@@ -262,5 +262,6 @@ onUnmounted(()=>{stopReads(0);stopReads(1);});
 .nfq-pair-ready button,.nfq-pair-recovery button{font:inherit;font-size:.74rem;border:1px solid var(--border,#dce4e5);border-radius:6px;background:transparent;color:inherit;padding:.35rem .65rem;cursor:pointer}
 .nfq-pair-ready button:focus-visible,.nfq-pair-recovery button:focus-visible{outline:2px solid currentColor;outline-offset:3px}
 .nfq-pair-recovery{display:flex;align-items:center;flex-wrap:wrap;gap:.4rem .75rem;font-size:.79rem;line-height:1.45;color:var(--text-muted,#687381);margin:.5rem 0}
+@media(max-width:1020px){.genotype-page .nfq-pair-heading{flex-wrap:wrap;min-width:0}.genotype-page .nfq-pair-heading > *{min-width:0;max-width:100%}.genotype-page .nfq-pair-heading-actions{flex:1 1 100%;min-width:0;width:100%;max-width:100%;flex-wrap:wrap;justify-content:flex-start}.genotype-page .nfq-pair-heading-actions button{max-width:100%;white-space:normal;overflow-wrap:anywhere}}
 @media(max-width:560px){.genotype-page .nfq-pair-heading{display:flex;flex-wrap:wrap;min-width:0}.nfq-pair-heading h1{min-width:0}.nfq-pair-heading-actions{flex:1 1 100%;width:100%;max-width:100%;min-width:0;margin-left:0;justify-content:flex-end;flex-wrap:wrap;box-sizing:border-box}.nfq-pair-heading-actions button{max-width:100%;font-size:11px;padding:7px 9px;white-space:normal;overflow-wrap:anywhere}}
 </style>
