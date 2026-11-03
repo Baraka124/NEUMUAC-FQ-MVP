@@ -8,7 +8,7 @@
 .nfq-therapy-context{background:#f6f7f6;padding:11px 13px!important;border:1px solid #dce1de;border-radius:5px;margin:0 0 18px;gap:8px 20px!important}
 .nfq-therapy-rows{border-top:0!important}
 .nfq-therapy-section-label{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:6px 12px;color:#46535c;font-size:10px;letter-spacing:.095em;font-weight:760;margin:14px 0 8px;padding:13px 0 8px;border-top:1px solid #dce1de}
-.nfq-therapy-row:first-child .nfq-therapy-section-label{border-top:0;margin-top:0}
+.nfq-therapy-group:first-of-type .nfq-therapy-section-label{border-top:0;margin-top:0}
 .nfq-therapy-section-label span{font-size:11px;color:#65717a;font-weight:500;letter-spacing:0}
 .nfq-therapy-row{border-bottom:1px solid #e2e6e4!important}
 .nfq-therapy-row-main{grid-template-columns:minmax(0,1.2fr) minmax(130px,.75fr) minmax(120px,auto)!important;min-height:74px!important;gap:12px 20px!important;padding:10px 4px!important}
@@ -67,3 +67,16 @@
 .nfq-therapy-row-main{min-width:0}
 .nfq-therapy-row-main > *{min-width:0}
 @media(max-width:760px){.nfq-therapy-column-head{display:none}}
+
+/* 14H93 — independent scientific coverage groups with one continuous reading surface. */
+.nfq-therapy-group{min-width:0}
+.nfq-therapy-group+.nfq-therapy-group{margin-top:23px}
+.nfq-therapy-group .nfq-therapy-section-label{scroll-margin-top:80px}
+.nfq-therapy-group .nfq-therapy-section-label h4{margin:0;color:#394952;font:inherit;font-size:11px;font-weight:780;letter-spacing:.085em;text-transform:uppercase;line-height:1.45}
+.nfq-therapy-group .nfq-therapy-section-label span{color:#65717a;font-size:11px;letter-spacing:0;line-height:1.4}
+.nfq-therapy-group .nfq-therapy-row:last-child{border-bottom-color:#cbd4d3!important}
+@media(max-width:760px){
+ .nfq-therapy-group+.nfq-therapy-group{margin-top:19px}
+ .nfq-therapy-group .nfq-therapy-section-label{scroll-margin-top:64px}
+ .nfq-therapy-group .nfq-therapy-section-label h4{font-size:10px}
+}
