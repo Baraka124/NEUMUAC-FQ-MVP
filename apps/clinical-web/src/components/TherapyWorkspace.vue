@@ -144,7 +144,7 @@ onUnmounted(()=>active?.abort());
         <div><dt>Source</dt><dd>{{entry.authoritySource||'Not recorded'}}</dd></div>
        </dl>
       </template>
-      <div v-else class="nfq-therapy-rule-context"><p class="nfq-therapy-note">This therapy is included in the original five-regimen genotype calculator. No separate variant-response category is recorded, and no paired-genotype assessment has been run on this screen.</p><RouterLink class="nfq-therapy-genotype-link" :to="{path:'/genotype',query:{a:variantId,from:returnPath||'/variants/'+variantId}}}">Open genotype workspace</RouterLink></div>
+      <div v-else class="nfq-therapy-rule-context"><p class="nfq-therapy-note">This therapy is included in the original five-regimen genotype calculator. No separate variant-response category is recorded, and no paired-genotype assessment has been run on this screen.</p><RouterLink class="nfq-therapy-genotype-link" :to="{path:'/genotype',query:{a:variantId,from:returnPath||'/variants/'+variantId}}">Open genotype workspace</RouterLink></div>
       <div v-if="therapy.id==='ETI'||therapy.id==='ALYFTREK'" class="nfq-therapy-flag-check">
        <span>Historical drug flag: <strong>{{historicalFlags.find(x=>x.therapy===therapy.id)?.flag===true?'Yes':historicalFlags.find(x=>x.therapy===therapy.id)?.flag===false?'No':'Not recorded'}}</strong></span>
        <p v-if="historicalFlags.find(x=>x.therapy===therapy.id)?.state==='different-recorded-fields'" role="status" data-testid="therapy-historical-flag-disagreement">
