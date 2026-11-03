@@ -41,9 +41,9 @@ test('unconfigured database never substitutes invented records', async ({ page }
 test('reserved workspaces do not imply clinical functionality', async ({ page }) => {
   await page.goto('/#/helios');
   await expect(page.getByRole('heading', { name: 'Helios', exact: true })).toBeVisible();
-  await expect(page.getByText('Read-only preparation')).toBeVisible();
+  await expect(page.getByTestId('helios-status-banner')).toContainText('Read-only preparation');
   await expect(page.getByTestId('helios-status-banner')).toContainText('Not connected');
-  await expect(page.getByText('No live decisions available')).toBeVisible();
+  await expect(page.getByTestId('helios-review-read-state')).toContainText('Authorized review data has not been connected');
 });
 
 test('keyboard skip target remains accessible', async ({ page }) => {
@@ -820,7 +820,7 @@ test('Helios review areas stay accessible and do not imply authorized review ope
  const history=page.getByTestId('helios-tab-history');
  await history.click();
  await expect(history).toHaveAttribute('aria-pressed','true');
- await expect(page.getByTestId('helios-panel-history')).toContainText('No live records or review actions');
+ await expect(page.getByTestId('helios-panel-history')).toContainText('Access restricted');
  await expect(page.getByRole('button',{name:/approve|reject|claim/i})).toHaveCount(0);
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
@@ -838,7 +838,9 @@ test('Helios evidence assessment makes missing provenance explicit across viewpo
  await page.getByTestId('helios-step-uncertainty').click();
  await expect(assessment.getByRole('region',{name:'Uncertainty'})).toBeVisible();
  await expect(page.getByTestId('helios-step-uncertainty')).toHaveAttribute('aria-pressed','true');
- await expect(assessment).toContainText('No scientific decision is implied');
+ await assessment.locator('.helios-area-intro summary').click();
+ await expect(assessment.getByRole('note',{name:'Evidence assessment'})).toContainText('No scientific decision is implied');
+ await page.keyboard.press('Escape');
  await expect(page.getByRole('button',{name:/approve|reject|claim/i})).toHaveCount(0);
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
@@ -878,7 +880,9 @@ test('Helios Signals offers real read-only evidence navigation without enabling 
  await page.getByTestId('helios-tab-signals').click();
  const signals=page.getByTestId('helios-panel-signals');
  await expect(signals.getByRole('link',{name:'Evidence & Curation'})).toHaveAttribute('href',/#?\/?evidence/);
- await expect(signals).toContainText('This does not run a Helios scan');
+ await signals.locator('.helios-area-intro summary').click();
+ await expect(signals.getByRole('note',{name:'Signals'})).toContainText('does not perform or authorize a Helios scan');
+ await page.keyboard.press('Escape');
  await expect(page.getByRole('button',{name:/run scan|approve|reject/i})).toHaveCount(0);
 });
 
@@ -1056,6 +1060,44 @@ test('14H95 Helios read-only workstation remains navigable and contained on desk
   }
   await expect(page.getByTestId('helios-status-banner')).toContainText('Read-only preparation');
   await expect(page.getByRole('button',{name:/approve|reject|run scan/i})).toHaveCount(0);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
+
+test('14H101 Helios keeps one heading per area, compact workbench and contextual scientific guidance',async({page})=>{
+ for(const width of [320,390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/helios');
+  await expect(page.getByRole('heading',{name:'Helios',exact:true})).toHaveCount(1);
+  await expect(page.getByTestId('helios-status-banner')).toContainText('Read-only preparation');
+  await expect(page.locator('.helios-panel-heading,.helios-rail-heading,.helios-area-order,.helios-area-kicker,.helios-subtitle')).toHaveCount(0);
+  const panel=page.getByRole('region',{name:'Helios scientific workspaces'});
+  const nav=page.getByRole('group',{name:'Helios review areas'});
+  await expect(nav.getByRole('button')).toHaveCount(4);
+  const geo=await page.evaluate(()=>{
+   const h=document.querySelector('.helios-head')!.getBoundingClientRect();
+   const p=document.querySelector('.helios-panel')!.getBoundingClientRect();
+   return {gap:p.top-h.bottom,title:p.top};
+  });
+  expect(geo.gap).toBeLessThan(105);
+  expect(geo.title).toBeLessThan(360);
+  await expect(panel).toBeVisible();
+  await page.locator('.helios-head summary').click();
+  await expect(page.getByRole('note',{name:'Scientific review workspace'})).toContainText('No synthetic review records');
+  await page.keyboard.press('Escape');
+  await page.getByTestId('helios-tab-evidence').click();
+  const evidence=page.getByTestId('helios-panel-evidence');
+  await expect(evidence.getByRole('heading',{name:'Evidence assessment'})).toHaveCount(1);
+  await expect(evidence.getByRole('button',{name:'Comparison',exact:true})).toBeVisible();
+  await expect(evidence.getByRole('button',{name:'Sources',exact:true})).toBeVisible();
+  await expect(evidence.getByRole('button',{name:'Uncertainty',exact:true})).toBeVisible();
+  const innerBorder=await evidence.locator('.helios-assessment-grid').evaluate(element=>getComputedStyle(element).borderTopWidth);
+  expect(innerBorder).toBe('0px');
+  await page.getByTestId('helios-tab-history').click();
+  await expect(page.getByTestId('helios-panel-history')).toContainText('Access restricted');
+  const rowBorders=await page.getByTestId('helios-panel-history').locator('.helios-recovery-sections>div').first().evaluate(element=>getComputedStyle(element).borderBottomWidth);
+  expect(rowBorders).toBe('0px');
+  await expect(page.getByRole('button',{name:/approve|reject|run scan|claim/i})).toHaveCount(0);
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
