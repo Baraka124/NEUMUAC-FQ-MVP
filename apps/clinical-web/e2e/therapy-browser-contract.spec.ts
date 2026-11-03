@@ -240,3 +240,34 @@ test('Therapy coverage groups present two recorded responses and three genotype 
  await expect(rules.getByRole('button',{name:'Assessment context'}).first()).toBeFocused();
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
+
+
+test('Evidence register separates source identity, recorded values and link consistency without inventing scientific verification',async({page})=>{
+ await setup(page);
+ const fixture={
+  id:901,variant_id:35,title:'Fixture CFTR publication with recorded metadata',
+  url:'https://doi.org/10.1000/fixture-901',source:'Fixture catalog',type:'Journal article',
+  category:'CFTR research',journal:'Fixture Research Journal',year:2024,pmid:null,
+  doi:'10.1000/different-identifier',quality_score:2,source_weight:0.3,citation_count:4
+ };
+ await page.route('https://cftr-contract.invalid/rest/v1/evidence_links*',async route=>{
+  await route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify([fixture])});
+ });
+ await page.goto('/#/evidence?variant=35');
+ const register=page.getByRole('region',{name:'Recorded citations'});
+ const record=register.locator('.evidence-row');
+ await expect(record).toHaveCount(1);
+ await expect(record.getByRole('heading',{name:fixture.title})).toBeVisible();
+ await expect(record.getByRole('region',{name:'Recorded citation metadata'})).toHaveCount(0);
+ await record.getByRole('button',{name:fixture.title}).click();
+ await expect(record.getByRole('region',{name:'Recorded citation metadata'})).toContainText('Fixture Research Journal');
+ await expect(record.getByRole('region',{name:'Recorded research metadata'})).toContainText('Recorded quality score');
+ await expect(record.locator('[data-link-consistency="mismatch"]')).toContainText('Recorded DOI differs from linked DOI');
+ await expect(record).toContainText('not an independent appraisal');
+ await expect(record.getByRole('link',{name:/Open original source/})).toHaveAttribute('href',fixture.url);
+ await expect(record.getByRole('link',{name:/Open variant record #35/})).toHaveAttribute('href',/#\/variants\/35/);
+ await expect(record.getByRole('region',{name:'Publication indexing'})).toContainText('No supported recorded PMID');
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ await record.getByRole('button',{name:fixture.title}).click();
+ await expect(record.getByRole('region',{name:'Recorded citation metadata'})).toHaveCount(0);
+});
