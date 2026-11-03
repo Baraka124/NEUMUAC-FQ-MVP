@@ -1,3 +1,4 @@
+import {safeResearchReturnPath} from './researchJourney';
 /**
  * Two-variant comparison URL identity. This is not patient genotype
  * information and never asserts allelic phase or homozygosity.
@@ -8,6 +9,8 @@ export function pairRecordId(value:unknown):string|null{
 export function pairSelectionQuery(query:Readonly<Record<string,unknown>>,slot:0|1,id:string|null):Record<string,string>{
  const next:Record<string,string>={};
  const a=pairRecordId(query.a),b=pairRecordId(query.b);
+ const source=safeResearchReturnPath(query.from,'variant');
+ if(source)next.from=source;
  if(a)next.a=a;
  if(b)next.b=b;
  if(id!==null&&!pairRecordId(id))throw new Error('Invalid variant identifier');
