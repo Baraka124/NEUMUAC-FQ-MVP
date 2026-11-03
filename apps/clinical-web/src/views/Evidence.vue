@@ -124,7 +124,7 @@ watch([query,page,focusId,invalidVariantScope],()=>{exportNotice.value='';});
 </script>
 <template>
  <div class="page evidence-page nfq-science-ui">
-  <header class="nfq-evidence-heading"><h1>Evidence & provenance</h1><div class="nfq-evidence-heading-actions"><button type="button" data-testid="evidence-copy-view" @click="copyEvidenceView">Copy view link</button><ContextHelp label="About recorded references" title="Recorded reference details"><p>Links, source categories and publication types are catalog-recorded metadata. They do not independently establish study design, quality, pathogenicity or clinical relevance.</p><p>Identifier consistency compares the stored DOI or PMID with its linked URL. Agreement is not external verification; a mismatch should be checked against the original source. PubMed publication types can be requested explicitly from NCBI for a recorded PMID. Those indexing labels are not an independently validated study-design assessment.</p></ContextHelp></div></header>
+  <header class="nfq-evidence-heading"><div class="nfq-evidence-heading-copy"><span class="nfq-evidence-overline">RESEARCH LIBRARY / RECORDED SOURCES</span><h1>Evidence & provenance</h1><p class="nfq-evidence-deck">Explore catalogued scientific references, inspect source identifiers and review recorded metadata. Catalog entries are not independent scientific verification.</p></div><div class="nfq-evidence-heading-actions"><button type="button" data-testid="evidence-copy-view" @click="copyEvidenceView">Copy view link</button><ContextHelp label="About recorded references" title="Recorded reference details"><p>Links, source categories and publication types are catalog-recorded metadata. They do not independently establish study design, quality, pathogenicity or clinical relevance.</p><p>Identifier consistency compares the stored DOI or PMID with its linked URL. Agreement is not external verification; a mismatch should be checked against the original source. PubMed publication types can be requested explicitly from NCBI for a recorded PMID. Those indexing labels are not an independently validated study-design assessment.</p></ContextHelp></div></header>
   <p v-if="shareStatus" role="status" class="nfq-evidence-share-status">{{shareStatus}}</p>
   <RouterLink v-if="returnToVariant" class="nfq-journey-return" :to="returnToVariant">← Return to variant dossier</RouterLink>
   <div v-if="focusId" class="nfq-variant-scope"><span>References for variant record #{{focusId}}</span><RouterLink to="/evidence">All records</RouterLink></div>
@@ -141,28 +141,65 @@ watch([query,page,focusId,invalidVariantScope],()=>{exportNotice.value='';});
    <span>10 per page · Recorded year, newest first · Not a quality ranking</span>
   </div>
   <p v-if="exportNotice" role="status" class="nfq-evidence-export-notice">{{exportNotice}}</p>
-  <div v-if="rows.length" class="evidence-register" aria-label="Recorded citations">
-   <article v-for="item in rows" :key="item.id" class="evidence-row">
-    <div class="evidence-row-meta"><span>{{referenceMetadata(item).join(" · ")}}</span></div>
-    <h2><button type="button" class="evidence-row-disclosure" :aria-expanded="expandedRows.includes(item.id)" :aria-controls="'evidence-details-'+item.id" @click="toggleRow(item.id)"><span>{{item.title}}</span><span aria-hidden="true">{{expandedRows.includes(item.id)?'−':'+'}}</span></button></h2>
+  <section v-if="rows.length" class="evidence-register" aria-label="Recorded citations">
+   <article v-for="(item,index) in rows" :key="item.id" class="evidence-row" :aria-labelledby="'nfq-evidence-title-'+item.id">
+    <div class="evidence-row-meta"><span class="nfq-evidence-ref-index">REFERENCE {{page*EVIDENCE_PAGE_SIZE+index+1}}</span><span class="nfq-evidence-recorded-meta">{{referenceMetadata(item).join(" · ")}}</span></div>
+    <h2 :id="'nfq-evidence-title-'+item.id"><button type="button" class="evidence-row-disclosure" :aria-expanded="expandedRows.includes(item.id)" :aria-controls="'evidence-details-'+item.id" @click="toggleRow(item.id)"><span>{{item.title}}</span><span aria-hidden="true">{{expandedRows.includes(item.id)?'−':'+'}}</span></button></h2>
     <div v-if="expandedRows.includes(item.id)" :id="'evidence-details-'+item.id" class="evidence-row-foot">
-     <span>Recorded quality score: {{item.recordedQualityScore??'Not recorded'}}</span>
-     <span>Recorded source weight: {{item.recordedSourceWeight??'Not recorded'}}</span>
-     <span>Recorded citation count: {{item.recordedCitationCount??'Not recorded'}}</span><span :data-link-consistency="referenceLinkConsistency(item).kind">{{referenceLinkConsistency(item).label}}</span><a :href="item.url" target="_blank" rel="noopener noreferrer">Open source ↗</a><RouterLink :to="{path:'/variants/'+encodeURIComponent(item.variantId),query:savedWorkspace?{from:savedWorkspace}:{}}">Variant record #{{item.variantId}}</RouterLink><span v-if="item.journal">{{item.journal}}</span><span v-if="item.pmid">PMID {{item.pmid}}</span>
-     <button v-if="supportedPubMedId(item.pmid)" type="button" :disabled="pubmedCheck?.phase==='loading'" @click="inspectPubMed(item)">{{pubmedCheck?.refId===item.id&&pubmedCheck.phase==='ready'?'Refresh PubMed types':'Check PubMed publication types'}}</button>
-     <p v-if="pubmedCheck?.refId===item.id&&pubmedCheck.phase==='loading'" role="status">Checking the recorded PMID with NCBI…</p>
-     <p v-else-if="pubmedCheck?.refId===item.id&&pubmedCheck.phase==='error'" role="alert">PubMed metadata unavailable. No study classification was inferred.</p>
-     <div v-else-if="pubmedCheck?.refId===item.id&&pubmedCheck.phase==='ready'" class="nfq-pubmed-metadata" role="status">
-      <strong>PubMed publication types · NCBI</strong>
-      <p v-if="pubmedCheck.metadata.publicationTypes.length">{{pubmedCheck.metadata.publicationTypes.join(' · ')}}</p>
-      <p v-else>No publication types returned for this identifier.</p>
-      <small>Retrieved {{pubmedCheck.metadata.retrievedAt}} · Indexing terms only, not independently appraised study quality.</small>
-      <a :href="pubmedCheck.metadata.sourceUrl" target="_blank" rel="noopener noreferrer">Open PubMed record ↗</a>
+     <div class="nfq-evidence-detail-grid">
+      <section class="nfq-evidence-detail-section" aria-label="Recorded citation metadata">
+       <h3>Source identity</h3>
+       <dl class="nfq-evidence-facts">
+        <div><dt>Recorded source</dt><dd>{{item.source}}</dd></div>
+        <div><dt>Journal</dt><dd>{{item.journal||'Not recorded'}}</dd></div>
+        <div><dt>Year</dt><dd>{{item.year??'Not recorded'}}</dd></div>
+        <div><dt>Publication type</dt><dd>{{item.type||'Not recorded'}}</dd></div>
+        <div><dt>Category</dt><dd>{{item.category||'Not recorded'}}</dd></div>
+        <div><dt>DOI</dt><dd>{{item.doi||'Not recorded'}}</dd></div>
+        <div><dt>PMID</dt><dd>{{item.pmid||'Not recorded'}}</dd></div>
+       </dl>
+      </section>
+      <section class="nfq-evidence-detail-section" aria-label="Recorded research metadata">
+       <h3>Catalogued metadata</h3>
+       <p class="nfq-evidence-caution">Stored values only; these figures are not an independent appraisal of study quality.</p>
+       <dl class="nfq-evidence-facts">
+        <div><dt>Recorded quality score</dt><dd>{{item.recordedQualityScore??'Not recorded'}}</dd></div>
+        <div><dt>Recorded source weight</dt><dd>{{item.recordedSourceWeight??'Not recorded'}}</dd></div>
+        <div><dt>Recorded citation count</dt><dd>{{item.recordedCitationCount??'Not recorded'}}</dd></div>
+       </dl>
+       <div class="nfq-evidence-link-check" :data-link-consistency="referenceLinkConsistency(item).kind">
+        <strong>Identifier consistency</strong>
+        <span>{{referenceLinkConsistency(item).label}}</span>
+        <small>Compares recorded identifiers with the stored link; it does not validate the research claim.</small>
+       </div>
+      </section>
      </div>
-     <EvidenceProposalDraft :reference="item" />
+     <div class="nfq-evidence-source-actions" aria-label="Reference research links">
+      <a :href="item.url" target="_blank" rel="noopener noreferrer">Open original source ↗</a>
+      <RouterLink :to="{path:'/variants/'+encodeURIComponent(item.variantId),query:savedWorkspace?{from:savedWorkspace}:{}}">Open variant record #{{item.variantId}}</RouterLink>
+     </div>
+     <section class="nfq-evidence-pubmed" aria-label="Publication indexing">
+      <h3>Publication indexing</h3>
+      <p class="nfq-evidence-caution">Optional NCBI lookup; publication types are indexing labels, not a verified study-design assessment.</p>
+      <button v-if="supportedPubMedId(item.pmid)" type="button" :disabled="pubmedCheck?.phase==='loading'" @click="inspectPubMed(item)">{{pubmedCheck?.refId===item.id&&pubmedCheck.phase==='ready'?'Refresh PubMed types':'Check PubMed publication types'}}</button>
+      <p v-else class="nfq-evidence-caution">No supported recorded PMID is available for this reference.</p>
+      <p v-if="pubmedCheck?.refId===item.id&&pubmedCheck.phase==='loading'" role="status">Checking the recorded PMID with NCBI…</p>
+      <p v-else-if="pubmedCheck?.refId===item.id&&pubmedCheck.phase==='error'" role="alert">PubMed metadata unavailable. No study classification was inferred.</p>
+      <div v-else-if="pubmedCheck?.refId===item.id&&pubmedCheck.phase==='ready'" class="nfq-pubmed-metadata" role="status">
+       <strong>PubMed publication types · NCBI</strong>
+       <p v-if="pubmedCheck.metadata.publicationTypes.length">{{pubmedCheck.metadata.publicationTypes.join(' · ')}}</p>
+       <p v-else>No publication types returned for this identifier.</p>
+       <small>Retrieved {{pubmedCheck.metadata.retrievedAt}} · Indexing terms only, not independently appraised study quality.</small>
+       <a :href="pubmedCheck.metadata.sourceUrl" target="_blank" rel="noopener noreferrer">Open PubMed record ↗</a>
+      </div>
+     </section>
+     <section class="nfq-evidence-contribution" aria-label="Research contribution">
+      <h3>Research contribution</h3>
+      <EvidenceProposalDraft :reference="item" />
+     </section>
     </div>
    </article>
-  </div>
+  </section>
   <nav class="pagination-controls" aria-label="Evidence pages">
    <button type="button" :disabled="loading||page===0" @click="page--">Previous</button>
    <span>Page {{page+1}} · {{EVIDENCE_PAGE_SIZE}} per page</span>
