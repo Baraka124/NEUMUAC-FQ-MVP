@@ -271,7 +271,7 @@ test('Evidence register separates source identity, recorded values and link cons
  await expect(page.locator('.nfq-evidence-deck,.nfq-evidence-overline,.nfq-evidence-ref-index')).toHaveCount(0);
  const metadata=record.getByRole('region',{name:'Recorded research metadata'});
  await expect(metadata.getByRole('note',{name:'Recorded research values'})).toHaveCount(0);
- await metadata.locator('.nfq-evidence-section-heading summary').click();
+ await metadata.locator(':scope > .nfq-evidence-section-heading summary').click();
  await expect(metadata.getByRole('note',{name:'Recorded research values'})).toContainText('not an independent appraisal');
  await page.keyboard.press('Escape');
  await expect(metadata.getByRole('note',{name:'Recorded research values'})).toHaveCount(0);
