@@ -1,11 +1,11 @@
 /* neumuuacFQ 14H72–74: variant discovery and scientific dossier visual grammar.
    Read-only presentation: source matching, filters and data contracts remain unchanged. */
-.variant-page .variant-heading{align-items:center;gap:12px;padding-bottom:15px;border-bottom:1px solid #dce1de;margin-bottom:20px}
+.variant-page .variant-heading{align-items:center;gap:12px;padding-bottom:10px;border-bottom:1px solid #dce1de;margin-bottom:12px}
 .variant-page .variant-heading h1{margin:0;font-size:clamp(27px,3vw,38px);letter-spacing:-.042em;color:#292f33}
 .variant-page .nfq-access-note{font-size:11px;color:#65717a;white-space:normal;text-align:right}
 .variant-page .record-layout{align-items:start;gap:clamp(12px,1.6vw,24px)}
-.variant-page .record-rail{padding:21px!important;border-radius:4px;box-shadow:none}
-.variant-page .rail-topline h2{font-size:20px;color:#35444b;letter-spacing:-.027em}
+.variant-page .record-rail{padding:17px!important;border-radius:4px;box-shadow:none}
+.variant-page .rail-topline h2{font-size:18px;color:#35444b;letter-spacing:-.027em}
 .variant-page .discovery-input{border-radius:5px}
 .variant-page .record-list button{border:1px solid #dce1de;border-radius:5px;min-height:71px;transition:background-color .12s ease,border-color .12s ease}
 .variant-page .record-list button.record-selected{border-color:#9bbfc2;box-shadow:inset 3px 0 #197b82;background:#eef3f3}
@@ -17,7 +17,7 @@
 .nfq-dossier-jump a:focus-visible{outline:2px solid #197b82;outline-offset:2px}
 #nfq-variant-identity,#nfq-variant-therapy,#nfq-variant-science{scroll-margin-top:80px}
 .nfq-dossier-therapy-anchor{min-width:0}
-.variant-page .record-overview{padding:clamp(18px,2.5vw,32px);border-radius:6px}
+.variant-page .record-overview{padding:clamp(17px,1.8vw,24px);border-radius:6px}
 .variant-page .nfq-identity-title h2{font-size:clamp(23px,2.8vw,35px);letter-spacing:-.035em;line-height:1.16}
 .variant-page .nfq-dossier-identity{border-top:1px solid #dce1de;padding-top:13px}
 @media(max-width:760px){
@@ -36,15 +36,15 @@
 @media(prefers-reduced-motion:reduce){.variant-page .record-list button{transition:none}}
 
 /* 14H92 — quiet, numbered scientific reading sequence, without decorative dashboards. */
-.nfq-dossier-identity-heading{display:flex;justify-content:space-between;align-items:baseline;gap:12px;border-bottom:1px solid #dce1de;padding-bottom:12px;margin-bottom:20px}
+.nfq-dossier-identity-heading{display:flex;justify-content:space-between;align-items:baseline;gap:12px;border-bottom:0;padding-bottom:0;margin-bottom:9px}
 .nfq-dossier-overline{display:block;color:#65717a;font-size:10px;font-weight:760;letter-spacing:.105em;text-transform:uppercase}
 .nfq-dossier-record-kind{font-size:11px;color:#65717a}
-.variant-page .nfq-dossier-primary .record-identity{margin-bottom:18px}
-.variant-page .nfq-dossier-identity{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px;padding-block:16px 22px}
-.variant-page .nfq-dossier-identity>div{min-width:0;padding:11px 0;border-bottom:1px solid #e8ebea}
+.variant-page .nfq-dossier-primary .record-identity{margin-bottom:9px}
+.variant-page .nfq-dossier-identity{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 22px;margin:9px 0 0;padding-block:8px 12px}
+.variant-page .nfq-dossier-identity>div{min-width:0;padding:8px 0;border-bottom:1px solid #e8ebea}
 .variant-page .nfq-dossier-identity dd{overflow-wrap:anywhere}
-.nfq-dossier-therapy-anchor{display:block;border-top:1px solid #dce1de;padding-top:24px;margin-top:4px}
-.nfq-dossier-section-intro{display:flex;align-items:end;justify-content:space-between;gap:14px 28px;margin:0 0 16px}
+.nfq-dossier-therapy-anchor{display:block;border-top:1px solid #dce1de;padding-top:15px;margin-top:3px}
+.nfq-dossier-section-intro{display:flex;align-items:end;justify-content:space-between;gap:12px 24px;margin:0 0 12px}
 .nfq-dossier-section-intro h3{color:#292f33;font-weight:730;font-size:clamp(18px,1.6vw,24px);line-height:1.25;letter-spacing:-.025em;margin:5px 0 0}
 .nfq-dossier-section-intro p{max-width:44ch;line-height:1.5;font-size:12px;color:#65717a;margin:0}
 .nfq-dossier-therapy-anchor>.nfq-therapy{margin-top:0}
@@ -52,3 +52,32 @@
 #nfq-variant-identity:focus,#nfq-variant-therapy:focus,#nfq-variant-science:focus{outline:2px solid #197b82;outline-offset:3px}
 @media(max-width:900px){.nfq-dossier-section-intro{display:block}.nfq-dossier-section-intro p{max-width:70ch;margin-top:10px}}
 @media(max-width:560px){.variant-page .nfq-dossier-identity{grid-template-columns:minmax(0,1fr);gap:0;padding-block:11px 17px}.nfq-dossier-identity-heading{margin-bottom:12px}.nfq-dossier-record-kind{display:none}.nfq-dossier-therapy-anchor{padding-top:18px}.nfq-dossier-section-intro h3{font-size:20px}}
+
+/* 14H98 — reclaim first-viewport working space. One return/section toolbar, one divider. */
+.variant-page .record-content{gap:10px}
+.variant-page .nfq-dossier-navigation{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:7px 15px;min-width:0;padding:0 0 9px;border-bottom:1px solid #dce1de}
+.variant-page .nfq-dossier-navigation .nfq-research-trail{display:flex;flex:1 1 155px;min-width:0;align-items:center;justify-content:flex-start;gap:0;margin:0;padding:0;border:0}
+.variant-page .nfq-dossier-navigation .nfq-research-trail a{min-height:36px;padding:7px 0;font-weight:710;line-height:1.35}
+.variant-page .nfq-dossier-navigation .nfq-dossier-jump{display:flex;flex:0 1 auto;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:6px;min-width:0;margin:0;padding:0;border:0}
+.variant-page .nfq-dossier-navigation .nfq-dossier-jump a{min-height:36px;padding:7px 11px;line-height:1.35}
+.variant-page .record-rail .rail-topline{margin-bottom:9px}
+.variant-page .record-rail>.record-list{margin-top:8px;gap:6px}
+.variant-page .record-list button{min-height:68px}
+.variant-page .nfq-dossier-primary .nfq-identity-title{margin-top:4px}
+.variant-page .nfq-dossier-primary .nfq-identity-title h2{margin:0;line-height:1.13}
+@media(min-width:761px) and (max-width:1100px){
+ .variant-page .nfq-dossier-navigation .nfq-dossier-jump{flex:1 1 100%;justify-content:flex-start}
+}
+@media(max-width:760px){
+ .variant-page .variant-heading{margin-bottom:9px;padding-bottom:9px}
+ .variant-page .record-rail{padding:13px!important}
+ .variant-page .record-rail>.record-list{margin-top:7px}
+ .variant-page .nfq-dossier-navigation{gap:5px;padding-bottom:8px}
+ .variant-page .nfq-dossier-navigation .nfq-research-trail{flex:1 1 100%}
+ .variant-page .nfq-dossier-navigation .nfq-dossier-jump{width:100%;flex:1 1 100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+ .variant-page .nfq-dossier-navigation .nfq-dossier-jump a{min-width:0;min-height:39px;padding:7px 5px;font-size:11px}
+ .variant-page .nfq-dossier-identity{margin-top:7px;padding-block:7px 11px}
+ .variant-page .nfq-dossier-identity-heading{margin-bottom:7px}
+ .variant-page .nfq-dossier-therapy-anchor{padding-top:13px}
+}
+@media(max-width:360px){.variant-page .nfq-dossier-navigation .nfq-dossier-jump{grid-template-columns:repeat(2,minmax(0,1fr))}}
