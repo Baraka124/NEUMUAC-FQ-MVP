@@ -520,15 +520,16 @@ function select(id:string):void{
     </RouterLink>
    </section>
    <div class="record-content">
-    <nav v-if="selected" class="nfq-research-trail" aria-label="Research return path">
-     <RouterLink :to="sourceWorkspace||worklistReturn" data-testid="variant-context-return">← {{contextReturnLabel}}</RouterLink>
-     <span class="nfq-research-trail-current" aria-current="page">Variant dossier</span>
-    </nav>
-    <nav v-if="selected" class="nfq-dossier-jump" aria-label="Selected variant sections">
+    <div v-if="selected" class="nfq-dossier-navigation">
+     <nav class="nfq-research-trail" aria-label="Research return path">
+      <RouterLink :to="sourceWorkspace||worklistReturn" data-testid="variant-context-return">← {{contextReturnLabel}}</RouterLink>
+     </nav>
+     <nav class="nfq-dossier-jump" aria-label="Selected variant sections">
       <a href="#nfq-variant-identity" @click.prevent="navigateDossierSection('identity')">Identity</a>
       <a href="#nfq-variant-therapy" @click.prevent="navigateDossierSection('therapy')">Therapies</a>
       <a v-if="!selectedFromSearch" href="#nfq-variant-science" @click.prevent="navigateDossierSection('science')">Scientific detail</a>
-    </nav>
+     </nav>
+    </div>
     <article id="nfq-variant-identity" tabindex="-1" class="record-overview" aria-labelledby="selected-title">
      <p v-if="detailBusy" role="status">Loading record…</p>
      <template v-else-if="selected">
