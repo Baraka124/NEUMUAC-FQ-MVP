@@ -43,7 +43,7 @@ test('reserved workspaces do not imply clinical functionality', async ({ page })
   await expect(page.getByRole('heading', { name: 'Helios', exact: true })).toBeVisible();
   await expect(page.getByTestId('helios-status-banner')).toContainText('Read-only preparation');
   await expect(page.getByTestId('helios-status-banner')).toContainText('Not connected');
-  await expect(page.getByText('No live decisions available')).toBeVisible();
+  await expect(page.getByTestId('helios-review-read-state')).toContainText('Authorized review data has not been connected');
 });
 
 test('keyboard skip target remains accessible', async ({ page }) => {
