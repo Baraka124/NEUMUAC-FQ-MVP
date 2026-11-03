@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import {computed,ref,onMounted,onUnmounted,watch} from 'vue';
+import ContextHelp from '../components/ContextHelp.vue';
 import {authController} from '../services/authSession';
 import {configuredHeliosQueueSource,HeliosQueueError,type HeliosQueuePage} from '../services/heliosQueue';
 import {describeHeliosReadState} from '../domain/heliosStatusPresentation';
 import type {HeliosReadState} from '../domain/heliosPublishedReview';
-const showContext=ref(false);
 // No authorized endpoint has been attached. Never infer access from a browser session.
 const reviewReadState=ref<HeliosReadState>({kind:'not-connected'});
 const reviewPresentation=computed(()=>describeHeliosReadState(reviewReadState.value));
@@ -73,20 +73,14 @@ const areas=[
 </script>
 
 <template>
- <div class="page helios-workspace">
-  <div class="helios-head">
-   <div>
-    <div class="eyebrow">SCIENTIFIC CURATION</div>
-    <h1>Helios</h1>
-    <p class="helios-subtitle">Source examination · scientific review · traceable decisions</p>
-   </div>
-   <button type="button" class="helios-info" aria-label="About Helios and current access limitations"
-    aria-controls="helios-context" :aria-expanded="showContext" @click="showContext=!showContext">i</button>
-  </div>
-  <div v-if="showContext" id="helios-context" class="helios-context">
-   Helios is being rebuilt from the original review workflows. Proposals, approval, claims and audit
-   history remain unavailable here until server-side reviewer authorization and scientific governance
-   have been verified. This view does not display synthetic review records.
+ <div clas  <header class="helios-head">
+   <h1>Helios</h1>
+   <ContextHelp label="About Helios and current access limitations" title="Scientific review workspace">
+    <p>Helios provides read-only preparation for scientific review. Reviewer decisions, claims and audit actions remain unavailable until server-side authorization and source provenance have been verified.</p>
+    <p>No synthetic review records are shown. A research sign-in does not imply reviewer permission.</p>
+   </ContextHelp>
+  </header>
+c review records.
   </div>
   <div class="helios-current" role="status" data-testid="helios-status-banner">
    <span class="helios-status-dot" aria-hidden="true"></span>
@@ -94,21 +88,24 @@ const areas=[
    <span class="helios-status-sep" aria-hidden="true">·</span>
    <span>{{queueSource?queueStatus.label:reviewPresentation.label}}</span>
   </div>
-  <section class="helios-panel" aria-labelledby="helios-panel-title">
-   <div class="helios-panel-heading">
-    <h2 id="helios-panel-title">Review workspace</h2>
-    <span class="helios-caption">{{queueSource?'Decision metadata only · no approvals':'No live decisions available'}}</span>
-   </div>
+  <section class="helios-panel" aria-label="Helios scientific workspaces">
    <div class="helios-area-nav" role="group" aria-label="Helios review areas">
-    <div class="helios-rail-heading" aria-hidden="true">REVIEW AREAS <span>Read-only research navigation</span></div>
-    <button v-for="(area,index) in areas" :key="area.id" type="button" :data-testid="'helios-tab-'+area.id"
+    <button v-for="area in areas" :key="area.id" type="button" :data-testid="'helios-tab-'+area.id"
      :class="{ 'helios-area-selected': selectedArea===area.id }"
      :aria-pressed="selectedArea===area.id" :aria-controls="'helios-area-'+area.id"
-     @click="selectedArea=area.id"><span class="helios-area-order" aria-hidden="true">{{String(index+1).padStart(2,'0')}}</span><span>{{area.title}}</span></button>
+     @click="selectedArea=area.id">{{area.title}}</button>
    </div>
    <div v-for="area in areas" v-show="selectedArea===area.id" :key="area.id" :id="'helios-area-'+area.id"
     class="helios-area-detail" role="region" :aria-label="area.title" :data-testid="'helios-panel-'+area.id">
-    <header class="helios-area-intro"><span class="helios-area-kicker">RESEARCH WORKSPACE</span><h3>{{area.title}}</h3><p>{{area.detail}}</p></header>
+    <header class="helios-area-intro">
+     <h2>{{area.title}}</h2>
+     <ContextHelp :label="'About '+area.title" :title="area.title">
+      <p>{{area.detail}}</p>
+      <p v-if="area.id==='evidence'">Evidence assessment requires authorized review records and traceable sources. No scientific decision is implied by these preparation fields.</p>
+      <p v-if="area.id==='signals'">Opening the recorded evidence catalog does not perform or authorize a Helios scan.</p>
+      <p v-if="area.id==='history'">Review chronology requires verified reviewer permissions and traceable source records.</p>
+     </ContextHelp>
+    </header>
     <div v-if="area.id==='queue'" class="helios-read-state" role="status" data-testid="helios-review-read-state">{{queueSource?queueStatus.detail:reviewPresentation.detail}}</div>
     <template v-if="area.id==='queue' && availableReviews.length">
      <div class="helios-proposal-list">
@@ -133,7 +130,7 @@ const areas=[
       <div><strong>Consistency</strong><span class="helios-restricted" data-testid="helios-locked-capability" title="Unavailable in this build; authorization is not yet connected"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Contradictions and drift · Not connected</span></div>
       <div><strong>Monitoring</strong><span class="helios-restricted" data-testid="helios-locked-capability" title="Unavailable in this build; authorization is not yet connected"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Watch targets and scheduled checks · Not connected</span></div>
      </div>
-     <p class="helios-source-continuity">Recorded scientific references remain accessible in <RouterLink to="/evidence" data-testid="helios-recorded-evidence-link">Evidence &amp; Curation</RouterLink>. This does not run a Helios scan.</p>
+     <p class="helios-source-continuity"><RouterLink to="/evidence" data-testid="helios-recorded-evidence-link">Evidence &amp; Curation</RouterLink></p>
     </template>
     <template v-if="area.id==='history'">
      <div class="helios-recovery-sections" aria-label="Review history capabilities">
@@ -148,9 +145,9 @@ const areas=[
       <span>Decision {{selectedReviewId}} · Read-only metadata</span>
      </div>
      <div class="helios-review-steps" role="group" aria-label="Evidence examination sequence">
-      <button type="button" data-testid="helios-step-record" :aria-pressed="assessmentStep==='record'" @click="assessmentStep='record'">1. Comparison</button>
-      <button type="button" data-testid="helios-step-sources" :aria-pressed="assessmentStep==='sources'" @click="assessmentStep='sources'">2. Sources</button>
-      <button type="button" data-testid="helios-step-uncertainty" :aria-pressed="assessmentStep==='uncertainty'" @click="assessmentStep='uncertainty'">3. Uncertainty</button>
+      <button type="button" data-testid="helios-step-record" :aria-pressed="assessmentStep==='record'" @click="assessmentStep='record'">Comparison</button>
+      <button type="button" data-testid="helios-step-sources" :aria-pressed="assessmentStep==='sources'" @click="assessmentStep='sources'">Sources</button>
+      <button type="button" data-testid="helios-step-uncertainty" :aria-pressed="assessmentStep==='uncertainty'" @click="assessmentStep='uncertainty'">Uncertainty</button>
      </div>
      <div class="helios-assessment-grid" aria-label="Evidence assessment structure">
       <section :hidden="assessmentStep!=='record'" class="helios-assessment-cell" aria-label="Recorded value">
@@ -170,12 +167,9 @@ const areas=[
        <p>Cannot be assessed without source records</p>
       </section>
      </div>
-     <div class="helios-empty-state" role="status">Evidence assessment is unavailable until authorized records and traceable sources are connected. No scientific decision is implied.</div>
     </template>
-    <div v-else-if="area.id!=='queue'||!queueSource" class="helios-empty-state" role="status">{{area.state}}. No live records or review actions are shown.</div>
    </div>
   </section>
-  <p class="helios-footnote">The existing research catalog remains available through <RouterLink to="/variants">Variants</RouterLink> and <RouterLink to="/evidence">Evidence</RouterLink>.</p>
  </div>
 </template>
 
