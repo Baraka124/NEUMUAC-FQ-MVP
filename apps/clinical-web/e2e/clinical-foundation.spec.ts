@@ -1035,3 +1035,27 @@ test('genotype result navigation is not shown before two real variant records ha
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+
+test('14H95 Helios read-only workstation remains navigable and contained on desktop and mobile',async({page})=>{
+ for(const width of [320,390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/helios');
+  await expect(page.getByRole('heading',{name:'Helios',exact:true})).toBeVisible();
+  const workspace=page.locator('.helios-panel');
+  const navigation=page.getByRole('group',{name:'Helios review areas'});
+  await expect(navigation.getByRole('button')).toHaveCount(4);
+  const columns=await workspace.evaluate(el=>getComputedStyle(el).gridTemplateColumns.trim().split(/\s+/).length);
+  expect(columns).toBe(width>900?2:1);
+  for(const section of ['queue','evidence','signals','history']){
+   const button=page.getByTestId('helios-tab-'+section);
+   await button.click();
+   await expect(button).toHaveAttribute('aria-pressed','true');
+   await expect(button).toHaveAttribute('aria-controls','helios-area-'+section);
+   await expect(page.getByTestId('helios-panel-'+section)).toBeVisible();
+  }
+  await expect(page.getByTestId('helios-status-banner')).toContainText('Read-only preparation');
+  await expect(page.getByRole('button',{name:/approve|reject|run scan/i})).toHaveCount(0);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
