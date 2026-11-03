@@ -211,9 +211,10 @@ test('Dossier hierarchy presents identity, modulator evidence and expanded prove
  await page.goto('/#/variants/1');
  const panel=page.getByTestId('five-therapy-workspace');
  await expectFiveRows(panel);
- await expect(page.locator('.nfq-dossier-identity-heading')).toContainText('Variant identity');
- await expect(page.locator('.nfq-dossier-therapy-anchor .nfq-dossier-section-intro')).toContainText('Modulator research');
- await expect(page.locator('.nfq-dossier-science-intro')).toContainText('Evidence & provenance');
+ await expect(page.locator('#nfq-variant-identity #selected-title')).toBeVisible();
+ await expect(panel.getByRole('heading',{name:'Modulator research'})).toBeVisible();
+ await expect(page.locator('#nfq-variant-science .nfq-details-trigger')).toContainText('Evidence & provenance');
+ await expect(page.locator('.nfq-dossier-overline,.nfq-dossier-identity-heading,.nfq-dossier-science-intro')).toHaveCount(0);
  const navigation=page.getByRole('navigation',{name:'Selected variant sections'});
  await navigation.getByRole('link',{name:'Scientific detail'}).click();
  await expect(page.locator('#nfq-variant-science')).toBeFocused();
@@ -424,4 +425,53 @@ test('14H98 selected variant workbench uses first viewport instead of stacking e
  await nav.getByRole('link',{name:'Therapies'}).click();
  await expect(page.locator('#nfq-variant-therapy')).toBeFocused();
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
+
+
+test('14H99 dossier shows scientific data without numbering, duplicate headings or explanatory paragraphs',async({page})=>{
+ await setup(page);
+ for(const width of [390,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/variants/35');
+  const panel=page.getByTestId('five-therapy-workspace');
+  await expectFiveRows(panel);
+  await expect(page.locator('#selected-title')).toBeVisible();
+  await expect(panel.getByRole('heading',{name:'Modulator research'})).toHaveCount(1);
+  await expect(page.locator('.nfq-therapy-kicker,.nfq-therapy-summary,.nfq-dossier-overline,.nfq-dossier-section-intro')).toHaveCount(0);
+  await expect(page.locator('.nfq-dossier-identity-heading')).toHaveCount(0);
+  await expect(page.locator('.nfq-dossier-identity>div')).toHaveCount(4);
+  const borderStyles=await page.locator('.record-overview').evaluate(element=>{
+   const identity=element.querySelector<HTMLElement>('.nfq-dossier-identity')!;
+   const field=identity.querySelector<HTMLElement>('div')!;
+   const group=element.querySelector<HTMLElement>('.nfq-dossier-therapy-anchor')!;
+   const workspace=group.querySelector<HTMLElement>('.nfq-therapy')!;
+   return {
+    identityTop:getComputedStyle(identity).borderTopWidth,
+    fieldBottom:getComputedStyle(field).borderBottomWidth,
+    sectionTop:getComputedStyle(group).borderTopWidth,
+    nestedCardTop:getComputedStyle(workspace).borderTopWidth
+   };
+  });
+  expect(borderStyles.identityTop).toBe('0px');
+  expect(borderStyles.fieldBottom).toBe('0px');
+  expect(borderStyles.sectionTop).toBe('1px');
+  expect(borderStyles.nestedCardTop).toBe('0px');
+  const identityHelp=page.locator('.nfq-identity-title .nfq-context-help');
+  await expect(identityHelp.locator('.nfq-context-help-panel')).toBeHidden();
+  await identityHelp.locator('summary').click();
+  await expect(identityHelp.locator('.nfq-context-help-panel')).toContainText('recorded');
+  await expect(identityHelp.locator('.nfq-context-help-panel')).toBeVisible();
+  await identityHelp.locator('summary').click();
+  const modulatorHelp=panel.locator('.nfq-therapy-heading .nfq-context-help');
+  await modulatorHelp.locator('summary').click();
+  await expect(modulatorHelp.locator('.nfq-context-help-panel')).toContainText('not treatment recommendations');
+  await modulatorHelp.locator('summary').click();
+  const scientific=page.locator('#nfq-variant-science');
+  const disclosure=scientific.locator('.nfq-details-trigger');
+  await expect(disclosure).toContainText('Evidence & provenance');
+  if(await disclosure.getAttribute('aria-expanded')==='false')await disclosure.click();
+  await expect(disclosure).toHaveAttribute('aria-expanded','true');
+  await expect(page.locator('#nfq-secondary-science')).toBeVisible();
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
 });
