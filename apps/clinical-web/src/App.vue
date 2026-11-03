@@ -2,12 +2,14 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router';
 import { researchWorkspaces, researchShortcuts } from './domain/researchWorkspaces';
+import {connectedResearchDestination} from './domain/connectedResearchNavigation';
 import {authController} from './services/authSession';
 import {readConfigFromEnvironment} from './services/liveVariants';
 
 const route = useRoute();
 const router=useRouter();
-function goToShortcut(path:string){closeLauncher();void router.push(path);}
+function workspaceTarget(path:string){return connectedResearchDestination(path,{path:route.path,fullPath:route.fullPath,query:route.query});}
+function goToShortcut(path:string){closeLauncher();void router.push(workspaceTarget(path));}
 const isHome = computed(() => route.path==='/workspace');
 const isOuterEntry = computed(() => route.path==='/' || route.path==='/sign-in');
 const mobileMenuOpen = ref(false);
@@ -86,7 +88,7 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
 
       <div v-if="!sidebarCollapsed" class="sidebar-caption">RESEARCH WORKSPACES</div>
       <nav id="primary-workspace-nav" class="workspace-nav" aria-label="Workspaces">
-        <RouterLink v-for="section in availableSections" :key="section.path" :to="section.path"
+        <RouterLink v-for="section in availableSections" :key="section.path" :to="workspaceTarget(section.path)"
           :aria-current="(route.path===section.path || (section.path==='/variants' && route.path.startsWith('/variants/')))?'page':undefined"
           :aria-label="section.name" :title="sidebarCollapsed ? section.name : undefined"
           :class="{ 'variant-route-active': section.path === '/variants' && route.path.startsWith('/variants/') }">
@@ -155,7 +157,7 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
       <button v-if="mobileMenuOpen" type="button" class="mobile-nav-backdrop" tabindex="-1" aria-label="Close workspace navigation" @click="closeNavigation"></button>
       <nav v-if="mobileMenuOpen" id="mobile-workspace-nav" class="mobile-nav" aria-label="Mobile workspaces">
         <div class="mobile-nav-heading">Research workspaces <button type="button" aria-label="Close menu" @click="closeNavigation">×</button></div>
-        <RouterLink v-for="section in availableSections" :key="section.path" :to="section.path" @click="closeNavigation">
+        <RouterLink v-for="section in availableSections" :key="section.path" :to="workspaceTarget(section.path)" @click="closeNavigation">
           {{ section.name }}
         </RouterLink>
         <RouterLink class="mobile-admin-link" to="/admin" @click="closeNavigation">Research administration</RouterLink>
