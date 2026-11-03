@@ -41,7 +41,6 @@ function downloadReviewBrief():void{
  }catch{reviewStatus.value='Could not prepare the review brief.';}
 }
 let active:AbortController|null=null;
-const recordedCount=computed(()=>profile.value?.entries.filter(entry=>entry.coverage==='variant-response'&&entry.response!==null).length??0);
 const rows=computed(()=>{
  const found=new Map(profile.value?.entries.map(item=>[item.therapy,item])??[]);
  return THERAPIES.map(therapy=>({therapy,entry:found.get(therapy.id)??null}));
@@ -94,9 +93,10 @@ onUnmounted(()=>active?.abort());
 <template>
  <section class="nfq-therapy" aria-labelledby="nfq-therapy-heading" data-testid="five-therapy-workspace">
   <div class="nfq-therapy-heading">
-   <div class="nfq-therapy-title-group"><span class="nfq-therapy-kicker">CFTR MODULATOR INTELLIGENCE</span><h3 id="nfq-therapy-heading">Therapeutic profile</h3><span class="nfq-therapy-summary">Five regimens · {{recordedCount}} recorded variant categories · Variant {{variantId}}</span></div>
+   <h3 id="nfq-therapy-heading">Modulator research</h3>
    <ContextHelp label="About modulator results" title="Response and genotype rules">
-    <p>ETI and Alyftrek have recorded variant-response fields. The other three modulators are included for their genotype-rule coverage; no variant-response value is inferred from CFTR class.</p>
+    <p>ETI and Alyftrek have recorded variant-response fields. Kalydeco, Symkevi and Orkambi are displayed for their genotype-rule research coverage. No individual response is inferred from CFTR class.</p>
+    <p>Recorded categories are research data, not treatment recommendations. An individual treatment decision requires clinical interpretation of the full genotype and evidence.</p>
    </ContextHelp>
   </div>
   <p v-if="loading" role="status" class="nfq-therapy-state">Loading modulator responses…</p>
