@@ -15,6 +15,7 @@ import SourceResponsePanel from './SourceResponsePanel.vue';
 
 const props=defineProps<{
  variantId:string;
+ returnPath:string|null;
  legacyEti:LegacyEtiRecord|null;
  legacyLoading:boolean;
  legacyError:string;
@@ -110,7 +111,7 @@ onUnmounted(()=>active?.abort());
    <section v-if="reviewOpen&&relevantReviewSignals.length" id="nfq-therapy-review" class="nfq-therapy-review" aria-label="Response review details">
     <h4>Review details</h4>
     <ul><li v-for="item in relevantReviewSignals" :key="item.kind">{{item.message}}</li></ul>
-    <div class="nfq-therapy-review-actions"><button type="button" @click="emit('openValidation')">Sources & validation</button><RouterLink :to="{path:'/evidence',query:{variant:variantId,from:'/variants/'+variantId}}">Inspect evidence</RouterLink><button type="button" @click="downloadReviewBrief">Download review brief</button></div>
+    <div class="nfq-therapy-review-actions"><button type="button" @click="emit('openValidation')">Sources & validation</button><RouterLink :to="{path:'/evidence',query:{variant:variantId,from:returnPath||'/variants/'+variantId}}">Inspect evidence</RouterLink><button type="button" @click="downloadReviewBrief">Download review brief</button></div>
     <p v-if="reviewStatus" role="status">{{reviewStatus}}</p>
    </section>
    <nav class="nfq-therapy-jump" aria-label="Therapy research navigation">
@@ -143,7 +144,7 @@ onUnmounted(()=>active?.abort());
         <div><dt>Source</dt><dd>{{entry.authoritySource||'Not recorded'}}</dd></div>
        </dl>
       </template>
-      <div v-else class="nfq-therapy-rule-context"><p class="nfq-therapy-note">This therapy is included in the original five-regimen genotype calculator. No separate variant-response category is recorded, and no paired-genotype assessment has been run on this screen.</p><RouterLink class="nfq-therapy-genotype-link" :to="{path:'/genotype',query:{variant:variantId}}">Open genotype workspace</RouterLink></div>
+      <div v-else class="nfq-therapy-rule-context"><p class="nfq-therapy-note">This therapy is included in the original five-regimen genotype calculator. No separate variant-response category is recorded, and no paired-genotype assessment has been run on this screen.</p><RouterLink class="nfq-therapy-genotype-link" :to="{path:'/genotype',query:{a:variantId,from:returnPath||'/variants/'+variantId}}}">Open genotype workspace</RouterLink></div>
       <div v-if="therapy.id==='ETI'||therapy.id==='ALYFTREK'" class="nfq-therapy-flag-check">
        <span>Historical drug flag: <strong>{{historicalFlags.find(x=>x.therapy===therapy.id)?.flag===true?'Yes':historicalFlags.find(x=>x.therapy===therapy.id)?.flag===false?'No':'Not recorded'}}</strong></span>
        <p v-if="historicalFlags.find(x=>x.therapy===therapy.id)?.state==='different-recorded-fields'" role="status" data-testid="therapy-historical-flag-disagreement">
@@ -173,7 +174,7 @@ onUnmounted(()=>active?.abort());
       </template>
       <div class="nfq-therapy-actions">
        <button type="button" @click="emit('openValidation')">Sources &amp; validation</button>
-       <RouterLink :to="{path:'/evidence',query:{variant:variantId,from:'/variants/'+variantId}}">Evidence &amp; curation</RouterLink>
+       <RouterLink :to="{path:'/evidence',query:{variant:variantId,from:returnPath||'/variants/'+variantId}}">Evidence &amp; curation</RouterLink>
       </div>
      </div>
      </div>
