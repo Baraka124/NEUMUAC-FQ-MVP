@@ -125,7 +125,17 @@ watch([query,page,focusId,invalidVariantScope],()=>{exportNotice.value='';});
 </script>
 <template>
  <div class="page evidence-page nfq-science-ui">
-  <header class="nfq-evidence-heading"><div class="nfq-evidence-heading-copy"><span class="nfq-evidence-overline">RESEARCH LIBRARY / RECORDED SOURCES</span><h1>Evidence & provenance</h1><p class="nfq-evidence-deck">Explore catalogued scientific references, inspect source identifiers and review recorded metadata. Catalog entries are not independent scientific verification.</p></div><div class="nfq-evidence-heading-actions"><button type="button" data-testid="evidence-copy-view" @click="copyEvidenceView">Copy view link</button><ContextHelp label="About recorded references" title="Recorded reference details"><p>Links, source categories and publication types are catalog-recorded metadata. They do not independently establish study design, quality, pathogenicity or clinical relevance.</p><p>Identifier consistency compares the stored DOI or PMID with its linked URL. Agreement is not external verification; a mismatch should be checked against the original source. PubMed publication types can be requested explicitly from NCBI for a recorded PMID. Those indexing labels are not an independently validated study-design assessment.</p></ContextHelp></div></header>
+  <header class="nfq-evidence-heading">
+   <div class="nfq-evidence-heading-copy"><h1>Evidence &amp; provenance</h1></div>
+   <div class="nfq-evidence-heading-actions">
+    <button type="button" data-testid="evidence-copy-view" @click="copyEvidenceView">Copy view link</button>
+    <ContextHelp label="About recorded references" title="Research evidence register">
+     <p>Explore catalogued references, inspect source identifiers and review recorded research metadata. Catalog entries are not independent scientific verification.</p>
+     <p>Links, source categories and publication types reflect stored research records; they do not independently establish study quality, pathogenicity or clinical relevance.</p>
+     <p>Identifier agreement compares recorded DOI/PMID information with the linked URL, without verifying research claims. PubMed indexing information is retrieved separately on request.</p>
+    </ContextHelp>
+   </div>
+  </header>
   <p v-if="shareStatus" role="status" class="nfq-evidence-share-status">{{shareStatus}}</p>
   <nav v-if="returnToResearch" class="nfq-research-trail" aria-label="Research return path">
    <RouterLink :to="returnToResearch" data-testid="evidence-context-return">← {{returnLabel}}</RouterLink>
@@ -142,12 +152,15 @@ watch([query,page,focusId,invalidVariantScope],()=>{exportNotice.value='';});
   <p v-if="!loading&&!error&&!rows.length" class="empty-result">{{page>0?'No references on this page. Return to the previous page.':focusId?'No reference links recorded for this variant in the accessible catalog.':'No recorded source links match this search.'}}</p>
   <div v-if="!loading&&!error&&rows.length" class="nfq-evidence-page-tools">
    <button type="button" data-testid="evidence-export-page" @click="downloadEvidencePage">Export page · CSV</button>
-   <span>10 per page · Recorded year, newest first · Not a quality ranking</span>
+   <ContextHelp label="About evidence export and ordering" title="Catalog ordering and export">
+    <p>Entries are grouped into pages of ten and ordered by recorded publication year, newest first. The ordering is not a scientific quality ranking.</p>
+    <p>CSV export contains the current displayed page of recorded references.</p>
+   </ContextHelp>
   </div>
   <p v-if="exportNotice" role="status" class="nfq-evidence-export-notice">{{exportNotice}}</p>
   <section v-if="rows.length" class="evidence-register" aria-label="Recorded citations">
-   <article v-for="(item,index) in rows" :key="item.id" class="evidence-row" :aria-labelledby="'nfq-evidence-title-'+item.id">
-    <div class="evidence-row-meta"><span class="nfq-evidence-ref-index">REFERENCE {{page*EVIDENCE_PAGE_SIZE+index+1}}</span><span class="nfq-evidence-recorded-meta">{{referenceMetadata(item).join(" · ")}}</span></div>
+   <article v-for="item in rows" :key="item.id" class="evidence-row" :aria-labelledby="'nfq-evidence-title-'+item.id">
+    <div class="evidence-row-meta"><span class="nfq-evidence-recorded-meta">{{referenceMetadata(item).join(" · ")}}</span></div>
     <h2 :id="'nfq-evidence-title-'+item.id"><button type="button" class="evidence-row-disclosure" :aria-expanded="expandedRows.includes(item.id)" :aria-controls="'evidence-details-'+item.id" @click="toggleRow(item.id)"><span>{{item.title}}</span><span aria-hidden="true">{{expandedRows.includes(item.id)?'−':'+'}}</span></button></h2>
     <div v-if="expandedRows.includes(item.id)" :id="'evidence-details-'+item.id" class="evidence-row-foot">
      <div class="nfq-evidence-detail-grid">
@@ -164,17 +177,25 @@ watch([query,page,focusId,invalidVariantScope],()=>{exportNotice.value='';});
        </dl>
       </section>
       <section class="nfq-evidence-detail-section" aria-label="Recorded research metadata">
-       <h3>Catalogued metadata</h3>
-       <p class="nfq-evidence-caution">Stored values only; these figures are not an independent appraisal of study quality.</p>
+       <div class="nfq-evidence-section-heading">
+        <h3>Catalogued metadata</h3>
+        <ContextHelp label="About catalogued research metadata" title="Recorded research values">
+         <p>Recorded quality score, source weight and citation count are stored catalog fields. They are not an independent appraisal of study design or scientific quality.</p>
+        </ContextHelp>
+       </div>
        <dl class="nfq-evidence-facts">
         <div><dt>Recorded quality score</dt><dd>{{item.recordedQualityScore??'Not recorded'}}</dd></div>
         <div><dt>Recorded source weight</dt><dd>{{item.recordedSourceWeight??'Not recorded'}}</dd></div>
         <div><dt>Recorded citation count</dt><dd>{{item.recordedCitationCount??'Not recorded'}}</dd></div>
        </dl>
        <div class="nfq-evidence-link-check" :data-link-consistency="referenceLinkConsistency(item).kind">
-        <strong>Identifier consistency</strong>
+        <div class="nfq-evidence-section-heading">
+         <strong>Identifier consistency</strong>
+         <ContextHelp label="About identifier consistency" title="Identifier and source-link check">
+          <p>The comparison uses recorded identifiers and the stored URL only. Agreement does not validate a scientific claim; discrepancies should be checked in the original publication.</p>
+         </ContextHelp>
+        </div>
         <span>{{referenceLinkConsistency(item).label}}</span>
-        <small>Compares recorded identifiers with the stored link; it does not validate the research claim.</small>
        </div>
       </section>
      </div>
@@ -183,8 +204,12 @@ watch([query,page,focusId,invalidVariantScope],()=>{exportNotice.value='';});
       <RouterLink :to="{path:'/variants/'+encodeURIComponent(item.variantId),query:savedWorkspace?{from:savedWorkspace}:{}}">Open variant record #{{item.variantId}}</RouterLink>
      </div>
      <section class="nfq-evidence-pubmed" aria-label="Publication indexing">
-      <h3>Publication indexing</h3>
-      <p class="nfq-evidence-caution">Optional NCBI lookup; publication types are indexing labels, not a verified study-design assessment.</p>
+      <div class="nfq-evidence-section-heading">
+       <h3>Publication indexing</h3>
+       <ContextHelp label="About PubMed publication indexing" title="Scope of NCBI indexing">
+        <p>A PubMed publication-type lookup is performed only on request for a recorded PMID. Indexing terms are not an independently appraised study-design or quality assessment.</p>
+       </ContextHelp>
+      </div>
       <button v-if="supportedPubMedId(item.pmid)" type="button" :disabled="pubmedCheck?.phase==='loading'" @click="inspectPubMed(item)">{{pubmedCheck?.refId===item.id&&pubmedCheck.phase==='ready'?'Refresh PubMed types':'Check PubMed publication types'}}</button>
       <p v-else class="nfq-evidence-caution">No supported recorded PMID is available for this reference.</p>
       <p v-if="pubmedCheck?.refId===item.id&&pubmedCheck.phase==='loading'" role="status">Checking the recorded PMID with NCBI…</p>
@@ -193,7 +218,7 @@ watch([query,page,focusId,invalidVariantScope],()=>{exportNotice.value='';});
        <strong>PubMed publication types · NCBI</strong>
        <p v-if="pubmedCheck.metadata.publicationTypes.length">{{pubmedCheck.metadata.publicationTypes.join(' · ')}}</p>
        <p v-else>No publication types returned for this identifier.</p>
-       <small>Retrieved {{pubmedCheck.metadata.retrievedAt}} · Indexing terms only, not independently appraised study quality.</small>
+       <small>Retrieved {{pubmedCheck.metadata.retrievedAt}}</small>
        <a :href="pubmedCheck.metadata.sourceUrl" target="_blank" rel="noopener noreferrer">Open PubMed record ↗</a>
       </div>
      </section>
