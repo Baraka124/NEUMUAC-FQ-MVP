@@ -271,3 +271,63 @@ test('Evidence register separates source identity, recorded values and link cons
  await record.getByRole('button',{name:fixture.title}).click();
  await expect(record.getByRole('region',{name:'Recorded citation metadata'})).toHaveCount(0);
 });
+
+
+test('Variant evidence round trip restores the exact record, search terms and class filters',async({page})=>{
+ await setup(page);
+ await page.goto('/#/variants/35?q=3120&class=I&sort=name-desc');
+ const panel=page.getByTestId('five-therapy-workspace');
+ await expectFiveRows(panel);
+ await panel.locator('.nfq-therapy-row').first().getByRole('button',{name:'Source evidence'}).click();
+ await panel.getByRole('link',{name:'Evidence & curation'}).first().click();
+ await expect(page.getByTestId('evidence-context-return')).toContainText('Return to variant dossier');
+ await expect(page).toHaveURL(/#\/evidence\?/);
+ await page.getByTestId('evidence-context-return').click();
+ await expect(page).toHaveURL(/#\/variants\/35\?/);
+ await expect(page.getByRole('searchbox',{name:'Variant name, HGVS or recorded alias'})).toHaveValue('3120');
+ const routeQuery=await page.evaluate(()=>new URLSearchParams(location.hash.split('?')[1]));
+ expect(routeQuery.get('class')).toBe('I');
+ expect(routeQuery.get('sort')).toBe('name-desc');
+ await expect(page.getByTestId('five-therapy-workspace')).toBeVisible();
+ await page.getByTestId('variant-context-return').click();
+ await expect(page).toHaveURL(/#\/variants\?/);
+ await expect(page.getByRole('searchbox',{name:'Variant name, HGVS or recorded alias'})).toHaveValue('3120');
+ const worklistQuery=await page.evaluate(()=>new URLSearchParams(location.hash.split('?')[1]));
+ expect(worklistQuery.get('class')).toBe('I');
+ expect(worklistQuery.get('sort')).toBe('name-desc');
+});
+
+test('Variant, comparison and evidence preserve a bounded navigation trail through both return hops',async({page})=>{
+ await setup(page);
+ await page.goto('/#/variants/35?q=3120&class=I');
+ const panel=page.getByTestId('five-therapy-workspace');
+ await expectFiveRows(panel);
+ await panel.locator('.nfq-therapy-row').nth(2).getByRole('button',{name:'Assessment context'}).click();
+ await panel.getByRole('link',{name:'Open genotype workspace'}).click();
+ await expect(page).toHaveURL(/#\/genotype\?/);
+ await expect(page.getByTestId('comparison-context-return')).toContainText('Return to variant dossier');
+ await expect(page.locator('#genotype-search-0')).toHaveValue(/3120/);
+ await page.getByRole('region',{name:'Variant 1'}).getByRole('link',{name:/Browse recorded evidence/}).click();
+ await expect(page.getByTestId('evidence-context-return')).toContainText('Return to variant comparison');
+ await page.getByTestId('evidence-context-return').click();
+ await expect(page).toHaveURL(/#\/genotype\?/);
+ await expect(page.locator('#genotype-search-0')).toHaveValue(/3120/);
+ await page.getByTestId('comparison-context-return').click();
+ await expect(page).toHaveURL(/#\/variants\/35\?/);
+ await expect(page.getByRole('searchbox',{name:'Variant name, HGVS or recorded alias'})).toHaveValue('3120');
+});
+
+test('Comparison edits retain only validated variant origin; untrusted return URLs never render',async({page})=>{
+ await setup(page);
+ const origin='/variants/35?q=3120&class=I';
+ await page.goto('/#/genotype?a=35&b=19&from='+encodeURIComponent(origin));
+ await expect(page.getByTestId('comparison-context-return')).toBeVisible();
+ await expect(page.getByRole('region',{name:'Variant 2'}).getByRole('button',{name:'Clear'})).toBeVisible();
+ await page.getByRole('region',{name:'Variant 2'}).getByRole('button',{name:'Clear'}).click();
+ const from=await page.evaluate(()=>new URLSearchParams(location.hash.split('?')[1]).get('from'));
+ expect(from).toBe(origin);
+ await page.goto('/#/genotype?a=35&from='+encodeURIComponent('//untrusted.example/path'));
+ await expect(page.getByTestId('comparison-context-return')).toHaveCount(0);
+ await page.goto('/#/evidence?variant=35&from='+encodeURIComponent('https://untrusted.example'));
+ await expect(page.getByTestId('evidence-context-return')).toHaveCount(0);
+});
