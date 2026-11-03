@@ -36,8 +36,8 @@
 .surface,.record-overview,.record-rail{box-shadow:none!important}
 @media(max-width:760px){
  .institution-header{height:58px!important;min-height:58px!important}
- main{padding-top:12px!important}
- .page{padding-top:9px!important}
+ main{padding-top:8px!important}
+ .page{padding-top:4px!important}
  .mobile-nav{box-shadow:0 12px 24px rgba(20,54,38,.12);max-height:calc(100dvh - 58px);overflow-y:auto}
  .mobile-nav a{font-weight:610;border-radius:3px!important}
  .mobile-nav a.router-link-exact-active{box-shadow:inset 3px 0 #438366}
