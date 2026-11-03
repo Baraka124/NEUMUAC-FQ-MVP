@@ -272,3 +272,71 @@ const areas=[
 .helios-proposal-list button strong{font-weight:600;letter-spacing:-.01em}
 @media(max-width:620px){.helios-proposal-list button{flex-direction:column;gap:.5rem}}
 </style>
+
+
+<style scoped>
+/* 14H95 · Clinical Mineral Helios workbench. No review writes, synthetic records or inferred permissions. */
+.helios-workspace{max-width:1180px;min-width:0;margin:0 auto;padding-bottom:3rem}
+.helios-head{align-items:start}
+.helios-head .eyebrow{font-size:10px;font-weight:760;letter-spacing:.12em;color:#65717a}
+.helios-head h1{font-weight:740;color:#292f33}
+.helios-subtitle{max-width:66ch;color:#65717a;line-height:1.55}
+.helios-info{width:35px;height:35px;border-radius:4px;color:#245f66;border-color:#cbd8d8}
+.helios-current{display:flex;align-items:center;gap:8px;min-height:40px;margin:0 0 19px;padding:8px 12px;border-top:1px solid #dce1de;border-bottom:1px solid #dce1de;background:#f5f5f2;color:#455159}
+.helios-status-dot{background:#89949b}
+.helios-panel{display:grid;grid-template-columns:minmax(210px,250px) minmax(0,1fr);border:1px solid #dce1de;border-radius:5px;box-shadow:none;background:#fff;overflow:visible;min-width:0}
+.helios-panel-heading{grid-column:1/-1;grid-row:1;align-items:center;border-bottom:1px solid #dce1de;padding:17px 21px}
+.helios-panel-heading h2{color:#292f33;font-size:17px;font-weight:730;letter-spacing:-.02em}
+.helios-caption{color:#65717a;font-size:11px}
+.helios-area-nav{grid-column:1;grid-row:2;display:flex;flex-direction:column;align-items:stretch;gap:3px;padding:20px 11px;border-right:1px solid #dce1de;border-bottom:0;background:#f7f8f6;min-width:0}
+.helios-rail-heading{display:grid;gap:5px;margin:0 8px 13px;color:#55646d;font-size:10px;font-weight:770;letter-spacing:.09em}
+.helios-rail-heading span{color:#79858b;font-size:10px;font-weight:500;letter-spacing:0}
+.helios-area-nav button{display:flex;align-items:center;justify-content:flex-start;gap:11px;min-width:0;min-height:45px;padding:10px 12px;border:1px solid transparent;border-radius:4px;font-size:12px;font-weight:630;line-height:1.4;text-align:left;color:#47565e}
+.helios-area-nav button:hover{background:#eef2f0;border-color:#dce1de}
+.helios-area-nav button.helios-area-selected{background:#e6eeee;border-color:#ccdadb;color:#253940;box-shadow:inset 3px 0 #197b82}
+.helios-area-order{font-size:10px;color:#77848a;letter-spacing:.055em;font-variant-numeric:tabular-nums;flex:none}
+.helios-area-selected .helios-area-order{color:#197b82;font-weight:760}
+.helios-area-detail{grid-column:2;grid-row:2;min-width:0;min-height:320px;padding:23px clamp(17px,2.8vw,32px) 28px}
+.helios-area-intro{border-bottom:1px solid #e1e6e4;padding-bottom:14px;margin:0 0 18px}
+.helios-area-kicker{display:block;font-size:10px;font-weight:760;letter-spacing:.09em;color:#65717a}
+.helios-area-intro h3{margin:5px 0 4px;font-size:clamp(19px,2vw,25px);font-weight:720;color:#292f33;letter-spacing:-.03em;line-height:1.2}
+.helios-area-intro p{margin:0;font-size:12px;max-width:63ch;color:#65717a;line-height:1.6}
+.helios-read-state{padding:13px 0;border-bottom:1px solid #e1e6e4;color:#4d5a62;font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+.helios-empty-state{border-top:1px solid #e1e6e4;padding:16px 0 0;margin-top:19px;color:#65717a;font-size:12px;line-height:1.65}
+.helios-review-steps{display:flex;flex-wrap:wrap;gap:6px;margin:18px 0 11px;padding:0 0 10px;border-bottom:1px solid #dce1de}
+.helios-review-steps button{min-height:40px;border:1px solid transparent;border-radius:4px;padding:8px 12px;color:#56656d;background:transparent;font-size:12px;font-weight:620}
+.helios-review-steps button:hover{background:#f5f7f6}
+.helios-review-steps button[aria-pressed="true"]{color:#245f66;border-color:#c7d8d9;background:#e9f1f1}
+.helios-review-steps+.helios-assessment-grid{border:1px solid #dce1de;border-radius:4px;background:#fff;margin:12px 0 0;min-width:0}
+.helios-assessment-cell{padding:17px;min-width:0}
+.helios-assessment-label{font-size:11px;font-weight:720;color:#485962}
+.helios-assessment-cell p{color:#5e6b73;font-size:12px;line-height:1.65}
+.helios-recovery-sections{border-color:#dce1de}
+.helios-recovery-sections>div{align-items:start;gap:10px 20px;border-color:#e1e6e4;padding:15px 0}
+.helios-recovery-sections strong{font-size:12px;font-weight:720;color:#343f46}
+.helios-recovery-sections span{font-size:11px;line-height:1.5;color:#65717a}
+.helios-restricted svg{color:#65717a}
+.helios-source-continuity{margin-top:18px;color:#5e6b73;line-height:1.6}
+.helios-proposal-list button{border-radius:4px;border-color:#dce1de;background:#fff;min-width:0}
+.helios-proposal-list button:hover{background:#f5f7f6}
+.helios-queue-pages button{border-radius:4px}
+.helios-footnote{color:#65717a}
+@media(max-width:900px){
+ .helios-panel{grid-template-columns:minmax(0,1fr)}
+ .helios-panel-heading{grid-column:1;grid-row:1}
+ .helios-area-nav{grid-column:1;grid-row:2;flex-direction:row;flex-wrap:wrap;gap:6px;padding:12px;border-right:0;border-bottom:1px solid #dce1de;background:#f7f8f6}
+ .helios-rail-heading{flex:0 0 100%;margin:0 0 5px}
+ .helios-rail-heading span{display:none}
+ .helios-area-nav button{flex:1 1 145px;justify-content:center;min-height:43px;padding:8px 9px;text-align:center}
+ .helios-area-detail{grid-column:1;grid-row:3;min-height:240px}
+}
+@media(max-width:460px){
+ .helios-panel-heading{padding:13px 14px}
+ .helios-area-nav{padding:10px;gap:5px}
+ .helios-area-nav button{flex:1 1 calc(50% - 5px);min-width:0;gap:7px;padding:8px 5px;font-size:11px}
+ .helios-area-detail{padding:18px 14px 21px}
+ .helios-current{font-size:11px;gap:5px}
+ .helios-area-intro{padding-bottom:12px}
+}
+@media(prefers-reduced-motion:reduce){.helios-area-nav button,.helios-review-steps button{transition:none}}
+</style>
