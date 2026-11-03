@@ -1045,7 +1045,7 @@ test('14H95 Helios read-only workstation remains navigable and contained on desk
   const workspace=page.locator('.helios-panel');
   const navigation=page.getByRole('group',{name:'Helios review areas'});
   await expect(navigation.getByRole('button')).toHaveCount(4);
-  const columns=await workspace.evaluate(el=>getComputedStyle(el).gridTemplateColumns.trim().split(/\\s+/).length);
+  const columns=await workspace.evaluate(el=>getComputedStyle(el).gridTemplateColumns.trim().split(/\s+/).length);
   expect(columns).toBe(width>900?2:1);
   for(const section of ['queue','evidence','signals','history']){
    const button=page.getByTestId('helios-tab-'+section);
