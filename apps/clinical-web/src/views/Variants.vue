@@ -535,12 +535,15 @@ function select(id:string):void{
      <template v-else-if="selected">
       <p v-if="detailNotice" role="status" class="nfq-detail-notice">{{detailNotice}} <button type="button" @click="loadDetail(selected.id)">Retry full record</button></p>
       <div class="nfq-dossier-primary">
-       <div class="nfq-dossier-identity-heading"><span class="nfq-dossier-overline">01 / Variant identity</span><span class="nfq-dossier-record-kind">Recorded CFTR variant</span></div>
        <div class="record-identity">
         <div>
          <div class="nfq-identity-title">
           <h2 id="selected-title">{{variantDisplayName(selected)}}</h2>
           <span v-if="dossier?.functionalClass||selected.recordedClass" class="nfq-class-annotation"><span class="nfq-class-caption">Recorded class</span><strong>{{dossier?.functionalClass||selected.recordedClass}}</strong></span>
+          <ContextHelp label="About variant nomenclature" title="Recorded variant identity">
+           <p>Names, aliases, notations and functional class are values stored in the research catalog. A recorded classification is not an independent clinical validation.</p>
+           <p>A protein notation of p.? indicates that the protein consequence has not been specified in that record.</p>
+          </ContextHelp>
          </div>
         </div>
         <span v-if="selected.id===exactMatchedId" class="discovery-exact-chip">Exact match</span>
@@ -553,12 +556,11 @@ function select(id:string):void{
        <p v-if="shareNotice" role="status" class="nfq-saved-feedback">{{shareNotice}}</p>
        <dl class="identity-grid nfq-dossier-identity" aria-label="Variant nomenclature">
         <div><dt>Legacy name</dt><dd>{{selected.legacyName||'Not recorded'}}</dd></div>
-        <div><dt>Protein notation</dt><dd>{{selected.proteinName||'Not recorded'}}<small v-if="selected.proteinName?.trim()==='p.?'" class="nfq-unknown-consequence">Protein consequence unknown</small></dd></div>
+        <div><dt>Protein notation</dt><dd>{{selected.proteinName||'Not recorded'}}</dd></div>
         <div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div>
         <div><dt>Aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div>
        </dl>
        <section id="nfq-variant-therapy" tabindex="-1" class="nfq-dossier-therapy-anchor" aria-label="Recorded therapeutic evidence and genotype research rules">
-        <div class="nfq-dossier-section-intro"><div><span class="nfq-dossier-overline">02 / Therapeutic evidence</span><h3>Modulator research</h3></div><p>Recorded variant responses and genotype research rules are presented separately. A recorded category is not a treatment recommendation.</p></div>
        <TherapyWorkspace
         :key="selected.id"
         :return-path="dossierReturn"
@@ -571,16 +573,17 @@ function select(id:string):void{
        />
        </section>
       </div><section id="nfq-variant-science" tabindex="-1" v-if="!selectedFromSearch" class="dossier-science" aria-label="Additional scientific record details">
-      <div class="nfq-dossier-section-intro nfq-dossier-science-intro"><div><span class="nfq-dossier-overline">03 / Scientific record</span><h3>Evidence &amp; provenance</h3></div><p>Classification, recorded sources and review history.</p></div>
       <p v-if="dossierError" role="alert">{{dossierError}}</p>
       <div class="nfq-details-control">
        <button type="button" class="nfq-details-trigger" :aria-expanded="scientificDetailsOpen" aria-controls="nfq-secondary-science" @click="scientificDetailsOpen=!scientificDetailsOpen">
         <span class="nfq-details-trigger-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
         <span class="nfq-details-trigger-copy">
-         <span class="nfq-details-trigger-label">{{scientificDetailsOpen?'Hide additional details':'Show additional details'}}</span>
-         <small class="nfq-details-hint">Classification · Sources · References · Review history</small>
+         <span class="nfq-details-trigger-label">Evidence &amp; provenance</span>
         </span>
        </button>
+       <ContextHelp label="About evidence and provenance" title="Scientific record contents">
+        <p>Expand to inspect classification, recorded source information, linked references and review history. These are catalogued research records and are not independent verification of scientific claims.</p>
+       </ContextHelp>
       </div>
       <div v-show="scientificDetailsOpen" id="nfq-secondary-science" class="nfq-dossier-expanded">
        <section aria-labelledby="nfq-dossier-classification">
