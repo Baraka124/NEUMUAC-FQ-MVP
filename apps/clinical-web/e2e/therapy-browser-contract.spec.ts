@@ -458,8 +458,10 @@ test('14H99 dossier shows scientific data without numbering, duplicate headings 
   await expect(modulatorHelp.locator('.nfq-context-help-panel')).toContainText('not treatment recommendations');
   await modulatorHelp.locator('summary').click();
   const scientific=page.locator('#nfq-variant-science');
-  await expect(scientific.locator('.nfq-details-trigger')).toContainText('Evidence & provenance');
-  await scientific.locator('.nfq-details-trigger').click();
+  const disclosure=scientific.locator('.nfq-details-trigger');
+  await expect(disclosure).toContainText('Evidence & provenance');
+  if(await disclosure.getAttribute('aria-expanded')==='false')await disclosure.click();
+  await expect(disclosure).toHaveAttribute('aria-expanded','true');
   await expect(page.locator('#nfq-secondary-science')).toBeVisible();
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
