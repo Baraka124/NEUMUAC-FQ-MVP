@@ -440,13 +440,22 @@ test('14H99 dossier shows scientific data without numbering, duplicate headings 
   await expect(page.locator('.nfq-therapy-kicker,.nfq-therapy-summary,.nfq-dossier-overline,.nfq-dossier-section-intro')).toHaveCount(0);
   await expect(page.locator('.nfq-dossier-identity-heading')).toHaveCount(0);
   await expect(page.locator('.nfq-dossier-identity>div')).toHaveCount(4);
-  const borderStyles=await page.locator('.nfq-dossier-identity').evaluate(element=>{
-   const own=getComputedStyle(element);
-   const field=getComputedStyle(element.querySelector('div')!);
-   return {top:own.borderTopWidth,bottom:field.borderBottomWidth};
+  const borderStyles=await page.locator('.record-overview').evaluate(element=>{
+   const identity=element.querySelector<HTMLElement>('.nfq-dossier-identity')!;
+   const field=identity.querySelector<HTMLElement>('div')!;
+   const group=element.querySelector<HTMLElement>('.nfq-dossier-therapy-anchor')!;
+   const workspace=group.querySelector<HTMLElement>('.nfq-therapy')!;
+   return {
+    identityTop:getComputedStyle(identity).borderTopWidth,
+    fieldBottom:getComputedStyle(field).borderBottomWidth,
+    sectionTop:getComputedStyle(group).borderTopWidth,
+    nestedCardTop:getComputedStyle(workspace).borderTopWidth
+   };
   });
-  expect(borderStyles.top).toBe('0px');
-  expect(borderStyles.bottom).toBe('0px');
+  expect(borderStyles.identityTop).toBe('0px');
+  expect(borderStyles.fieldBottom).toBe('0px');
+  expect(borderStyles.sectionTop).toBe('1px');
+  expect(borderStyles.nestedCardTop).toBe('0px');
   const identityHelp=page.locator('.nfq-identity-title .nfq-context-help');
   await expect(identityHelp.locator('.nfq-context-help-panel')).toBeHidden();
   await identityHelp.locator('summary').click();
