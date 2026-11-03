@@ -324,7 +324,7 @@ test('Comparison edits retain only validated variant origin; untrusted return UR
  await expect(page.getByTestId('comparison-context-return')).toBeVisible();
  await expect(page.getByRole('region',{name:'Variant 2'}).getByRole('button',{name:'Clear'})).toBeVisible();
  await page.getByRole('region',{name:'Variant 2'}).getByRole('button',{name:'Clear'}).click();
- const from=await page.evaluate(()=>new URLSearchParams(location.hash.split('?')[1]).get('from'));
+ const from=await page.evaluate(()=>new URLSearchParams(location.hash.slice(location.hash.indexOf('?')+1)).get('from'));
  expect(from).toBe(origin);
  await page.goto('/#/genotype?a=35&from='+encodeURIComponent('//untrusted.example/path'));
  await expect(page.getByTestId('comparison-context-return')).toHaveCount(0);
