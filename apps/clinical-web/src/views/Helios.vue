@@ -78,7 +78,7 @@ const areas=[
    <div>
     <div class="eyebrow">SCIENTIFIC CURATION</div>
     <h1>Helios</h1>
-    <p class="helios-subtitle">Research review</p>
+    <p class="helios-subtitle">Source examination · scientific review · traceable decisions</p>
    </div>
    <button type="button" class="helios-info" aria-label="About Helios and current access limitations"
     aria-controls="helios-context" :aria-expanded="showContext" @click="showContext=!showContext">i</button>
@@ -100,14 +100,15 @@ const areas=[
     <span class="helios-caption">{{queueSource?'Decision metadata only · no approvals':'No live decisions available'}}</span>
    </div>
    <div class="helios-area-nav" role="group" aria-label="Helios review areas">
-    <button v-for="area in areas" :key="area.id" type="button" :data-testid="'helios-tab-'+area.id"
+    <div class="helios-rail-heading" aria-hidden="true">REVIEW AREAS <span>Read-only research navigation</span></div>
+    <button v-for="(area,index) in areas" :key="area.id" type="button" :data-testid="'helios-tab-'+area.id"
      :class="{ 'helios-area-selected': selectedArea===area.id }"
-     :aria-pressed="selectedArea===area.id" @click="selectedArea=area.id">{{area.title}}</button>
+     :aria-pressed="selectedArea===area.id" :aria-controls="'helios-area-'+area.id"
+     @click="selectedArea=area.id"><span class="helios-area-order" aria-hidden="true">{{String(index+1).padStart(2,'0')}}</span><span>{{area.title}}</span></button>
    </div>
-   <div v-for="area in areas" v-show="selectedArea===area.id" :key="area.id"
+   <div v-for="area in areas" v-show="selectedArea===area.id" :key="area.id" :id="'helios-area-'+area.id"
     class="helios-area-detail" role="region" :aria-label="area.title" :data-testid="'helios-panel-'+area.id">
-    <h3>{{area.title}}</h3>
-    <p>{{area.detail}}</p>
+    <header class="helios-area-intro"><span class="helios-area-kicker">RESEARCH WORKSPACE</span><h3>{{area.title}}</h3><p>{{area.detail}}</p></header>
     <div v-if="area.id==='queue'" class="helios-read-state" role="status" data-testid="helios-review-read-state">{{queueSource?queueStatus.detail:reviewPresentation.detail}}</div>
     <template v-if="area.id==='queue' && availableReviews.length">
      <div class="helios-proposal-list">
