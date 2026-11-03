@@ -415,7 +415,8 @@ function onResultKeydown(event:KeyboardEvent,index:number):void{
  else if(event.key==='End'){event.preventDefault();focusResult(displayedRows.value.length-1);}
  else if(event.key==='Escape'){event.preventDefault();document.getElementById('search')?.focus();activeResultIndex.value=-1;}
 }
-function navigateDossierSection(section:'identity'|'therapy'|'science'):void {
+async function navigateDossierSection(section:'identity'|'therapy'|'science'):Promise<void> {
+ if(section==='science'){scientificDetailsOpen.value=true;await nextTick();}
  const target=document.getElementById('nfq-variant-'+section);
  if(!target)return;
  target.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});
@@ -527,6 +528,7 @@ function select(id:string):void{
      <template v-else-if="selected">
       <p v-if="detailNotice" role="status" class="nfq-detail-notice">{{detailNotice}} <button type="button" @click="loadDetail(selected.id)">Retry full record</button></p>
       <div class="nfq-dossier-primary">
+       <div class="nfq-dossier-identity-heading"><span class="nfq-dossier-overline">01 / Variant identity</span><span class="nfq-dossier-record-kind">Recorded CFTR variant</span></div>
        <div class="record-identity">
         <div>
          <RouterLink class="record-return nfq-mobile-return" :to="{path:'/variants',query:route.query}">← Back to results</RouterLink>
@@ -550,7 +552,8 @@ function select(id:string):void{
         <div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div>
         <div><dt>Aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div>
        </dl>
-       <div id="nfq-variant-therapy" tabindex="-1" class="nfq-dossier-therapy-anchor">
+       <section id="nfq-variant-therapy" tabindex="-1" class="nfq-dossier-therapy-anchor" aria-label="Recorded therapeutic evidence and genotype research rules">
+        <div class="nfq-dossier-section-intro"><div><span class="nfq-dossier-overline">02 / Therapeutic evidence</span><h3>Modulator research</h3></div><p>Recorded variant responses and genotype research rules are presented separately. A recorded category is not a treatment recommendation.</p></div>
        <TherapyWorkspace
         :key="selected.id"
         :variant-id="selected.id"
@@ -560,8 +563,9 @@ function select(id:string):void{
         @retry-legacy="retryEtiResponse"
         @open-validation="openVariantValidation"
        />
-       </div>
+       </section>
       </div><section id="nfq-variant-science" tabindex="-1" v-if="!selectedFromSearch" class="dossier-science" aria-label="Additional scientific record details">
+      <div class="nfq-dossier-section-intro nfq-dossier-science-intro"><div><span class="nfq-dossier-overline">03 / Scientific record</span><h3>Evidence &amp; provenance</h3></div><p>Classification, recorded sources and review history.</p></div>
       <p v-if="dossierError" role="alert">{{dossierError}}</p>
       <div class="nfq-details-control">
        <button type="button" class="nfq-details-trigger" :aria-expanded="scientificDetailsOpen" aria-controls="nfq-secondary-science" @click="scientificDetailsOpen=!scientificDetailsOpen">
