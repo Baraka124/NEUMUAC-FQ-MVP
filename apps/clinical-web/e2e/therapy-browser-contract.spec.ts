@@ -281,7 +281,7 @@ test('Evidence register separates source identity, recorded values and link cons
  await page.keyboard.press('Escape');
  const publication=record.getByRole('region',{name:'Publication indexing'});
  await publication.locator('summary').click();
- await expect(publication.getByRole('note',{name:'Scope of NCBI indexing'})).toContainText('indexing terms');
+ await expect(publication.getByRole('note',{name:'Scope of NCBI indexing'})).toContainText('Indexing terms');
  await page.keyboard.press('Escape');
  const visualLines=await record.evaluate(element=>{
   const fact=element.querySelector<HTMLElement>('.nfq-evidence-facts>div')!;
