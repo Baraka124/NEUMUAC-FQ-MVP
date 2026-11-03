@@ -114,6 +114,7 @@ onUnmounted(()=>active?.abort());
     <a href="#nfq-genotype-therapies" @click.prevent="jumpToTherapyGroup('IVACAFTOR')">Genotype rules <span>3</span></a>
    </nav>
    <div class="nfq-therapy-rows">
+    <div class="nfq-therapy-column-head" aria-hidden="true"><span>Therapy regimen</span><span>Recorded result / rule coverage</span><span>Inspect source</span></div>
     
     <div v-for="{therapy,entry} in rows" :key="therapy.id" class="nfq-therapy-row" :data-therapy="therapy.id" :class="{'nfq-therapy-selected':selectedDrug===therapy.id}">
      <div v-if="therapy.id==='ETI'" id="nfq-recorded-therapies" class="nfq-therapy-section-label">RECORDED VARIANT RESPONSES <span>Independent scientific categories</span></div>
