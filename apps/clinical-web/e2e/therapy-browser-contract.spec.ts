@@ -386,3 +386,42 @@ test('Workspace switcher opens variant-scoped evidence and allows return to the 
  expect(filters.class).toBe('I');
  expect(filters.sort).toBe('name-desc');
 });
+
+
+test('14H98 selected variant workbench uses first viewport instead of stacking empty top bands',async({page})=>{
+ await setup(page);
+ for(const width of [1366,1580]){
+  await page.setViewportSize({width,height:900});
+  await page.goto('/#/variants/35');
+  const panel=page.getByTestId('five-therapy-workspace');
+  await expectFiveRows(panel);
+  const nav=page.locator('.nfq-dossier-navigation');
+  await expect(nav).toBeVisible();
+  await expect(nav.getByRole('navigation',{name:'Research return path'})).toBeVisible();
+  await expect(nav.getByRole('navigation',{name:'Selected variant sections'})).toBeVisible();
+  const geometry=await page.evaluate(()=>{
+   const rect=(selector:string)=>document.querySelector<HTMLElement>(selector)!.getBoundingClientRect();
+   const header=rect('.institution-header'),rail=rect('.record-rail'),toolbar=rect('.nfq-dossier-navigation');
+   const dossier=rect('.record-overview'),identity=rect('.nfq-identity-title h2');
+   return {
+    mainGap:rail.top-header.bottom,
+    navLag:dossier.top-rail.top,
+    betweenToolbarAndDossier:dossier.top-toolbar.bottom,
+    titleBottom:identity.bottom
+   };
+  });
+  expect(geometry.mainGap).toBeLessThan(112);
+  expect(geometry.navLag).toBeLessThan(130);
+  expect(geometry.betweenToolbarAndDossier).toBeLessThan(24);
+  expect(geometry.titleBottom).toBeLessThan(560);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+ await page.setViewportSize({width:390,height:850});
+ await page.goto('/#/variants/35');
+ await expectFiveRows(page.getByTestId('five-therapy-workspace'));
+ const nav=page.locator('.nfq-dossier-navigation');
+ await expect(nav.getByRole('link',{name:'Scientific detail'})).toBeVisible();
+ await nav.getByRole('link',{name:'Therapies'}).click();
+ await expect(page.locator('#nfq-variant-therapy')).toBeFocused();
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
