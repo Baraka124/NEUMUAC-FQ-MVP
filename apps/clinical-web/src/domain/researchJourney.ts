@@ -1,18 +1,20 @@
 /**
- * 4F-7D: explicit, validated internal return paths for the three public
- * research workspaces. No local/session storage, telemetry or external URL
- * interpretation. This never changes variant identity or scientific data.
+ * Validated, bounded internal research return paths. The clinician can resume
+ * a filtered worklist or variant after entering evidence or paired comparison.
+ * No local/session storage, telemetry, external URL routing or scientific writes.
  */
-type JourneyWorkspace='variant'|'evidence'|'intelligence';
+type JourneyWorkspace='variant'|'worklist'|'evidence'|'intelligence'|'genotype';
 type Params=Readonly<Record<string,unknown>>;
+const variantFilters:Record<string,(value:string)=>boolean>={
+ q:v=>v.length>0&&v.length<=75,
+ class:v=>['I','II','III','IV','V','VI','unclassified'].includes(v),
+ mode:v=>['contains','exact-name'].includes(v),
+ sort:v=>['name-asc','name-desc','recent-record','fewest-validations','most-validations'].includes(v),
+ page:v=>/^\d{1,4}$/.test(v)&&Number(v)<=10000
+};
 const OPTIONS:Record<JourneyWorkspace,Record<string,(value:string)=>boolean>>={
- variant:{
-  q:v=>v.length>0&&v.length<=75,
-  class:v=>['I','II','III','IV','V','VI','unclassified'].includes(v),
-  mode:v=>['contains','exact-name'].includes(v),
-  sort:v=>['name-asc','name-desc','recent-record','fewest-validations','most-validations'].includes(v),
-  page:v=>/^\d{1,4}$/.test(v)&&Number(v)<=10000
- },
+ variant:variantFilters,
+ worklist:variantFilters,
  evidence:{
   q:v=>v.length<=70&&/^[a-zA-Z0-9 _-]*$/.test(v),
   page:v=>/^\d{1,4}$/.test(v)&&Number(v)<=10000,
@@ -24,12 +26,20 @@ const OPTIONS:Record<JourneyWorkspace,Record<string,(value:string)=>boolean>>={
   shown:v=>/^\d{1,4}$/.test(v)&&Number(v)>=40&&Number(v)<=4000&&Number(v)%40===0,
   expanded:v=>/^\d{1,18}$/.test(v),
   variant:v=>/^[1-9]\d{0,17}$/.test(v)
+ },
+ genotype:{
+  a:v=>/^[1-9]\d{0,17}$/.test(v),
+  b:v=>/^[1-9]\d{0,17}$/.test(v),
+  // One explicitly validated variant context only; never an unbounded URL chain.
+  from:v=>safeResearchReturnPath(v,'variant')!==null
  }
 };
 function workspace(path:string):JourneyWorkspace|null{
  if(/^\/variants\/(?:0|[1-9]\d{0,17})$/.test(path))return 'variant';
+ if(path==='/variants')return 'worklist';
  if(path==='/evidence')return 'evidence';
  if(path==='/intelligence')return 'intelligence';
+ if(path==='/genotype')return 'genotype';
  return null;
 }
 function canonical(path:string,query:Params):string|null{
@@ -47,16 +57,21 @@ export function variantJourneyPath(id:string,query:Params={}):string|null{
  if(!/^(?:0|[1-9]\d{0,17})$/.test(id))return null;
  return canonical('/variants/'+id,query);
 }
-export function workspaceJourneyPath(path:'/evidence'|'/intelligence',query:Params={}):string|null{
+export function variantWorklistJourneyPath(query:Params={}):string|null{
+ return canonical('/variants',query);
+}
+export function workspaceJourneyPath(path:'/evidence'|'/intelligence'|'/genotype',query:Params={}):string|null{
  return canonical(path,query);
 }
-export function safeResearchReturnPath(raw:unknown,expected:'variant'|'workspace'):string|null{
+export function safeResearchReturnPath(raw:unknown,expected:'variant'|'workspace'|'research'):string|null{
  if(typeof raw!=='string'||raw.length>800||!raw.startsWith('/')||
     raw.startsWith('//')||/[#\\\r\n]/.test(raw))return null;
  const mark=raw.indexOf('?');
  const path=mark<0?raw:raw.slice(0,mark);
  const kind=workspace(path);
- if(!kind||(expected==='variant'&&kind!=='variant')||(expected==='workspace'&&kind==='variant'))return null;
+ if(!kind||(expected==='variant'&&kind!=='variant')||
+    (expected==='workspace'&&(kind==='variant'||kind==='worklist'))||
+    (expected==='research'&&kind!=='variant'&&kind!=='genotype'))return null;
  const text=mark<0?'':raw.slice(mark+1);
  const query:Record<string,string>={};
  if(text){
