@@ -183,3 +183,18 @@ test('compact phone keeps scientific therapy findings navigable without horizont
  await expect(workspace.locator('.nfq-therapy-row').first().locator('.nfq-therapy-result')).toHaveText('Non-responsive');
  await expect(workspace.locator('.nfq-therapy-row').nth(1).locator('.nfq-therapy-result')).toHaveText('Responsive');
 });
+
+
+test('Dossier section navigation preserves the selected variant route and focuses its target',async({page})=>{
+ await setup(page);
+ await page.goto('/#/variants/1');
+ const panel=page.getByTestId('five-therapy-workspace');
+ await expectFiveRows(panel);
+ const dossier=page.getByRole('navigation',{name:'Selected variant sections'});
+ await dossier.getByRole('link',{name:'Therapies'}).click();
+ await expect(page).toHaveURL(/#\/variants\/1(?:\?|$)/);
+ await expect(page.locator('#nfq-variant-therapy')).toBeFocused();
+ await dossier.getByRole('link',{name:'Identity'}).click();
+ await expect(page).toHaveURL(/#\/variants\/1(?:\?|$)/);
+ await expect(page.locator('#nfq-variant-identity')).toBeFocused();
+});
