@@ -1,28 +1,28 @@
 /* 14H54–56 · Modulator Intelligence, presentation only. */
-.nfq-therapy{background:#fff!important;border:1px solid #d5e2db!important;border-radius:7px!important;padding:22px 24px!important;box-shadow:0 2px 10px rgba(12,49,34,.035)}
+.nfq-therapy{background:#fff!important;border:1px solid #dce1de!important;border-radius:7px!important;padding:22px 24px!important;box-shadow:0 2px 10px rgba(12,49,34,.035)}
 .nfq-therapy-heading{align-items:flex-start!important;margin-bottom:18px!important}
 .nfq-therapy-title-group{display:grid;gap:5px;min-width:0}
-.nfq-therapy-kicker{font-size:10px;font-weight:750;letter-spacing:.12em;color:#477765}
-.nfq-therapy-heading h3{font-size:22px!important;letter-spacing:-.035em!important;line-height:1.2;color:#153c30}
-.nfq-therapy-summary{font-size:12px;color:#64786f}
-.nfq-therapy-context{background:#f6f9f6;padding:11px 13px!important;border:1px solid #e1e9e3;border-radius:5px;margin:0 0 18px;gap:8px 20px!important}
+.nfq-therapy-kicker{font-size:10px;font-weight:750;letter-spacing:.12em;color:#65717a}
+.nfq-therapy-heading h3{font-size:22px!important;letter-spacing:-.035em!important;line-height:1.2;color:#292f33}
+.nfq-therapy-summary{font-size:12px;color:#65717a}
+.nfq-therapy-context{background:#f6f7f6;padding:11px 13px!important;border:1px solid #dce1de;border-radius:5px;margin:0 0 18px;gap:8px 20px!important}
 .nfq-therapy-rows{border-top:0!important}
-.nfq-therapy-section-label{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:6px 12px;color:#34634f;font-size:10px;letter-spacing:.095em;font-weight:760;margin:14px 0 8px;padding:13px 0 8px;border-top:1px solid #dae5dc}
+.nfq-therapy-section-label{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:6px 12px;color:#46535c;font-size:10px;letter-spacing:.095em;font-weight:760;margin:14px 0 8px;padding:13px 0 8px;border-top:1px solid #dce1de}
 .nfq-therapy-row:first-child .nfq-therapy-section-label{border-top:0;margin-top:0}
-.nfq-therapy-section-label span{font-size:11px;color:#798a81;font-weight:500;letter-spacing:0}
-.nfq-therapy-row{border-bottom:1px solid #e4ebe6!important}
-.nfq-therapy-row-main{grid-template-columns:minmax(0,1.25fr) minmax(120px,.7fr) auto!important;min-height:74px!important;gap:12px 20px!important;padding:10px 4px!important}
+.nfq-therapy-section-label span{font-size:11px;color:#65717a;font-weight:500;letter-spacing:0}
+.nfq-therapy-row{border-bottom:1px solid #e2e6e4!important}
+.nfq-therapy-row-main{grid-template-columns:minmax(0,1.2fr) minmax(130px,.75fr) minmax(120px,auto)!important;min-height:74px!important;gap:12px 20px!important;padding:10px 4px!important}
 .nfq-therapy-name{gap:4px 10px!important}
-.nfq-therapy-name strong{font-size:15px!important;font-weight:720!important;color:#183d31}
-.nfq-therapy-name small{font-size:11px!important;color:#6a7e72}
+.nfq-therapy-name strong{font-size:15px!important;font-weight:720!important;color:#292f33}
+.nfq-therapy-name small{font-size:11px!important;color:#65717a}
 .nfq-therapy-source-type{font-size:11px!important;flex-basis:100%}
-.nfq-therapy-result{font-size:14px!important;font-weight:690!important;line-height:1.4;color:#245a43!important}
-.nfq-therapy-unknown{color:#60776a!important;font-weight:560!important}
-.nfq-therapy-inspect{min-height:40px!important;white-space:nowrap;padding:8px 12px!important;border:1px solid #c8dad0!important;color:#22543f!important;background:#fff!important;border-radius:4px!important;font-weight:670!important}
-.nfq-therapy-inspect[aria-expanded=true]{background:#eaf3ec!important;border-color:#8db6a1!important}
-.nfq-therapy-inspect:hover{background:#f0f6f1!important}
-.nfq-therapy-detail{border-left:2px solid #428e6a;padding:16px 16px 20px!important;margin:0 0 14px 5px;background:#f9fbf9;border-radius:0 3px 3px 0}
-.nfq-therapy-actions{padding-top:12px!important;border-top:1px solid #e4ece6}
+.nfq-therapy-result{font-size:14px!important;font-weight:690!important;line-height:1.4;color:#36545d!important}
+.nfq-therapy-unknown{color:#65717a!important;font-weight:560!important}
+.nfq-therapy-inspect{min-height:40px!important;white-space:nowrap;padding:8px 12px!important;border:1px solid #bac9cb!important;color:#245f66!important;background:#fff!important;border-radius:4px!important;font-weight:670!important}
+.nfq-therapy-inspect[aria-expanded=true]{background:#e4eeee!important;border-color:#86b6b9!important}
+.nfq-therapy-inspect:hover{background:#edf3f3!important}
+.nfq-therapy-detail{border-left:3px solid #197b82;padding:16px 16px 20px!important;margin:0 0 14px 5px;background:#f8faf9;border-radius:0 3px 3px 0}
+.nfq-therapy-actions{padding-top:12px!important;border-top:1px solid #dce1de}
 @media(max-width:760px){
  .nfq-therapy{padding:15px 14px!important;border-radius:5px!important}
  .nfq-therapy-heading{margin-bottom:14px!important}
@@ -41,20 +41,20 @@
 
 /* 14H58: meaningful progression into the original genotype research functionality. */
 .nfq-therapy-rule-context{display:grid;justify-items:start;gap:12px;max-width:68ch}
-.nfq-therapy-genotype-link{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:9px 14px;background:#e9f3ec;color:#21573e;border:1px solid #b9d6c5;border-radius:4px;text-decoration:none;font-size:12px;font-weight:720}
-.nfq-therapy-genotype-link:hover{background:#dbece0}
-.nfq-therapy-genotype-link:focus-visible{outline:2px solid #257653;outline-offset:3px}
+.nfq-therapy-genotype-link{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:9px 14px;background:#e5eeee;color:#245f66;border:1px solid #bacfd1;border-radius:4px;text-decoration:none;font-size:12px;font-weight:720}
+.nfq-therapy-genotype-link:hover{background:#dae9e9}
+.nfq-therapy-genotype-link:focus-visible{outline:2px solid #197b82;outline-offset:3px}
 .nfq-therapy-row[data-therapy="ETI"] .nfq-therapy-result,.nfq-therapy-row[data-therapy="ALYFTREK"] .nfq-therapy-result{font-weight:760!important}
 @media(max-width:760px){.nfq-therapy-rule-context{width:100%}.nfq-therapy-genotype-link{width:100%;max-width:280px}}
 
 /* Research-workspace navigation, evidence focus and mobile comparison density. */
-.nfq-therapy-jump{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 14px;padding:0 0 14px;border-bottom:1px solid #dae4dc}
-.nfq-therapy-jump a{display:inline-flex;gap:10px;align-items:center;justify-content:space-between;border:1px solid #cbded2;border-radius:4px;background:#f8faf8;text-decoration:none;padding:10px 13px;min-height:43px;color:#244e3b;font-size:12px;font-weight:660}
-.nfq-therapy-jump a span{border-left:1px solid #d4e3d9;padding-left:10px;font-variant-numeric:tabular-nums;color:#527767}
-.nfq-therapy-jump a:hover{background:#edf5ef}
+.nfq-therapy-jump{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 14px;padding:0 0 14px;border-bottom:1px solid #dce1de}
+.nfq-therapy-jump a{display:inline-flex;gap:10px;align-items:center;justify-content:space-between;border:1px solid #cbd8d8;border-radius:4px;background:#f8f9f8;text-decoration:none;padding:10px 13px;min-height:43px;color:#354952;font-size:12px;font-weight:660}
+.nfq-therapy-jump a span{border-left:1px solid #dce1de;padding-left:10px;font-variant-numeric:tabular-nums;color:#65717a}
+.nfq-therapy-jump a:hover{background:#edf3f3}
 .nfq-therapy-section-label{scroll-margin-top:75px}
-.nfq-therapy-row[data-therapy="ETI"] .nfq-therapy-row-main,.nfq-therapy-row[data-therapy="ALYFTREK"] .nfq-therapy-row-main{background:linear-gradient(90deg,#f8fbf8,white 65%);padding-left:10px!important;padding-right:10px!important}
-.nfq-therapy-detail:focus{outline:2px solid #3b8463;outline-offset:2px}
+.nfq-therapy-row[data-therapy="ETI"] .nfq-therapy-row-main,.nfq-therapy-row[data-therapy="ALYFTREK"] .nfq-therapy-row-main{background:linear-gradient(90deg,#f8f9f8,white 65%);padding-left:10px!important;padding-right:10px!important}
+.nfq-therapy-detail:focus{outline:2px solid #197b82;outline-offset:2px}
 .nfq-therapy-meta{gap:12px!important}
 .nfq-therapy-meta > div{min-width:0}
 .nfq-therapy-meta dd{overflow-wrap:anywhere}
