@@ -415,6 +415,12 @@ function onResultKeydown(event:KeyboardEvent,index:number):void{
  else if(event.key==='End'){event.preventDefault();focusResult(displayedRows.value.length-1);}
  else if(event.key==='Escape'){event.preventDefault();document.getElementById('search')?.focus();activeResultIndex.value=-1;}
 }
+function navigateDossierSection(section:'identity'|'therapy'|'science'):void {
+ const target=document.getElementById('nfq-variant-'+section);
+ if(!target)return;
+ target.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});
+ target.focus({preventScroll:true});
+}
 function select(id:string):void{
  exactMatchedId.value=null;
  revealNextId=id;
@@ -512,11 +518,11 @@ function select(id:string):void{
    </section>
    <div class="record-content">
     <nav v-if="selected" class="nfq-dossier-jump" aria-label="Selected variant sections">
-      <a href="#nfq-variant-identity">Identity</a>
-      <a href="#nfq-variant-therapy">Therapies</a>
-      <a v-if="!selectedFromSearch" href="#nfq-variant-science">Scientific detail</a>
+      <a href="#nfq-variant-identity" @click.prevent="navigateDossierSection('identity')">Identity</a>
+      <a href="#nfq-variant-therapy" @click.prevent="navigateDossierSection('therapy')">Therapies</a>
+      <a v-if="!selectedFromSearch" href="#nfq-variant-science" @click.prevent="navigateDossierSection('science')">Scientific detail</a>
     </nav>
-    <article id="nfq-variant-identity" class="record-overview" aria-labelledby="selected-title">
+    <article id="nfq-variant-identity" tabindex="-1" class="record-overview" aria-labelledby="selected-title">
      <p v-if="detailBusy" role="status">Loading record…</p>
      <template v-else-if="selected">
       <p v-if="detailNotice" role="status" class="nfq-detail-notice">{{detailNotice}} <button type="button" @click="loadDetail(selected.id)">Retry full record</button></p>
@@ -544,7 +550,7 @@ function select(id:string):void{
         <div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div>
         <div><dt>Aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div>
        </dl>
-       <div id="nfq-variant-therapy" class="nfq-dossier-therapy-anchor">
+       <div id="nfq-variant-therapy" tabindex="-1" class="nfq-dossier-therapy-anchor">
        <TherapyWorkspace
         :key="selected.id"
         :variant-id="selected.id"
@@ -555,7 +561,7 @@ function select(id:string):void{
         @open-validation="openVariantValidation"
        />
        </div>
-      </div><section id="nfq-variant-science" v-if="!selectedFromSearch" class="dossier-science" aria-label="Additional scientific record details">
+      </div><section id="nfq-variant-science" tabindex="-1" v-if="!selectedFromSearch" class="dossier-science" aria-label="Additional scientific record details">
       <p v-if="dossierError" role="alert">{{dossierError}}</p>
       <div class="nfq-details-control">
        <button type="button" class="nfq-details-trigger" :aria-expanded="scientificDetailsOpen" aria-controls="nfq-secondary-science" @click="scientificDetailsOpen=!scientificDetailsOpen">
