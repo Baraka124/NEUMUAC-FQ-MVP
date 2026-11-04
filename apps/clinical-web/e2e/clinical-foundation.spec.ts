@@ -65,10 +65,10 @@ test('public research needs no sign-in and admin never exposes unapproved writes
   await page.goto('/#/admin');
   await expect(page.getByRole('heading', { name: 'Research administration' })).toBeVisible();
   await expect(page.getByText(/Staff authentication is not configured here/)).toBeVisible();
-  await expect(page.getByRole('region',{name:'Research operations readiness'})).toBeVisible();
+  await expect(page.getByRole('region',{name:'Research operations'})).toBeVisible();
   await expect(page.getByRole('complementary',{name:'Administration availability'})).toContainText('Not verifiable');
   await expect(page.getByRole('button', { name: /approve|publish|edit|save/i })).toHaveCount(0);
-  await expect(page.getByRole('link', { name: 'Explore public variants' })).toHaveAttribute('href', '#/variants');
+  await expect(page.getByRole('link', { name: 'Explore variants' })).toHaveAttribute('href', '#/variants');
   await expect(page.locator('html')).toHaveJSProperty('scrollWidth', await page.locator('html').evaluate(e => e.clientWidth));
 });
 
@@ -1099,5 +1099,28 @@ test('14H101 Helios keeps one heading per area, compact workbench and contextual
   expect(rowBorders).toBe('0px');
   await expect(page.getByRole('button',{name:/approve|reject|run scan|claim/i})).toHaveCount(0);
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
+
+test('14H102 research administration separates account, administrator and editing states on all viewports',async({page})=>{
+ for(const width of [320,390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/admin');
+  await expect(page.getByRole('heading',{name:'Research administration'})).toHaveCount(1);
+  const permissions=page.getByRole('complementary',{name:'Administration availability'});
+  await expect(permissions.getByTestId('admin-membership-status')).toContainText('Not verifiable');
+  await expect(permissions.getByTestId('admin-role-status')).toContainText('Not verified');
+  await expect(permissions).toContainText('Database editing');
+  await expect(permissions).toContainText('Not connected');
+  await expect(page.getByRole('region',{name:'Research operations'})).toContainText('Local draft only');
+  await expect(page.getByRole('region',{name:'Research operations'})).toContainText('Read only');
+  await expect(page.getByRole('button',{name:/approve|edit|publish|save|assign role/i})).toHaveCount(0);
+  await page.locator('.nfq-admin-head summary').click();
+  await expect(page.getByRole('note',{name:'Identity, membership and permissions'})).toContainText('does not automatically grant');
+  await page.keyboard.press('Escape');
+  await permissions.locator('summary').click();
+  await expect(page.getByRole('note',{name:'Role assignment versus editing'})).toContainText('does not activate writes');
+  await page.keyboard.press('Escape');
+  await expect.poll(()=>page.locator('html').evaluate(element=>element.scrollWidth-element.clientWidth)).toBe(0);
  }
 });
