@@ -82,6 +82,13 @@ export function createAuthController(auth:AuthPort) {
         const {data,error}=await auth.getSession();
         if(requestSequence!==sequence||state.phase!=='signed-in')return null;
         if(error||!data.session?.access_token){++sequence;applySession(null);return null;}
+        // Reject a session that no longer belongs to the account shown in the UI.
+        // The database still enforces authorization through JWT and RLS.
+        const fetchedUserId=verifiedUserId(data.session);
+        if(!fetchedUserId||!state.userId||fetchedUserId!==state.userId){
+          ++sequence;applySession(null);
+          return null;
+        }
         return data.session.access_token;
       }catch{return null;}
     }
