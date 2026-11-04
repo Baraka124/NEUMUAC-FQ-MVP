@@ -30,6 +30,24 @@ describe('session-lookup revocation race',()=>{
   expect(await token).toBeNull();
   expect(auth.state.email).toBe('second@example.org');
  });
+ it('rejects a refreshed token belonging to a different user even without a change event',async()=>{
+  const port=fakePort(),auth=createAuthController(port as any);
+  const first='8ac7177e-4a91-4e69-a327-3709cb782117';
+  const second='d71e38b6-3be3-426a-97a2-81b4cf4606b2';
+  port.emit({access_token:'first',user:{id:first,email:'first@example.org'}});
+  port.getSession=vi.fn(async()=>({data:{session:{access_token:'second',user:{id:second,email:'second@example.org'}}},error:null})) as any;
+  expect(await auth.getAccessToken()).toBeNull();
+  expect(auth.state.phase).toBe('signed-out');
+  expect(auth.state.userId).toBeNull();
+ });
+ it('keeps a valid refreshed token for the same verified account',async()=>{
+  const port=fakePort(),auth=createAuthController(port as any);
+  const user='8ac7177e-4a91-4e69-a327-3709cb782117';
+  port.emit({access_token:'old',user:{id:user,email:'research@example.org'}});
+  port.getSession=vi.fn(async()=>({data:{session:{access_token:'fresh',user:{id:user,email:'research@example.org'}}},error:null})) as any;
+  expect(await auth.getAccessToken()).toBe('fresh');
+  expect(auth.state.phase).toBe('signed-in');
+ });
  it('does not request a token before session establishment',async()=>{
   const port=fakePort(),auth=createAuthController(port as any);
   expect(await auth.getAccessToken()).toBeNull();
