@@ -1,50 +1,137 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { RouterLink } from 'vue-router';
-import { authController } from '../services/authSession';
+import {computed} from 'vue';
+import {RouterLink,useRoute} from 'vue-router';
+import ContextHelp from '../components/ContextHelp.vue';
+import {authController} from '../services/authSession';
 import {researcherRole,refreshResearcherRole} from '../services/researchRole';
+import {safeResearchReturnPath} from '../domain/researchJourney';
 
-const signedIn = computed(() => authController?.state.phase === 'signed-in');
-const phase = computed(() => authController?.state.phase || 'unavailable');
-const identity = computed(() => signedIn.value ? authController?.state.email || 'Authenticated account' : 'No research account signed in');
+const route=useRoute();
+const signedIn=computed(()=>authController?.state.phase==='signed-in');
+const phase=computed(()=>authController?.state.phase||'unavailable');
+const identity=computed(()=>signedIn.value?authController?.state.email||'Authenticated account':'No research account signed in');
+const returnToVariant=computed(()=>safeResearchReturnPath(route.query.from,'variant'));
 </script>
 <template>
  <div class="page research-admin">
-  <div class="eyebrow">NEUMUACFQ / RESEARCH OPERATIONS</div>
-  <h1>Research administration</h1>
-  <p class="intro">An authenticated research workspace in development. This screen reports available session state and authorization readiness; it does not grant scientific or administrative permissions.</p>
+  <header class="admin-head">
+   <h1>Research administration</h1>
+   <ContextHelp label="About research administration" title="Research administration">
+    <p>This workspace reports authenticated research-session state and the permissions that can be verified. Signing in does not grant scientific or administrative authority.</p>
+    <p>Contribution, review and administrative actions require independently verified assignments and an attributable audit trail. No management writes are enabled here.</p>
+   </ContextHelp>
+  </header>
+  <nav v-if="returnToVariant" class="nfq-research-trail admin-trail" aria-label="Research return path">
+   <RouterLink :to="returnToVariant" data-testid="admin-context-return">← Return to variant dossier</RouterLink>
+  </nav>
   <section class="research-entry" aria-labelledby="admin-access-heading">
    <div class="research-entry-main">
-    <span class="section-label">RESEARCH SESSION</span>
-    <h2 id="admin-access-heading">{{ signedIn ? 'Research account signed in' : 'Research staff access' }}</h2>
-    <p>{{identity}}</p>
-    <p v-if="phase==='checking'" role="status">Checking the existing session…</p>
-    <p v-else-if="phase==='error'" role="alert">Authentication could not be confirmed. Editing remains unavailable.</p>
-    <p v-else-if="signedIn">Your Supabase session is present. This is not proof of contributor, reviewer or administrator authority.</p>
-    <p v-else-if="authController">Sign in to identify your research account. Public CFTR research remains available without a session.</p>
-    <p v-else>Staff authentication is not configured here. No management operations are available.</p>
-    <RouterLink v-if="!signedIn && authController" class="research-entry-link" to="/sign-in">Sign in <span aria-hidden="true">→</span></RouterLink>
-    <RouterLink v-else class="research-entry-link" to="/variants">Explore public variants <span aria-hidden="true">→</span></RouterLink>
+    <div class="admin-section-heading">
+     <h2 id="admin-access-heading">{{signedIn?'Research account signed in':'Research staff access'}}</h2>
+    </div>
+    <p class="admin-identity">{{identity}}</p>
+    <p v-if="phase==='checking'" role="status" class="admin-session-state">Checking the existing session…</p>
+    <p v-else-if="phase==='error'" role="alert" class="admin-session-state">Authentication could not be confirmed. Editing remains unavailable.</p>
+    <p v-else-if="!signedIn&&authController" class="admin-session-state">Sign in to identify your research account.</p>
+    <p v-else-if="!signedIn" class="admin-session-state">Staff authentication is not configured here. No management operations are available.</p>
+    <div class="admin-session-actions">
+     <RouterLink v-if="!signedIn&&authController" class="research-entry-link" to="/sign-in">Sign in <span aria-hidden="true">→</span></RouterLink>
+     <RouterLink v-else class="research-entry-link" to="/variants">Explore public variants <span aria-hidden="true">→</span></RouterLink>
+    </div>
    </div>
    <aside class="research-entry-aside" aria-label="Administration availability">
-    <span class="section-label">PERMISSION VERIFICATION</span>
+    <div class="admin-section-heading">
+     <h2>Access verification</h2>
+     <ContextHelp label="About role verification" title="Research permissions">
+      <p>A valid session identifies an account. A recorded researcher role is shown only when the research role service verifies it.</p>
+      <p>Reviewer and administrator assignments remain unverified. Legacy names, a professional title or an email address cannot establish those permissions.</p>
+     </ContextHelp>
+    </div>
     <dl class="research-capabilities">
-     <div><dt>Identity</dt><dd>{{signedIn ? 'Session present' : 'Not authenticated'}}</dd></div>
-     <div><dt>Research membership</dt><dd>{{researcherRole.phase==='verified' ? researcherRole.role : researcherRole.phase==='unassigned' ? 'No assignment' : 'Not verifiable'}}</dd></div>
+     <div><dt>Identity</dt><dd>{{signedIn?'Session present':'Not authenticated'}}</dd></div>
+     <div><dt>Research membership</dt><dd>{{researcherRole.phase==='verified'?researcherRole.role:researcherRole.phase==='unassigned'?'No assignment':'Not verifiable'}}</dd></div>
      <div><dt>Scientific reviewer role</dt><dd>Not verifiable</dd></div>
      <div><dt>Administrator role</dt><dd>Not verifiable</dd></div>
     </dl>
-    <p v-if="signedIn&&researcherRole.phase==='unavailable'" role="alert">Role verification unavailable. No operations will be enabled.</p><button v-if="signedIn" type="button" class="evidence-more" @click="refreshResearcherRole">Recheck role</button><p>Signing in does not grant research editing privileges. Database-enforced assignments and audit controls are required before contributions are enabled.</p>
+    <div class="admin-role-actions">
+     <p v-if="signedIn&&researcherRole.phase==='unavailable'" role="alert">Role verification unavailable. No operations will be enabled.</p>
+     <button v-if="signedIn" type="button" class="admin-role-refresh" @click="refreshResearcherRole">Recheck role</button>
+    </div>
    </aside>
   </section>
   <section class="admin-readiness" aria-label="Research operations readiness">
-   <h2>Scientific operations</h2>
-   <div class="admin-readiness-grid">
-    <article><h3>Propose evidence</h3><p>Contribution submission requires a server-side contributor permission and an attributable, auditable draft.</p><span>Not enabled</span></article>
-    <article><h3>Review and validate</h3><p>Scientific review requires verified reviewer authority, provenance and controlled decisions.</p><span>Not enabled</span></article>
-    <article><h3>Research governance</h3><p>Role assignment and audit administration require independently verified administrator authority.</p><span>Not enabled</span></article>
+   <div class="admin-section-heading">
+    <h2>Scientific operations</h2>
+    <ContextHelp label="About scientific operations availability" title="Scientific operations">
+     <p>The capabilities below are reserved until the corresponding server-enforced role, provenance and audit requirements have been verified.</p>
+     <p>No client-side login or displayed status activates an operation.</p>
+    </ContextHelp>
    </div>
-   <p class="history-disclaimer">Legacy role-name statistics are not authenticated account assignments. This module cannot infer permissions from an email address, a client session or a claimed professional title.</p>
+   <ul class="admin-operations-list">
+    <li>
+     <div class="admin-operation-name"><h3>Propose evidence</h3><ContextHelp label="About evidence proposals" title="Evidence contributions"><p>Contribution submission requires a verified contributor assignment and an attributable, auditable draft.</p></ContextHelp></div>
+     <span class="admin-operation-status">Not enabled</span>
+    </li>
+    <li>
+     <div class="admin-operation-name"><h3>Review and validate</h3><ContextHelp label="About scientific review" title="Scientific review"><p>Scientific review requires independently verified reviewer authority, traceable evidence and controlled decisions.</p></ContextHelp></div>
+     <span class="admin-operation-status">Not enabled</span>
+    </li>
+    <li>
+     <div class="admin-operation-name"><h3>Research governance</h3><ContextHelp label="About research governance" title="Research governance"><p>Role assignment and audit administration require verified administrator authority and server-side enforcement.</p></ContextHelp></div>
+     <span class="admin-operation-status">Not enabled</span>
+    </li>
+   </ul>
   </section>
  </div>
 </template>
+<style scoped>
+.research-admin{max-width:1160px;min-width:0;margin:0 auto;padding-bottom:36px;color:#292f33}
+.admin-head{display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:1px solid #dce1de;padding:0 0 13px;margin:0 0 17px}
+.admin-head h1{margin:0;font-size:clamp(26px,2.8vw,36px);font-weight:740;line-height:1.15;letter-spacing:-.035em;color:#292f33}
+.admin-head :deep(.nfq-context-help summary){width:34px;height:34px}
+.admin-trail{margin-top:-6px;margin-bottom:14px;padding:3px 0 9px}
+.research-entry{display:grid;grid-template-columns:minmax(0,1fr) minmax(310px,.92fr);gap:clamp(25px,3.8vw,54px);align-items:start;margin:0;padding:6px 0 21px;border:0;border-bottom:1px solid #dce1de}
+.research-entry-main{min-width:0}
+.admin-section-heading{display:flex;align-items:center;justify-content:space-between;gap:10px 17px;min-width:0;margin:0 0 13px}
+.admin-section-heading h2{margin:0;font-size:clamp(17px,1.6vw,21px);font-weight:710;line-height:1.3;letter-spacing:-.025em;color:#292f33}
+.admin-section-heading :deep(.nfq-context-help summary){width:30px;height:30px}
+.research-entry-main .admin-identity{font-size:14px;font-weight:600;color:#3b515c;line-height:1.5;max-width:none;overflow-wrap:anywhere;margin:0 0 8px}
+.research-entry-main .admin-session-state{font-size:12px;color:#607078;line-height:1.6;max-width:52ch;margin:0}
+.admin-session-actions{margin:17px 0 0}
+.research-entry-link{min-height:40px;display:inline-flex;align-items:center;gap:9px;border:1px solid #cdd9d9;border-radius:4px;background:#fff;padding:8px 13px;color:#245f66;font-weight:680;font-size:12px;line-height:1.4;text-decoration:none;margin:0}
+.research-entry-link:hover{background:#edf3f3;color:#19575d}
+.research-entry-link:focus-visible,.admin-role-refresh:focus-visible{outline:2px solid #197b82;outline-offset:3px}
+.research-entry-aside{border:0;padding:0;min-width:0}
+.research-capabilities{margin:1px 0 0;display:grid;gap:0}
+.research-capabilities>div{display:flex;justify-content:space-between;align-items:baseline;gap:12px 16px;padding:8px 0;border:0;min-width:0}
+.research-capabilities dt{font-size:12px;line-height:1.4;color:#65717a}
+.research-capabilities dd{font-size:12px;font-weight:670;line-height:1.4;color:#35444d;text-align:right;margin:0;overflow-wrap:anywhere}
+.admin-role-actions{margin:8px 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.admin-role-actions p{font-size:12px;line-height:1.5;color:#9b523d;margin:0}
+.admin-role-refresh{min-height:40px;border:1px solid #ccd9d9;border-radius:4px;background:#fff;color:#245f66;font:inherit;font-size:12px;font-weight:680;padding:8px 13px;cursor:pointer}
+.admin-role-refresh:hover{background:#edf3f3}
+.admin-readiness{margin:0;padding:20px 0 0;border:0}
+.admin-readiness .admin-section-heading{margin-bottom:8px}
+.admin-operations-list{display:grid;list-style:none;gap:0;margin:0;padding:0}
+.admin-operations-list li{display:flex;align-items:center;justify-content:space-between;gap:10px 18px;min-width:0;padding:10px 0;border:0}
+.admin-operation-name{display:flex;align-items:center;gap:10px;min-width:0}
+.admin-operation-name h3{font-size:13px;font-weight:680;line-height:1.4;letter-spacing:-.01em;color:#35444d;margin:0}
+.admin-operation-name :deep(.nfq-context-help summary){width:28px;height:28px}
+.admin-operation-status{flex:none;color:#65717a;font-size:11px;font-weight:670;line-height:1.4;white-space:nowrap}
+@media(max-width:800px){
+ .research-entry{grid-template-columns:minmax(0,1fr);gap:18px;padding-bottom:20px}
+ .research-entry-aside{padding:17px 0 0;border-top:1px solid #dce1de}
+ .admin-readiness{padding-top:17px}
+}
+@media(max-width:460px){
+ .research-admin{padding-bottom:24px}
+ .admin-head{padding-bottom:11px;margin-bottom:13px}
+ .research-entry{padding-top:3px}
+ .admin-section-heading{margin-bottom:10px}
+ .research-capabilities>div{gap:8px}
+ .research-capabilities dt{flex:0 1 53%}
+ .research-capabilities dd{flex:1}
+ .admin-operations-list li{gap:6px 12px;padding:10px 0}
+ .admin-operation-name{gap:6px}
+}
+</style>
