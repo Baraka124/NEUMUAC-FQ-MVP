@@ -6,20 +6,27 @@ export type AuthPhase='checking'|'signed-out'|'signed-in'|'error';
 export interface AuthView {
   phase: AuthPhase;
   email: string | null;
+  /** Signed-in identity for ownership-scoped membership reads, never an authorization claim. */
+  userId: string | null;
   message: string | null;
 }
 export type AuthPort = Pick<SupabaseClient['auth'], 'getSession' | 'signInWithPassword' | 'signOut' | 'onAuthStateChange'>;
 
+function verifiedUserId(session:Session|null):string|null {
+  const id=session?.user?.id;
+  return typeof id==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)?id:null;
+}
 function verifiedEmail(session:Session|null):string|null {
   return typeof session?.user?.email==='string' ? session.user.email : null;
 }
 /** Client session drives UI state only. Supabase REST and RLS must verify access. */
 export function createAuthController(auth:AuthPort) {
-  const state=reactive<AuthView>({phase:'checking',email:null,message:null});
+  const state=reactive<AuthView>({phase:'checking',email:null,userId:null,message:null});
   let sequence=0;
   function applySession(session:Session|null):void {
     state.phase=session?.access_token?'signed-in':'signed-out';
     state.email=session?.access_token?verifiedEmail(session):null;
+    state.userId=session?.access_token?verifiedUserId(session):null;
     state.message=null;
   }
   auth.onAuthStateChange((_event,session)=>{
