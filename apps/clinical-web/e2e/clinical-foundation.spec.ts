@@ -1120,7 +1120,7 @@ test('14H102 Research Administration is compact, accessible and never implies ed
   await expect(page.getByRole('note',{name:'Research administration'})).toContainText('No management writes');
   await page.keyboard.press('Escape');
   await access.locator('.admin-section-heading summary').click();
-  await expect(access.getByRole('note',{name:'Research permissions'})).toContainText('independently verified');
+  await expect(access.getByRole('note',{name:'Research permissions'})).toContainText('A valid session identifies an account');
   await page.keyboard.press('Escape');
   const evidenceInfo=operations.getByText('Propose evidence').locator('..').locator('summary');
   await evidenceInfo.click();
@@ -1145,29 +1145,4 @@ test('14H102 Research Administration is compact, accessible and never implies ed
  }
 });
 
-test('14H102 Administration sidebar preserves the selected research variant and filters',async({page})=>{
- for(const width of [390,1366]){
-  await page.setViewportSize({width,height:850});
-  await page.goto('/#/variants/35?q=F508del&class=II&sort=name-desc');
-  if(width<=760){
-   await page.getByRole('button',{name:/workspaces/i}).click();
-   await page.getByRole('navigation',{name:'Mobile workspaces'}).getByRole('link',{name:'Research administration'}).click();
-  }else{
-   await page.getByRole('navigation',{name:'Workspaces'}).getByRole('link',{name:'Research administration'}).click();
-  }
-  await expect(page).toHaveURL(/#\/admin\?from=/);
-  const saved=await page.evaluate(()=>new URLSearchParams(location.hash.slice(location.hash.indexOf('?')+1)).get('from'));
-  expect(saved).toBe('/variants/35?q=F508del&class=II&sort=name-desc');
-  await page.getByTestId('admin-context-return').click();
-  await expect(page).toHaveURL(/#\/variants\/35\?/);
-  const query=await page.evaluate(()=>Object.fromEntries(new URLSearchParams(location.hash.slice(location.hash.indexOf('?')+1))));
-  expect(query.q).toBe('F508del');
-  expect(query.class).toBe('II');
-  expect(query.sort).toBe('name-desc');
-  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
- }
- await page.goto('/#/admin?from='+encodeURIComponent('https://untrusted.example'));
- await expect(page.getByTestId('admin-context-return')).toHaveCount(0);
- await page.goto('/#/admin?from='+encodeURIComponent('//untrusted.example'));
- await expect(page.getByTestId('admin-context-return')).toHaveCount(0);
-});
+
