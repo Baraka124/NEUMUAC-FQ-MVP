@@ -118,7 +118,7 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
           <span v-if="!sidebarCollapsed" class="nav-name">{{ section.name }}</span>
         </RouterLink>
       </nav>
-      <RouterLink class="staff-access-link" to="/admin" aria-label="Research administration"
+      <RouterLink class="staff-access-link" :to="workspaceTarget('/admin')" aria-label="Research administration"
         :title="sidebarCollapsed ? 'Research administration' : undefined">
         <svg class="nav-glyph" viewBox="0 0 24 24" width="21" height="21" fill="none"
           stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -160,7 +160,7 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
         <RouterLink v-for="section in availableSections" :key="section.path" :to="workspaceTarget(section.path)" @click="closeNavigation">
           {{ section.name }}
         </RouterLink>
-        <RouterLink class="mobile-admin-link" to="/admin" @click="closeNavigation">Research administration</RouterLink>
+        <RouterLink class="mobile-admin-link" :to="workspaceTarget('/admin')" @click="closeNavigation">Research administration</RouterLink>
       </nav>
 
       <div v-if="launcherOpen" class="launcher-backdrop" @click.self="closeLauncher">
