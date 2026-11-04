@@ -1110,7 +1110,11 @@ test('14H102 Research Administration is compact, accessible and never implies ed
   await expect(page.getByRole('heading',{name:'Research administration',exact:true})).toBeVisible();
   await expect(page.getByText('Staff authentication is not configured here. No management operations are available.')).toBeVisible();
   const access=page.getByRole('complementary',{name:'Administration availability'});
-  await expect(access.locator('.research-capabilities>div')).toHaveCount(4);
+  await expect(access.locator('.research-capabilities>div')).toHaveCount(5);
+  await expect(access.getByTestId('admin-membership-status')).toContainText('Not verifiable');
+  await expect(access.getByTestId('admin-role-status')).toContainText('Not verified');
+  await expect(access).toContainText('Database editing');
+  await expect(access).toContainText('Not connected');
   await expect(access).toContainText('Not verifiable');
   const operations=page.getByRole('region',{name:'Research operations readiness'});
   await expect(operations.locator('.admin-operations-list>li')).toHaveCount(3);
