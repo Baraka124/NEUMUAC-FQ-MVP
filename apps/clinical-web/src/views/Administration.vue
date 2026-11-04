@@ -11,6 +11,19 @@ const signedIn=computed(()=>authController?.state.phase==='signed-in');
 const phase=computed(()=>authController?.state.phase||'unavailable');
 const identity=computed(()=>signedIn.value?authController?.state.email||'Authenticated account':'No research account signed in');
 const returnToVariant=computed(()=>safeResearchReturnPath(route.query.from,'variant'));
+const roleAssignment=computed(()=>signedIn.value&&researcherRole.phase==='verified'?researcherRole.role:null);
+const roleLabel=computed(()=>{
+ if(!signedIn.value||researcherRole.phase==='unavailable')return 'Not verifiable';
+ if(researcherRole.phase==='checking')return 'Checking…';
+ if(researcherRole.phase==='unassigned')return 'No assignment';
+ if(roleAssignment.value==='administrator')return 'Administrator';
+ if(roleAssignment.value==='reviewer')return 'Scientific reviewer';
+ if(roleAssignment.value==='contributor')return 'Research contributor';
+ return 'Not verifiable';
+});
+const reviewerStatus=computed(()=>roleAssignment.value==='reviewer'?'Verified assignment':'Not verified');
+const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified assignment':'Not verified');
+
 </script>
 <template>
  <div class="page research-admin">
@@ -34,6 +47,7 @@ const returnToVariant=computed(()=>safeResearchReturnPath(route.query.from,'vari
     <p v-else-if="phase==='error'" role="alert" class="admin-session-state">Authentication could not be confirmed. Editing remains unavailable.</p>
     <p v-else-if="!signedIn&&authController" class="admin-session-state">Sign in to identify your research account.</p>
     <p v-else-if="!signedIn" class="admin-session-state">Staff authentication is not configured here. No management operations are available.</p>
+    <p v-else class="admin-session-state">Account identity confirmed. Editing and approvals remain separate server-authorized operations.</p>
     <div class="admin-session-actions">
      <RouterLink v-if="!signedIn&&authController" class="research-entry-link" to="/sign-in">Sign in <span aria-hidden="true">→</span></RouterLink>
      <RouterLink v-else class="research-entry-link" to="/variants">Explore public variants <span aria-hidden="true">→</span></RouterLink>
@@ -44,18 +58,19 @@ const returnToVariant=computed(()=>safeResearchReturnPath(route.query.from,'vari
      <h2>Access verification</h2>
      <ContextHelp label="About role verification" title="Research permissions">
       <p>A valid session identifies an account. A recorded researcher role is shown only when the research role service verifies it.</p>
-      <p>Reviewer and administrator assignments remain unverified. Legacy names, a professional title or an email address cannot establish those permissions.</p>
+      <p>Contributor, reviewer and administrator assignments are displayed only after database verification against the signed-in account. A role alone cannot enable editing without protected write endpoints.</p>
      </ContextHelp>
     </div>
     <dl class="research-capabilities">
      <div><dt>Identity</dt><dd>{{signedIn?'Session present':'Not authenticated'}}</dd></div>
-     <div><dt>Research membership</dt><dd>{{researcherRole.phase==='verified'?researcherRole.role:researcherRole.phase==='unassigned'?'No assignment':'Not verifiable'}}</dd></div>
-     <div><dt>Scientific reviewer role</dt><dd>Not verifiable</dd></div>
-     <div><dt>Administrator role</dt><dd>Not verifiable</dd></div>
+     <div><dt>Research membership</dt><dd data-testid="admin-membership-status">{{roleLabel}}</dd></div>
+     <div><dt>Scientific reviewer role</dt><dd>{{reviewerStatus}}</dd></div>
+     <div><dt>Administrator role</dt><dd data-testid="admin-role-status">{{adminStatus}}</dd></div>
+     <div><dt>Database editing</dt><dd>Not connected</dd></div>
     </dl>
     <div class="admin-role-actions">
-     <p v-if="signedIn&&researcherRole.phase==='unavailable'" role="alert">Role verification unavailable. No operations will be enabled.</p>
-     <button v-if="signedIn" type="button" class="admin-role-refresh" @click="refreshResearcherRole">Recheck role</button>
+     <p v-if="signedIn&&researcherRole.phase==='unavailable'" role="alert">{{researcherRole.message||'Role verification unavailable. No operations will be enabled.'}}</p>
+     <button v-if="signedIn" type="button" class="admin-role-refresh" :disabled="researcherRole.phase==='checking'" @click="refreshResearcherRole">Recheck role</button>
     </div>
    </aside>
   </section>
@@ -110,6 +125,7 @@ const returnToVariant=computed(()=>safeResearchReturnPath(route.query.from,'vari
 .admin-role-actions p{font-size:12px;line-height:1.5;color:#9b523d;margin:0}
 .admin-role-refresh{min-height:40px;border:1px solid #ccd9d9;border-radius:4px;background:#fff;color:#245f66;font:inherit;font-size:12px;font-weight:680;padding:8px 13px;cursor:pointer}
 .admin-role-refresh:hover{background:#edf3f3}
+.admin-role-refresh:disabled{opacity:.55;cursor:wait}
 .admin-readiness{margin:0;padding:20px 0 0;border:0}
 .admin-readiness .admin-section-heading{margin-bottom:8px}
 .admin-operations-list{display:grid;list-style:none;gap:0;margin:0;padding:0}
