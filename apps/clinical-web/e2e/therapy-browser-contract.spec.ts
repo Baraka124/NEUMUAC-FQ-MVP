@@ -500,3 +500,34 @@ test('14H99 dossier shows scientific data without numbering, duplicate headings 
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+
+test('14H102 verified variant can enter Research Administration and return with its filters',async({page})=>{
+ await setup(page);
+ for(const width of [390,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/variants/35?q=3120&class=I&sort=name-desc');
+  await expectFiveRows(page.getByTestId('five-therapy-workspace'));
+  if(width<=760){
+   await page.getByRole('button',{name:/workspaces/i}).click();
+   await page.getByRole('navigation',{name:'Mobile workspaces'}).getByRole('link',{name:'Research administration'}).click();
+  }else{
+   await page.getByRole('navigation',{name:'Workspaces'}).getByRole('link',{name:'Research administration'}).click();
+  }
+  await expect(page).toHaveURL(/#\/admin\?from=/);
+  const saved=await page.evaluate(()=>new URLSearchParams(location.hash.slice(location.hash.indexOf('?')+1)).get('from'));
+  expect(saved).toBe('/variants/35?q=3120&class=I&sort=name-desc');
+  await page.getByTestId('admin-context-return').click();
+  await expect(page).toHaveURL(/#\/variants\/35\?/);
+  await expectFiveRows(page.getByTestId('five-therapy-workspace'));
+  const query=await page.evaluate(()=>Object.fromEntries(new URLSearchParams(location.hash.slice(location.hash.indexOf('?')+1))));
+  expect(query.q).toBe('3120');
+  expect(query.class).toBe('I');
+  expect(query.sort).toBe('name-desc');
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+ await page.goto('/#/admin?from='+encodeURIComponent('https://untrusted.example'));
+ await expect(page.getByTestId('admin-context-return')).toHaveCount(0);
+ await page.goto('/#/admin?from='+encodeURIComponent('//untrusted.example'));
+ await expect(page.getByTestId('admin-context-return')).toHaveCount(0);
+});
