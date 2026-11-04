@@ -1101,3 +1101,48 @@ test('14H101 Helios keeps one heading per area, compact workbench and contextual
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+
+test('14H102 Research Administration is compact, accessible and never implies edit permissions',async({page})=>{
+ for(const width of [390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/admin');
+  await expect(page.getByRole('heading',{name:'Research administration',exact:true})).toBeVisible();
+  await expect(page.getByText('Staff authentication is not configured here. No management operations are available.')).toBeVisible();
+  const access=page.getByRole('complementary',{name:'Administration availability'});
+  await expect(access.locator('.research-capabilities>div')).toHaveCount(4);
+  await expect(access).toContainText('Not verifiable');
+  const operations=page.getByRole('region',{name:'Research operations readiness'});
+  await expect(operations.locator('.admin-operations-list>li')).toHaveCount(3);
+  await expect(operations.getByText('Not enabled')).toHaveCount(3);
+  await expect(page.locator('.research-admin .eyebrow,.research-admin .section-label,.research-admin .intro,.research-admin .admin-readiness-grid,.research-admin .history-disclaimer')).toHaveCount(0);
+  await page.locator('.admin-head summary').click();
+  await expect(page.getByRole('note',{name:'Research administration'})).toContainText('No management writes');
+  await page.keyboard.press('Escape');
+  await access.locator('.admin-section-heading summary').click();
+  await expect(access.getByRole('note',{name:'Research permissions'})).toContainText('A valid session identifies an account');
+  await page.keyboard.press('Escape');
+  const evidenceInfo=operations.getByText('Propose evidence').locator('..').locator('summary');
+  await evidenceInfo.click();
+  await expect(operations.getByRole('note',{name:'Evidence contributions'})).toContainText('verified contributor assignment');
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('button',{name:/approve|publish|edit|save/i})).toHaveCount(0);
+  const layout=await page.evaluate(()=>{
+   const head=document.querySelector('.admin-head')!.getBoundingClientRect();
+   const entry=document.querySelector('.research-entry')!.getBoundingClientRect();
+   const op=document.querySelector('.admin-readiness')!.getBoundingClientRect();
+   const items=[...document.querySelectorAll<HTMLElement>('.admin-operations-list>li')];
+   return {
+    gap:entry.top-head.bottom,
+    operationsTop:op.top,
+    dividerCount:items.filter(e=>getComputedStyle(e).borderBottomWidth!=='0px').length
+   };
+  });
+  expect(layout.gap).toBeLessThan(55);
+  expect(layout.dividerCount).toBe(0);
+  if(width>=768)expect(layout.operationsTop).toBeLessThan(720);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
+
+

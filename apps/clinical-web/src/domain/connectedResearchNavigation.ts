@@ -47,9 +47,10 @@ export function connectedResearchDestination(target:string,current:ResearchLocat
  if(target==='/variants'&&variantFromPath(current.path)){
   return variantWorklistJourneyPath(searchFilters(current.query))||'/variants';
  }
- if(!['/evidence','/genotype','/intelligence'].includes(target))return target;
+ if(!['/evidence','/genotype','/intelligence','/admin'].includes(target))return target;
  const origin=originatingVariant(current);
  if(!origin)return target;
+ if(target==='/admin')return {path:'/admin',query:{from:origin.returnPath}};
  if(target==='/genotype')return {path:'/genotype',query:{a:origin.id,from:origin.returnPath}};
  if(target==='/intelligence')return {path:'/intelligence',query:{variant:origin.id,from:origin.returnPath}};
  if(current.path==='/genotype'){
