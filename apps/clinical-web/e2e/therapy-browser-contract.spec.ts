@@ -512,7 +512,7 @@ test('14H102 verified variant can enter Research Administration and return with 
    await page.getByRole('button',{name:/workspaces/i}).click();
    await page.getByRole('navigation',{name:'Mobile workspaces'}).getByRole('link',{name:'Research administration'}).click();
   }else{
-   await page.getByRole('navigation',{name:'Workspaces'}).getByRole('link',{name:'Research administration'}).click();
+   await page.locator('.staff-access-link').click();
   }
   await expect(page).toHaveURL(/#\/admin\?from=/);
   const saved=await page.evaluate(()=>new URLSearchParams(location.hash.slice(location.hash.indexOf('?')+1)).get('from'));
