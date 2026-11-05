@@ -7,6 +7,7 @@ import {researcherRole,refreshResearcherRole} from '../services/researchRole';
 import {safeResearchReturnPath} from '../domain/researchJourney';
 import {readConfigFromEnvironment} from '../services/liveVariants';
 import {canReadSourceReviewQueue,createSourceReviewQueue,type SourceCorrectionReviewItem} from '../services/sourceCorrectionReviewQueue';
+import {canDecideSourceCorrection,createSourceCorrectionDecisionClient,type SourceCorrectionDecision} from '../services/sourceCorrectionDecision';
 
 const route=useRoute();
 const signedIn=computed(()=>authController?.state.phase==='signed-in');
@@ -29,6 +30,54 @@ const queueSource=queueEnabled&&queueConfig&&authController?createSourceReviewQu
 const queueAllowed=computed(()=>Boolean(queueSource)&&canReadSourceReviewQueue(
  queueEnabled,authController?.state.phase??'signed-out',researcherRole
 ));
+const decisionEnabled=import.meta.env.VITE_NFQ_SOURCE_REVIEW_DECISIONS_ENABLED==='true';
+const decisionClient=decisionEnabled&&queueEnabled&&queueConfig&&authController
+ ?createSourceCorrectionDecisionClient(queueConfig,authController):null;
+const decisionAllowed=computed(()=>Boolean(decisionClient)&&queueAllowed.value&&
+ canDecideSourceCorrection(decisionEnabled,authController?.state.phase??'signed-out',researcherRole));
+const decisionNotes=ref<Record<string,string>>({});
+const decisionTypes=ref<Record<string,SourceCorrectionDecision>>({});
+const pendingDecision=ref<string|null>(null);
+const decisionNotice=ref('');
+const uncertainDecision=ref(false);
+let decisionSequence=0;
+function canReviewItem(item:SourceCorrectionReviewItem):boolean{
+ const account=authController?.state.userId;
+ return decisionAllowed.value&&!pendingDecision.value&&!uncertainDecision.value&&Boolean(account)
+  &&item.createdBy.toLowerCase()!==account?.toLowerCase();
+}
+async function decideSourceCorrection(item:SourceCorrectionReviewItem):Promise<void>{
+ if(!decisionClient||!canReviewItem(item))return;
+ const choice=decisionTypes.value[item.id];
+ const note=decisionNotes.value[item.id]??'';
+ if((choice!=='accepted'&&choice!=='rejected')||note.trim().length<15||note.trim().length>900){
+  decisionNotice.value='Select a decision and enter a rationale of 15–900 characters.';
+  return;
+ }
+ const run=++decisionSequence;
+ pendingDecision.value=item.id;decisionNotice.value='';
+ try{
+  await decisionClient.decide(item,choice,note);
+  if(run!==decisionSequence)return;
+  // A successful RPC records a review only: evidence_links remains unchanged.
+  decisionNotice.value='Decision recorded. The published reference has not changed.';
+  decisionNotes.value={};decisionTypes.value={};
+  clearReviewQueue();
+ }catch(error){
+  if(run!==decisionSequence)return;
+  // No automatic retry after a possibly committed POST.
+  uncertainDecision.value=true;
+  decisionNotice.value=error instanceof Error?error.message:'Review was not confirmed. Reload the queue.';
+ }finally{
+  if(run===decisionSequence)pendingDecision.value=null;
+ }
+}
+function refreshSourceReviewQueue():void{
+ if(pendingDecision.value)return;
+ uncertainDecision.value=false;decisionNotice.value='';
+ void loadSourceReviews();
+}
+
 const reviewItems=ref<readonly SourceCorrectionReviewItem[]>([]);
 const queuePhase=ref<'idle'|'loading'|'ready'|'error'>('idle');
 const queueNotice=ref('');
@@ -53,7 +102,11 @@ async function loadSourceReviews():Promise<void>{
   queueNotice.value='Review data could not be verified. No records are displayed.';
  }
 }
-watch(()=>[authController?.state.phase,authController?.state.userId,researcherRole.phase,researcherRole.role],clearReviewQueue);
+watch(()=>[authController?.state.phase,authController?.state.userId,researcherRole.phase,researcherRole.role],()=>{
+ ++decisionSequence;pendingDecision.value=null;uncertainDecision.value=false;
+ decisionNotes.value={};decisionTypes.value={};decisionNotice.value='';
+ clearReviewQueue();
+});
 onUnmounted(clearReviewQueue);
 const reviewerStatus=computed(()=>roleAssignment.value==='reviewer'?'Verified assignment':'Not verified');
 const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified assignment':'Not verified');
@@ -65,7 +118,7 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
    <h1>Research administration</h1>
    <ContextHelp label="About research administration" title="Research administration">
     <p>This workspace reports authenticated research-session state and the permissions that can be verified. Signing in does not grant scientific or administrative authority.</p>
-    <p>Contribution, review and administrative actions require independently verified assignments and an attributable audit trail. No management writes are enabled here.</p>
+    <p>Contribution, review and administrative actions require independently verified assignments and an attributable audit trail. No management writes are enabled by default. Research actions require explicit activation and independent server authorization.</p>
    </ContextHelp>
   </header>
   <nav v-if="returnToVariant" class="nfq-research-trail admin-trail" aria-label="Research return path">
@@ -123,7 +176,7 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
     </li>
     <li>
      <div class="admin-operation-name"><h3>Review and validate</h3><ContextHelp label="About scientific review" title="Scientific review"><p>Scientific review requires independently verified reviewer authority, traceable evidence and controlled decisions.</p></ContextHelp></div>
-     <span class="admin-operation-status">Not enabled</span>
+     <span class="admin-operation-status">{{decisionAllowed?'Review decisions available':'Not enabled'}}</span>
     </li>
     <li>
      <div class="admin-operation-name"><h3>Research governance</h3><ContextHelp label="About research governance" title="Research governance"><p>Role assignment and audit administration require verified administrator authority and server-side enforcement.</p></ContextHelp></div>
@@ -136,12 +189,13 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
     <h2>Source correction review</h2>
     <ContextHelp label="About source correction review" title="Source correction review">
      <p>Submitted changes are separate from published references. A recorded decision does not automatically change evidence or clinical classifications.</p>
-     <p>The queue requires verified reviewer or administrator membership. Review decisions are not enabled in this phase.</p>
+     <p>The queue requires verified reviewer or administrator membership. Review decisions require a separate server-authorized operation and cannot be made by the proposal author.</p>
     </ContextHelp>
    </div>
    <p v-if="!queueAllowed" class="admin-session-state">Reviewer access and the authorised review connection must be verified.</p>
    <template v-else>
-    <button type="button" class="admin-role-refresh" :disabled="queuePhase==='loading'" @click="loadSourceReviews">{{queuePhase==='loading'?'Checking…':'Load pending proposals'}}</button>
+    <button type="button" class="admin-role-refresh" :disabled="queuePhase==='loading'||Boolean(pendingDecision)" @click="refreshSourceReviewQueue">{{queuePhase==='loading'?'Checking…':'Load pending proposals'}}</button>
+    <p v-if="decisionNotice" role="status" class="admin-session-state">{{decisionNotice}}</p>
     <p v-if="queueNotice" role="status" class="admin-session-state">{{queueNotice}}</p>
     <p v-else-if="queuePhase==='ready'&&!reviewItems.length" role="status" class="admin-session-state">No submitted source corrections were returned.</p>
     <div v-if="queuePhase==='ready'&&reviewItems.length" class="source-review-list" aria-label="Pending source corrections">
@@ -151,7 +205,25 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
       <p>Recorded: {{item.recordedValue??'Not recorded'}}</p>
       <p>Proposed: {{item.proposedValue}}</p>
       <p>Rationale: {{item.rationale}}</p>
-      <p class="admin-session-state">Awaiting independent scientific review. Approval controls are not enabled.</p>
+      <template v-if="decisionAllowed">
+       <p v-if="item.createdBy.toLowerCase()===authController?.state.userId?.toLowerCase()" class="admin-session-state">A different scientific reviewer must assess this proposal.</p>
+       <div v-else class="source-review-decision" :aria-label="'Decision for proposal '+item.id">
+        <label :for="'nfq-source-decision-'+item.id">Review decision</label>
+        <select :id="'nfq-source-decision-'+item.id" v-model="decisionTypes[item.id]" :disabled="!canReviewItem(item)">
+         <option disabled value="">Choose a decision</option>
+         <option value="accepted">Accept proposal for review record</option>
+         <option value="rejected">Reject proposal</option>
+        </select>
+        <label :for="'nfq-source-rationale-'+item.id">Independent review rationale</label>
+        <textarea :id="'nfq-source-rationale-'+item.id" v-model="decisionNotes[item.id]"
+         rows="3" maxlength="900" :disabled="!canReviewItem(item)" placeholder="Document the underlying scientific evidence; do not include patient details." />
+        <button type="button" class="admin-role-refresh"
+         :disabled="!canReviewItem(item)" @click="decideSourceCorrection(item)">
+         {{pendingDecision===item.id?'Recording…':'Record review decision'}}
+        </button>
+       </div>
+      </template>
+      <p v-else class="admin-session-state">Awaiting independent scientific review. Review decisions are not enabled.</p>
      </article>
     </div>
    </template>
@@ -213,4 +285,9 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
 .source-review-item{padding:13px 0;border-bottom:1px solid #dce1de;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
 .source-review-item p{margin:5px 0;color:#53636c}
 .source-review-item strong{font-size:13px;color:#2c3a43}
+.source-review-decision{display:grid;gap:7px;max-width:570px;margin:11px 0 3px}
+.source-review-decision label{font-size:12px;font-weight:650;color:#35444d}
+.source-review-decision select,.source-review-decision textarea{width:100%;min-width:0;padding:9px;border:1px solid #cdd9d9;border-radius:4px;background:#fff;color:#35444d;font:inherit;font-size:12px}
+.source-review-decision button{justify-self:start}
+.source-review-decision :focus-visible{outline:2px solid #197b82;outline-offset:2px}
 </style>
