@@ -43,7 +43,7 @@ const uncertainDecision=ref(false);
 let decisionSequence=0;
 function canReviewItem(item:SourceCorrectionReviewItem):boolean{
  const account=authController?.state.userId;
- return decisionAllowed.value&&!pendingDecision.value&&!uncertainDecision&&Boolean(account)
+ return decisionAllowed.value&&!pendingDecision.value&&!uncertainDecision.value&&Boolean(account)
   &&item.createdBy.toLowerCase()!==account?.toLowerCase();
 }
 async function decideSourceCorrection(item:SourceCorrectionReviewItem):Promise<void>{
@@ -118,7 +118,7 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
    <h1>Research administration</h1>
    <ContextHelp label="About research administration" title="Research administration">
     <p>This workspace reports authenticated research-session state and the permissions that can be verified. Signing in does not grant scientific or administrative authority.</p>
-    <p>Contribution, review and administrative actions require independently verified assignments and an attributable audit trail. No management writes are enabled here.</p>
+    <p>Contribution, review and administrative actions require independently verified assignments and an attributable audit trail. Research actions remain unavailable unless explicitly activated and independently authorised by the server.</p>
    </ContextHelp>
   </header>
   <nav v-if="returnToVariant" class="nfq-research-trail admin-trail" aria-label="Research return path">
@@ -176,7 +176,7 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
     </li>
     <li>
      <div class="admin-operation-name"><h3>Review and validate</h3><ContextHelp label="About scientific review" title="Scientific review"><p>Scientific review requires independently verified reviewer authority, traceable evidence and controlled decisions.</p></ContextHelp></div>
-     <span class="admin-operation-status">Not enabled</span>
+     <span class="admin-operation-status">{{decisionAllowed?'Review decisions available':'Not enabled'}}</span>
     </li>
     <li>
      <div class="admin-operation-name"><h3>Research governance</h3><ContextHelp label="About research governance" title="Research governance"><p>Role assignment and audit administration require verified administrator authority and server-side enforcement.</p></ContextHelp></div>
