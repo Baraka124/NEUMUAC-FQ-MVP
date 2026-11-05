@@ -1,0 +1,46 @@
+name: neumuacFQ source-correction proposal PostgreSQL contract
+on:
+  pull_request:
+    paths:
+      - 'supabase/proposed/14h105_source_correction_review.sql'
+      - 'staging/review/009_source_correction_contract.sql'
+      - '.github/workflows/source-correction-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/proposed/14h105_source_correction_review.sql'
+      - 'staging/review/009_source_correction_contract.sql'
+      - '.github/workflows/source-correction-contract.yml'
+permissions:
+  contents: read
+jobs:
+  isolated-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: source_correction_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: disposable-only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d source_correction_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install PostgreSQL client
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+      - name: Verify isolated proposal and independent-review contract
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: postgres
+          PGPASSWORD: disposable-only
+          PGDATABASE: source_correction_test
+        run: psql -X -v ON_ERROR_STOP=1 -f staging/review/009_source_correction_contract.sql
