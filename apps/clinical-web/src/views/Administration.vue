@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import {computed} from 'vue';
+import {computed,ref,watch,onUnmounted} from 'vue';
 import {RouterLink,useRoute} from 'vue-router';
 import ContextHelp from '../components/ContextHelp.vue';
 import {authController} from '../services/authSession';
 import {researcherRole,refreshResearcherRole} from '../services/researchRole';
 import {safeResearchReturnPath} from '../domain/researchJourney';
+import {readConfigFromEnvironment} from '../services/liveVariants';
+import {canReadSourceReviewQueue,createSourceReviewQueue,type SourceCorrectionReviewItem} from '../services/sourceCorrectionReviewQueue';
 
 const route=useRoute();
 const signedIn=computed(()=>authController?.state.phase==='signed-in');
@@ -21,6 +23,38 @@ const roleLabel=computed(()=>{
  if(roleAssignment.value==='contributor')return 'Research contributor';
  return 'Not verifiable';
 });
+const queueEnabled=import.meta.env.VITE_NFQ_SOURCE_REVIEW_QUEUE_ENABLED==='true';
+const queueConfig=readConfigFromEnvironment();
+const queueSource=queueEnabled&&queueConfig&&authController?createSourceReviewQueue(queueConfig,authController):null;
+const queueAllowed=computed(()=>Boolean(queueSource)&&canReadSourceReviewQueue(
+ queueEnabled,authController?.state.phase??'signed-out',researcherRole
+));
+const reviewItems=ref<readonly SourceCorrectionReviewItem[]>([]);
+const queuePhase=ref<'idle'|'loading'|'ready'|'error'>('idle');
+const queueNotice=ref('');
+let queueGeneration=0;
+let queueAbort:AbortController|null=null;
+function clearReviewQueue():void{
+ ++queueGeneration;queueAbort?.abort();queueAbort=null;
+ reviewItems.value=[];queuePhase.value='idle';queueNotice.value='';
+}
+async function loadSourceReviews():Promise<void>{
+ clearReviewQueue();
+ if(!queueSource||!queueAllowed.value)return;
+ const run=queueGeneration;
+ const abort=new AbortController();queueAbort=abort;queuePhase.value='loading';
+ try{
+  const records=await queueSource.list(abort.signal);
+  if(run!==queueGeneration||abort.signal.aborted||!queueAllowed.value)return;
+  reviewItems.value=records;queuePhase.value='ready';
+ }catch{
+  if(run!==queueGeneration||abort.signal.aborted)return;
+  reviewItems.value=[];queuePhase.value='error';
+  queueNotice.value='Review data could not be verified. No records are displayed.';
+ }
+}
+watch(()=>[authController?.state.phase,authController?.state.userId,researcherRole.phase,researcherRole.role],clearReviewQueue);
+onUnmounted(clearReviewQueue);
 const reviewerStatus=computed(()=>roleAssignment.value==='reviewer'?'Verified assignment':'Not verified');
 const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified assignment':'Not verified');
 
@@ -97,6 +131,31 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
     </li>
    </ul>
   </section>
+  <section v-if="queueEnabled" class="admin-readiness source-review-readiness" aria-label="Source correction review">
+   <div class="admin-section-heading">
+    <h2>Source correction review</h2>
+    <ContextHelp label="About source correction review" title="Source correction review">
+     <p>Submitted changes are separate from published references. A recorded decision does not automatically change evidence or clinical classifications.</p>
+     <p>The queue requires verified reviewer or administrator membership. Review decisions are not enabled in this phase.</p>
+    </ContextHelp>
+   </div>
+   <p v-if="!queueAllowed" class="admin-session-state">Reviewer access and the authorised review connection must be verified.</p>
+   <template v-else>
+    <button type="button" class="admin-role-refresh" :disabled="queuePhase==='loading'" @click="loadSourceReviews">{{queuePhase==='loading'?'Checking…':'Load pending proposals'}}</button>
+    <p v-if="queueNotice" role="status" class="admin-session-state">{{queueNotice}}</p>
+    <p v-else-if="queuePhase==='ready'&&!reviewItems.length" role="status" class="admin-session-state">No submitted source corrections were returned.</p>
+    <div v-if="queuePhase==='ready'&&reviewItems.length" class="source-review-list" aria-label="Pending source corrections">
+     <article v-for="item in reviewItems" :key="item.id" class="source-review-item">
+      <div><strong>Proposal {{item.id}}</strong><span> · Evidence #{{item.referenceId}}</span></div>
+      <p>Field: {{item.field}} · Variant #{{item.variantId}}</p>
+      <p>Recorded: {{item.recordedValue??'Not recorded'}}</p>
+      <p>Proposed: {{item.proposedValue}}</p>
+      <p>Rationale: {{item.rationale}}</p>
+      <p class="admin-session-state">Awaiting independent scientific review. Approval controls are not enabled.</p>
+     </article>
+    </div>
+   </template>
+  </section>
  </div>
 </template>
 <style scoped>
@@ -150,4 +209,8 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
  .admin-operations-list li{gap:6px 12px;padding:10px 0}
  .admin-operation-name{gap:6px}
 }
+.source-review-list{margin-top:12px}
+.source-review-item{padding:13px 0;border-bottom:1px solid #dce1de;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.source-review-item p{margin:5px 0;color:#53636c}
+.source-review-item strong{font-size:13px;color:#2c3a43}
 </style>
