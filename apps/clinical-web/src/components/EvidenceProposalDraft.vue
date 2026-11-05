@@ -49,7 +49,7 @@ const fields:readonly {value:SourceCorrectionField;label:string}[]=[
  {value:'category',label:'Recorded category'},{value:'doi',label:'DOI'},{value:'pmid',label:'PMID'}
 ];
 const current=computed(()=>String(props.reference[field.value]??'Not recorded'));
-function close(){if(submitting.value)return;open.value=false;suggestedValue.value='';rationale.value='';notice.value='';submittedId.value=null;}
+function close(){if(submitting.value)return;open.value=false;suggestedValue.value='';rationale.value='';notice.value='';}
 onUnmounted(()=>{++submitSequence;});
 function downloadDraft():void{
  const packet=prepareEvidenceContribution({reference:props.reference,field:field.value,suggestedValue:suggestedValue.value,rationale:rationale.value});
@@ -69,14 +69,14 @@ function downloadDraft():void{
   <div v-if="open" :id="'source-draft-'+reference.id" class="nfq-proposal-content" data-testid="source-proposal-draft">
    <p class="nfq-proposal-note">Source correction proposal. No published record changes without a separate authorised process. Do not enter patient information.</p>
    <label :for="'draft-field-'+reference.id">Recorded field</label>
-   <select :id="'draft-field-'+reference.id" v-model="field" @change="suggestedValue='';notice=''">
+   <select :id="'draft-field-'+reference.id" :disabled="submitting||Boolean(submittedId)" v-model="field" @change="suggestedValue='';notice=''">
     <option v-for="entry in fields" :key="entry.value" :value="entry.value">{{entry.label}}</option>
    </select>
    <p class="nfq-proposal-current">Currently recorded: {{current}}</p>
    <label :for="'draft-proposed-'+reference.id">Suggested value</label>
-   <input :id="'draft-proposed-'+reference.id" v-model="suggestedValue" maxlength="200" placeholder="Source-supported correction" autocomplete="off" />
+   <input :id="'draft-proposed-'+reference.id" :disabled="submitting||Boolean(submittedId)" v-model="suggestedValue" maxlength="200" placeholder="Source-supported correction" autocomplete="off" />
    <label :for="'draft-reason-'+reference.id">Research rationale</label>
-   <textarea :id="'draft-reason-'+reference.id" v-model="rationale" rows="3" maxlength="900" placeholder="Explain what the underlying publication actually records." />
+   <textarea :id="'draft-reason-'+reference.id" :disabled="submitting||Boolean(submittedId)" v-model="rationale" rows="3" maxlength="900" placeholder="Explain what the underlying publication actually records." />
    <div class="nfq-proposal-actions">
     <button type="button" @click="downloadDraft">Download local proposal · .md</button>
     <button v-if="canSubmit" type="button" :disabled="submitting||Boolean(submittedId)" @click="submitProposal">{{submitting?'Submitting…':submittedId?'Submitted for review':'Submit for scientific review'}}</button>
