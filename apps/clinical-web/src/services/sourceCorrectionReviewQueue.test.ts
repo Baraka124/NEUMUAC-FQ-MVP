@@ -23,7 +23,7 @@ describe('source-correction review queue',()=>{
   expect(()=>decodeSourceReviewQueue(Array(22).fill(row))).toThrow();
  });
  it('uses the signed-in user token and a read-only scoped GET',async()=>{
-  const request=vi.fn(async()=>new Response(JSON.stringify([row]),{status:200}));
+  const request=vi.fn(async(_url:string,_init:RequestInit)=>new Response(JSON.stringify([row]),{status:200}));
   const queue=createSourceReviewQueue(config,session() as any,request as any);
   expect(await queue.list()).toHaveLength(1);
   const [url,init]=request.mock.calls[0];
