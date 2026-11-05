@@ -118,7 +118,7 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
    <h1>Research administration</h1>
    <ContextHelp label="About research administration" title="Research administration">
     <p>This workspace reports authenticated research-session state and the permissions that can be verified. Signing in does not grant scientific or administrative authority.</p>
-    <p>Contribution, review and administrative actions require independently verified assignments and an attributable audit trail. Research actions remain unavailable unless explicitly activated and independently authorised by the server.</p>
+    <p>Contribution, review and administrative actions require independently verified assignments and an attributable audit trail. No management writes are enabled by default. Research actions require explicit activation and independent server authorization.</p>
    </ContextHelp>
   </header>
   <nav v-if="returnToVariant" class="nfq-research-trail admin-trail" aria-label="Research return path">
