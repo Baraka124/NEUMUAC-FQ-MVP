@@ -4,7 +4,7 @@ Deployment date: 2026-11-05. Supabase project: Cystic Fibrosis (`oxlkisjwfarseyq
 
 ## Applied database migration
 - Production migration name: `neumuacfq_phase_14h109_source_correction_private_review_foundation`
-- Version: confirm via Supabase migration history; do not assume it matches the original proposed file timestamp.
+- Version: `20261105200034` (confirmed from Supabase migration history).
 - Repository SQL: `supabase/proposed/14h105_source_correction_review.sql` at blob SHA `144479bd763bfefd48caec9012c01c1c91946a35`.
 - This exact tested SQL was applied using the connected Supabase migration API. Do **not** apply it again; use migration history and the live schema when reconciling deployments.
 
