@@ -1,6 +1,7 @@
 import {createClient, type Session, type SupabaseClient} from '@supabase/supabase-js';
 import {reactive, readonly} from 'vue';
 import {readConfigFromEnvironment, validateReadOnlyConfig, type ReadSessionProvider} from './liveVariants';
+import {validActivationPassword,type InvitationTokens} from '../domain/invitationReturn';
 
 export type AuthPhase='checking'|'signed-out'|'signed-in'|'error';
 export interface AuthView {
@@ -10,7 +11,7 @@ export interface AuthView {
   userId: string | null;
   message: string | null;
 }
-export type AuthPort = Pick<SupabaseClient['auth'], 'getSession' | 'signInWithPassword' | 'signOut' | 'onAuthStateChange'>;
+export type AuthPort = Pick<SupabaseClient['auth'], 'getSession' | 'signInWithPassword' | 'signOut' | 'onAuthStateChange' | 'setSession' | 'updateUser'>;
 
 function verifiedUserId(session:Session|null):string|null {
   const id=session?.user?.id;
@@ -44,6 +45,44 @@ export function createAuthController(auth:AuthPort) {
         applySession(data.session);
       }catch{
         if(current===sequence){state.phase='error';state.message='Authentication is currently unavailable.';}
+      }
+    },
+    async establishInvitation(tokens:InvitationTokens):Promise<boolean>{
+      state.message=null;
+      try{
+        const {data,error}=await auth.setSession({access_token:tokens.accessToken,refresh_token:tokens.refreshToken});
+        if(error||!data.session?.access_token||!verifiedUserId(data.session)){
+          state.message='The invitation link is expired or could not be verified. Request a new invitation.';
+          return false;
+        }
+        applySession(data.session);
+        return true;
+      }catch{
+        state.message='The invitation could not be verified. Request a new invitation.';
+        return false;
+      }
+    },
+    async chooseInvitationPassword(password:string):Promise<boolean>{
+      if(!validActivationPassword(password)||state.phase!=='signed-in'||!state.userId){
+        state.message='A verified invitation and a password of at least 12 characters are required.';
+        return false;
+      }
+      const subject=state.userId;
+      try{
+        const {data,error}=await auth.updateUser({password});
+        if(state.phase!=='signed-in'||state.userId!==subject){
+          state.message='The account changed during activation. Sign in again.';
+          return false;
+        }
+        if(error||!data.user||data.user.id!==subject){
+          state.message='Password setup was not confirmed. Request a new invitation if the link expired.';
+          return false;
+        }
+        state.message=null;
+        return true;
+      }catch{
+        state.message='Password setup could not be confirmed. Try again before leaving this page.';
+        return false;
       }
     },
     async signIn(email:string,password:string):Promise<boolean>{
