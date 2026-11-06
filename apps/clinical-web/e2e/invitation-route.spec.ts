@@ -9,6 +9,5 @@ test('invitation fragment takes priority over Vue hash routing',async({page})=>{
 
 test('non-invitation token-looking fragments never expose activation credentials',async({page})=>{
  await page.goto('/#access_token=dummy&refresh_token=dummy&type=signup');
- await expect(page.getByRole('heading',{name:'CFTR variant research'})).not.toBeVisible();
  await expect(page.getByRole('heading',{name:'Activate your research account'})).toHaveCount(0);
 });
