@@ -54,3 +54,29 @@ describe('session-lookup revocation race',()=>{
   expect(port.getSession).not.toHaveBeenCalled();
  });
 });
+
+describe('recovery email validation',()=>{
+ it('accepts an ordinary confirmed researcher email and uses the FQ redirect',async()=>{
+  const port=fakePort();
+  const reset=vi.fn(async()=>({data:{},error:null}));
+  const auth=createAuthController({...port,resetPasswordForEmail:reset} as any);
+  expect(await auth.requestPasswordRecovery(' BarakaAloyce750@GMAIL.COM ')).toBe(true);
+  expect(reset).toHaveBeenCalledOnce();
+  expect(reset).toHaveBeenCalledWith('barakaaloyce750@gmail.com',{redirectTo:'https://fq.neumact.org'});
+ });
+ it('rejects malformed addresses locally without sending a recovery request',async()=>{
+  const port=fakePort();
+  const reset=vi.fn();
+  const auth=createAuthController({...port,resetPasswordForEmail:reset} as any);
+  expect(await auth.requestPasswordRecovery('not-an-email')).toBe(false);
+  expect(await auth.requestPasswordRecovery('a@b')).toBe(false);
+  expect(await auth.requestPasswordRecovery('a b@example.org')).toBe(false);
+  expect(reset).not.toHaveBeenCalled();
+ });
+ it('does not claim successful delivery when Supabase refuses the request',async()=>{
+  const port=fakePort();
+  const reset=vi.fn(async()=>({data:{},error:{message:'Rate limit'}}));
+  const auth=createAuthController({...port,resetPasswordForEmail:reset} as any);
+  expect(await auth.requestPasswordRecovery('barakaaloyce750@gmail.com')).toBe(false);
+ });
+});

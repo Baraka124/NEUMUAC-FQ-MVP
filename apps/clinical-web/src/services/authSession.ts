@@ -49,7 +49,7 @@ export function createAuthController(auth:AuthPort) {
     },
     async requestPasswordRecovery(email:string):Promise<boolean>{
       const address=email.trim().toLowerCase();
-      if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(address)||address.length>254)return false;
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)||address.length>254)return false;
       try{
         const {error}=await auth.resetPasswordForEmail(address,{redirectTo:'https://fq.neumact.org'});
         // Avoid disclosing whether an email address belongs to a research account.
