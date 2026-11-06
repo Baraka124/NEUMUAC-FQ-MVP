@@ -1,0 +1,72 @@
+name: neumuacFQ initial administrator bootstrap safety contract
+on:
+  pull_request:
+    paths:
+      - 'staging/security/140_first_administrator_manual.sql'
+      - 'staging/security/141_initial_admin_fixture.sql'
+      - 'staging/security/142_initial_admin_assertions.sql'
+      - '.github/workflows/initial-administrator-bootstrap.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'staging/security/140_first_administrator_manual.sql'
+      - 'staging/security/141_initial_admin_fixture.sql'
+      - 'staging/security/142_initial_admin_assertions.sql'
+      - '.github/workflows/initial-administrator-bootstrap.yml'
+permissions:
+  contents: read
+jobs:
+  bootstrap-disposable-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: bootstrap_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: disposable-only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d bootstrap_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install PostgreSQL client
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+      - name: Verify bootstrap and deny repeated or unknown grants
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: postgres
+          PGPASSWORD: disposable-only
+          PGDATABASE: bootstrap_test
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 -f staging/security/141_initial_admin_fixture.sql
+          if psql -X -v ON_ERROR_STOP=1 -f staging/security/140_first_administrator_manual.sql; then
+            echo 'ERROR: missing account UUID and ticket did not stop execution'
+            exit 1
+          fi
+          if psql -X -v ON_ERROR_STOP=1 -v verified_account_uuid=11111111-1111-4111-8111-111111111111 -f staging/security/140_first_administrator_manual.sql; then
+            echo 'ERROR: missing change ticket did not stop execution'
+            exit 1
+          fi
+          psql -X -v ON_ERROR_STOP=1 -tAc 'SELECT COUNT(*)=0 FROM public.nfq_research_memberships' | grep -qx t
+          psql -X -v ON_ERROR_STOP=1 -v verified_account_uuid=11111111-1111-4111-8111-111111111111 -v change_ticket=CI-VALIDATED-BOOTSTRAP -f staging/security/140_first_administrator_manual.sql
+          psql -X -v ON_ERROR_STOP=1 -f staging/security/142_initial_admin_assertions.sql
+          if psql -X -v ON_ERROR_STOP=1 -v verified_account_uuid=11111111-1111-4111-8111-111111111111 -v change_ticket=CI-DUPLICATE-DENIED -f staging/security/140_first_administrator_manual.sql; then
+            echo 'ERROR: second bootstrap was accepted'
+            exit 1
+          fi
+          psql -X -v ON_ERROR_STOP=1 -f staging/security/142_initial_admin_assertions.sql
+          psql -X -v ON_ERROR_STOP=1 -c 'TRUNCATE public.nfq_membership_audit,public.nfq_research_memberships;'
+          if psql -X -v ON_ERROR_STOP=1 -v verified_account_uuid=33333333-3333-4333-8333-333333333333 -v change_ticket=CI-UNKNOWN-DENIED -f staging/security/140_first_administrator_manual.sql; then
+            echo 'ERROR: unknown account was accepted'
+            exit 1
+          fi
+          psql -X -v ON_ERROR_STOP=1 -tAc 'SELECT COUNT(*)=0 FROM public.nfq_research_memberships' | grep -qx t

@@ -130,6 +130,15 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
      <h2 id="admin-access-heading">{{signedIn?'Research account signed in':'Research staff access'}}</h2>
     </div>
     <p class="admin-identity">{{identity}}</p>
+    <details v-if="signedIn&&authController?.state.userId" class="admin-account-disclosure" data-testid="admin-account-disclosure">
+     <summary>Research account ID</summary>
+     <div class="admin-account-detail">
+      <code data-testid="admin-account-id">{{authController.state.userId}}</code>
+      <ContextHelp label="About account ID" title="Account identity">
+       <p>This is the signed-in account identifier, not an administrator assignment or proof of ownership. Initial administrator setup requires independent identity verification and a recorded privileged procedure.</p>
+      </ContextHelp>
+     </div>
+    </details>
     <p v-if="phase==='checking'" role="status" class="admin-session-state">Checking the existing session…</p>
     <p v-else-if="phase==='error'" role="alert" class="admin-session-state">Authentication could not be confirmed. Editing remains unavailable.</p>
     <p v-else-if="!signedIn&&authController" class="admin-session-state">Sign in to identify your research account.</p>
@@ -290,4 +299,9 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
 .source-review-decision select,.source-review-decision textarea{width:100%;min-width:0;padding:9px;border:1px solid #cdd9d9;border-radius:4px;background:#fff;color:#35444d;font:inherit;font-size:12px}
 .source-review-decision button{justify-self:start}
 .source-review-decision :focus-visible{outline:2px solid #197b82;outline-offset:2px}
+.admin-account-disclosure{margin:5px 0 9px;max-width:100%;font-size:12px;color:#53636c}
+.admin-account-disclosure summary{display:list-item;width:max-content;max-width:100%;cursor:pointer;font-size:12px;font-weight:620;color:#245f66}
+.admin-account-detail{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap;padding:6px 0 2px}
+.admin-account-detail code{font:inherit;font-size:11px;overflow-wrap:anywhere;user-select:text}
+.admin-account-detail :deep(.nfq-context-help summary){width:27px;height:27px}
 </style>
