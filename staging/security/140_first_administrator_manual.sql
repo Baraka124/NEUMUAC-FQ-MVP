@@ -8,12 +8,12 @@
 \if :{?verified_account_uuid}
 \else
 \echo 'BLOCKED: verified_account_uuid must be supplied from an independently confirmed account.'
-\quit
+SELECT 1/0; -- ON_ERROR_STOP causes a non-zero exit and no changes
 \endif
 \if :{?change_ticket}
 \else
 \echo 'BLOCKED: an approved change_ticket is required.'
-\quit
+SELECT 1/0; -- ON_ERROR_STOP causes a non-zero exit and no changes
 \endif
 
 BEGIN;
