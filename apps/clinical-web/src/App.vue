@@ -11,7 +11,7 @@ const router=useRouter();
 function workspaceTarget(path:string){return connectedResearchDestination(path,{path:route.path,fullPath:route.fullPath,query:route.query});}
 function goToShortcut(path:string){closeLauncher();void router.push(workspaceTarget(path));}
 const isHome = computed(() => route.path==='/workspace');
-const isOuterEntry = computed(() => route.path==='/' || route.path==='/sign-in');
+const isOuterEntry = computed(() => route.path==='/' || route.path==='/sign-in' || route.path==='/activate');
 const mobileMenuOpen = ref(false);
 const launcherOpen=ref(false);
 const launcherQuery=ref('');
