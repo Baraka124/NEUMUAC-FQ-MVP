@@ -3,7 +3,7 @@ import {authController} from './authSession';
 import {readInvitationReturn} from '../domain/invitationReturn';
 
 export type InvitePhase='idle'|'verifying'|'ready'|'error'|'complete';
-const state=reactive<{phase:InvitePhase;message:string}>({phase:'idle',message:''});
+const state=reactive<{phase:InvitePhase;message:string;purpose:'invite'|'recovery'}>({phase:'idle',message:'',purpose:'invite'});
 export const invitationActivation=readonly(state);
 
 export async function consumeInvitationReturn(location:Pick<Location,'hash'|'pathname'|'search'>,
@@ -16,7 +16,7 @@ export async function consumeInvitationReturn(location:Pick<Location,'hash'|'pat
   state.phase='error';state.message='Invitation could not be verified. Ask the administrator for a new invitation.';
   return true;
  }
- state.phase='verifying';state.message='';
+ state.phase='verifying';state.message='';state.purpose=result.kind;
  if(await authController.establishInvitation(result.tokens)){
   state.phase='ready';
  }else{
@@ -28,7 +28,7 @@ export async function consumeInvitationReturn(location:Pick<Location,'hash'|'pat
 export async function finishInvitation(password:string):Promise<boolean>{
  if(state.phase!=='ready'||!authController)return false;
  const ok=await authController.chooseInvitationPassword(password);
- if(ok){state.phase='complete';state.message='Password created. You can now access your research workspace.';}
+ if(ok){state.phase='complete';state.message='Password saved. Your research account is ready.';}
  else state.message=authController.state.message||'Password could not be saved.';
  return ok;
 }
