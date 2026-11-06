@@ -510,7 +510,7 @@ test('14H102 verified variant can enter Research Administration and return with 
   await expectFiveRows(page.getByTestId('five-therapy-workspace'));
   if(width<=760){
    await page.getByRole('button',{name:/workspaces/i}).click();
-   await page.getByRole('navigation',{name:'Mobile workspaces'}).getByRole('link',{name:'Research administration'}).click();
+   await page.getByRole('navigation',{name:'Mobile workspaces'}).getByRole('link',{name:'Research access'}).click();
   }else{
    await page.locator('.staff-access-link').click();
   }
