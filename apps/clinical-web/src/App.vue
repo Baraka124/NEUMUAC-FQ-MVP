@@ -4,10 +4,23 @@ import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router';
 import { researchWorkspaces, researchShortcuts } from './domain/researchWorkspaces';
 import {connectedResearchDestination} from './domain/connectedResearchNavigation';
 import {authController} from './services/authSession';
+import {researcherRole} from './services/researchRole';
+import {guestDesignation} from './services/guestDesignation';
+import {resolveWorkspacePersona,workspaceTitle} from './domain/workspacePersona';
 import {readConfigFromEnvironment} from './services/liveVariants';
 
 const route = useRoute();
 const router=useRouter();
+const persona=computed(()=>resolveWorkspacePersona(
+ authController?.state.phase??'signed-out',researcherRole.phase,researcherRole.role,guestDesignation.phase
+));
+const accountWorkspaceTitle=computed(()=>workspaceTitle(persona.value));
+const sidebarAccessSummary=computed(()=>({
+ administrator:'Administrator workspace',reviewer:'Scientific review access',
+ researcher:'Research contributor',guest:'Guest · Public research',
+ pending:'Access not assigned',account:'Checking research access',public:'Public research · Read only'
+})[persona.value]);
+
 function workspaceTarget(path:string){return connectedResearchDestination(path,{path:route.path,fullPath:route.fullPath,query:route.query});}
 function goToShortcut(path:string){closeLauncher();void router.push(workspaceTarget(path));}
 const isHome = computed(() => route.path==='/workspace');
@@ -16,7 +29,7 @@ const mobileMenuOpen = ref(false);
 const launcherOpen=ref(false);
 const launcherQuery=ref('');
 const launcherInput=ref<HTMLInputElement|null>(null);
-const launcherResults=computed(()=>[...researchWorkspaces,...researchShortcuts].filter(item=>{
+const launcherResults=computed(()=>[...researchWorkspaces,...researchShortcuts.map(item=>item.id==='staff'?{...item,name:accountWorkspaceTitle.value,description:'Account, verified profile and permitted research operations'}:item)].filter(item=>{
  const q=launcherQuery.value.trim().toLocaleLowerCase();
  return !q||[item.name,item.description,...item.keywords].some(v=>v.toLocaleLowerCase().includes(q));
 }));
@@ -118,18 +131,19 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
           <span v-if="!sidebarCollapsed" class="nav-name">{{ section.name }}</span>
         </RouterLink>
       </nav>
-      <RouterLink class="staff-access-link" :to="workspaceTarget('/admin')" aria-label="Research administration"
-        :title="sidebarCollapsed ? 'Research administration' : undefined">
+      <RouterLink class="staff-access-link" :to="workspaceTarget('/admin')"  :aria-label="accountWorkspaceTitle"
+        :title="sidebarCollapsed ? accountWorkspaceTitle : undefined">
         <svg class="nav-glyph" viewBox="0 0 24 24" width="21" height="21" fill="none"
           stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M12 3 19 6v5c0 5-3.5 8.3-7 10-3.5-1.7-7-5-7-10V6l7-3Z"/>
+          <path v-if="persona==='administrator'" d="M12 3 19 6v5c0 5-3.5 8.3-7 10-3.5-1.7-7-5-7-10V6l7-3Z"/>
+          <template v-else><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></template>
           <path d="M9 12h6m-3-3v6"/>
         </svg>
-        <span v-if="!sidebarCollapsed" class="staff-link-name">Research administration <span aria-hidden="true">→</span></span>
+        <span v-if="!sidebarCollapsed" class="staff-link-name">{{accountWorkspaceTitle}} <span aria-hidden="true">→</span></span>
       </RouterLink>
       <div v-if="!sidebarCollapsed" class="sidebar-base">
         <span class="sidebar-rule" aria-hidden="true"></span>
-        <span>Public research · Read only</span>
+        <span>{{sidebarAccessSummary}}</span>
       </div>
       </div>
     </aside>
@@ -160,7 +174,7 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
         <RouterLink v-for="section in availableSections" :key="section.path" :to="workspaceTarget(section.path)" @click="closeNavigation">
           {{ section.name }}
         </RouterLink>
-        <RouterLink class="mobile-admin-link" :to="workspaceTarget('/admin')" @click="closeNavigation">Research administration</RouterLink>
+        <RouterLink class="mobile-admin-link" :to="workspaceTarget('/admin')" @click="closeNavigation">{{accountWorkspaceTitle}}</RouterLink>
       </nav>
 
       <div v-if="launcherOpen" class="launcher-backdrop" @click.self="closeLauncher">
