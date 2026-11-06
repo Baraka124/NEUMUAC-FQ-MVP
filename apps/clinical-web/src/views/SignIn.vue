@@ -46,6 +46,7 @@ import ContextHelp from '../components/ContextHelp.vue';
       </ContextHelp>
      </div>
      <ResearchSignInForm id-prefix="dedicated-account" />
+     <RouterLink to="/recover" class="nfq-signin-public-link">Reset password</RouterLink>
      <RouterLink class="nfq-signin-public-link" to="/variants">Continue without signing in <span aria-hidden="true">→</span></RouterLink>
     </div>
    </section>

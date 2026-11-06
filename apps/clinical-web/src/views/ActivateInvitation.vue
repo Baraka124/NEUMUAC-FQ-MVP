@@ -18,7 +18,7 @@ async function submit(){
  <main id="main" class="nfq-invite-page" tabindex="-1">
   <section class="nfq-invite-panel" aria-labelledby="invite-title">
    <img class="nfq-invite-logo" src="/brand/neumuacfq-logo.png" alt="neumuacFQ"/>
-   <h1 id="invite-title">Activate your research account</h1>
+   <h1 id="invite-title">{{invitationActivation.purpose==='recovery'?'Set a new password':'Activate your research account'}}</h1>
    <p class="nfq-invite-desc">Choose your own password. An account does not automatically grant access to scientific editing or approval.</p>
    <p v-if="invitationActivation.phase==='verifying'" role="status">Verifying invitation…</p>
    <p v-else-if="invitationActivation.phase==='error'" role="alert">{{invitationActivation.message}}</p>

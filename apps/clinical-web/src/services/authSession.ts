@@ -11,7 +11,7 @@ export interface AuthView {
   userId: string | null;
   message: string | null;
 }
-export type AuthPort = Pick<SupabaseClient['auth'], 'getSession' | 'signInWithPassword' | 'signOut' | 'onAuthStateChange' | 'setSession' | 'updateUser'>;
+export type AuthPort = Pick<SupabaseClient['auth'], 'getSession' | 'signInWithPassword' | 'signOut' | 'onAuthStateChange' | 'setSession' | 'updateUser' | 'resetPasswordForEmail'>;
 
 function verifiedUserId(session:Session|null):string|null {
   const id=session?.user?.id;
@@ -46,6 +46,15 @@ export function createAuthController(auth:AuthPort) {
       }catch{
         if(current===sequence){state.phase='error';state.message='Authentication is currently unavailable.';}
       }
+    },
+    async requestPasswordRecovery(email:string):Promise<boolean>{
+      const address=email.trim().toLowerCase();
+      if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(address)||address.length>254)return false;
+      try{
+        const {error}=await auth.resetPasswordForEmail(address,{redirectTo:'https://fq.neumact.org'});
+        // Avoid disclosing whether an email address belongs to a research account.
+        return !error;
+      }catch{return false;}
     },
     async establishInvitation(tokens:InvitationTokens):Promise<boolean>{
       state.message=null;

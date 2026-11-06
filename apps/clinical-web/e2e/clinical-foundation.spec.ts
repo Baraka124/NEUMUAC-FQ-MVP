@@ -48,6 +48,7 @@ test('reserved workspaces do not imply clinical functionality', async ({ page })
 
 test('keyboard skip target remains accessible', async ({ page }) => {
   await page.goto('/#/workspace');
+  await expect(page.getByRole('heading',{name:'CFTR variant research',exact:true})).toBeVisible();
   await page.keyboard.press('Tab');
   await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused();
   await page.keyboard.press('Enter');
