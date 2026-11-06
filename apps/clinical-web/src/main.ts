@@ -10,5 +10,11 @@ import './science-operations-system.css';
 import './institutional-shell.css';
 import './clinical-mineral.css';
 import {authController} from './services/authSession';
-if(authController)void authController.initialize();
-createApp(App).use(createPinia()).use(router).mount('#app');
+import {consumeInvitationReturn} from './services/invitationActivation';
+async function start(){
+ const isInvite=await consumeInvitationReturn(window.location,
+  url=>window.history.replaceState(null,'',url));
+ if(authController&&!isInvite)await authController.initialize();
+ createApp(App).use(createPinia()).use(router).mount('#app');
+}
+void start();
