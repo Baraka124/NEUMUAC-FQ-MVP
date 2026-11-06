@@ -11,6 +11,7 @@ import {canDecideSourceCorrection,createSourceCorrectionDecisionClient,type Sour
 import {createResearchAccessDiagnostic,type ResearchAccessDiagnostic} from '../services/researchAccessDiagnostic';
 import {canManageResearchRoles,createRoleAdministrationClient,type AssignableRole} from '../services/roleAdministration';
 import {createResearchAccountDirectory,type ResearchAccountRow} from '../services/researchAccountDirectory';
+import {createProfessionalProfileClient,type ProfessionalProfile} from '../services/professionalProfile';
 
 const route=useRoute();
 const signedIn=computed(()=>authController?.state.phase==='signed-in');
@@ -19,6 +20,31 @@ const identity=computed(()=>signedIn.value?authController?.state.email||'Authent
 const returnToVariant=computed(()=>safeResearchReturnPath(route.query.from,'variant'));
 const roleAssignment=computed(()=>signedIn.value&&researcherRole.phase==='verified'?researcherRole.role:null);
 const accessConfig=readConfigFromEnvironment();
+const professionalClient=accessConfig&&authController?createProfessionalProfileClient(accessConfig,authController):null;
+const professionalProfile=ref<ProfessionalProfile|null>(null);
+const professionalPhase=ref<'idle'|'checking'|'ready'|'unlinked'|'unavailable'>('idle');
+let professionalEpoch=0;
+let professionalAbort:AbortController|null=null;
+async function refreshProfessionalProfile(){
+ const epoch=++professionalEpoch;
+ professionalAbort?.abort();professionalAbort=null;
+ professionalProfile.value=null;
+ professionalPhase.value='idle';
+ if(!professionalClient||authController?.state.phase!=='signed-in'||!authController?.state.userId)return;
+ const abort=new AbortController();professionalAbort=abort;professionalPhase.value='checking';
+ try{
+  const profile=await professionalClient.readOwn(abort.signal);
+  if(epoch!==professionalEpoch||abort.signal.aborted)return;
+  professionalProfile.value=profile;
+  professionalPhase.value=profile?'ready':'unlinked';
+ }catch{
+  if(epoch!==professionalEpoch||abort.signal.aborted)return;
+  professionalPhase.value='unavailable';
+ }
+}
+watch(()=>[authController?.state.phase,authController?.state.userId],()=>{void refreshProfessionalProfile();},{immediate:true});
+onUnmounted(()=>{++professionalEpoch;professionalAbort?.abort();professionalProfile.value=null;});
+
 const accessProbe=accessConfig&&authController?createResearchAccessDiagnostic(accessConfig,authController):null;
 const probePhase=ref<'idle'|'checking'|'verified'|'unavailable'>('idle');
 const probeResult=ref<ResearchAccessDiagnostic|null>(null);
@@ -240,6 +266,17 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
      <h2 id="admin-access-heading">{{signedIn?'Research account signed in':'Research staff access'}}</h2>
     </div>
     <p class="admin-identity">{{identity}}</p>
+    <div v-if="signedIn" class="nfq-professional-details" data-testid="professional-profile" aria-label="Professional profile">
+      <template v-if="professionalPhase==='ready'&&professionalProfile">
+       <p class="nfq-professional-name">{{professionalProfile.name}}</p>
+       <p class="nfq-professional-meta">{{professionalProfile.staffType.replaceAll('_',' ')}}<span v-if="professionalProfile.department"> · {{professionalProfile.department}}</span></p>
+       <p class="nfq-professional-meta" v-if="professionalProfile.researchGroup">{{professionalProfile.researchGroup}}<span v-if="professionalProfile.researchLine"> · {{professionalProfile.researchLine}}</span></p>
+       <p class="nfq-professional-note">Professional details: verified neumDESK snapshot · checked {{new Date(professionalProfile.sourceVerifiedAt).toLocaleDateString()}}. FQ research permissions are assigned separately.</p>
+      </template>
+      <p v-else-if="professionalPhase==='checking'" role="status" class="nfq-professional-note">Checking professional profile…</p>
+      <p v-else-if="professionalPhase==='unlinked'" class="nfq-professional-note">No verified neumDESK profile linked to this account. Professional affiliation is not inferred from email.</p>
+      <p v-else-if="professionalPhase==='unavailable'" class="nfq-professional-note" role="status">Professional profile is temporarily unavailable. Research permissions are unaffected.</p>
+    </div>
     <details v-if="signedIn&&authController?.state.userId" class="admin-account-disclosure" data-testid="admin-account-disclosure">
      <summary>Research account ID</summary>
      <div class="admin-account-detail">
@@ -503,4 +540,9 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
 .nfq-roster-identity{display:grid;gap:4px;min-width:0;overflow-wrap:anywhere}
 .nfq-roster-identity strong{font-size:13px}
 .nfq-roster-identity span{font-size:12px;color:#607078}
+
+.nfq-professional-details{margin:10px 0 14px;padding:12px 15px;border-left:2px solid #769a98;background:#f7f9f8;max-width:620px}
+.nfq-professional-name{font-size:16px;font-weight:700;margin:0 0 4px;color:#173949}
+.nfq-professional-meta{font-size:13px;margin:0 0 4px;color:#345566}
+.nfq-professional-note{font-size:11px;line-height:1.55;margin:7px 0 0;color:#64787f}
 </style>
