@@ -1,6 +1,7 @@
 import {createApp} from 'vue';
 import {createPinia} from 'pinia';
 import App from './App.vue';
+import {createClinicalRouter} from './router';
 import './styles.css';
 import './ultra-system.css';
 import './modulator-intelligence.css';
@@ -16,7 +17,7 @@ async function start(){
  if(authController&&!isInvite)await authController.initialize();
  // Creating the hash router before reading an Auth callback can rewrite the
  // #access_token fragment to #/, destroying the one-time invitation return.
- const {router}=await import('./router');
+ const router=createClinicalRouter();
  createApp(App).use(createPinia()).use(router).mount('#app');
 }
 void start();
