@@ -8,6 +8,7 @@ import {safeResearchReturnPath} from '../domain/researchJourney';
 import {readConfigFromEnvironment} from '../services/liveVariants';
 import {canReadSourceReviewQueue,createSourceReviewQueue,type SourceCorrectionReviewItem} from '../services/sourceCorrectionReviewQueue';
 import {canDecideSourceCorrection,createSourceCorrectionDecisionClient,type SourceCorrectionDecision} from '../services/sourceCorrectionDecision';
+import {createResearchAccessDiagnostic,type ResearchAccessDiagnostic} from '../services/researchAccessDiagnostic';
 
 const route=useRoute();
 const signedIn=computed(()=>authController?.state.phase==='signed-in');
@@ -15,6 +16,36 @@ const phase=computed(()=>authController?.state.phase||'unavailable');
 const identity=computed(()=>signedIn.value?authController?.state.email||'Authenticated account':'No research account signed in');
 const returnToVariant=computed(()=>safeResearchReturnPath(route.query.from,'variant'));
 const roleAssignment=computed(()=>signedIn.value&&researcherRole.phase==='verified'?researcherRole.role:null);
+const accessConfig=readConfigFromEnvironment();
+const accessProbe=accessConfig&&authController?createResearchAccessDiagnostic(accessConfig,authController):null;
+const probePhase=ref<'idle'|'checking'|'verified'|'unavailable'>('idle');
+const probeResult=ref<ResearchAccessDiagnostic|null>(null);
+const probeMessage=ref('');
+let probeGeneration=0;
+let probeController:AbortController|null=null;
+function clearAccessProbe():void{
+ ++probeGeneration;probeController?.abort();probeController=null;
+ probeResult.value=null;probeMessage.value='';probePhase.value='idle';
+}
+async function runAccessProbe():Promise<void>{
+ clearAccessProbe();
+ if(!accessProbe||authController?.state.phase!=='signed-in')return;
+ const run=probeGeneration;
+ const abort=new AbortController();probeController=abort;probePhase.value='checking';
+ try{
+  const result=await accessProbe.check(abort.signal);
+  if(run!==probeGeneration||abort.signal.aborted)return;
+  probeResult.value=result;probePhase.value='verified';
+  probeMessage.value='Server identity, membership and proposal-read access verified. This does not grant permissions.';
+ }catch{
+  if(run!==probeGeneration||abort.signal.aborted)return;
+  probeResult.value=null;probePhase.value='unavailable';
+  probeMessage.value='Server-access verification was not completed. No permissions were changed.';
+ }
+}
+watch(()=>[authController?.state.phase,authController?.state.userId,researcherRole.phase,researcherRole.role],clearAccessProbe);
+onUnmounted(clearAccessProbe);
+
 const roleLabel=computed(()=>{
  if(!signedIn.value||researcherRole.phase==='unavailable')return 'Not verifiable';
  if(researcherRole.phase==='checking')return 'Checking…';
@@ -167,6 +198,11 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
     <div class="admin-role-actions">
      <p v-if="signedIn&&researcherRole.phase==='unavailable'" role="alert">{{researcherRole.message||'Role verification unavailable. No operations will be enabled.'}}</p>
      <button v-if="signedIn" type="button" class="admin-role-refresh" :disabled="researcherRole.phase==='checking'" @click="refreshResearcherRole">Recheck role</button>
+     <button v-if="signedIn&&accessProbe" type="button" class="admin-role-refresh"
+      :disabled="probePhase==='checking'" data-testid="admin-access-check"
+      @click="runAccessProbe">{{probePhase==='checking'?'Checking server…':'Verify server access'}}</button>
+     <p v-if="probeMessage" role="status" data-testid="admin-access-check-status">{{probeMessage}}</p>
+     <p v-if="probeResult" class="admin-session-state">Membership: {{probeResult.membership==='verified'?probeResult.role:'Unassigned'}} · Private proposals visible: {{probeResult.privateProposalCount}}</p>
     </div>
    </aside>
   </section>
