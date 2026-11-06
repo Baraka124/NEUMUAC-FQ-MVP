@@ -131,13 +131,13 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
           <span v-if="!sidebarCollapsed" class="nav-name">{{ section.name }}</span>
         </RouterLink>
       </nav>
-      <RouterLink class="staff-access-link" :to="workspaceTarget('/admin')"  :aria-label="accountWorkspaceTitle"
+      <RouterLink class="staff-access-link" :to="workspaceTarget('/admin')" :aria-label="accountWorkspaceTitle"
         :title="sidebarCollapsed ? accountWorkspaceTitle : undefined">
         <svg class="nav-glyph" viewBox="0 0 24 24" width="21" height="21" fill="none"
           stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path v-if="persona==='administrator'" d="M12 3 19 6v5c0 5-3.5 8.3-7 10-3.5-1.7-7-5-7-10V6l7-3Z"/>
           <template v-else><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></template>
-          <path d="M9 12h6m-3-3v6"/>
+          <path v-if="persona==='administrator'" d="M9 12h6m-3-3v6"/>
         </svg>
         <span v-if="!sidebarCollapsed" class="staff-link-name">{{accountWorkspaceTitle}} <span aria-hidden="true">→</span></span>
       </RouterLink>
