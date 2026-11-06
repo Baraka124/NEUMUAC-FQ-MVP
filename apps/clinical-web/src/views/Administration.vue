@@ -441,7 +441,7 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
    <p class="admin-session-state">You can explore public CFTR research. Any additional scientific permissions must be assigned separately by an FQ administrator.</p>
    <RouterLink class="research-entry-link" to="/variants">Explore public variants <span aria-hidden="true">→</span></RouterLink>
   </section>
-    <section v-if="queueEnabled&&(isAdministrator||isReviewer)" class="admin-readiness source-review-readiness" aria-label="Source correction review">
+  <section v-if="queueEnabled&&(isAdministrator||isReviewer)" class="admin-readiness source-review-readiness" aria-label="Source correction review">
    <div class="admin-section-heading">
     <h2>Source correction review</h2>
     <ContextHelp label="About source correction review" title="Source correction review">
