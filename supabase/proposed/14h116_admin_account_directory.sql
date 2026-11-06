@@ -33,7 +33,7 @@ BEGIN
          m.revoked_at
   FROM auth.users u
   LEFT JOIN public.nfq_research_memberships m ON m.user_id=u.id
-  WHERE term='' OR u.email ILIKE '%'||replace(replace(replace(term,'\\','\\\\'),'%','\\%'),'_','\\_')||'%' ESCAPE '\\'
+  WHERE term='' OR position(lower(term) in lower(coalesce(u.email,''))) > 0
   ORDER BY u.created_at DESC,u.id
   LIMIT row_limit;
 END;
