@@ -5,8 +5,11 @@ describe('invitation return boundary',()=>{
   expect(readInvitationReturn('#access_token=abc.def.ghi&refresh_token=xyz&type=invite'))
    .toEqual({kind:'invite',tokens:{accessToken:'abc.def.ghi',refreshToken:'xyz'}});
  });
+ it('recognises password recovery only with verified session tokens',()=>{
+  expect(readInvitationReturn('#access_token=abc&refresh_token=def&type=recovery')).toEqual({kind:'recovery',tokens:{accessToken:'abc',refreshToken:'def'}});
+ });
  it('rejects unrelated fragments and route fragments',()=>{
-  for(const hash of ['#/admin','#/activate','#access_token=a&refresh_token=b&type=recovery',
+  for(const hash of ['#/admin','#/activate',
    '#access_token=a&refresh_token=b&type=signup','#access_token=a&refresh_token=b'])
    expect(readInvitationReturn(hash)).toEqual({kind:'none'});
  });
