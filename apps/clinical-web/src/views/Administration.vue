@@ -10,6 +10,7 @@ import {canReadSourceReviewQueue,createSourceReviewQueue,type SourceCorrectionRe
 import {canDecideSourceCorrection,createSourceCorrectionDecisionClient,type SourceCorrectionDecision} from '../services/sourceCorrectionDecision';
 import {createResearchAccessDiagnostic,type ResearchAccessDiagnostic} from '../services/researchAccessDiagnostic';
 import {canManageResearchRoles,createRoleAdministrationClient,type AssignableRole} from '../services/roleAdministration';
+import {createResearchAccountDirectory,type ResearchAccountRow} from '../services/researchAccountDirectory';
 
 const route=useRoute();
 const signedIn=computed(()=>authController?.state.phase==='signed-in');
@@ -51,6 +52,39 @@ const permissionClient=accessConfig&&authController?createRoleAdministrationClie
 const manageRolesAllowed=computed(()=>Boolean(permissionClient)&&canManageResearchRoles(
  authController?.state.phase??'signed-out',researcherRole
 ));
+const rosterClient=accessConfig&&authController?createResearchAccountDirectory(accessConfig,authController):null;
+const accountSearch=ref('');
+const rosterRows=ref<ResearchAccountRow[]>([]);
+const rosterPhase=ref<'idle'|'loading'|'ready'|'error'>('idle');
+const rosterMessage=ref('');
+let rosterGeneration=0;
+let rosterAbort:AbortController|null=null;
+function clearRoster(){
+ ++rosterGeneration;rosterAbort?.abort();rosterAbort=null;
+ rosterRows.value=[];rosterPhase.value='idle';rosterMessage.value='';
+}
+async function loadRoster(){
+ clearRoster();
+ if(!rosterClient||!manageRolesAllowed.value)return;
+ const run=rosterGeneration,abort=new AbortController();
+ rosterAbort=abort;rosterPhase.value='loading';
+ try{
+  const rows=await rosterClient.list(accountSearch.value,abort.signal);
+  if(run!==rosterGeneration||abort.signal.aborted||!manageRolesAllowed.value)return;
+  rosterRows.value=rows;rosterPhase.value='ready';
+ }catch{
+  if(run!==rosterGeneration||abort.signal.aborted)return;
+  rosterPhase.value='error';rosterMessage.value='Account directory is unavailable or not authorised. No account data was displayed.';
+ }
+}
+function selectRosterAccount(item:ResearchAccountRow){
+ if(permissionPhase.value!=='idle')return;
+ targetAccount.value=item.userId;
+ targetRole.value=item.role??'contributor';
+ permissionAction.value='assign';permissionConfirmation.value=false;
+}
+watch(()=>[authController?.state.phase,authController?.state.userId,researcherRole.phase,researcherRole.role],clearRoster);
+onUnmounted(clearRoster);
 const targetAccount=ref('');
 const targetRole=ref<AssignableRole>('contributor');
 const permissionAction=ref<'assign'|'revoke'>('assign');
@@ -78,6 +112,7 @@ async function submitPermissionChange():Promise<void>{
   permissionConfirmation.value=false;targetAccount.value='';
   permissionPhase.value='idle';
   void refreshResearcherRole();
+  clearRoster();
  }catch(error){
   if(run!==permissionGeneration)return;
   permissionPhase.value='uncertain';
@@ -249,6 +284,35 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
      <p v-if="probeResult" class="admin-session-state">Membership: {{probeResult.membership==='verified'?probeResult.role:'Unassigned'}} · Private proposals visible: {{probeResult.privateProposalCount}}</p>
     </div>
    </aside>
+  </section>
+  <section v-if="manageRolesAllowed" class="admin-readiness" aria-label="People and access" data-testid="admin-people-access">
+   <div class="admin-section-heading">
+    <h2>People &amp; access</h2>
+    <ContextHelp label="About research accounts" title="Research account directory">
+     <p>These are verified FQ authentication accounts and their current FQ research permissions. This is not the neumDESK professional directory; member and guest affiliations will appear only after independently verified identity linkage.</p>
+     <p>No passwords, recovery tokens, staff contact numbers or clinical data are exposed here.</p>
+    </ContextHelp>
+   </div>
+   <div class="nfq-roster-controls">
+    <label for="nfq-account-search">Find an FQ account by email</label>
+    <input id="nfq-account-search" v-model.trim="accountSearch" type="search"
+      maxlength="120" autocomplete="off" placeholder="Search registered accounts"
+      @keydown.enter.prevent="loadRoster"/>
+    <button class="admin-role-refresh" type="button" :disabled="rosterPhase==='loading'"
+      @click="loadRoster">{{rosterPhase==='loading'?'Loading…':'Load accounts'}}</button>
+   </div>
+   <p v-if="rosterMessage" role="alert" class="admin-session-state">{{rosterMessage}}</p>
+   <p v-if="rosterPhase==='ready'&&!rosterRows.length" class="admin-session-state">No registered FQ accounts matched this search.</p>
+   <div v-if="rosterPhase==='ready'&&rosterRows.length" class="nfq-roster" role="list" aria-label="FQ registered accounts">
+    <div v-for="account in rosterRows" :key="account.userId" class="nfq-roster-row" role="listitem">
+     <div class="nfq-roster-identity">
+      <strong>{{account.email}}</strong>
+      <span>{{account.role|| (account.revoked?'Access revoked':'No FQ role assigned')}} · {{account.emailConfirmed?'Email confirmed':'Email pending'}}</span>
+     </div>
+     <button class="admin-role-refresh" type="button" @click="selectRosterAccount(account)"
+       :disabled="permissionPhase!=='idle'" :aria-label="'Manage research permissions for '+account.email">Manage permissions</button>
+    </div>
+   </div>
   </section>
   <section v-if="manageRolesAllowed" class="admin-readiness" aria-label="Research permission management" data-testid="admin-role-management">
    <div class="admin-section-heading">
@@ -430,4 +494,13 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
 .nfq-role-confirm{display:flex;align-items:flex-start;gap:10px;font-size:12px;line-height:1.5;color:#344650;margin:8px 0 3px}
 .nfq-role-confirm input{width:16px;height:16px;flex-shrink:0}
 .nfq-role-actions{display:flex;gap:10px;flex-wrap:wrap}
+
+.nfq-roster-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.nfq-roster-controls label{font-size:12px;font-weight:650}
+.nfq-roster-controls input{min-width:220px;max-width:340px;min-height:38px;flex:1;border:1px solid #becbd0;border-radius:4px;padding:7px 11px;background:#fff;color:#293941;font-size:13px}
+.nfq-roster{border-top:1px solid #dce1de}
+.nfq-roster-row{display:flex;gap:14px;align-items:center;justify-content:space-between;border-bottom:1px solid #e1e6e5;padding:12px 0;flex-wrap:wrap}
+.nfq-roster-identity{display:grid;gap:4px;min-width:0;overflow-wrap:anywhere}
+.nfq-roster-identity strong{font-size:13px}
+.nfq-roster-identity span{font-size:12px;color:#607078}
 </style>
