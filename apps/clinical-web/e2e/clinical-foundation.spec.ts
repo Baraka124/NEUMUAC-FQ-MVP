@@ -64,11 +64,13 @@ test('public research needs no sign-in and admin never exposes unapproved writes
   await expect(page.getByRole('alert')).toContainText('public variant catalog has not been connected yet');
   await expect(page.locator('.record-list button')).toHaveCount(0);
   await page.goto('/#/admin');
-  await expect(page.getByRole('heading', { name: 'Research administration' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Research access' })).toBeVisible();
   await expect(page.getByText(/Staff authentication is not configured here/)).toBeVisible();
-  await expect(page.getByRole('region',{name:'Research operations readiness'})).toBeVisible();
-  await expect(page.getByRole('complementary',{name:'Administration availability'})).toContainText('Not verifiable');
+  await expect(page.getByRole('region',{name:'Research operations readiness'})).toHaveCount(0);
+  await expect(page.getByRole('complementary',{name:'Research access'})).toContainText('Not verifiable');
   await expect(page.getByRole('button', { name: /approve|publish|edit|save/i })).toHaveCount(0);
+  await expect(page.getByTestId('admin-people-access')).toHaveCount(0);
+  await expect(page.getByTestId('admin-role-management')).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Explore public variants' })).toHaveAttribute('href', '#/variants');
   await expect(page.locator('html')).toHaveJSProperty('scrollWidth', await page.locator('html').evaluate(e => e.clientWidth));
 });
@@ -91,7 +93,7 @@ test('sidebar expands, contracts and persists preference without hiding navigati
   } else {
     await expect(page.getByRole('button',{name:'Collapse sidebar'})).toBeHidden();
     await page.getByRole('button',{name:/workspaces/i}).click();
-    await expect(page.getByRole('navigation',{name:'Mobile workspaces'}).getByRole('link',{name:'Research administration'})).toBeVisible();
+    await expect(page.getByRole('navigation',{name:'Mobile workspaces'}).getByRole('link',{name:'Research access'})).toBeVisible();
   }
   await expect(page.locator('html')).toHaveJSProperty('scrollWidth',await page.locator('html').evaluate(e=>e.clientWidth));
 });
