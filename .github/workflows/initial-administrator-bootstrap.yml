@@ -48,6 +48,15 @@ jobs:
         run: |
           set -euo pipefail
           psql -X -v ON_ERROR_STOP=1 -f staging/security/141_initial_admin_fixture.sql
+          if psql -X -v ON_ERROR_STOP=1 -f staging/security/140_first_administrator_manual.sql; then
+            echo 'ERROR: missing account UUID and ticket did not stop execution'
+            exit 1
+          fi
+          if psql -X -v ON_ERROR_STOP=1 -v verified_account_uuid=11111111-1111-4111-8111-111111111111 -f staging/security/140_first_administrator_manual.sql; then
+            echo 'ERROR: missing change ticket did not stop execution'
+            exit 1
+          fi
+          psql -X -v ON_ERROR_STOP=1 -tAc 'SELECT COUNT(*)=0 FROM public.nfq_research_memberships' | grep -qx t
           psql -X -v ON_ERROR_STOP=1 -v verified_account_uuid=11111111-1111-4111-8111-111111111111 -v change_ticket=CI-VALIDATED-BOOTSTRAP -f staging/security/140_first_administrator_manual.sql
           psql -X -v ON_ERROR_STOP=1 -f staging/security/142_initial_admin_assertions.sql
           if psql -X -v ON_ERROR_STOP=1 -v verified_account_uuid=11111111-1111-4111-8111-111111111111 -v change_ticket=CI-DUPLICATE-DENIED -f staging/security/140_first_administrator_manual.sql; then
