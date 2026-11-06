@@ -2,7 +2,7 @@ import {describe,it,expect,vi} from 'vitest';
 import {parseProfessionalProfile,createProfessionalProfileClient} from './professionalProfile';
 const uid='2b921eaf-983e-411c-93dc-cccbb4e6fa93';
 const row={display_name:'Baraka Laiza',staff_type:'biomedical_engineer',department:'Department of Pulmonology',research_group:'neumACt',research_line:null,source_verified_at:'2026-11-06T20:00:00Z'};
-const config={endpoint:'https://example.supabase.co',publishableKey:'test-publishable',enabled:true};
+const config={endpoint:'https://example.supabase.co',publishableKey:'sb_publishable_testkey',enabled:true};
 function session(){return {state:{phase:'signed-in',userId:uid},getAccessToken:vi.fn(async()=> 'jwt-token')};}
 describe('FQ-only professional profile',()=>{
  it('parses verified minimal staff profile without fabricating research-line membership',()=>{
