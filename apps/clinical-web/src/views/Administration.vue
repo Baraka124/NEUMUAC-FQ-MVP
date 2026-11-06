@@ -308,7 +308,7 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
     </li>
     <li>
      <div class="admin-operation-name"><h3>Research governance</h3><ContextHelp label="About research governance" title="Research governance"><p>Role assignment and audit administration require verified administrator authority and server-side enforcement.</p></ContextHelp></div>
-     <span class="admin-operation-status">Not enabled</span>
+     <span class="admin-operation-status">{{manageRolesAllowed?'Permission management available':'Not enabled'}}</span>
     </li>
    </ul>
   </section>
