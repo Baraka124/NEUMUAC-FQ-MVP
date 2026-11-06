@@ -11,3 +11,10 @@ test('non-invitation token-looking fragments never expose activation credentials
  await page.goto('/#access_token=dummy&refresh_token=dummy&type=signup');
  await expect(page.getByRole('heading',{name:'Activate your research account'})).toHaveCount(0);
 });
+
+test('password recovery is available without public registration',async({page})=>{
+ await page.goto('/#/recover');
+ await expect(page.getByRole('heading',{name:'Account password recovery'})).toBeVisible();
+ await expect(page.getByLabel('Research email')).toBeVisible();
+ await expect(page.getByRole('button',{name:'Send recovery email'})).toBeDisabled();
+});
