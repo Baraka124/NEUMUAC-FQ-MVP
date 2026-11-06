@@ -9,6 +9,7 @@ import {readConfigFromEnvironment} from '../services/liveVariants';
 import {canReadSourceReviewQueue,createSourceReviewQueue,type SourceCorrectionReviewItem} from '../services/sourceCorrectionReviewQueue';
 import {canDecideSourceCorrection,createSourceCorrectionDecisionClient,type SourceCorrectionDecision} from '../services/sourceCorrectionDecision';
 import {createResearchAccessDiagnostic,type ResearchAccessDiagnostic} from '../services/researchAccessDiagnostic';
+import {canManageResearchRoles,createRoleAdministrationClient,type AssignableRole} from '../services/roleAdministration';
 
 const route=useRoute();
 const signedIn=computed(()=>authController?.state.phase==='signed-in');
@@ -45,6 +46,49 @@ async function runAccessProbe():Promise<void>{
 }
 watch(()=>[authController?.state.phase,authController?.state.userId,researcherRole.phase,researcherRole.role],clearAccessProbe);
 onUnmounted(clearAccessProbe);
+
+const permissionClient=accessConfig&&authController?createRoleAdministrationClient(accessConfig,authController):null;
+const manageRolesAllowed=computed(()=>Boolean(permissionClient)&&canManageResearchRoles(
+ authController?.state.phase??'signed-out',researcherRole
+));
+const targetAccount=ref('');
+const targetRole=ref<AssignableRole>('contributor');
+const permissionAction=ref<'assign'|'revoke'>('assign');
+const permissionConfirmation=ref(false);
+const permissionStatus=ref('');
+const permissionPhase=ref<'idle'|'saving'|'uncertain'>('idle');
+let permissionGeneration=0;
+function clearPermissionForm():void{
+ ++permissionGeneration;permissionConfirmation.value=false;
+ permissionPhase.value='idle';permissionStatus.value='';
+ targetAccount.value='';targetRole.value='contributor';permissionAction.value='assign';
+}
+async function submitPermissionChange():Promise<void>{
+ if(!permissionClient||!manageRolesAllowed.value||!permissionConfirmation.value||
+  permissionPhase.value!=='idle')return;
+ const action=permissionAction.value,target=targetAccount.value.trim();
+ const role=targetRole.value,run=++permissionGeneration;
+ permissionPhase.value='saving';permissionStatus.value='';
+ try{
+  await permissionClient.setRole(target,role,action==='revoke');
+  if(run!==permissionGeneration)return;
+  permissionStatus.value=action==='revoke'?
+   'Access revoked. The server recorded the membership change.':
+   'Research permission assigned. The server recorded the membership change.';
+  permissionConfirmation.value=false;targetAccount.value='';
+  permissionPhase.value='idle';
+  void refreshResearcherRole();
+ }catch(error){
+  if(run!==permissionGeneration)return;
+  permissionPhase.value='uncertain';
+  permissionStatus.value=error instanceof Error?error.message:'The server could not confirm this change.';
+ }
+}
+function resetPermissionRetry():void{
+ permissionPhase.value='idle';permissionConfirmation.value=false;permissionStatus.value='';
+}
+watch(()=>[authController?.state.phase,authController?.state.userId,researcherRole.phase,researcherRole.role],clearPermissionForm);
+onUnmounted(clearPermissionForm);
 
 const roleLabel=computed(()=>{
  if(!signedIn.value||researcherRole.phase==='unavailable')return 'Not verifiable';
@@ -206,6 +250,45 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
     </div>
    </aside>
   </section>
+  <section v-if="manageRolesAllowed" class="admin-readiness" aria-label="Research permission management" data-testid="admin-role-management">
+   <div class="admin-section-heading">
+    <h2>Research permissions</h2>
+    <ContextHelp label="About research permission changes" title="Administrator permissions">
+     <p>Membership in neumACt is distinct from authorisation to change CFTR evidence. Assign contributor, reviewer or administrator access only after confirming the intended research account UUID with its owner. Each change is authorised and audited by the database.</p>
+     <p>Revocation prevents future research operations, including private proposal reads. A scientific review decision does not publish evidence automatically.</p>
+    </ContextHelp>
+   </div>
+   <form class="nfq-role-management-form" @submit.prevent="submitPermissionChange">
+    <label for="nfq-target-account">Verified research account UUID</label>
+    <input id="nfq-target-account" v-model.trim="targetAccount" type="text"
+     autocomplete="off" spellcheck="false" required
+     pattern="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+     placeholder="Account UUID" :disabled="permissionPhase!=='idle'"/>
+    <label for="nfq-permission-action">Action</label>
+    <select id="nfq-permission-action" v-model="permissionAction" :disabled="permissionPhase!=='idle'">
+     <option value="assign">Assign or change research role</option>
+     <option value="revoke">Revoke research access</option>
+    </select>
+    <label for="nfq-target-role">Research role</label>
+    <select id="nfq-target-role" v-model="targetRole" :disabled="permissionPhase!=='idle'">
+     <option value="contributor">Contributor</option>
+     <option value="reviewer">Scientific reviewer</option>
+     <option value="administrator">Administrator</option>
+    </select>
+    <label class="nfq-role-confirm">
+     <input v-model="permissionConfirmation" type="checkbox" :disabled="permissionPhase!=='idle'"/>
+     I verified the account identity and authorise this access change.
+    </label>
+    <div class="nfq-role-actions">
+     <button type="submit" class="admin-role-refresh" :disabled="permissionPhase!=='idle'||!permissionConfirmation">
+      {{permissionPhase==='saving'?'Recording…':permissionAction==='revoke'?'Revoke access':'Save research role'}}
+     </button>
+     <button v-if="permissionPhase==='uncertain'" type="button" class="admin-role-refresh"
+      @click="resetPermissionRetry">Acknowledge and check membership</button>
+    </div>
+    <p v-if="permissionStatus" role="status" class="admin-session-state">{{permissionStatus}}</p>
+   </form>
+  </section>
   <section class="admin-readiness" aria-label="Research operations readiness">
    <div class="admin-section-heading">
     <h2>Scientific operations</h2>
@@ -340,4 +423,11 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
 .admin-account-detail{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap;padding:6px 0 2px}
 .admin-account-detail code{font:inherit;font-size:11px;overflow-wrap:anywhere;user-select:text}
 .admin-account-detail :deep(.nfq-context-help summary){width:27px;height:27px}
+
+.nfq-role-management-form{display:grid;grid-template-columns:minmax(0,1fr);gap:9px;max-width:510px}
+.nfq-role-management-form>label:not(.nfq-role-confirm){font-weight:650;font-size:12px;color:#344650}
+.nfq-role-management-form>input,.nfq-role-management-form>select{width:100%;min-height:38px;border:1px solid #becbd0;border-radius:4px;padding:7px 11px;background:#fff;color:#293941;font-size:13px}
+.nfq-role-confirm{display:flex;align-items:flex-start;gap:10px;font-size:12px;line-height:1.5;color:#344650;margin:8px 0 3px}
+.nfq-role-confirm input{width:16px;height:16px;flex-shrink:0}
+.nfq-role-actions{display:flex;gap:10px;flex-wrap:wrap}
 </style>
