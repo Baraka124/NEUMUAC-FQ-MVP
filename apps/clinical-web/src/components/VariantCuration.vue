@@ -26,7 +26,7 @@ const queueNotice=ref('');
 const queue=ref<readonly VariantCurationProposal[]>([]);
 const busy=ref(false);
 const loading=ref(false);
-const reviewNote=ref('');
+const reviewNotes=ref<Record<string,string>>({});
 const confirmedProposal=ref<string|null>(null);
 const currentValue=computed(()=>({
  legacy_name:props.variant.legacyName,
@@ -57,7 +57,7 @@ async function refreshQueue(){
 }
 watch([()=>props.variant.id,canSubmit,expanded],()=>{
  ++generation;queueAbort?.abort();queue.value=[];proposalStatus.value='';busy.value=false;
- reviewNote.value='';confirmedProposal.value=null;
+ reviewNotes.value={};confirmedProposal.value=null;
  if(expanded.value&&canSubmit.value)void refreshQueue();
 },{immediate:true});
 watch(field,()=>{proposedValue.value='';proposalStatus.value='';});
@@ -81,11 +81,11 @@ async function decide(proposal:VariantCurationProposal,decision:VariantCurationD
  if(!client||!canReview.value||busy.value||confirmedProposal.value!==proposal.id)return;
  busy.value=true;proposalStatus.value='';
  try{
-  await client.decide(proposal,decision,reviewNote.value);
+  await client.decide(proposal,decision,reviewNotes.value[proposal.id]??'');
   proposalStatus.value=decision==='approved'
    ?'Approved correction published with an audit entry. Reloading the current variant.'
    :'Correction rejected and review recorded. Published variant unchanged.';
-  confirmedProposal.value=null;reviewNote.value='';
+  confirmedProposal.value=null;reviewNotes.value={};
   await refreshQueue();
   if(decision==='approved')emit('published');
  }catch{
@@ -138,14 +138,14 @@ async function decide(proposal:VariantCurationProposal,decision:VariantCurationD
       <p v-if="item.submittedBy===authController?.state.userId" class="nfq-curation-note">Your proposal. An independent reviewer must decide.</p>
       <template v-else-if="canReview">
        <label :for="'nfq-review-note-'+item.id">Independent review note</label>
-       <textarea :id="'nfq-review-note-'+item.id" v-model="reviewNote" rows="2" maxlength="900" :disabled="busy" placeholder="Justify acceptance or rejection (15+ characters)" />
+       <textarea :id="'nfq-review-note-'+item.id" v-model="reviewNotes[item.id]" rows="2" maxlength="900" :disabled="busy" placeholder="Justify acceptance or rejection (15+ characters)" />
        <label class="nfq-curation-confirm">
         <input type="checkbox" :checked="confirmedProposal===item.id" :disabled="busy" @change="confirmedProposal=confirmedProposal===item.id?null:item.id" />
         Confirm review of this exact proposal
        </label>
        <div class="nfq-curation-buttons">
-        <button type="button" :disabled="busy||confirmedProposal!==item.id||reviewNote.trim().length<15" @click="decide(item,'approved')">Approve &amp; publish</button>
-        <button type="button" :disabled="busy||confirmedProposal!==item.id||reviewNote.trim().length<15" @click="decide(item,'rejected')">Reject</button>
+        <button type="button" :disabled="busy||confirmedProposal!==item.id||(reviewNotes[item.id]??'').trim().length<15" @click="decide(item,'approved')">Approve &amp; publish</button>
+        <button type="button" :disabled="busy||confirmedProposal!==item.id||(reviewNotes[item.id]??'').trim().length<15" @click="decide(item,'rejected')">Reject</button>
        </div>
       </template>
      </li>
