@@ -10,6 +10,7 @@
     "test": "vitest run src",
     "test:e2e": "playwright test",
     "test:e2e:contract": "playwright test --config playwright.contract.config.ts",
+    "test:e2e:curation": "playwright test --config playwright.curation.config.ts",
     "test:differential": "tsx tests/compare.mts",
     "test:e2e:live": "playwright test --config playwright.live.config.ts",
     "test:release": "node --test tests/public-release-audit.test.mjs",
