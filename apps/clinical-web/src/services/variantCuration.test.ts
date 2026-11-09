@@ -45,7 +45,7 @@ describe('14H122 variant curation permissions and validation',()=>{
   expect(validCurationDecision(proposal,'approved','Independent review confirms the source.',reviewer)).toBe(true);
  });
  it('submits only bounded fields to the FQ RPC, never a direct variant PATCH',async()=>{
-  const transport=vi.fn(async()=>new Response('27',{status:200}));
+  const transport=vi.fn(async(_url:string,_init:RequestInit)=>new Response('27',{status:200}));
   const client=createVariantCurationClient(config,session() as any,transport as any);
   expect(await client.submit(draft)).toBe('27');
   const [url,init]=transport.mock.calls[0];
@@ -76,7 +76,7 @@ describe('14H122 variant curation permissions and validation',()=>{
  });
  it('requires server-confirmed review with a different person',async()=>{
   const proposal=decodeVariantCurationQueue([queueRow],'42')[0];
-  const transport=vi.fn(async()=>new Response('null',{status:200}));
+  const transport=vi.fn(async(_url:string,_init:RequestInit)=>new Response('null',{status:200}));
   const client=createVariantCurationClient(config,session(reviewer) as any,transport as any);
   await client.decide(proposal,'approved','Independent source verification was completed.');
   expect(transport).toHaveBeenCalledTimes(1);
