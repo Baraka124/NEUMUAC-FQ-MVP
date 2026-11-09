@@ -15,6 +15,7 @@ import {confirmedDossierRecord} from '../domain/confirmedDossier';
 import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
 import {createLegacyEtiSource,type LegacyEtiRecord} from '../services/legacyEtiResponse';
 import TherapyWorkspace from '../components/TherapyWorkspace.vue';
+import VariantCuration from '../components/VariantCuration.vue';
 import {createScientificDossierSource,type ScientificDossier} from '../services/scientificDossier';
 import {clinVarVariationUrl} from '../domain/externalAuthority';
 import {retrieveClinVarSummary,type ClinVarAuthoritySummary} from '../services/liveClinVar';
@@ -560,6 +561,7 @@ function select(id:string):void{
         <div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div>
         <div><dt>Aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div>
        </dl>
+       <VariantCuration v-if="!selectedFromSearch" :key="selected.id" :variant="selected" @published="loadDetail(selected.id)" />
        <section id="nfq-variant-therapy" tabindex="-1" class="nfq-dossier-therapy-anchor" aria-label="Recorded therapeutic evidence and genotype research rules">
        <TherapyWorkspace
         :key="selected.id"
