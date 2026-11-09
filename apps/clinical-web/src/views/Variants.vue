@@ -42,6 +42,15 @@ const liveMode = Boolean(config);
 const curatedAccess=computed(()=>Boolean(config)&&import.meta.env.VITE_NFQ_VARIANT_CURATION_ENABLED!=='false'&&
  authController?.state.phase==='signed-in'&&researcherRole.phase==='verified'&&
  ['contributor','reviewer','administrator'].includes(researcherRole.role??''));
+const variantAccessLabel=computed(()=>{
+ if(!liveMode)return 'Data connection required';
+ if(curatedAccess.value)return 'Research curation · Independent review';
+ if(authController?.state.phase==='signed-in'){
+  if(researcherRole.phase==='checking')return 'Checking research membership';
+  return 'Research curation · Access not verified';
+ }
+ return 'Public access · Read only';
+});
 const evidenceSource=config?createLiveEvidenceSource(config):null;
 const dossierSource=config?createScientificDossierSource(config):null;
 const dossier=ref<ScientificDossier|null>(null);
@@ -422,7 +431,7 @@ function onResultKeydown(event:KeyboardEvent,index:number):void{
  else if(event.key==='End'){event.preventDefault();focusResult(displayedRows.value.length-1);}
  else if(event.key==='Escape'){event.preventDefault();document.getElementById('search')?.focus();activeResultIndex.value=-1;}
 }
-async function navigateDossierSection(section:'identity'|'therapy'|'science'):Promise<void> {
+async function navigateDossierSection(section:'identity'|'therapy'|'science'|'curation'):Promise<void> {
  if(section==='science'){scientificDetailsOpen.value=true;await nextTick();}
  const target=document.getElementById('nfq-variant-'+section);
  if(!target)return;
@@ -438,7 +447,7 @@ function select(id:string):void{
 </script>
 <template>
  <div class="page variant-page">
-  <div class="variant-heading"><h1>Variants</h1><span class="nfq-access-note">{{!liveMode ? "Data connection required" : curatedAccess ? "Research curation · Independent review" : "Public access · Read only"}}</span></div>
+  <div class="variant-heading"><h1>Variants</h1><span class="nfq-access-note">{{variantAccessLabel}}</span></div>
   <div class="record-layout">
    <section class="record-rail" aria-labelledby="record-list-title">
     <div class="rail-topline">
@@ -531,6 +540,7 @@ function select(id:string):void{
      </nav>
      <nav class="nfq-dossier-jump" aria-label="Selected variant sections">
       <a href="#nfq-variant-identity" @click.prevent="navigateDossierSection('identity')">Identity</a>
+      <a v-if="curatedAccess" href="#nfq-variant-curation" @click.prevent="navigateDossierSection('curation')">Curate</a>
       <a href="#nfq-variant-therapy" @click.prevent="navigateDossierSection('therapy')">Therapies</a>
       <a v-if="!selectedFromSearch" href="#nfq-variant-science" @click.prevent="navigateDossierSection('science')">Scientific detail</a>
      </nav>
@@ -559,13 +569,15 @@ function select(id:string):void{
          <button v-if="!selectedFromSearch" type="button" class="nfq-save-record" data-testid="copy-variant-record-link" @click="copyVariantLink">Copy link</button>
        </div>
        <p v-if="shareNotice" role="status" class="nfq-saved-feedback">{{shareNotice}}</p>
+       <div id="nfq-variant-curation" tabindex="-1">
+        <VariantCuration v-if="!selectedFromSearch" :key="selected.id" :variant="selected" @published="loadDetail(selected.id)" />
+       </div>
        <dl class="identity-grid nfq-dossier-identity" aria-label="Variant nomenclature">
         <div><dt>Legacy name</dt><dd>{{selected.legacyName||'Not recorded'}}</dd></div>
         <div><dt>Protein notation</dt><dd>{{selected.proteinName||'Not recorded'}}</dd></div>
         <div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div>
         <div><dt>Aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div>
        </dl>
-       <VariantCuration v-if="!selectedFromSearch" :key="selected.id" :variant="selected" @published="loadDetail(selected.id)" />
        <section id="nfq-variant-therapy" tabindex="-1" class="nfq-dossier-therapy-anchor" aria-label="Recorded therapeutic evidence and genotype research rules">
        <TherapyWorkspace
         :key="selected.id"

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {computed,ref,watch,onUnmounted} from 'vue';
 import {authController} from '../services/authSession';
-import {researcherRole} from '../services/researchRole';
+import {researcherRole,refreshResearcherRole} from '../services/researchRole';
 import {readConfigFromEnvironment,type RealVariant} from '../services/liveVariants';
 import {
  canOfferVariantCuration,canReviewVariantCuration,createVariantCurationClient,
@@ -18,6 +18,13 @@ const client=enabled&&config&&authController?createVariantCurationClient(config,
 const authPhase=computed(()=>authController?.state.phase??'signed-out');
 const canSubmit=computed(()=>Boolean(client)&&canOfferVariantCuration(enabled,authPhase.value,researcherRole));
 const canReview=computed(()=>Boolean(client)&&canReviewVariantCuration(enabled,authPhase.value,researcherRole));
+const verifying=ref(false);
+async function verifyResearchAccess():Promise<void>{
+ if(verifying.value||authPhase.value!=='signed-in')return;
+ verifying.value=true;
+ try{await refreshResearcherRole();}
+ finally{verifying.value=false;}
+}
 const expanded=ref(false);
 const field=ref<VariantCurationField>('legacy_name');
 const proposedValue=ref('');
@@ -155,10 +162,27 @@ async function decide(proposal:VariantCurationProposal,decision:VariantCurationD
    </div>
   </div>
  </section>
+ <section v-else-if="enabled&&config&&authController" class="nfq-curation-access" aria-label="Scientific curation access" data-testid="variant-curation-access">
+  <template v-if="authPhase==='signed-out'">
+   <span>Scientific curation requires a verified research account.</span>
+   <RouterLink to="/sign-in">Sign in</RouterLink>
+  </template>
+  <template v-else-if="authPhase==='signed-in'">
+   <span v-if="researcherRole.phase==='checking'||verifying">Verifying your research access…</span>
+   <span v-else-if="researcherRole.phase==='unassigned'">This account has no assigned research-curation role.</span>
+   <span v-else-if="researcherRole.phase==='unavailable'">Research membership could not be verified. Curation is temporarily unavailable.</span>
+   <span v-else>Research curation is unavailable for this session.</span>
+   <button type="button" :disabled="verifying||researcherRole.phase==='checking'" @click="verifyResearchAccess">Verify access</button>
+  </template>
+ </section>
 </template>
 
 <style scoped>
-.nfq-curation{margin:.6rem 0 1rem;border:1px solid var(--border,#dce2e7);border-radius:10px;background:var(--surface,#fff)}
+.nfq-curation{margin:.35rem 0 .7rem;border:1px solid var(--border,#dce2e7);border-radius:10px;background:var(--surface,#fff)}
+.nfq-curation-access{display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;padding:.55rem .75rem;margin:.4rem 0 .65rem;border:1px solid var(--border,#dce2e7);border-radius:8px;color:var(--text-muted,#637083);font-size:.75rem;line-height:1.35}
+.nfq-curation-access a,.nfq-curation-access button{font:inherit;color:inherit;text-decoration:underline;background:transparent;border:0;cursor:pointer;padding:.2rem}
+.nfq-curation-access button:disabled{opacity:.6;cursor:default}
+.nfq-curation-access :focus-visible{outline:2px solid currentColor;outline-offset:2px}
 .nfq-curation-toggle{display:flex;justify-content:space-between;align-items:center;width:100%;padding:.7rem .85rem;border:0;background:transparent;color:inherit;font:inherit;font-size:.83rem;font-weight:650;cursor:pointer}
 .nfq-curation-body{padding:0 .85rem .9rem;display:grid;gap:.65rem}
 .nfq-curation-note,.nfq-curation-current{font-size:.76rem;color:var(--text-muted,#637083);line-height:1.45;margin:0}
