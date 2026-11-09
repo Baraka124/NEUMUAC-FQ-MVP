@@ -44,7 +44,7 @@ let generation=0;
 let queueAbort:AbortController|null=null;
 async function refreshQueue(){
  queueAbort?.abort();const epoch=++generation;
- queue.value=[];queueNotice='';loading.value=false;
+ queue.value=[];queueNotice.value='';loading.value=false;
  if(!client||!canSubmit.value||!expanded.value)return;
  const abort=new AbortController();queueAbort=abort;loading.value=true;
  try{
