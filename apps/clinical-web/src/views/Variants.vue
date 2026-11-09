@@ -39,7 +39,7 @@ const contextReturnLabel=computed(()=>sourceWorkspace.value?.startsWith('/eviden
 const config=readConfigFromEnvironment();
 let source:RealVariantSource|null=null;
 const liveMode = Boolean(config);
-const curatedAccess=computed(()=>Boolean(config)&&import.meta.env.VITE_NFQ_VARIANT_CURATION_ENABLED==='true'&&
+const curatedAccess=computed(()=>Boolean(config)&&import.meta.env.VITE_NFQ_VARIANT_CURATION_ENABLED!=='false'&&
  authController?.state.phase==='signed-in'&&researcherRole.phase==='verified'&&
  ['contributor','reviewer','administrator'].includes(researcherRole.role??''));
 const evidenceSource=config?createLiveEvidenceSource(config):null;
