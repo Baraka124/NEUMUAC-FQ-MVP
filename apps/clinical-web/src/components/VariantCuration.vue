@@ -10,7 +10,9 @@ import {
 
 const props=defineProps<{variant:RealVariant}>();
 const emit=defineEmits<{(e:'published'):void}>();
-const enabled=import.meta.env.VITE_NFQ_VARIANT_CURATION_ENABLED==='true';
+// FQ 14H122 is installed. UI availability defaults on for verified members;
+// the server independently authorizes every operation. Set the flag to 'false' to disable.
+const enabled=import.meta.env.VITE_NFQ_VARIANT_CURATION_ENABLED!=='false';
 const config=readConfigFromEnvironment();
 const client=enabled&&config&&authController?createVariantCurationClient(config,authController):null;
 const authPhase=computed(()=>authController?.state.phase??'signed-out');
