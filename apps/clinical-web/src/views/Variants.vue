@@ -6,6 +6,7 @@ import {cftr2LinkedReferences} from '../domain/externalReferenceTypes';
 import {referenceMetadata,dossierReferencePreview} from '../domain/referencePresentation';
 import {safeResearchReturnPath,variantJourneyPath,variantWorklistJourneyPath} from '../domain/researchJourney';
 import {authController,authSessionProvider} from '../services/authSession';
+import {researcherRole} from '../services/researchRole';
 import {explainMultiTermMatch,rankVisibleSearchPage} from '../domain/searchPresentation';
 import {assessScientificDiscovery,parseDiscoveryTerms} from '../domain/compoundDiscovery';
 import {historicalDiscoveryHint} from '../domain/legacyDiscoveryHints';
@@ -15,6 +16,7 @@ import {confirmedDossierRecord} from '../domain/confirmedDossier';
 import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
 import {createLegacyEtiSource,type LegacyEtiRecord} from '../services/legacyEtiResponse';
 import TherapyWorkspace from '../components/TherapyWorkspace.vue';
+import VariantCuration from '../components/VariantCuration.vue';
 import {createScientificDossierSource,type ScientificDossier} from '../services/scientificDossier';
 import {clinVarVariationUrl} from '../domain/externalAuthority';
 import {retrieveClinVarSummary,type ClinVarAuthoritySummary} from '../services/liveClinVar';
@@ -37,6 +39,9 @@ const contextReturnLabel=computed(()=>sourceWorkspace.value?.startsWith('/eviden
 const config=readConfigFromEnvironment();
 let source:RealVariantSource|null=null;
 const liveMode = Boolean(config);
+const curatedAccess=computed(()=>Boolean(config)&&import.meta.env.VITE_NFQ_VARIANT_CURATION_ENABLED!=='false'&&
+ authController?.state.phase==='signed-in'&&researcherRole.phase==='verified'&&
+ ['contributor','reviewer','administrator'].includes(researcherRole.role??''));
 const evidenceSource=config?createLiveEvidenceSource(config):null;
 const dossierSource=config?createScientificDossierSource(config):null;
 const dossier=ref<ScientificDossier|null>(null);
@@ -433,7 +438,7 @@ function select(id:string):void{
 </script>
 <template>
  <div class="page variant-page">
-  <div class="variant-heading"><h1>Variants</h1><span class="nfq-access-note">{{liveMode ? "Public access · Read only" : "Data connection required"}}</span></div>
+  <div class="variant-heading"><h1>Variants</h1><span class="nfq-access-note">{{!liveMode ? "Data connection required" : curatedAccess ? "Research curation · Independent review" : "Public access · Read only"}}</span></div>
   <div class="record-layout">
    <section class="record-rail" aria-labelledby="record-list-title">
     <div class="rail-topline">
@@ -560,6 +565,7 @@ function select(id:string):void{
         <div><dt>cDNA notation</dt><dd>{{selected.cdnaName||'Not recorded'}}</dd></div>
         <div><dt>Aliases</dt><dd>{{selected.aliases.length?selected.aliases.join(', '):'Not recorded'}}</dd></div>
        </dl>
+       <VariantCuration v-if="!selectedFromSearch" :key="selected.id" :variant="selected" @published="loadDetail(selected.id)" />
        <section id="nfq-variant-therapy" tabindex="-1" class="nfq-dossier-therapy-anchor" aria-label="Recorded therapeutic evidence and genotype research rules">
        <TherapyWorkspace
         :key="selected.id"
