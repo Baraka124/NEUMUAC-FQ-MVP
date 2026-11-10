@@ -65,13 +65,13 @@ test('public research needs no sign-in and admin never exposes unapproved writes
   await expect(page.locator('.record-list button')).toHaveCount(0);
   await page.goto('/#/admin');
   await expect(page.getByTestId('account-workspace-heading')).toHaveText('Research access');
-  await expect(page.getByText(/Staff authentication is not configured here/)).toBeVisible();
+  await expect(page.getByText(/Sign in to see your verified professional profile/)).toBeVisible();
   await expect(page.getByRole('region',{name:'Research operations readiness'})).toHaveCount(0);
   await expect(page.getByRole('complementary',{name:'Research access'})).toContainText('Not verifiable');
   await expect(page.getByRole('button', { name: /approve|publish|edit|save/i })).toHaveCount(0);
   await expect(page.getByTestId('admin-people-access')).toHaveCount(0);
   await expect(page.getByTestId('admin-role-management')).toHaveCount(0);
-  await expect(page.getByRole('link', { name: 'Explore public variants' })).toHaveAttribute('href', '#/variants');
+  await expect(page.getByRole('link', { name: 'Public research' })).toHaveAttribute('href', '#/variants');
   await expect(page.locator('html')).toHaveJSProperty('scrollWidth', await page.locator('html').evaluate(e => e.clientWidth));
 });
 
@@ -1124,7 +1124,7 @@ test('14H121 public account workspace is compact and contains no administrator c
   await expect(page.getByRole('note',{name:'Research access'})).toContainText('verified FQ research membership');
   await page.keyboard.press('Escape');
   await access.locator('.admin-section-heading summary').click();
-  await expect(access.getByRole('note',{name:'Research permissions'})).toContainText('A valid session identifies an account');
+  await expect(access.getByRole('note',{name:'Research permissions'})).toContainText('verified FQ research membership');
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button',{name:/approve|publish|edit|save/i})).toHaveCount(0);
   const gap=await page.evaluate(()=>{
