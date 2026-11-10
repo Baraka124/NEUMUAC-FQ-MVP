@@ -29,7 +29,6 @@ async function mockFqAccount(page:Page,persona:Persona){
    await route.fulfill({status:204,headers});return;
   }
   const path=new URL(route.request().url()).pathname;
-  if(/nfq_research_memberships|nfq_guest_designations|nfq_professional_profiles/.test(path))console.log('PROFILE_TEST_REQUEST',persona,path);
   let data:unknown=[];
   if(path.endsWith('/nfq_research_memberships')&&(persona==='contributor'||persona==='administrator'))
    data=[{user_id:id,role:persona,revoked_at:null}];
@@ -48,7 +47,6 @@ async function mockFqAccount(page:Page,persona:Persona){
 test('14H122 account profile: Administrator shows verified professional identity and people controls',async({page})=>{
  await mockFqAccount(page,'administrator');
  await page.goto('/#/admin');
- console.log('PROFILE_TEST_ACCOUNT','state',await page.locator('[data-testid="admin-membership-status"]').textContent());
  const card=page.getByTestId('research-identity-card');
  await expect(card).toBeVisible();
  await expect(card).toContainText('María García');
@@ -61,7 +59,6 @@ test('14H122 account profile: Administrator shows verified professional identity
 test('14H122 account profile: Contributor cannot see permission-management controls',async({page})=>{
  await mockFqAccount(page,'contributor');
  await page.goto('/#/admin');
- console.log('PROFILE_TEST_ACCOUNT','state',await page.locator('[data-testid="admin-membership-status"]').textContent());
  const card=page.getByTestId('research-identity-card');
  await expect(card).toBeVisible();
  await expect(card.getByTestId('profile-role-label')).toHaveText('Research contributor');
@@ -71,7 +68,6 @@ test('14H122 account profile: Contributor cannot see permission-management contr
 test('14H122 account profile: Guest cannot acquire a professional identity or admin UI',async({page})=>{
  await mockFqAccount(page,'guest');
  await page.goto('/#/admin');
- console.log('PROFILE_TEST_ACCOUNT','state',await page.locator('[data-testid="admin-membership-status"]').textContent());
  const card=page.getByTestId('research-identity-card');
  await expect(card).toBeVisible();
  await expect(card.getByTestId('profile-role-label')).toHaveText('External guest');
@@ -82,7 +78,6 @@ test('14H122 account profile: Guest cannot acquire a professional identity or ad
 test('14H122 account profile: unassigned login never presents a verified research role',async({page})=>{
  await mockFqAccount(page,'unassigned');
  await page.goto('/#/admin');
- console.log('PROFILE_TEST_ACCOUNT','state',await page.locator('[data-testid="admin-membership-status"]').textContent());
  const card=page.getByTestId('research-identity-card');
  await expect(card).toBeVisible();
  await expect(card.getByTestId('profile-role-label')).toHaveText('Awaiting assignment');
