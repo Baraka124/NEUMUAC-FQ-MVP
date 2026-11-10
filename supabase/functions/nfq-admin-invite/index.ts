@@ -1,4 +1,4 @@
-// 14H124 candidate — deliberately OFF until audited end-to-end testing.
+// 14H127 controlled activation: server-enforced Administrator-only email dispatch.
 // Never embed privileged Supabase keys in the Vue app or GitHub Pages.
 import {createClient} from 'npm:@supabase/supabase-js@2.57.0';
 import {createInvitationGateway} from '../_shared/adminInvitationGateway.mjs';
