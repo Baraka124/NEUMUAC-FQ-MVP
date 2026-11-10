@@ -167,7 +167,7 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
             <span class="nfq-header-profile-mark" aria-hidden="true">FQ</span>
             <span class="nfq-header-profile-copy"><strong>My profile</strong><small>{{sidebarAccessSummary}}</small></span>
            </RouterLink>
-           <button type="button" class="nfq-header-signout" @click="authController.signOut()">Sign out</button>
+           <button type="button" class="nfq-header-signout" aria-label="Sign out" @click="authController.signOut()">Sign out</button>
           </template>
           <RouterLink v-else-if="authController" to="/sign-in">Sign in</RouterLink>
           <span v-else>Public research access</span>
