@@ -162,7 +162,13 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
         <div class="header-environment" :class="{ 'preview-environment': !sourceConfigured }" role="status">
           <span class="environment-dot" aria-hidden="true"></span>
           <template v-if="!sourceConfigured"><span>Live variant source · configuration pending</span></template>
-          <template v-else-if="authController?.state.phase==='signed-in'"><span>{{ authController.state.email || 'Signed in' }}</span><button type="button" @click="authController.signOut()">Sign out</button></template>
+          <template v-else-if="authController?.state.phase==='signed-in'">
+           <RouterLink class="nfq-header-profile-link" :to="workspaceTarget('/admin')" aria-label="Open my research profile">
+            <span class="nfq-header-profile-mark" aria-hidden="true">FQ</span>
+            <span class="nfq-header-profile-copy"><strong>My profile</strong><small>{{sidebarAccessSummary}}</small></span>
+           </RouterLink>
+           <button type="button" class="nfq-header-signout" aria-label="Sign out" @click="authController.signOut()">Sign out</button>
+          </template>
           <RouterLink v-else-if="authController" to="/sign-in">Sign in</RouterLink>
           <span v-else>Public research access</span>
         </div>

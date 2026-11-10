@@ -9,7 +9,10 @@ import './variant-discovery-system.css';
 import './science-operations-system.css';
 import './institutional-shell.css';
 import './clinical-mineral.css';
+import './user-profile-shell.css';
 import {authController} from './services/authSession';
+import {refreshResearcherRole} from './services/researchRole';
+import {refreshGuestDesignation} from './services/guestDesignation';
 import {consumeInvitationReturn} from './services/invitationActivation';
 async function start(){
  const isInvite=await consumeInvitationReturn(window.location,
@@ -19,5 +22,12 @@ async function start(){
  // #access_token fragment to #/, destroying the one-time invitation return.
  const router=createClinicalRouter();
  createApp(App).use(createPinia()).use(router).mount('#app');
+ // Some persisted sessions are restored before account modules register their
+ // initial watchers. Resolve both independent FQ access channels once the
+ // application is mounted; each lookup verifies its own session and RLS.
+ if(authController?.state.phase==='signed-in'){
+  void refreshResearcherRole();
+  void refreshGuestDesignation();
+ }
 }
 void start();

@@ -16,7 +16,8 @@ describe('FQ role-aware workspace presentation',()=>{
  it('does not silently treat an unassigned or uncertain account as a verified guest',()=>{
   expect(resolveWorkspacePersona('signed-in','unassigned',null,'none')).toBe('pending');
   expect(resolveWorkspacePersona('signed-in','checking',null,'checking')).toBe('account');
-  expect(resolveWorkspacePersona('signed-in','verified','contributor','unavailable')).toBe('account');
+  expect(resolveWorkspacePersona('signed-in','verified','contributor','unavailable')).toBe('researcher');
+  expect(resolveWorkspacePersona('signed-in','verified','reviewer','checking')).toBe('reviewer');
   expect(resolveWorkspacePersona('signed-out','verified','administrator','verified')).toBe('public');
   expect(workspaceTitle('public')).toBe('Research access');
  });

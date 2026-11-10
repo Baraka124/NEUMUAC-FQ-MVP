@@ -1,7 +1,7 @@
 import {defineConfig,devices} from '@playwright/test';
 export default defineConfig({
  testDir:'./e2e',
- testMatch:'variant-curation-access.spec.ts',
+ testMatch:['variant-curation-access.spec.ts','account-profile.spec.ts'],
  retries:0,
  reporter:process.env.CI?'github':'list',
  use:{baseURL:'http://127.0.0.1:4180',trace:'retain-on-failure',screenshot:'only-on-failure'},

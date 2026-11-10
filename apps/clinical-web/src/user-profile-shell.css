@@ -1,0 +1,31 @@
+/* 14H122 Users: small, legible account entry in the existing clinical shell. */
+.header-environment .nfq-header-profile-link{
+ display:inline-flex;align-items:center;gap:8px;min-width:0;padding:3px 6px 3px 3px;
+ border:1px solid #e3e9f1;border-radius:9px;background:#fff;
+ color:#244564;text-decoration:none;line-height:1.16;
+}
+.header-environment .nfq-header-profile-link:hover{
+ border-color:#b8cfe4;background:#f7faff;color:#204d76;text-decoration:none;
+}
+.header-environment .nfq-header-profile-link:focus-visible,
+.header-environment .nfq-header-signout:focus-visible{outline:2px solid #2d76ad;outline-offset:2px}
+.header-environment .nfq-header-profile-mark{
+ display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:7px;
+ background:#224d76;color:#fff;font-size:10px;font-weight:790;letter-spacing:-.025em;
+}
+.header-environment .nfq-header-profile-copy{display:grid;gap:3px;text-align:left;min-width:0}
+.header-environment .nfq-header-profile-copy strong{font-size:11.5px;line-height:1.15;font-weight:730;color:#1d3f5d}
+.header-environment .nfq-header-profile-copy small{font-size:9.5px;font-weight:520;color:#668197;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:165px}
+.header-environment .nfq-header-signout{min-height:34px;padding:5px 8px;border:1px solid transparent;background:transparent;color:#64788c;border-radius:7px;font-size:10.5px;font-weight:610}
+.header-environment .nfq-header-signout:hover{background:#f1f5fa;color:#285b86}
+@media(max-width:760px){
+ .header-environment .nfq-header-profile-copy small{display:none}
+ .header-environment .nfq-header-profile-mark{width:30px;height:30px}
+ .header-environment .nfq-header-profile-link{gap:6px}
+}
+@media(max-width:440px){
+ .header-environment .nfq-header-profile-copy{display:none}
+ .header-environment .nfq-header-profile-link{padding:3px}
+ .header-environment .nfq-header-signout{min-width:30px;height:35px;font-size:0;padding:0 5px}
+ .header-environment .nfq-header-signout::before{content:'↪';font-size:18px;font-weight:650;line-height:1}
+}
