@@ -61,7 +61,7 @@ test('14H122 account profile: Administrator shows verified professional identity
  await expect(card.getByTestId('profile-role-label')).toHaveText('Administrator');
  await expect(page.getByTestId('admin-people-access')).toBeVisible();
  await expect(page.getByRole('button',{name:'Use verified account ID'})).toBeVisible();
- await expect(page.getByLabel('Account ID')).toHaveCount(0);
+ await expect(page.getByTestId('admin-role-management')).toHaveCount(0);
  await expect(page.getByRole('button',{name:'Manage research permissions for guest@example.org'})).toBeVisible();
 });
 test('14H122 account profile: Contributor cannot see permission-management controls',async({page})=>{
