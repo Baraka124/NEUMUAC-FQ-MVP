@@ -9,6 +9,7 @@ import './variant-discovery-system.css';
 import './science-operations-system.css';
 import './institutional-shell.css';
 import './clinical-mineral.css';
+import './user-profile-shell.css';
 import {authController} from './services/authSession';
 import {consumeInvitationReturn} from './services/invitationActivation';
 async function start(){
