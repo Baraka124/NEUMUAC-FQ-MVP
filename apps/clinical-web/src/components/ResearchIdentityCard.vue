@@ -107,7 +107,7 @@ const profileStatus=computed(()=>{
 .nfq-profile-source :deep(.nfq-context-help summary){width:25px;height:25px;border-color:#e0e8f1;color:#526b81}
 .nfq-profile-links{display:flex;align-items:center;gap:7px 14px;flex-wrap:wrap}
 .nfq-profile-links a,.nfq-profile-links button{font-size:11px;font-weight:670;color:#276094;text-decoration:none;white-space:nowrap}
-.nfq-profile-links button{border:0;padding:0;background:transparent;font:inherit;color:#276094;cursor:pointer}
+.nfq-profile-links button{border:0;padding:0;background:transparent;font-family:inherit;color:#276094;cursor:pointer}
 .nfq-profile-links a:hover,.nfq-profile-links button:hover{text-decoration:underline;text-underline-offset:4px}
 .nfq-profile-links a:focus-visible,.nfq-profile-links button:focus-visible{outline:2px solid #276094;outline-offset:3px;border-radius:3px}
 @media(max-width:600px){
