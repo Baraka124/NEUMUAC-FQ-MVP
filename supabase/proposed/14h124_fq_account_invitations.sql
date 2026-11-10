@@ -1,5 +1,5 @@
 -- Phase 14H124 candidate: server-controlled FQ invitation dispatch audit.
--- NOT deployed. No access for browser roles. No invitation, research role or
+-- No access for browser roles. No invitation, research role or
 -- professional link is created by applying this schema.
 create table if not exists public.nfq_account_invitations(
  id uuid primary key default gen_random_uuid(),
@@ -26,5 +26,8 @@ create index if not exists nfq_invitations_email_window
  on public.nfq_account_invitations(recipient_email,requested_at desc);
 alter table public.nfq_account_invitations enable row level security;
 revoke all on public.nfq_account_invitations from public,anon,authenticated;
+-- Explicit service-side privileges for the validated Edge Function only.
+-- No DELETE: invitation audit entries are retained.
+grant select,insert,update on public.nfq_account_invitations to service_role;
 -- Only a verified Administrator Edge Function using a server-side secret
 -- can reserve/update invitation delivery records. Audit is retained.
