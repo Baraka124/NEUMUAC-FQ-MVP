@@ -418,11 +418,11 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
    </div>
    <ul class="admin-operations-list">
     <li>
-     <div class="admin-operation-name"><h3>Propose evidence</h3><ContextHelp label="About evidence proposals" title="Evidence contributions"><p>Contribution submission requires a verified contributor assignment and an attributable, auditable draft.</p></ContextHelp></div>
-     <span class="admin-operation-status">Not enabled</span>
+     <div class="admin-operation-name"><h3>Variant nomenclature curation</h3><ContextHelp label="About variant curation" title="Research curation"><p>Authorized researchers can submit source-supported nomenclature corrections in a variant dossier. Independent review is required before publication.</p></ContextHelp></div>
+     <span class="admin-operation-status">In variant dossiers</span>
     </li>
     <li>
-     <div class="admin-operation-name"><h3>Review and validate</h3><ContextHelp label="About scientific review" title="Scientific review"><p>Scientific review requires independently verified reviewer authority, traceable evidence and controlled decisions.</p></ContextHelp></div>
+     <div class="admin-operation-name"><h3>Source correction review</h3><ContextHelp label="About scientific review" title="Scientific review"><p>Scientific review requires independently verified reviewer authority, traceable evidence and controlled decisions.</p></ContextHelp></div>
      <span class="admin-operation-status">{{decisionAllowed?'Review decisions available':'Not enabled'}}</span>
     </li>
     <li>
@@ -440,7 +440,7 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
     </ContextHelp>
    </div>
    <ul class="admin-operations-list">
-    <li v-if="isContributor||isReviewer"><div class="admin-operation-name"><h3>Propose evidence</h3></div><span class="admin-operation-status">Not enabled</span></li>
+    <li v-if="isContributor||isReviewer"><div class="admin-operation-name"><h3>Propose variant corrections</h3></div><span class="admin-operation-status">In variant dossiers</span></li>
     <li v-if="isReviewer"><div class="admin-operation-name"><h3>Scientific review</h3></div><span class="admin-operation-status">{{decisionAllowed?'Authorised review available':'Not enabled'}}</span></li>
    </ul>
   </section>
@@ -581,4 +581,83 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
 .nfq-professional-name{font-size:16px;font-weight:700;margin:0 0 4px;color:#173949}
 .nfq-professional-meta{font-size:13px;margin:0 0 4px;color:#345566}
 .nfq-professional-note{font-size:11px;line-height:1.55;margin:7px 0 0;color:#64787f}
+
+/* 14H122 Users & Profiles: compact bright clinical surface, no decorative scaffolding. */
+.research-admin{max-width:1160px;color:#213b56;padding-bottom:30px}
+.admin-head{border:0;padding:0;margin:0 0 12px;align-items:center}
+.admin-head h1{font-size:clamp(23px,2.45vw,31px);color:#18344f;font-weight:730;letter-spacing:-.04em}
+.admin-trail{margin:-3px 0 12px;padding:0}
+.research-entry{grid-template-columns:minmax(0,1.24fr) minmax(285px,.76fr);gap:14px;padding:0;margin:0;border:0;align-items:stretch}
+.research-entry-main{display:grid;align-content:start;min-width:0;gap:6px}
+.nfq-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.research-entry-aside{border:1px solid #dfe7f0;background:#fff;border-radius:14px;padding:17px 17px 14px;min-width:0;align-self:stretch}
+.research-entry-aside .admin-section-heading{margin-bottom:8px}
+.research-entry-aside .admin-section-heading h2{font-size:16px;font-weight:720;color:#213c58}
+.research-capabilities>div{padding:7px 0;gap:10px}
+.research-capabilities dt{font-size:11.5px;color:#677b90}
+.research-capabilities dd{font-size:11.5px;color:#243e58;font-weight:690}
+.admin-role-actions{gap:6px;margin-top:12px}
+.admin-role-actions p{color:#6a7380;line-height:1.45}
+.admin-role-refresh{min-height:36px;border-color:#d5e1ed;background:#fff;color:#285b87;border-radius:8px;padding:7px 12px;font-size:11.5px;font-weight:680}
+.admin-role-refresh:hover{background:#f2f7fd;border-color:#b4c9df}
+.admin-role-refresh:focus-visible,.research-entry-link:focus-visible{outline:2px solid #2d76ad;outline-offset:2px}
+.admin-readiness{padding:16px 19px;margin-top:13px;border:1px solid #e1e8f0;border-radius:13px;background:#fff;box-shadow:0 4px 17px rgba(26,59,89,.025)}
+.admin-readiness .admin-section-heading{margin:0 0 12px}
+.admin-section-heading h2{color:#213c58;font-size:17px;font-weight:720;letter-spacing:-.025em}
+.admin-readiness .admin-section-heading :deep(.nfq-context-help summary),
+.research-entry-aside :deep(.nfq-context-help summary){width:28px;height:28px;border-color:#dce6f0;color:#4d6b86}
+.research-entry-link{min-height:36px;border-color:#d6e2ee;background:#fff;color:#285b87;border-radius:8px;font-size:11.5px}
+.research-entry-link:hover{background:#f1f6fc;color:#19496f}
+.nfq-account-welcome{display:flex;gap:15px;align-items:flex-start;min-height:165px;padding:18px 20px;border:1px solid #dfe7f0;border-radius:14px;background:#fff}
+.nfq-welcome-mark{display:grid;place-items:center;flex:none;width:52px;height:52px;border-radius:14px;background:#204a72;color:#fff;font-size:15px;font-weight:750;letter-spacing:-.04em}
+.nfq-account-welcome h2{margin:0 0 5px;color:#1b3a57;font-size:21px;letter-spacing:-.035em}
+.nfq-account-welcome p{margin:0;color:#60768a;font-size:12.5px;line-height:1.5}
+.nfq-account-welcome .admin-session-actions{margin:13px 0 0;display:flex;flex-wrap:wrap;gap:8px}
+.admin-account-disclosure{margin:0;padding:0 3px}
+.admin-account-disclosure summary{color:#698098;font-size:10.5px}
+.admin-account-detail{padding:5px 3px 1px}
+.admin-account-detail code{color:#53687d;font-size:10.5px}
+.nfq-roster-controls{gap:8px;margin-bottom:10px}
+.nfq-roster-controls label{width:100%;font-weight:650;color:#5f7286;font-size:11px}
+.nfq-roster-controls input{max-width:450px;min-height:38px;border:1px solid #d3dfeb;border-radius:8px;padding:8px 11px;font-size:12px}
+.nfq-roster{display:grid;gap:7px;border:0}
+.nfq-roster-row{border:1px solid #e2e9f1;border-radius:9px;padding:10px 12px;gap:10px 14px;background:#fcfdff}
+.nfq-roster-row.nfq-roster-selected{background:#f0f6fc;border-color:#abc6df}
+.nfq-roster-identity strong{color:#203e5b;font-size:12.5px;font-weight:690}
+.nfq-roster-identity span{font-size:11px;color:#677c90}
+.nfq-role-editor-head{display:flex;align-items:center;justify-content:space-between;gap:10px 18px;flex-wrap:wrap}
+.nfq-role-editor-head p{font-size:11.5px;line-height:1.5;color:#6a7b8d;margin:0}
+.nfq-role-management-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px 13px;max-width:700px;margin-top:14px;padding:16px;border:1px solid #e2e9f1;border-radius:10px;background:#f9fbfe}
+.nfq-form-field{display:grid;gap:6px;min-width:0}
+.nfq-form-field label{font-size:11.5px;font-weight:680;color:#425d75}
+.nfq-form-field input,.nfq-form-field select{min-height:39px;min-width:0;width:100%;border:1px solid #d3dfeb;border-radius:7px;padding:8px 10px;background:#fff;color:#233f59;font-size:12px}
+.nfq-form-full{grid-column:1/-1}
+.nfq-role-confirm{font-size:11.5px;line-height:1.4;color:#445d74;margin:2px 0}
+.nfq-role-actions{gap:8px}
+.nfq-role-management-form :focus-visible,.nfq-roster-controls input:focus-visible{outline:2px solid #2d76ad;outline-offset:2px}
+.admin-operations-list{gap:6px}
+.admin-operations-list li{background:#fbfdff;border:1px solid #edf1f6;border-radius:9px;padding:10px 12px}
+.admin-operation-name h3{font-size:12.5px;color:#2b4561}
+.admin-operation-status{font-size:11px;color:#587089}
+.source-review-item{border-color:#e7edf4}
+@media(max-width:900px){
+ .research-entry{grid-template-columns:minmax(0,1fr);gap:11px}
+ .research-entry-aside{padding:15px 17px;border:1px solid #dfe7f0}
+}
+@media(max-width:520px){
+ .research-admin{padding-bottom:22px}
+ .admin-head{margin:0 0 10px;padding:0}
+ .research-entry{gap:10px}
+ .research-entry-aside{padding:13px 14px}
+ .admin-readiness{padding:14px;margin-top:10px}
+ .nfq-roster-row{align-items:flex-start}
+ .nfq-roster-controls input{min-width:0;width:100%;max-width:none}
+ .nfq-role-management-form{grid-template-columns:minmax(0,1fr);padding:12px}
+ .nfq-form-full{grid-column:1}
+ .admin-operations-list li{flex-wrap:wrap;align-items:flex-start}
+ .admin-operation-status{white-space:normal}
+ .nfq-account-welcome{padding:14px;gap:11px}
+ .nfq-welcome-mark{width:44px;height:44px}
+}
+
 </style>
