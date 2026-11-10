@@ -1,0 +1,43 @@
+name: FQ live invitation gateway smoke (never sends email)
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/invitation-live-gateway-smoke.yml'
+      - 'supabase/functions/nfq-admin-invite/**'
+      - 'supabase/functions/_shared/adminInvitationGateway.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  no-email-transport-test:
+    name: Browser preflight and unauthenticated denial
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify deployed invitation gateway without credentials or recipient
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          const url='https://oxlkisjwfarseyqgeyuw.supabase.co/functions/v1/nfq-admin-invite';
+          const origin='https://fq.neumact.org';
+          const preflight=await fetch(url,{method:'OPTIONS',signal:AbortSignal.timeout(15000),headers:{
+            Origin:origin,'Access-Control-Request-Method':'POST',
+            'Access-Control-Request-Headers':'authorization,apikey,content-type'
+          }});
+          console.log('Preflight:',preflight.status,
+            'allow-origin:',preflight.headers.get('access-control-allow-origin'),
+            'allow-headers:',preflight.headers.get('access-control-allow-headers'));
+          assert.equal(preflight.status,204,'Browser preflight should reach the CORS handler');
+          assert.equal(preflight.headers.get('access-control-allow-origin'),origin);
+          const headers=(preflight.headers.get('access-control-allow-headers')||'').toLowerCase();
+          for(const key of ['authorization','apikey','content-type'])assert.ok(headers.includes(key),key+' must be allowed');
+          const denial=await fetch(url,{method:'GET',headers:{Origin:origin},signal:AbortSignal.timeout(15000)});
+          console.log('Unauthenticated GET:',denial.status);
+          assert.ok([401,403].includes(denial.status),'Unauthenticated clients must be denied');
+          const untrusted=await fetch(url,{method:'OPTIONS',headers:{Origin:'https://untrusted.invalid','Access-Control-Request-Method':'POST'},signal:AbortSignal.timeout(15000)});
+          console.log('Untrusted origin:',untrusted.status,'allow-origin:',untrusted.headers.get('access-control-allow-origin'));
+          assert.notEqual(untrusted.headers.get('access-control-allow-origin'),'https://untrusted.invalid');
+          JS
