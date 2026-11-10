@@ -6,6 +6,7 @@ import type {ProfessionalProfile} from '../services/professionalProfile';
 import type {WorkspacePersona} from '../domain/workspacePersona';
 import {verifiedProfileName,profileMonogram,visibleWorkspaceRole,type ProfessionalPhase} from '../domain/profilePresentation';
 
+const emit=defineEmits<{(e:'open-people'):void}>();
 const props=defineProps<{
  email:string;
  persona:WorkspacePersona;
@@ -78,7 +79,7 @@ const profileStatus=computed(()=>{
    <nav class="nfq-profile-links" aria-label="Account quick links">
     <RouterLink to="/variants">Variants <span aria-hidden="true">↗</span></RouterLink>
     <RouterLink v-if="persona!=='guest'" to="/workspace">Research tools <span aria-hidden="true">↗</span></RouterLink>
-    <a v-if="persona==='administrator'" href="#nfq-people-access">People &amp; access <span aria-hidden="true">↓</span></a>
+    <button v-if="persona==='administrator'" type="button" @click="emit('open-people')">People &amp; access <span aria-hidden="true">↓</span></button>
    </nav>
   </div>
  </section>
@@ -105,9 +106,10 @@ const profileStatus=computed(()=>{
 .nfq-profile-source-verified{background:#3175ac}
 .nfq-profile-source :deep(.nfq-context-help summary){width:25px;height:25px;border-color:#e0e8f1;color:#526b81}
 .nfq-profile-links{display:flex;align-items:center;gap:7px 14px;flex-wrap:wrap}
-.nfq-profile-links a{font-size:11px;font-weight:670;color:#276094;text-decoration:none;white-space:nowrap}
-.nfq-profile-links a:hover{text-decoration:underline;text-underline-offset:4px}
-.nfq-profile-links a:focus-visible{outline:2px solid #276094;outline-offset:3px;border-radius:3px}
+.nfq-profile-links a,.nfq-profile-links button{font-size:11px;font-weight:670;color:#276094;text-decoration:none;white-space:nowrap}
+.nfq-profile-links button{border:0;padding:0;background:transparent;font:inherit;color:#276094;cursor:pointer}
+.nfq-profile-links a:hover,.nfq-profile-links button:hover{text-decoration:underline;text-underline-offset:4px}
+.nfq-profile-links a:focus-visible,.nfq-profile-links button:focus-visible{outline:2px solid #276094;outline-offset:3px;border-radius:3px}
 @media(max-width:600px){
  .nfq-profile-top{gap:11px;align-items:flex-start;padding:15px 15px 13px}
  .nfq-profile-avatar{width:46px;height:46px;border-radius:12px;font-size:15px}
