@@ -5,7 +5,10 @@ import {createInvitationGateway} from '../_shared/adminInvitationGateway.mjs';
 
 const origin='https://fq.neumact.org';
 const endpoint=Deno.env.get('SUPABASE_URL')||'';
-const secret=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||'';
+const keys=Deno.env.get('SUPABASE_SECRET_KEYS')||'';
+let namedKey='';
+try{namedKey=JSON.parse(keys).default||'';}catch{/* legacy projects */}
+const secret=Deno.env.get('SUPABASE_SECRET_KEY')||namedKey||Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||'';
 const enabled=Deno.env.get('NFQ_ADMIN_INVITES_ENABLED')==='true'&&Boolean(endpoint&&secret);
 const admin=enabled?createClient(endpoint,secret,{
  auth:{autoRefreshToken:false,persistSession:false,detectSessionInUrl:false}
@@ -26,6 +29,15 @@ const handler=createInvitationGateway({
    .maybeSingle();
   if(memberError)throw Error('Research membership verification failed');
   return member?.role==='administrator'?{id:user.id,email:user.email}:null;
+ },
+ async listDispatch(_actorId:string){
+  if(!admin)throw Error('Disabled');
+  const {data,error}=await admin.from('nfq_account_invitations')
+   .select('id,recipient_email,intended_kind,status,requested_at,updated_at')
+   .order('requested_at',{ascending:false}).limit(20);
+  if(error||!data)throw Error('Unable to read invitation audit');
+  return data.map(item=>({id:item.id,email:item.recipient_email,kind:item.intended_kind,
+   status:item.status,createdAt:item.requested_at,updatedAt:item.updated_at}));
  },
  async recordDispatch(input:{email:string;kind:'clinician'|'guest';actorId:string}){
   if(!admin)throw Error('Disabled');
@@ -57,7 +69,7 @@ const handler=createInvitationGateway({
   if(error||!data.user?.id)throw Error('Invitation provider did not confirm delivery');
   return data.user.id;
  },
- async markStatus(id:string,status:'sent'|'failed',userId:string|null){
+ async markStatus(id:string,status:'sent'|'uncertain',userId:string|null){
   if(!admin)throw Error('Disabled');
   const {data,error}=await admin.from('nfq_account_invitations')
    .update({status,invited_user_id:userId,updated_at:new Date().toISOString()})
