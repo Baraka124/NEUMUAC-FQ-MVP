@@ -12,15 +12,29 @@ export interface RealVariant {
   readonly aliases: readonly string[];
   /** Raw functional class label from the live catalog, not a clinical verdict. */
   readonly recordedClass?: string | null;
+  /** Original functional class subtype; NOT a therapy efficacy conclusion. */
+  readonly classSubtype?: string | null;
+  /** Independent, recorded variant-level responses; never inferred from class. */
+  readonly etiPrediction?: RecordedVariantResponse;
+  readonly alyftrekPrediction?: RecordedVariantResponse;
   readonly validationCount?: number | null;
 }
 export type RecordedClassFilter = 'all'|'I'|'II'|'III'|'IV'|'V'|'VI'|'unclassified';
+export type RecordedVariantResponse='responsive'|'non_responsive'|'unknown'|null;
+export type ClassSubtypeFilter='all'|'exceptional'|'true'|'presumed'|'atypical'|'standard'|'unclassified';
+export type RecordedTherapyFilter='all'|'eti-responsive'|'eti-non-responsive'|'alyftrek-responsive'|'alyftrek-non-responsive';
+export interface VariantTherapyFilters{
+ readonly subtypeFilter?:ClassSubtypeFilter;
+ readonly responseFilter?:RecordedTherapyFilter;
+}
 export type VariantSort = 'name-asc'|'name-desc'|'recent-record'|'fewest-validations'|'most-validations';
 export type VariantSearchMode = 'contains'|'exact-name';
 export interface VariantListOptions {
   readonly query:string;
   readonly page:number;
   readonly classFilter?:RecordedClassFilter;
+  readonly subtypeFilter?:ClassSubtypeFilter;
+  readonly responseFilter?:RecordedTherapyFilter;
   readonly sort?:VariantSort;
   readonly searchMode?:VariantSearchMode;
   readonly signal?:AbortSignal;
@@ -33,7 +47,7 @@ export interface RealVariantSource {
   list(options: VariantListOptions): Promise<RealVariantPage>;
   get(id: string, signal?: AbortSignal): Promise<RealVariant | null>;
   /** Separate narrow candidate lookup; may return null for ambiguity or a capped query. */
-  resolveExact(query:string,filter?:RecordedClassFilter,signal?:AbortSignal):Promise<RealVariant|null>;
+  resolveExact(query:string,filter?:RecordedClassFilter,signal?:AbortSignal,therapyFilters?:VariantTherapyFilters):Promise<RealVariant|null>;
 }
 export type ConnectionIssue = 'not-configured' | 'invalid-configuration' | 'authentication-required' | 'access-denied' | 'schema-mismatch' | 'request-failed';
 export class VariantConnectionError extends Error {
@@ -99,6 +113,24 @@ function decodeAliases(value: unknown): readonly string[] {
   }
   return [];
 }
+/** A recorded status is a database label, not proof of therapeutic efficacy. */
+function decodeRecordedResponse(raw:Record<string,unknown>,key:string):RecordedVariantResponse{
+ if(!Object.hasOwn(raw,key)||raw[key]===null)return null;
+ const value=raw[key];
+ if(value==='responsive'||value==='non_responsive'||value==='unknown')return value;
+ throw new VariantConnectionError('schema-mismatch','Unexpected recorded therapy response code');
+}
+function applyTherapyFilters(params:URLSearchParams,subtypeFilter:ClassSubtypeFilter,responseFilter:RecordedTherapyFilter):void{
+ if(!(['all','exceptional','true','presumed','atypical','standard','unclassified'] as const).includes(subtypeFilter))
+  throw new VariantConnectionError('invalid-configuration','Unknown class subtype filter');
+ if(!(['all','eti-responsive','eti-non-responsive','alyftrek-responsive','alyftrek-non-responsive'] as const).includes(responseFilter))
+  throw new VariantConnectionError('invalid-configuration','Unknown recorded modulator filter');
+ if(subtypeFilter!=='all')params.set('class_subtype',subtypeFilter==='unclassified'?'is.null':'eq.'+subtypeFilter);
+ if(responseFilter!=='all'){
+  const [drug,status]=responseFilter.split('-');
+  params.set(drug==='eti'?'eti_prediction':'alyftrek_prediction','eq.'+(status==='responsive'?'responsive':'non_responsive'));
+ }
+}
 /** Do not manufacture a variant identifier or scientific conclusion on missing fields. */
 export function decodeRealVariant(input: unknown): RealVariant {
   if (!input || typeof input!=='object' || Array.isArray(input)) throw new VariantConnectionError('request-failed','Unexpected record schema.');
@@ -111,6 +143,9 @@ export function decodeRealVariant(input: unknown): RealVariant {
   const cdnaName=requiredText(raw.cdna_name);
   return {id,legacyName,proteinName,cdnaName,aliases:decodeAliases(raw.alt_names),
     recordedClass:requiredText(raw.cftr_class),
+    classSubtype:requiredText(raw.class_subtype),
+    etiPrediction:decodeRecordedResponse(raw,'eti_prediction'),
+    alyftrekPrediction:decodeRecordedResponse(raw,'alyftrek_prediction'),
     validationCount:typeof raw.validation_count==='number'&&Number.isSafeInteger(raw.validation_count)&&raw.validation_count>=0?raw.validation_count:null};
 }
 export function variantDisplayName(value: RealVariant): string {
@@ -141,7 +176,9 @@ export function createReadOnlyRepository(
   const endpoint=validateReadOnlyConfig(config);
   const mode: ReadAccessMode = config.accessMode ?? 'anonymous';
   const table = config.readTable === 'variants' ? 'variants' : 'nfq_public_variant_catalog';
-  const recordColumns=table==='variants'?'id,legacy_name,protein_name,cdna_name,alt_names,cftr_class,validation_count':'id,legacy_name,protein_name,cdna_name,alt_names';
+  const recordColumns=table==='variants'?
+  'id,legacy_name,protein_name,cdna_name,alt_names,cftr_class,class_subtype,eti_prediction,alyftrek_prediction,validation_count':
+  'id,legacy_name,protein_name,cdna_name,alt_names';
   async function request(params: URLSearchParams,signal?: AbortSignal): Promise<readonly RealVariant[]> {
     const url=new URL('/rest/v1/'+table,endpoint);
     url.search=params.toString();
@@ -185,12 +222,12 @@ export function createReadOnlyRepository(
     return data.map(decodeRealVariant);
   }
   return Object.freeze({
-    async list({query,page,classFilter='all',sort='name-asc',searchMode='contains',signal}: VariantListOptions) {
+    async list({query,page,classFilter='all',subtypeFilter='all',responseFilter='all',sort='name-asc',searchMode='contains',signal}: VariantListOptions) {
       const classes: readonly RecordedClassFilter[]=['all','I','II','III','IV','V','VI','unclassified'];
       const sorts: readonly VariantSort[]=['name-asc','name-desc','recent-record','fewest-validations','most-validations'];
       if(!classes.includes(classFilter)||!sorts.includes(sort)||!['contains','exact-name'].includes(searchMode))
         throw new VariantConnectionError('invalid-configuration','Invalid research filters.');
-      if(table!=='variants'&&(classFilter!=='all'||sort==='fewest-validations'||sort==='most-validations'))
+      if(table!=='variants'&&(classFilter!=='all'||subtypeFilter!=='all'||responseFilter!=='all'||sort==='fewest-validations'||sort==='most-validations'))
         throw new VariantConnectionError('not-configured','Scientific class filters require the full authorized variant source.');
       if (!Number.isInteger(page)||page<0||page>10000) throw new VariantConnectionError('invalid-configuration','Invalid page.');
       const params=new URLSearchParams({
@@ -201,6 +238,7 @@ export function createReadOnlyRepository(
         limit:String(PAGE_SIZE+1),offset:String(page*PAGE_SIZE)
       });
       if(classFilter!=='all')params.set('cftr_class',classFilter==='unclassified'?'is.null':'eq.'+classFilter);
+      applyTherapyFilters(params,subtypeFilter,responseFilter);
       if(query.trim()){
         const terms=parseDiscoveryTerms(query);
         params.set('or',buildDiscoveryExpression(terms,searchMode==='exact-name'));
@@ -208,7 +246,7 @@ export function createReadOnlyRepository(
       const result=await request(params,signal);
       return {records:result.slice(0,PAGE_SIZE),hasMore:result.length>PAGE_SIZE};
     },
-    async resolveExact(query:string,filter:RecordedClassFilter='all',signal?:AbortSignal){
+    async resolveExact(query:string,filter:RecordedClassFilter='all',signal?:AbortSignal,therapyFilters:VariantTherapyFilters={}){
       // A dedicated request prevents alphabetic pages and user sorting from
       // hiding one exact variant among many substring matches.
       if(query.includes(',')||query.includes(';'))return null;
@@ -216,13 +254,14 @@ export function createReadOnlyRepository(
       if(!text || text.length<2)return null;
       const filters:readonly RecordedClassFilter[]=['all','I','II','III','IV','V','VI','unclassified'];
       if(!filters.includes(filter))throw new VariantConnectionError('invalid-configuration','Invalid class filter');
-      if(table!=='variants'&&filter!=='all')return null;
+      if(table!=='variants'&&(filter!=='all'||(therapyFilters.subtypeFilter??'all')!=='all'||(therapyFilters.responseFilter??'all')!=='all'))return null;
       const params=new URLSearchParams({
         select:recordColumns,
         order:'id.asc',
         limit:String(EXACT_CANDIDATE_LIMIT)
       });
       if(filter!=='all')params.set('cftr_class',filter==='unclassified'?'is.null':'eq.'+filter);
+      if(table==='variants')applyTherapyFilters(params,therapyFilters.subtypeFilter??'all',therapyFilters.responseFilter??'all');
       // Aliases are stored in legacy text, so fetch possible alias-containing
       // records, then validate full recorded aliases locally. No guessed synonym.
       params.set('or',`(legacy_name.ilike.${text},protein_name.ilike.${text},cdna_name.ilike.${text},alt_names.ilike.*${text}*)`);
