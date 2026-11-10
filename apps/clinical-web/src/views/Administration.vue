@@ -3,6 +3,7 @@ import {computed,ref,watch,onUnmounted} from 'vue';
 import {RouterLink,useRoute} from 'vue-router';
 import ContextHelp from '../components/ContextHelp.vue';
 import ResearchIdentityCard from '../components/ResearchIdentityCard.vue';
+import AdminInvitationPanel from '../components/AdminInvitationPanel.vue';
 import {authController} from '../services/authSession';
 import {researcherRole,refreshResearcherRole} from '../services/researchRole';
 import {guestDesignation} from '../services/guestDesignation';
@@ -14,6 +15,7 @@ import {canDecideSourceCorrection,createSourceCorrectionDecisionClient,type Sour
 import {createResearchAccessDiagnostic,type ResearchAccessDiagnostic} from '../services/researchAccessDiagnostic';
 import {canManageResearchRoles,createRoleAdministrationClient,type AssignableRole} from '../services/roleAdministration';
 import {createResearchAccountDirectory,type ResearchAccountRow} from '../services/researchAccountDirectory';
+import {createAdminInvitationClient} from '../services/adminInvitations';
 import {createProfessionalProfileClient,type ProfessionalProfile} from '../services/professionalProfile';
 
 const route=useRoute();
@@ -90,6 +92,7 @@ const manageRolesAllowed=computed(()=>Boolean(permissionClient)&&canManageResear
  authController?.state.phase??'signed-out',researcherRole
 ));
 const rosterClient=accessConfig&&authController?createResearchAccountDirectory(accessConfig,authController):null;
+const invitationClient=accessConfig&&authController?createAdminInvitationClient(accessConfig,authController):null;
 const accountSearch=ref('');
 const rosterRows=ref<ResearchAccountRow[]>([]);
 const rosterPhase=ref<'idle'|'loading'|'ready'|'error'>('idle');
@@ -367,6 +370,7 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
      <p>Every role assignment or revocation requires explicit confirmation and is enforced and audited by the FQ database. Guest accounts receive a separate designation, never a research role automatically.</p>
     </ContextHelp>
    </header>
+   <AdminInvitationPanel :client="invitationClient" :allowed="manageRolesAllowed" :known-accounts="rosterRows" />
    <div class="nfq-people-layout" :class="{'nfq-people-layout-editing':roleEditorOpen}">
     <div class="nfq-people-directory">
      <form class="nfq-roster-search" role="search" @submit.prevent="loadRoster">
