@@ -27,7 +27,8 @@ create index if not exists nfq_invitations_email_window
 alter table public.nfq_account_invitations enable row level security;
 revoke all on public.nfq_account_invitations from public,anon,authenticated;
 -- Explicit service-side privileges for the validated Edge Function only.
--- No DELETE: invitation audit entries are retained.
+-- The gateway never issues DELETE. service_role is inherently privileged;
+-- retention is enforced by service logic and operational controls.
 grant select,insert,update on public.nfq_account_invitations to service_role;
 -- Only a verified Administrator Edge Function using a server-side secret
 -- can reserve/update invitation delivery records. Audit is retained.
