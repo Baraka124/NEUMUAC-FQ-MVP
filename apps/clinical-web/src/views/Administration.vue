@@ -691,4 +691,111 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
  .nfq-welcome-mark{width:44px;height:44px}
 }
 
+
+/* Phase 14H123 — an account directory, not three separate dashboard cards. */
+.research-admin{max-width:1190px}
+.research-admin .admin-head{margin-bottom:8px}
+.research-admin .admin-head h1{font-size:clamp(22px,2.1vw,28px);letter-spacing:-.035em!important}
+.research-admin .admin-trail{border:0;margin:0 0 10px;padding:0;font-size:11px}
+.research-admin .research-entry{grid-template-columns:minmax(0,1.15fr) minmax(260px,.85fr);gap:12px}
+.research-admin .research-entry-aside{padding:13px 17px;border-radius:11px;box-shadow:none}
+.nfq-access-head{display:flex;align-items:center;justify-content:space-between;gap:9px;margin:0}
+.nfq-access-head h2{font-size:14px!important;line-height:1.25;margin:0!important;color:#243f5a;font-weight:720}
+.nfq-access-head :deep(.nfq-context-help summary){width:24px;height:24px}
+.research-admin .research-capabilities{margin:3px 0 0}
+.research-admin .research-capabilities>div{padding:5px 0}
+.research-admin .research-capabilities dt{font-size:11px}
+.research-admin .research-capabilities dd{font-size:11.5px}
+.nfq-access-verified{display:inline-block;margin-left:8px;color:#6a8095;font-size:10px;font-weight:550}
+.nfq-access-diagnostics{font-size:11px;color:#607890;margin-top:7px;border-top:1px solid #edf1f6;padding-top:7px}
+.nfq-access-diagnostics summary{cursor:pointer;width:max-content;max-width:100%;font-size:10.5px;color:#54708a;line-height:1.6}
+.nfq-diagnostics-panel{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap;padding:9px 0 3px}
+.nfq-diagnostics-panel button{padding:3px 0;border:0;background:none;color:#2a608e;cursor:pointer;font-size:10.5px;font-weight:650}
+.nfq-diagnostics-panel button:hover{text-decoration:underline;text-underline-offset:3px}
+.nfq-diagnostics-panel button:disabled{opacity:.55;cursor:wait}
+.nfq-diagnostics-panel p{width:100%;margin:0;color:#58738b;font-size:10.5px;line-height:1.4}
+.nfq-access-warning{margin:7px 0 0;color:#915c42;font-size:11px}
+.nfq-people-section{border:1px solid #e0e8f0;border-radius:12px;background:#fff;margin-top:13px;padding:16px 17px;min-width:0}
+.nfq-people-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}
+.nfq-people-heading-title{display:flex;gap:12px;align-items:baseline;min-width:0}
+.nfq-people-heading h2{margin:0!important;font-size:17px!important;line-height:1.25;color:#253f59;font-weight:730;letter-spacing:-.02em}
+.nfq-people-count{font-size:10.5px;color:#7690a8;font-weight:600;white-space:nowrap}
+.nfq-people-heading :deep(.nfq-context-help summary){width:26px;height:26px}
+.nfq-people-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:17px;align-items:start}
+.nfq-people-layout-editing{grid-template-columns:minmax(0,1fr) minmax(290px,.85fr)}
+.nfq-people-directory{min-width:0}
+.nfq-roster-search{display:flex;align-items:center;gap:8px;width:min(100%,570px);height:40px;padding:0 7px 0 12px;border:1px solid #d8e3ed;border-radius:8px;color:#7890a6;background:#fff}
+.nfq-roster-search:focus-within{border-color:#6396bd;outline:2px solid #e8f1fa}
+.nfq-roster-search input{border:0;outline:0!important;box-shadow:none!important;padding:0;min-width:0;flex:1;font:inherit;font-size:12px;height:100%;background:transparent;color:#233e57}
+.nfq-roster-search input::-webkit-search-cancel-button{display:none}
+.nfq-roster-search button{border:0;background:transparent;color:#66839c;padding:0;display:grid;place-items:center;cursor:pointer;line-height:1}
+.nfq-roster-search .nfq-roster-clear{font-size:18px;width:22px;height:26px}
+.nfq-roster-search .nfq-roster-reload{font-size:21px;width:28px;height:28px;border-radius:6px}
+.nfq-roster-reload:hover{background:#eff5fa;color:#31628d}
+.nfq-roster-reload:disabled{opacity:.4;cursor:wait}
+.nfq-directory-feedback{font-size:11.5px;line-height:1.5;color:#637d91;margin:12px 0}
+.nfq-people-results{display:grid;gap:0;margin-top:12px;max-height:380px;overflow:auto;scrollbar-width:thin;overscroll-behavior:contain}
+.nfq-person-item{min-width:0;border-top:1px solid #edf1f5}
+.nfq-person-item:first-child{border-top:0}
+.nfq-person-select{display:flex;gap:10px;align-items:center;width:100%;border:0;background:transparent;padding:10px 7px;min-height:54px;text-align:left;color:#25415b;cursor:pointer;border-radius:6px}
+.nfq-person-select:hover{background:#f6f9fc}
+.nfq-person-select.nfq-person-selected{background:#eef5fc}
+.nfq-person-select:disabled{cursor:wait;opacity:.6}
+.nfq-person-avatar{height:29px;width:29px;display:grid;place-items:center;border-radius:8px;flex:none;background:#eef3f9;color:#345f82;font-size:12px;font-weight:760}
+.nfq-person-label{min-width:0;flex:1;display:grid;gap:3px}
+.nfq-person-label strong{font-size:11.75px;line-height:1.3;font-weight:690;color:#2c4861;overflow-wrap:anywhere}
+.nfq-person-label small{font-size:10px;line-height:1.3;color:#8192a2;overflow-wrap:anywhere}
+.nfq-person-role{color:#416987;background:#f0f5fa;border-radius:5px;font-size:10px;font-weight:620;padding:4px 8px;white-space:nowrap;max-width:100%;text-overflow:ellipsis;overflow:hidden}
+.nfq-person-role-unassigned{background:#f4f6f8;color:#7a8794}
+.nfq-person-arrow{font-size:19px;color:#9aacbb;line-height:1}
+.nfq-directory-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:9px 15px;margin:12px 2px 0;font-size:10px;color:#8a9aaa;line-height:1.5}
+.nfq-inline-action{padding:0;border:0;background:transparent;color:#326795;font:inherit;font-size:10.5px;cursor:pointer;font-weight:650}
+.nfq-inline-action:hover{text-decoration:underline;text-underline-offset:3px}
+.nfq-account-inspector{min-width:0;border-left:1px solid #e6edf3;padding:3px 0 2px 17px}
+.nfq-account-inspector-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.nfq-account-inspector-head span{color:#7b8fa1;font-size:10px;font-weight:600}
+.nfq-account-inspector-head h3{font-size:13px;letter-spacing:-.012em;line-height:1.45;margin:4px 0 0;color:#29445e;overflow-wrap:anywhere}
+.nfq-inspector-close{display:grid;place-items:center;width:28px;height:28px;flex:none;background:transparent;border:0;border-radius:7px;color:#617a91;font-size:22px;cursor:pointer}
+.nfq-inspector-close:hover{background:#edf3f9}
+.nfq-inspector-context{font-size:10.5px;color:#718499;line-height:1.5;margin:7px 0}
+.research-admin .nfq-account-inspector .nfq-role-management-form{display:grid;grid-template-columns:minmax(0,1fr);padding:0;margin:10px 0 0;background:transparent;border:0;gap:11px;max-width:none}
+.research-admin .nfq-account-inspector .nfq-form-full{grid-column:auto}
+.research-admin .nfq-account-inspector .nfq-form-field{gap:5px}
+.research-admin .nfq-account-inspector .nfq-form-field label{font-size:10.5px;color:#5f7389}
+.research-admin .nfq-account-inspector input,
+.research-admin .nfq-account-inspector select{font-size:11.5px;border:1px solid #d6e1eb;border-radius:7px;min-height:36px;color:#24435e;background:#fff;padding:7px 9px;width:100%}
+.research-admin .nfq-account-inspector input[readonly]{background:#f8fafc;color:#526b81}
+.research-admin .nfq-account-inspector .nfq-role-confirm{display:flex;gap:8px;align-items:flex-start;margin:0;font-size:10.5px;line-height:1.5;color:#597189}
+.research-admin .nfq-account-inspector .nfq-role-confirm input{width:14px;height:14px;min-height:14px;margin:2px 0 0;padding:0;flex:none}
+.nfq-save-role{min-height:37px;padding:8px 13px;border:1px solid #1c527e;border-radius:7px;background:#1c527e;color:#fff;font-size:11.5px;font-weight:690;cursor:pointer}
+.nfq-save-role:hover{background:#143d61}
+.nfq-save-role:disabled{opacity:.47;cursor:not-allowed}
+.nfq-role-result{margin:9px 0 0;color:#395f7c;font-size:11px;line-height:1.5}
+.research-admin .nfq-people-section :focus-visible{outline:2px solid #327eac;outline-offset:2px}
+.research-admin .admin-readiness{padding:13px 16px;margin-top:11px;box-shadow:none;border-color:#e7edf3}
+.research-admin .admin-readiness .admin-section-heading{margin-bottom:5px}
+.research-admin .admin-readiness .admin-section-heading h2{font-size:15px!important}
+.research-admin .admin-operations-list li{padding:7px 10px;border:0;background:transparent;border-bottom:1px solid #edf1f5;border-radius:0}
+.research-admin .admin-operations-list li:last-child{border-bottom:0}
+.research-admin .admin-operations-list h3{font-size:11.5px}
+@media(max-width:970px){
+ .nfq-people-layout-editing{grid-template-columns:minmax(0,1fr)}
+ .nfq-account-inspector{border-left:0;border-top:1px solid #e5edf4;padding:14px 0 0}
+}
+@media(max-width:700px){
+ .research-admin .research-entry{grid-template-columns:minmax(0,1fr);gap:10px}
+ .research-admin .research-entry-aside{padding:12px 14px}
+ .nfq-people-section{padding:14px;margin-top:10px}
+ .nfq-people-heading{margin-bottom:10px}
+ .nfq-person-select{gap:7px;padding:8px 2px}
+ .nfq-person-avatar{width:27px;height:27px}
+ .nfq-person-role{font-size:9.5px}
+}
+@media(max-width:410px){
+ .nfq-person-arrow{display:none}
+ .nfq-people-heading-title{gap:6px;flex-wrap:wrap}
+ .nfq-person-select{flex-wrap:wrap}
+ .nfq-person-role{margin-left:auto}
+}
+
 </style>
