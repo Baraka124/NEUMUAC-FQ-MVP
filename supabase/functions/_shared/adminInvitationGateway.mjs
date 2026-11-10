@@ -19,7 +19,7 @@ function respond(status,payload,origin){
   'Content-Type':'application/json','Cache-Control':'no-store',
   'Access-Control-Allow-Origin':origin,'Vary':'Origin',
   'Access-Control-Allow-Headers':'authorization,apikey,content-type',
-  'Access-Control-Allow-Methods':'POST,OPTIONS'
+  'Access-Control-Allow-Methods':'GET,POST,OPTIONS'
  }});
 }
 /**
@@ -30,14 +30,14 @@ function respond(status,payload,origin){
  */
 export function createInvitationGateway({
  enabled=false,allowedOrigin='https://fq.neumact.org',
- verifyAdministrator,recordDispatch,sendInvitation,markStatus
+ verifyAdministrator,listDispatch,recordDispatch,sendInvitation,markStatus
 }){
  return async function handle(req){
   const origin=req.headers.get('Origin')||'';
   if(!safeInviteOrigin(origin,allowedOrigin))
    return new Response('',{status:403,headers:{'Cache-Control':'no-store'}});
-  if(req.method==='OPTIONS')return new Response(null,{status:204,headers:{'Cache-Control':'no-store','Access-Control-Allow-Origin':origin,'Access-Control-Allow-Headers':'authorization,apikey,content-type','Access-Control-Allow-Methods':'POST,OPTIONS','Vary':'Origin'}});
-  if(req.method!=='POST')return respond(405,{error:'Method not permitted'},origin);
+  if(req.method==='OPTIONS')return new Response(null,{status:204,headers:{'Cache-Control':'no-store','Access-Control-Allow-Origin':origin,'Access-Control-Allow-Headers':'authorization,apikey,content-type','Access-Control-Allow-Methods':'GET,POST,OPTIONS','Vary':'Origin'}});
+  if(req.method!=='POST'&&req.method!=='GET')return respond(405,{error:'Method not permitted'},origin);
   if(!enabled)return respond(503,{error:'Invitations are not enabled'},origin);
   const token=req.headers.get('Authorization')?.match(/^Bearer\s+([^\s]+)$/i)?.[1];
   if(!token)return respond(401,{error:'Administrator sign-in required'},origin);
@@ -46,6 +46,13 @@ export function createInvitationGateway({
   catch{return respond(503,{error:'Administrator identity could not be verified'},origin)}
   if(!actor||typeof actor.id!=='string'||typeof actor.email!=='string')
    return respond(403,{error:'Administrator access required'},origin);
+  if(req.method==='GET'){
+   try{
+    const invitations=await listDispatch(actor.id);
+    if(!Array.isArray(invitations)||invitations.length>30)throw Error('Invalid history');
+    return respond(200,{status:'ready',invitations},origin);
+   }catch{return respond(503,{error:'Invitation history is unavailable'},origin)}
+  }
   let input;
   try{
    const body=await req.text();
@@ -60,12 +67,12 @@ export function createInvitationGateway({
   let recipientId=null,dispatchFailed=false;
   try{recipientId=await sendInvitation(input.email,input.kind)}
   catch{dispatchFailed=true}
-  try{await markStatus(auditId,dispatchFailed?'failed':'sent',recipientId)}
+  try{await markStatus(auditId,dispatchFailed?'uncertain':'sent',recipientId)}
   catch{
    // The invitation may already have been sent. Never automatically retry.
    return respond(503,{error:'Delivery state could not be confirmed. Verify invitation history before retrying.'},origin);
   }
-  if(dispatchFailed)return respond(422,{error:'Invitation delivery was not confirmed. The account may already exist or the email provider may be unavailable.'},origin);
+  if(dispatchFailed)return respond(422,{error:'Delivery could not be confirmed. Check invitation history; the address may already be registered. Do not resend automatically.'},origin);
   return respond(202,{status:'invitation-requested',message:'An invitation has been requested. Research privileges are not granted by an invitation.'},origin);
  };
 }
