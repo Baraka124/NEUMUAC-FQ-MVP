@@ -12,6 +12,7 @@ import {recordedTherapyFlag,type LegacyEtiRecord} from '../services/legacyEtiRes
 import {describeRecordedEti} from '../domain/responseDisplay';
 import ContextHelp from './ContextHelp.vue';
 import SourceResponsePanel from './SourceResponsePanel.vue';
+import DrugReferencePanel from './DrugReferencePanel.vue';
 
 const props=defineProps<{
  variantId:string;
@@ -180,11 +181,16 @@ onUnmounted(()=>active?.abort());
      </div>
     </section>
    </div>
+   <div class="nfq-therapy-drug-register">
+    <DrugReferencePanel/>
+   </div>
   </div>
  </section>
 </template>
 
 <style scoped>
+.nfq-therapy-drug-register :deep(.drug-register){margin-top:.75rem;border:0;border-top:1px solid var(--border,#e1e6e8);border-radius:0;padding:.8rem 0 0}
+.nfq-therapy-drug-register :deep(.drug-register-head h2){font-size:.79rem}
 .nfq-therapy{min-width:0;margin-top:1rem;border:1px solid var(--border,#dce4e5);border-radius:10px;background:var(--surface,#fff);padding:.9rem 1rem}
 .nfq-therapy-heading{display:flex;justify-content:space-between;align-items:center;gap:.7rem;margin-bottom:.55rem}
 .nfq-therapy-heading h3{font-size:.94rem;font-weight:690;margin:0;letter-spacing:-.01em}

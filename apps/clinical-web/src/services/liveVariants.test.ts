@@ -177,3 +177,61 @@ it('Phase 4F-11B retains lookup by the actual recorded ID',async()=>{
  expect((await repo.get('18'))?.id).toBe('18');
  expect(transport).toHaveBeenCalledTimes(1);
 });
+
+
+describe('14H125 exceptional subtype and separate drug-response migration',()=>{
+ const full={id:1,legacy_name:'E831X',protein_name:'p.Glu831X',cdna_name:null,alt_names:null,
+  cftr_class:'I',class_subtype:'exceptional',eti_prediction:'responsive',alyftrek_prediction:'unknown',validation_count:0};
+ it('decodes Class I subtype without projecting it as ETI or Alyftrek response',()=>{
+  const r=decodeRealVariant(full);
+  expect(r.recordedClass).toBe('I');
+  expect(r.classSubtype).toBe('exceptional');
+  expect(r.etiPrediction).toBe('responsive');
+  expect(r.alyftrekPrediction).toBe('unknown');
+  const g=decodeRealVariant({...full,id:19,legacy_name:'G542X',eti_prediction:'non_responsive'});
+  expect(g.classSubtype).toBe('exceptional');
+  expect(g.etiPrediction).toBe('non_responsive');
+  const a=decodeRealVariant({...full,id:35,class_subtype:'true',eti_prediction:'non_responsive',alyftrek_prediction:'responsive'});
+  expect(a.classSubtype).toBe('true');
+  expect(a.etiPrediction).toBe('non_responsive');
+  expect(a.alyftrekPrediction).toBe('responsive');
+ });
+ it('does not infer old modulator responses from class or missing fields',()=>{
+  const row=decodeRealVariant({id:50,cftr_class:'III',legacy_name:'G551D'});
+  expect(row.classSubtype).toBeNull();
+  expect(row.etiPrediction).toBeNull();
+  expect(row.alyftrekPrediction).toBeNull();
+  expect('ivacaftorPrediction' in row).toBe(false);
+ });
+ it('rejects malformed recorded ETI or Alyftrek state rather than displaying a fabricated label',()=>{
+  expect(()=>decodeRealVariant({...full,eti_prediction:'approved'})).toThrowError(VariantConnectionError);
+  expect(()=>decodeRealVariant({...full,alyftrek_prediction:true})).toThrowError(VariantConnectionError);
+ });
+ it('requests both recorded response fields and applies selective server filters before paging',async()=>{
+  const calls:string[]=[];
+  const t=vi.fn(async(url:string)=>{calls.push(url);return new Response('[]',{status:200});});
+  const repo=createReadOnlyRepository({...config,readTable:'variants'},t as typeof fetch);
+  await repo.list({query:'',page:0,classFilter:'I',subtypeFilter:'exceptional',responseFilter:'eti-responsive'});
+  await repo.list({query:'',page:1,subtypeFilter:'true',responseFilter:'alyftrek-non-responsive'});
+  await repo.resolveExact('E831X','I',undefined,{subtypeFilter:'exceptional',responseFilter:'eti-responsive'});
+  const p=new URL(calls[0]).searchParams,q=new URL(calls[1]).searchParams,x=new URL(calls[2]).searchParams;
+  expect(p.get('select')).toContain('class_subtype,eti_prediction,alyftrek_prediction');
+  expect(p.get('cftr_class')).toBe('eq.I');
+  expect(p.get('class_subtype')).toBe('eq.exceptional');
+  expect(p.get('eti_prediction')).toBe('eq.responsive');
+  expect(q.get('class_subtype')).toBe('eq.true');
+  expect(q.get('alyftrek_prediction')).toBe('eq.non_responsive');
+  expect(q.get('offset')).toBe('40');
+  expect(x.get('class_subtype')).toBe('eq.exceptional');
+  expect(x.get('eti_prediction')).toBe('eq.responsive');
+ });
+ it('denies scientific filters on a narrow catalog and rejects invented response filters',async()=>{
+  const network=vi.fn();
+  const narrow=createReadOnlyRepository(config,network as typeof fetch);
+  await expect(narrow.list({query:'',page:0,subtypeFilter:'exceptional'})).rejects.toMatchObject({code:'not-configured'});
+  expect(network).not.toHaveBeenCalled();
+  const fullRepo=createReadOnlyRepository({...config,readTable:'variants'},network as typeof fetch);
+  await expect(fullRepo.list({query:'',page:0,responseFilter:'ivacaftor-responsive' as never})).rejects.toMatchObject({code:'invalid-configuration'});
+  expect(network).not.toHaveBeenCalled();
+ });
+});

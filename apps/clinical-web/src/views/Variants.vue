@@ -276,11 +276,13 @@ const inputActive=ref(false);
 const exactMatchedId=ref<string|null>(null);
 const showSearchInfo=ref(false);
 const classFilter=ref(typeof route.query.class==='string'&&['I','II','III','IV','V','VI','unclassified'].includes(route.query.class)?route.query.class:'all');
+const subtypeFilter=ref(typeof route.query.subtype==='string'&&['exceptional','true','presumed','atypical','standard','unclassified'].includes(route.query.subtype)?route.query.subtype:'all');
+const responseFilter=ref(typeof route.query.response==='string'&&['eti-responsive','eti-non-responsive','alyftrek-responsive','alyftrek-non-responsive'].includes(route.query.response)?route.query.response:'all');
 const sort=ref(typeof route.query.sort==='string'&&['name-desc','recent-record','fewest-validations','most-validations'].includes(route.query.sort)?route.query.sort:'name-asc');
 const searchMode=ref(typeof route.query.mode==='string'&&route.query.mode==='exact-name'?'exact-name':'contains');
 const showAdvanced=ref(false);
-const activeFilterCount=computed(()=>Number(classFilter.value!=='all')+Number(sort.value!=='name-asc')+Number(searchMode.value!=='contains'));
-function resetAdvancedFilters():void{classFilter.value='all';sort.value='name-asc';searchMode.value='contains';}
+const activeFilterCount=computed(()=>Number(classFilter.value!=='all')+Number(subtypeFilter.value!=='all')+Number(responseFilter.value!=='all')+Number(sort.value!=='name-asc')+Number(searchMode.value!=='contains'));
+function resetAdvancedFilters():void{classFilter.value='all';subtypeFilter.value='all';responseFilter.value='all';sort.value='name-asc';searchMode.value='contains';}
 watch(search,()=>{
  exactMatchedId.value=null;
  // A changed query is a new research context: never retain a previously opened dossier.
@@ -330,9 +332,9 @@ const detailBusy=ref(false);
 const error=ref(configError);
 const completed=ref(false);
 const pending=ref(true);
-const emptyReason=computed(()=>emptySearchReason({query:search.value,completed:completed.value,pending:pending.value,blocked:scientificInputAssessment.value.blocked,error:Boolean(error.value),visibleCount:displayedRows.value.length,restrictiveFilters:classFilter.value!=='all'||searchMode.value!=='contains',page:page.value}));
+const emptyReason=computed(()=>emptySearchReason({query:search.value,completed:completed.value,pending:pending.value,blocked:scientificInputAssessment.value.blocked,error:Boolean(error.value),visibleCount:displayedRows.value.length,restrictiveFilters:classFilter.value!=='all'||subtypeFilter.value!=='all'||responseFilter.value!=='all'||searchMode.value!=='contains',page:page.value}));
 function retrySearch():void{pending.value=true;completed.value=false;void load();void resolveSearch();}
-function broadenSearch():void{classFilter.value='all';searchMode.value='contains';page.value=0;}
+function broadenSearch():void{classFilter.value='all';subtypeFilter.value='all';responseFilter.value='all';searchMode.value='contains';page.value=0;}
 let current:AbortController|null=null;
 let detailRequest:AbortController|null=null;
 let exactRequest:AbortController|null=null;
@@ -352,7 +354,7 @@ async function load():Promise<void>{
   if(scientificInputAssessment.value.blocked){rows.value=[];busy.value=false;pending.value=false;return;}
   if(!source){rows.value=[];pending.value=false;error.value=configError||'The public variant catalog has not been connected yet.';return;}
   busy.value=true;
-  try {const data=await source.list({query:search.value,page:page.value,classFilter:classFilter.value as 'all'|'I'|'II'|'III'|'IV'|'V'|'VI'|'unclassified',sort:sort.value as 'name-asc'|'name-desc'|'recent-record'|'fewest-validations'|'most-validations',searchMode:searchMode.value as 'contains'|'exact-name',signal:abort.signal});if(run===listSequence){
+  try {const data=await source.list({query:search.value,page:page.value,classFilter:classFilter.value as 'all'|'I'|'II'|'III'|'IV'|'V'|'VI'|'unclassified',subtypeFilter:subtypeFilter.value as 'all'|'exceptional'|'true'|'presumed'|'atypical'|'standard'|'unclassified',responseFilter:responseFilter.value as 'all'|'eti-responsive'|'eti-non-responsive'|'alyftrek-responsive'|'alyftrek-non-responsive',sort:sort.value as 'name-asc'|'name-desc'|'recent-record'|'fewest-validations'|'most-validations',searchMode:searchMode.value as 'contains'|'exact-name',signal:abort.signal});if(run===listSequence){
     rows.value=data.records;hasMore.value=data.hasMore;completed.value=true;
 
   }}
@@ -367,7 +369,7 @@ async function resolveSearch():Promise<void>{
  const abort=new AbortController();exactRequest=abort;
  const text=search.value.trim();
  try{
-   const hit=await source.resolveExact(text,classFilter.value as 'all'|'I'|'II'|'III'|'IV'|'V'|'VI'|'unclassified',abort.signal);
+   const hit=await source.resolveExact(text,classFilter.value as 'all'|'I'|'II'|'III'|'IV'|'V'|'VI'|'unclassified',abort.signal,{subtypeFilter:subtypeFilter.value as 'all'|'exceptional'|'true'|'presumed'|'atypical'|'standard'|'unclassified',responseFilter:responseFilter.value as 'all'|'eti-responsive'|'eti-non-responsive'|'alyftrek-responsive'|'alyftrek-non-responsive'});
    if(run!==exactSequence||abort.signal.aborted||scientificInputAssessment.value.blocked||search.value.trim()!==text)return;
    if(hit && (route.params.id!==hit.id || selected.value?.id!==hit.id)){
      revealNextId=hit.id;
@@ -401,14 +403,16 @@ watch(()=>authController?.state.phase,()=>{
  const id=route.params.id;
  if(typeof id==='string'&&/^[1-9]\d{0,17}$/.test(id))void loadDetail(id);
 });
-watch([search,page,classFilter,sort,searchMode],()=>{clearTimeout(timer);current?.abort();exactRequest?.abort();++listSequence;++exactSequence;rows.value=[];hasMore.value=false;busy.value=false;completed.value=false;pending.value=!scientificInputAssessment.value.blocked;timer=setTimeout(()=>{void load();void resolveSearch();},search.value?250:0)},{immediate:true});
-watch([search,classFilter,sort,searchMode],()=>{page.value=0;});
+watch([search,page,classFilter,subtypeFilter,responseFilter,sort,searchMode],()=>{clearTimeout(timer);current?.abort();exactRequest?.abort();++listSequence;++exactSequence;rows.value=[];hasMore.value=false;busy.value=false;completed.value=false;pending.value=!scientificInputAssessment.value.blocked;timer=setTimeout(()=>{void load();void resolveSearch();},search.value?250:0)},{immediate:true});
+watch([search,classFilter,subtypeFilter,responseFilter,sort,searchMode],()=>{page.value=0;});
 watch(()=>route.params.id,id=>{void loadDetail(id);},{immediate:true});
 onUnmounted(()=>{current?.abort();detailRequest?.abort();exactRequest?.abort();evidenceAbort?.abort();dossierAbort?.abort();legacyEtiAbort?.abort();clinVarAbort?.abort();briefAbort?.abort();historyAbort?.abort();clearTimeout(timer);});
 function updateWorklistRoute():void {
  const query:Record<string,string>={};
  if(search.value.trim())query.q=search.value.trim();
  if(classFilter.value!=='all')query.class=classFilter.value;
+  if(subtypeFilter.value!=='all')query.subtype=subtypeFilter.value;
+  if(responseFilter.value!=='all')query.response=responseFilter.value;
  if(sort.value!=='name-asc')query.sort=sort.value;
  if(searchMode.value!=='contains')query.mode=searchMode.value;
  if(page.value>0)query.page=String(page.value);
@@ -416,7 +420,7 @@ function updateWorklistRoute():void {
  // Retain deep-link identity even during asynchronous detail loading.
  void router.replace({path:selected.value?.id===route.params.id?route.path:'/variants',query});
 }
-watch([search,classFilter,sort,searchMode,page],updateWorklistRoute);
+watch([search,classFilter,subtypeFilter,responseFilter,sort,searchMode,page],updateWorklistRoute);
 function onSearchKeydown(event:KeyboardEvent):void{
  if(event.key==='Escape'){search.value='';return;}
  if(event.key==='ArrowDown'&&!pending.value&&!busy.value){event.preventDefault();focusResult(0);}
@@ -471,7 +475,7 @@ function select(id:string):void{
         <svg class="discovery-chevron" aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
         <span v-if="activeFilterCount" class="discovery-active-count">{{activeFilterCount}} active</span>
        </button>
-       <VariantFilterPanel v-if="showAdvanced" v-model:class-filter="classFilter" v-model:sort="sort" v-model:search-mode="searchMode" @close="showAdvanced=false" @reset="resetAdvancedFilters"/>
+       <VariantFilterPanel v-if="showAdvanced" v-model:class-filter="classFilter" v-model:subtype-filter="subtypeFilter" v-model:response-filter="responseFilter" v-model:sort="sort" v-model:search-mode="searchMode" @close="showAdvanced=false" @reset="resetAdvancedFilters"/>
       </div>
       <button type="button" class="nfq-saved-trigger" data-testid="saved-variants-toggle" :aria-expanded="savedOpen" aria-controls="saved-variants-panel" @click="savedOpen=!savedOpen">Saved<span v-if="savedIds.length"> · {{savedIds.length}}</span></button>
        <span v-if="!busy&&!error&&displayedRows.length" class="record-total" aria-live="polite" aria-label="Visible results on this page">{{displayedRows.length}} on page</span>
@@ -522,7 +526,7 @@ function select(id:string):void{
       <span>{{mobileResultsExpanded?'Hide other results':'View other results'}} <small>({{displayedRows.length}} on page)</small></span>
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
     </button>
-    <div v-if="!pending&&!busy&&!error&&rows.length&&!scientificInputAssessment.blocked" id="variant-results" class="record-list" :class="{'nfq-mobile-results-hidden':selected&&!mobileResultsExpanded}" aria-label="Search results"><button v-for="(record,index) in displayedRows" :key="record.id" type="button" @keydown="onResultKeydown($event,index)" @focus="activeResultIndex=index" @mouseenter="activeResultIndex=index" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span v-if="record.proteinName && !/^p\.\?$/.test(record.proteinName.trim())" class="record-subline">{{record.proteinName}}</span><span v-else-if="record.cdnaName" class="record-subline">{{record.cdnaName}}</span><span class="nfq-record-meta"><span v-if="search.trim()" class="record-match-reason">{{matchExplanation(record)}}</span><span v-if="record.recordedClass" class="record-class">Class {{record.recordedClass}}</span><span v-if="selected?.id===record.id" class="record-current-label">Selected</span></span></button></div>
+    <div v-if="!pending&&!busy&&!error&&rows.length&&!scientificInputAssessment.blocked" id="variant-results" class="record-list" :class="{'nfq-mobile-results-hidden':selected&&!mobileResultsExpanded}" aria-label="Search results"><button v-for="(record,index) in displayedRows" :key="record.id" type="button" @keydown="onResultKeydown($event,index)" @focus="activeResultIndex=index" @mouseenter="activeResultIndex=index" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span v-if="record.proteinName && !/^p\.\?$/.test(record.proteinName.trim())" class="record-subline">{{record.proteinName}}</span><span v-else-if="record.cdnaName" class="record-subline">{{record.cdnaName}}</span><span class="nfq-record-meta"><span v-if="search.trim()" class="record-match-reason">{{matchExplanation(record)}}</span><span v-if="record.recordedClass" class="record-class">Class {{record.recordedClass}}</span><span v-if="record.classSubtype==='exceptional'" class="nfq-exceptional-tag" data-testid="variant-exceptional-list-tag">Exceptional</span><span v-if="selected?.id===record.id" class="record-current-label">Selected</span></span></button></div>
     <nav v-if="!pending&&!busy&&!error&&(rows.length||page>0||hasMore)" class="pagination-controls discovery-pagination" :class="{'nfq-mobile-results-hidden':selected&&!mobileResultsExpanded}" aria-label="Variant result pages">
       <button type="button" :disabled="busy||page===0" aria-label="Previous variant page" @click="page--"><span aria-hidden="true">←</span> Previous</button>
       <span class="discovery-page-current" aria-current="page">Page {{page+1}}</span>
@@ -555,6 +559,7 @@ function select(id:string):void{
          <div class="nfq-identity-title">
           <h2 id="selected-title">{{variantDisplayName(selected)}}</h2>
           <span v-if="dossier?.functionalClass||selected.recordedClass" class="nfq-class-annotation"><span class="nfq-class-caption">Recorded class</span><strong>{{dossier?.functionalClass||selected.recordedClass}}</strong></span>
+           <span v-if="selected.classSubtype==='exceptional'||dossier?.subtype==='exceptional'" class="nfq-exceptional-tag nfq-dossier-exceptional" data-testid="variant-exceptional-tag">Exceptional subtype</span>
           <ContextHelp label="About variant nomenclature" title="Recorded variant identity">
            <p>Names, aliases, notations and functional class are values stored in the research catalog. A recorded classification is not an independent clinical validation.</p>
            <p>A protein notation of p.? indicates that the protein consequence has not been specified in that record.</p>
@@ -569,7 +574,16 @@ function select(id:string):void{
          <button v-if="!selectedFromSearch" type="button" class="nfq-save-record" data-testid="copy-variant-record-link" @click="copyVariantLink">Copy link</button>
        </div>
        <p v-if="shareNotice" role="status" class="nfq-saved-feedback">{{shareNotice}}</p>
-       <div id="nfq-variant-curation" tabindex="-1">
+       <div v-if="selected.classSubtype||selected.etiPrediction||selected.alyftrekPrediction" class="nfq-dossier-classification-strip" aria-label="Recorded class subtype and modulator results" data-testid="variant-response-summary">
+         <span v-if="selected.classSubtype" class="nfq-recorded-fact"><span>Subtype</span> <strong>{{selected.classSubtype}}</strong></span>
+         <span v-if="selected.etiPrediction" class="nfq-recorded-fact"><span>ETI</span> <strong>{{selected.etiPrediction==='non_responsive'?'Non-responsive':selected.etiPrediction==='responsive'?'Responsive':'Unknown'}}</strong></span>
+         <span v-if="selected.alyftrekPrediction" class="nfq-recorded-fact"><span>Alyftrek</span> <strong>{{selected.alyftrekPrediction==='non_responsive'?'Non-responsive':selected.alyftrekPrediction==='responsive'?'Responsive':'Unknown'}}</strong></span>
+         <ContextHelp label="About recorded class and treatment response" title="Independent scientific fields">
+          <p>Class subtype is recorded independently of ETI and Alyftrek predictions. Exceptional does not by itself prove responsiveness, efficacy or prescribing eligibility.</p>
+          <p>Kalydeco, Symkevi and Orkambi have separate genotype-level research rules but no individual variant-response category in the archived register. Inspect all five regimens and their source references below.</p>
+         </ContextHelp>
+        </div>
+        <div id="nfq-variant-curation" tabindex="-1">
         <VariantCuration v-if="!selectedFromSearch" :key="selected.id" :variant="selected" @published="loadDetail(selected.id)" />
        </div>
        <dl class="identity-grid nfq-dossier-identity" aria-label="Variant nomenclature">
@@ -763,6 +777,12 @@ function select(id:string):void{
 </template>
 
 <style scoped>
+.nfq-exceptional-tag{display:inline-flex;align-items:center;min-height:20px;color:#7d5d24;border:1px solid #e7d9bd;border-radius:5px;padding:2px 6px;font-size:10px;font-weight:680;line-height:1.2;background:transparent}
+.nfq-dossier-exceptional{font-size:10.5px;min-height:24px;white-space:nowrap}
+.nfq-dossier-classification-strip{display:flex;flex-wrap:wrap;align-items:center;gap:7px 16px;padding:7px 0 9px;margin:0;font-size:11.5px;color:#5a7288;line-height:1.4}
+.nfq-recorded-fact{display:inline-flex;gap:5px;align-items:baseline}
+.nfq-recorded-fact strong{font-size:11.5px;color:#29445d;font-weight:690;overflow-wrap:anywhere}
+.nfq-dossier-classification-strip :deep(.nfq-context-help summary){width:25px;height:25px}
 .nfq-saved-trigger,.nfq-save-record{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;flex:none;border:1px solid var(--border,#dce2e7);border-radius:8px;background:transparent;color:inherit;padding:.4rem .65rem;font:inherit;font-size:.78rem;font-weight:550;cursor:pointer}
 .nfq-saved-trigger[aria-expanded="true"],.nfq-save-record[aria-pressed="true"]{background:var(--surface-secondary,#f4f6f8)}
 .nfq-saved-trigger:focus-visible,.nfq-save-record:focus-visible,.nfq-saved-panel button:focus-visible{outline:2px solid currentColor;outline-offset:2px}

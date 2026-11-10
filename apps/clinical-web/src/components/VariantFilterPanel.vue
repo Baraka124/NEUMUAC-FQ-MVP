@@ -1,5 +1,7 @@
 <script setup lang="ts">
 const classFilter=defineModel<string>('classFilter',{required:true});
+const subtypeFilter=defineModel<string>('subtypeFilter',{required:true});
+const responseFilter=defineModel<string>('responseFilter',{required:true});
 const sort=defineModel<string>('sort',{required:true});
 const searchMode=defineModel<string>('searchMode',{required:true});
 const emit=defineEmits<{close:[];reset:[]}>();
@@ -22,6 +24,29 @@ const emit=defineEmits<{close:[];reset:[]}>();
     <option v-for="item in ['I','II','III','IV','V','VI']" :key="item" :value="item">Class {{item}}</option>
     <option value="unclassified">Unclassified in database</option>
    </select>
+   <label for="subtype-filter">Class subtype</label>
+   <select id="subtype-filter" v-model="subtypeFilter">
+    <option value="all">All recorded subtypes</option>
+    <option value="exceptional">Exceptional</option>
+    <option value="true">True Class I</option>
+    <option value="presumed">Presumed</option>
+    <option value="atypical">Atypical</option>
+    <option value="standard">Standard</option>
+    <option value="unclassified">Subtype not recorded</option>
+   </select>
+   <label for="response-filter">Recorded variant response</label>
+   <select id="response-filter" v-model="responseFilter">
+    <option value="all">All recorded results</option>
+    <optgroup label="ETI · Kaftrio / Trikafta">
+     <option value="eti-responsive">Recorded responsive</option>
+     <option value="eti-non-responsive">Recorded non-responsive</option>
+    </optgroup>
+    <optgroup label="Alyftrek">
+     <option value="alyftrek-responsive">Recorded responsive</option>
+     <option value="alyftrek-non-responsive">Recorded non-responsive</option>
+    </optgroup>
+   </select>
+   <p class="nfq-response-filter-note">Kalydeco, Symkevi and Orkambi have genotype research rules, not individual response fields. Their results appear in the therapy comparison.</p>
    <label for="variant-sort">Sort results</label>
    <select id="variant-sort" v-model="sort">
     <option value="name-asc">Name A–Z</option>
@@ -57,5 +82,6 @@ const emit=defineEmits<{close:[];reset:[]}>();
 .variant-filter-panel-foot button{min-height:36px;cursor:pointer;font:inherit;font-size:12px;font-weight:660}
 .variant-filter-reset{border:0;background:transparent;color:#3c7154;padding:7px 0;text-decoration:underline;text-underline-offset:3px}
 .variant-filter-done{border:1px solid #a9cdb4;border-radius:6px;background:#edf7f0;color:#205f41;padding:7px 14px}
+ .nfq-response-filter-note{margin:2px 0 4px;font-size:11px;line-height:1.45;color:#667c8f}
 @media(max-width:420px){.variant-filter-panel{width:min(300px,calc(100vw - 44px));padding:14px}}
 </style>

@@ -34,7 +34,7 @@ async function setup(page:Page,opts:{failTherapy?:boolean}={}):Promise<void>{
   if(request.method()!=='GET'){await route.fulfill({status:405,body:'No writes supported'});return;}
   const id=url.searchParams.get('id')?.replace(/^eq\./,'');
   if(table==='variants'&&opts.failTherapy&&
-     (url.searchParams.get('select')||'').includes('class_subtype')){
+     (url.searchParams.get('select')||'').includes('alyftrek_evidence_level')){
    await route.fulfill({status:503,headers:{'access-control-allow-origin':'*'},body:'Service unavailable'});return;
   }
   let response:unknown[]=[];
@@ -530,4 +530,56 @@ test('14H102 verified variant can enter Research Administration and return with 
  await expect(page.getByTestId('admin-context-return')).toHaveCount(0);
  await page.goto('/#/admin?from='+encodeURIComponent('//untrusted.example'));
  await expect(page.getByTestId('admin-context-return')).toHaveCount(0);
+});
+
+
+test('14H125 exceptional Class I remains independently tagged and response-coded for two therapies',async({page})=>{
+ await setup(page);
+ await page.goto('/#/variants/1');
+ await expect(page.getByTestId('variant-exceptional-tag')).toHaveText('Exceptional subtype');
+ const facts=page.getByTestId('variant-response-summary');
+ await expect(facts).toContainText('Subtype exceptional');
+ await expect(facts).toContainText('ETI Responsive');
+ await expect(facts).toContainText('Alyftrek Unknown');
+ const therapy=page.getByTestId('five-therapy-workspace');
+ await expectFiveRows(therapy);
+ const references=therapy.getByRole('region',{name:'Drug references'});
+ await references.getByRole('button',{name:'Explore references'}).click();
+ await expect(references.locator('.drug-register-entry')).toHaveCount(5);
+ await expect(references).toContainText('Kalydeco');
+ await expect(references).toContainText('Symkevi');
+ await expect(references).toContainText('Orkambi');
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
+test('14H125 G542X stays exceptional but recorded ETI nonresponsive',async({page})=>{
+ await setup(page);
+ await page.goto('/#/variants/19');
+ await expect(page.getByTestId('variant-exceptional-tag')).toBeVisible();
+ const facts=page.getByTestId('variant-response-summary');
+ await expect(facts).toContainText('Subtype exceptional');
+ await expect(facts).toContainText('ETI Non-responsive');
+ await expect(facts).toContainText('Alyftrek Unknown');
+ await expect(page.getByTestId('five-therapy-workspace').getByTestId('eti-recorded-category')).toHaveText('Non-responsive');
+});
+test('14H125 subtype and therapy-specific searches survive deep links and use server filters',async({page})=>{
+ const queries:string[]=[];
+ page.on('request',request=>{if(request.url().includes('/rest/v1/variants?')&&request.url().includes('class_subtype='))
+  queries.push(request.url());});
+ await setup(page);
+ await page.goto('/#/variants?class=I&subtype=exceptional&response=eti-responsive');
+ const filters=page.getByRole('button',{name:/Filters/});
+ await expect(filters).toContainText('3 active');
+ await filters.click();
+ await expect(page.getByLabel('Class subtype')).toHaveValue('exceptional');
+ await expect(page.getByLabel('Recorded variant response')).toHaveValue('eti-responsive');
+ await expect.poll(()=>queries.some(url=>{
+  const p=new URL(url).searchParams;
+  return p.get('cftr_class')==='eq.I'&&p.get('class_subtype')==='eq.exceptional'&&p.get('eti_prediction')==='eq.responsive';
+ })).toBe(true);
+ await page.getByLabel('Recorded variant response').selectOption('alyftrek-responsive');
+ await expect(page).toHaveURL(/response=alyftrek-responsive/);
+ await expect.poll(()=>queries.some(url=>new URL(url).searchParams.get('alyftrek_prediction')==='eq.responsive')).toBe(true);
+ await page.getByRole('button',{name:'Reset preferences'}).click();
+ await expect(page.getByLabel('Class subtype')).toHaveValue('all');
+ await expect(page.getByLabel('Recorded variant response')).toHaveValue('all');
 });
