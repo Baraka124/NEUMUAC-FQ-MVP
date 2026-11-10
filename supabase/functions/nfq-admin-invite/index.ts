@@ -9,7 +9,10 @@ const keys=Deno.env.get('SUPABASE_SECRET_KEYS')||'';
 let namedKey='';
 try{namedKey=JSON.parse(keys).default||'';}catch{/* legacy projects */}
 const secret=Deno.env.get('SUPABASE_SECRET_KEY')||namedKey||Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||'';
-const enabled=Deno.env.get('NFQ_ADMIN_INVITES_ENABLED')==='true'&&Boolean(endpoint&&secret);
+// Dispatch is possible only with a Supabase-managed privileged server key.
+// Operators can disable sending immediately through the server-only kill switch.
+// No invitation is sent without an explicit authenticated POST.
+const enabled=Boolean(endpoint&&secret)&&Deno.env.get('NFQ_ADMIN_INVITES_DISABLED')!=='true';
 const admin=enabled?createClient(endpoint,secret,{
  auth:{autoRefreshToken:false,persistSession:false,detectSessionInUrl:false}
 }):null;
