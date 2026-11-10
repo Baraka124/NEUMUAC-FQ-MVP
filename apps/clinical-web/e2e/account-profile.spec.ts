@@ -1,9 +1,10 @@
 import {test,expect,type Page} from '@playwright/test';
 
-type Persona='administrator'|'contributor'|'guest'|'unassigned';
+type Persona='administrator'|'contributor'|'reviewer'|'guest'|'unassigned';
 const accounts={
  administrator:'0dde93f1-cf9e-4143-8727-88e97ddd5f8d',
  contributor:'2b921eaf-983e-411c-93dc-cccbb4e6fa93',
+ reviewer:'e1ea43bd-f5d9-4912-858d-53dcf2f099ae',
  guest:'4c9e2796-0c24-4487-9914-3cd351abc777',
  unassigned:'4c9e2796-0c24-4487-9914-3cd351abc778'
 };
@@ -30,7 +31,7 @@ async function mockFqAccount(page:Page,persona:Persona){
   }
   const path=new URL(route.request().url()).pathname;
   let data:unknown=[];
-  if(path.endsWith('/nfq_research_memberships')&&(persona==='contributor'||persona==='administrator'))
+  if(path.endsWith('/nfq_research_memberships')&&(persona==='contributor'||persona==='administrator'||persona==='reviewer'))
    data=[{user_id:id,role:persona,revoked_at:null}];
   if(path.endsWith('/nfq_guest_designations')&&persona==='guest')
    data=[{user_id:id,status:'active'}];
@@ -129,4 +130,18 @@ test('14H123 People & Access: searching and access editor never appear for Guest
  await page.goto('/#/admin');
  await expect(page.getByTestId('admin-people-access')).toHaveCount(0);
  await expect(page.getByRole('searchbox',{name:'Find an FQ account by email'})).toHaveCount(0);
+});
+
+test('14H124 Reviewer sees operational source queue but no account administration',async({page})=>{
+ await mockFqAccount(page,'reviewer');
+ await page.goto('/#/admin');
+ const card=page.getByTestId('research-identity-card');
+ await expect(card).toBeVisible();
+ await expect(card.getByTestId('profile-role-label')).toHaveText('Scientific reviewer');
+ await expect(page.getByTestId('admin-people-access')).toHaveCount(0);
+ const review=page.getByTestId('source-review-workspace');
+ await expect(review).toBeVisible();
+ await expect(review.getByRole('button',{name:'Refresh reviews'})).toBeVisible();
+ await expect(review.getByText(/No submitted source corrections/)).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Source review queue'})).toBeVisible();
 });
