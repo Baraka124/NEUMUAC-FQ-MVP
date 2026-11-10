@@ -14,3 +14,4 @@ jobs:
         with:
           node-version: '22'
       - run: node tools/check-functional-parity.mjs
+      - run: node --test supabase/functions/_shared/adminInvitationGateway.test.mjs
