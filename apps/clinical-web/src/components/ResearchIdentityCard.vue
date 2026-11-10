@@ -4,8 +4,8 @@ import {RouterLink} from 'vue-router';
 import ContextHelp from './ContextHelp.vue';
 import type {ProfessionalProfile} from '../services/professionalProfile';
 import type {WorkspacePersona} from '../domain/workspacePersona';
+import {verifiedProfileName,profileMonogram,visibleWorkspaceRole,type ProfessionalPhase} from '../domain/profilePresentation';
 
-type ProfessionalPhase='idle'|'checking'|'ready'|'unlinked'|'unavailable';
 const props=defineProps<{
  email:string;
  persona:WorkspacePersona;
@@ -14,23 +14,9 @@ const props=defineProps<{
  professionalPhase:ProfessionalPhase;
 }>();
 const hasVerifiedProfile=computed(()=>props.professionalPhase==='ready'&&Boolean(props.professionalProfile));
-const displayName=computed(()=>hasVerifiedProfile.value
- ? props.professionalProfile!.name
- : props.persona==='guest'?'Guest research account':'Research account');
-const monogram=computed(()=>{
- if(!hasVerifiedProfile.value)return 'FQ';
- return props.professionalProfile!.name.trim().split(/\s+/u).slice(0,2)
-  .map(part=>Array.from(part)[0]?.toLocaleUpperCase()||'').join('').slice(0,3)||'FQ';
-});
-const accessLabel=computed(()=>{
- if(props.persona==='administrator')return 'Administrator';
- if(props.persona==='reviewer')return 'Scientific reviewer';
- if(props.persona==='researcher')return 'Research contributor';
- if(props.persona==='guest')return 'External guest';
- if(props.persona==='account')return 'Verifying access';
- if(props.persona==='pending')return 'Awaiting assignment';
- return props.roleLabel;
-});
+const displayName=computed(()=>verifiedProfileName(props.professionalProfile,props.professionalPhase,props.persona));
+const monogram=computed(()=>profileMonogram(props.professionalProfile,props.professionalPhase));
+const accessLabel=computed(()=>visibleWorkspaceRole(props.persona,props.roleLabel));
 const readableStaffType=computed(()=>props.professionalProfile?.staffType.replaceAll('_',' ')||'');
 const sourceDate=computed(()=>{
  const date=props.professionalProfile?.sourceVerifiedAt;
