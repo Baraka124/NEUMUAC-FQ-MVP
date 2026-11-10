@@ -190,13 +190,15 @@ const roleLabel=computed(()=>{
  if(roleAssignment.value==='contributor')return 'Research contributor';
  return 'Not verifiable';
 });
-const queueEnabled=import.meta.env.VITE_NFQ_SOURCE_REVIEW_QUEUE_ENABLED==='true';
+// This FQ backend was verified against active reviewer RLS and protected review RPCs.
+// A literal 'false' remains an emergency presentation-only UI kill switch.
+const queueEnabled=import.meta.env.VITE_NFQ_SOURCE_REVIEW_QUEUE_ENABLED!=='false';
 const queueConfig=readConfigFromEnvironment();
 const queueSource=queueEnabled&&queueConfig&&authController?createSourceReviewQueue(queueConfig,authController):null;
 const queueAllowed=computed(()=>Boolean(queueSource)&&canReadSourceReviewQueue(
  queueEnabled,authController?.state.phase??'signed-out',researcherRole
 ));
-const decisionEnabled=import.meta.env.VITE_NFQ_SOURCE_REVIEW_DECISIONS_ENABLED==='true';
+const decisionEnabled=import.meta.env.VITE_NFQ_SOURCE_REVIEW_DECISIONS_ENABLED!=='false';
 const decisionClient=decisionEnabled&&queueEnabled&&queueConfig&&authController
  ?createSourceCorrectionDecisionClient(queueConfig,authController):null;
 const decisionAllowed=computed(()=>Boolean(decisionClient)&&queueAllowed.value&&
@@ -273,6 +275,10 @@ watch(()=>[authController?.state.phase,authController?.state.userId,researcherRo
  decisionNotes.value={};decisionTypes.value={};decisionNotice.value='';
  clearReviewQueue();
 });
+watch(queueAllowed,canRead=>{
+ if(canRead)void loadSourceReviews();
+ else clearReviewQueue();
+},{immediate:true});
 onUnmounted(clearReviewQueue);
 const reviewerStatus=computed(()=>roleAssignment.value==='reviewer'?'Verified assignment':'Not verified');
 const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified assignment':'Not verified');
@@ -474,7 +480,7 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
    </div>
    <ul class="admin-operations-list">
     <li v-if="isContributor||isReviewer"><div class="admin-operation-name"><h3>Propose variant corrections</h3></div><span class="admin-operation-status">In variant dossiers</span></li>
-    <li v-if="isReviewer"><div class="admin-operation-name"><h3>Scientific review</h3></div><span class="admin-operation-status">{{decisionAllowed?'Authorised review available':'Not enabled'}}</span></li>
+    <li v-if="isReviewer"><div class="admin-operation-name"><h3>Source review queue</h3></div><span class="admin-operation-status">{{queueAllowed?queuePhase==='ready'?reviewItems.length+' pending':queuePhase==='loading'?'Checking…':queuePhase==='error'?'Unable to verify':'Available':'Unavailable'}}</span></li>
    </ul>
   </section>
   <section v-else-if="persona==='guest'" class="admin-readiness" aria-label="Guest research resources">
@@ -482,7 +488,7 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
    <p class="admin-session-state">You can explore public CFTR research. Any additional scientific permissions must be assigned separately by an FQ administrator.</p>
    <RouterLink class="research-entry-link" to="/variants">Explore public variants <span aria-hidden="true">→</span></RouterLink>
   </section>
-  <section v-if="queueEnabled&&(isAdministrator||isReviewer)" class="admin-readiness source-review-readiness" aria-label="Source correction review">
+  <section v-if="queueEnabled&&(isAdministrator||isReviewer)" id="nfq-scientific-review" class="admin-readiness source-review-readiness" aria-label="Source correction review" data-testid="source-review-workspace">
    <div class="admin-section-heading">
     <h2>Source correction review</h2>
     <ContextHelp label="About source correction review" title="Source correction review">
@@ -492,7 +498,7 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
    </div>
    <p v-if="!queueAllowed" class="admin-session-state">Reviewer access and the authorised review connection must be verified.</p>
    <template v-else>
-    <button type="button" class="admin-role-refresh" :disabled="queuePhase==='loading'||Boolean(pendingDecision)" @click="refreshSourceReviewQueue">{{queuePhase==='loading'?'Checking…':'Load pending proposals'}}</button>
+    <button type="button" class="admin-role-refresh" :disabled="queuePhase==='loading'||Boolean(pendingDecision)" @click="refreshSourceReviewQueue">{{queuePhase==='loading'?'Checking…':'Refresh reviews'}}</button>
     <p v-if="decisionNotice" role="status" class="admin-session-state">{{decisionNotice}}</p>
     <p v-if="queueNotice" role="status" class="admin-session-state">{{queueNotice}}</p>
     <p v-else-if="queuePhase==='ready'&&!reviewItems.length" role="status" class="admin-session-state">No submitted source corrections were returned.</p>
