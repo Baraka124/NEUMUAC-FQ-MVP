@@ -11,13 +11,14 @@ function request(body,token='signed-admin-token',remoteOrigin=origin,method='POS
  });
 }
 function setup({enabled=true,administrator=true,brokenAudit=false,brokenDelivery=false,brokenStatus=false}={}){
- const calls={audit:[],deliver:[],status:[],verify:[]};
+ const calls={audit:[],deliver:[],status:[],verify:[],history:[]};
  let seq=0;
  const handle=createInvitationGateway({
   enabled,verifyAdministrator:async token=>{
    calls.verify.push(token);
    return administrator?{id:'c3d1f0fd-2f70-4414-8f89-147602af726d',email:'admin@example.org'}:null;
   },
+  listDispatch:async actor=>{calls.history.push(actor);return [{id:'cd11b504-ed0e-4091-a71f-e2d5288c44c4',email:'clinician@example.org',kind:'clinician',status:'sent',createdAt:'2026-11-10T12:00:00Z',updatedAt:'2026-11-10T12:00:00Z'}];},
   recordDispatch:async input=>{
    calls.audit.push(input);
    if(brokenAudit)throw Error('duplicate or unavailable');
@@ -42,10 +43,10 @@ test('accepts only clinician or guest email and forbids self-invitation',()=>{
  assert.equal(normalizeInvitation({email:'clinician@example.org',kind:'guest',role:'administrator'}),null);
  assert.equal(normalizeInvitation({email:'not-valid',kind:'guest'}),null);
 });
-test('enforces trusted frontend origin and POST',async()=>{
+test('enforces trusted frontend origin and allowed methods',async()=>{
  const t=setup();
  assert.equal((await t.handle(request({email:'doctor@example.org',kind:'clinician'},'x','https://evil.example'))).status,403);
- assert.equal((await t.handle(request(null,'x',origin,'GET'))).status,405);
+ assert.equal((await t.handle(request(null,'x',origin,'DELETE'))).status,405);
  const preflight=new Request(url,{method:'OPTIONS',headers:{Origin:origin}});
  const res=await t.handle(preflight);
  assert.equal(res.status,204);
@@ -96,7 +97,7 @@ test('delivery failure is recorded without assigning any research role',async()=
  const t=setup({brokenDelivery:true});
  const response=await t.handle(request({email:'doctor@example.org',kind:'clinician'}));
  assert.equal(response.status,422);
- assert.equal(t.calls.status[0].status,'failed');
+ assert.equal(t.calls.status[0].status,'uncertain');
  assert.equal(t.calls.status[0].userId,null);
 });
 test('uncertain delivery cannot trigger a second automatic attempt',async()=>{
@@ -106,4 +107,26 @@ test('uncertain delivery cannot trigger a second automatic attempt',async()=>{
  assert.equal(t.calls.deliver.length,1);
  assert.equal(t.calls.status.length,1);
  assert.match((await response.text()),/Verify invitation history before retrying/i);
+});
+
+test('history is visible only to verified Administrator, and GET never sends mail',async()=>{
+ const t=setup();
+ const response=await t.handle(request(null,'x',origin,'GET'));
+ assert.equal(response.status,200);
+ const body=await response.json();
+ assert.equal(body.status,'ready');
+ assert.equal(body.invitations.length,1);
+ assert.equal(body.invitations[0].email,'clinician@example.org');
+ assert.deepEqual(t.calls.history,['c3d1f0fd-2f70-4414-8f89-147602af726d']);
+ assert.equal(t.calls.deliver.length,0);
+ const denied=setup({administrator:false});
+ assert.equal((await denied.handle(request(null,'x',origin,'GET'))).status,403);
+ assert.deepEqual(denied.calls.history,[]);
+});
+test('disabled delivery and history reject without user enumeration',async()=>{
+ const t=setup({enabled:false});
+ assert.equal((await t.handle(request(null,'x',origin,'GET'))).status,503);
+ assert.equal((await t.handle(request({email:'missing@example.org',kind:'guest'}))).status,503);
+ assert.equal(t.calls.history.length,0);
+ assert.equal(t.calls.deliver.length,0);
 });
