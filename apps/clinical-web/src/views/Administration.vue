@@ -306,7 +306,7 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
    </div>
    <aside class="research-entry-aside" :aria-label="accessSectionLabel">
     <div class="admin-section-heading">
-     <h2>{{isAdministrator?'Access &amp; permissions':persona==='guest'?'Guest access':'Research access'}}</h2>
+     <h2>{{isAdministrator?'Access & permissions':persona==='guest'?'Guest access':'Research access'}}</h2>
      <ContextHelp label="About role verification" title="Research permissions">
       <p>A verified FQ research membership establishes your assigned role. A signed-in session or professional affiliation does not independently grant scientific or administrative permissions.</p>
       <p>Editing, decisions and account management remain authorized by protected database functions and access policies.</p>
