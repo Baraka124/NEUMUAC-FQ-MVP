@@ -36,7 +36,7 @@ export function createInvitationGateway({
   const origin=req.headers.get('Origin')||'';
   if(!safeInviteOrigin(origin,allowedOrigin))
    return new Response('',{status:403,headers:{'Cache-Control':'no-store'}});
-  if(req.method==='OPTIONS')return respond(204,null,origin);
+  if(req.method==='OPTIONS')return new Response(null,{status:204,headers:{'Cache-Control':'no-store','Access-Control-Allow-Origin':origin,'Access-Control-Allow-Headers':'authorization,apikey,content-type','Access-Control-Allow-Methods':'POST,OPTIONS','Vary':'Origin'}});
   if(req.method!=='POST')return respond(405,{error:'Method not permitted'},origin);
   if(!enabled)return respond(503,{error:'Invitations are not enabled'},origin);
   const token=req.headers.get('Authorization')?.match(/^Bearer\s+([^\s]+)$/i)?.[1];
