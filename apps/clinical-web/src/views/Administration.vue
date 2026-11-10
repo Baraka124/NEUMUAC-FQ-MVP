@@ -319,109 +319,125 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
     </details>
    </div>
    <aside class="research-entry-aside" :aria-label="accessSectionLabel">
-    <div class="admin-section-heading">
-     <h2>{{isAdministrator?'Access & permissions':persona==='guest'?'Guest access':'Research access'}}</h2>
+    <div class="nfq-access-head">
+     <h2>Access</h2>
      <ContextHelp label="About role verification" title="Research permissions">
       <p>A verified FQ research membership establishes your assigned role. A signed-in session or professional affiliation does not independently grant scientific or administrative permissions.</p>
-      <p>Editing, decisions and account management remain authorized by protected database functions and access policies.</p>
+      <p>Protected research actions are authorized by the server. An account badge never grants access.</p>
      </ContextHelp>
     </div>
     <dl class="research-capabilities">
      <div><dt>Session</dt><dd>{{signedIn?'Authenticated':'Not signed in'}}</dd></div>
-     <div><dt>{{persona==='guest'?'Guest designation':'Research role'}}</dt><dd data-testid="admin-membership-status">{{persona==='guest'?'Verified external guest':roleLabel}}</dd></div>
-     <div v-if="isAdministrator"><dt>Administrator</dt><dd data-testid="admin-role-status">{{adminStatus}}</dd></div>
-     <div v-if="isReviewer"><dt>Scientific reviewer</dt><dd>{{reviewerStatus}}</dd></div>
-     <div v-if="isAdministrator||isReviewer"><dt>Independent review</dt><dd>Role eligible</dd></div>
-     <div v-if="isAdministrator||isReviewer||isContributor"><dt>Variant nomenclature</dt><dd>Curate in dossier</dd></div>
+     <div>
+      <dt>{{persona==='guest'?'Designation':'Research membership'}}</dt>
+      <dd data-testid="admin-membership-status">{{persona==='guest'?'Guest · verified':roleLabel}}
+       <small v-if="isAdministrator" data-testid="admin-role-status" class="nfq-access-verified">Verified</small>
+      </dd>
+     </div>
+     <div v-if="isAdministrator||isReviewer||isContributor"><dt>Research operations</dt><dd>{{isContributor?'Submit curation proposals':'Curate and independently review'}}</dd></div>
     </dl>
-    <div class="admin-role-actions">
-     <p v-if="signedIn&&researcherRole.phase==='unavailable'" role="alert">{{researcherRole.message||'Membership verification is unavailable. Protected operations remain disabled.'}}</p>
-     <button v-if="signedIn" type="button" class="admin-role-refresh" :disabled="researcherRole.phase==='checking'" @click="refreshResearcherRole">{{researcherRole.phase==='checking'?'Verifying…':'Recheck access'}}</button>
-     <button v-if="isAdministrator&&accessProbe" type="button" class="admin-role-refresh"
-      :disabled="probePhase==='checking'" data-testid="admin-access-check"
-      @click="runAccessProbe">{{probePhase==='checking'?'Checking…':'Verify server access'}}</button>
-     <p v-if="probeMessage" role="status" data-testid="admin-access-check-status">{{probeMessage}}</p>
-     <p v-if="probeResult" class="admin-session-state">Membership: {{probeResult.membership==='verified'?probeResult.role:'Unassigned'}} · Private proposals: {{probeResult.privateProposalCount}}</p>
-    </div>
+    <p v-if="signedIn&&researcherRole.phase==='unavailable'" role="alert" class="nfq-access-warning">{{researcherRole.message||'Access could not be verified.'}}</p>
+    <details v-if="signedIn" class="nfq-access-diagnostics" data-testid="admin-access-diagnostics">
+     <summary>Access diagnostics</summary>
+     <div class="nfq-diagnostics-panel">
+      <button type="button" :disabled="researcherRole.phase==='checking'" @click="refreshResearcherRole">{{researcherRole.phase==='checking'?'Verifying…':'Recheck membership'}}</button>
+      <button v-if="isAdministrator&&accessProbe" type="button" :disabled="probePhase==='checking'" data-testid="admin-access-check" @click="runAccessProbe">{{probePhase==='checking'?'Checking…':'Verify server access'}}</button>
+      <p v-if="probeMessage" role="status" data-testid="admin-access-check-status">{{probeMessage}}</p>
+      <p v-if="probeResult">Membership: {{probeResult.membership==='verified'?probeResult.role:'Unassigned'}} · Private proposals: {{probeResult.privateProposalCount}}</p>
+     </div>
+    </details>
    </aside>
   </section>
-  <section v-if="manageRolesAllowed" id="nfq-people-access" class="admin-readiness" aria-label="People and access" data-testid="admin-people-access">
-   <div class="admin-section-heading">
-    <h2>People &amp; access</h2>
-    <ContextHelp label="About research accounts" title="Research account directory">
-     <p>These are verified FQ authentication accounts and their current FQ research permissions. This is not the neumDESK professional directory; member and guest affiliations will appear only after independently verified identity linkage.</p>
-     <p>No passwords, recovery tokens, staff contact numbers or clinical data are exposed here.</p>
+  <section v-if="manageRolesAllowed" id="nfq-people-access" class="nfq-people-section" aria-label="People and access" data-testid="admin-people-access">
+   <header class="nfq-people-heading">
+    <div class="nfq-people-heading-title">
+     <h2>People &amp; access</h2>
+     <span v-if="rosterPhase==='ready'" class="nfq-people-count">{{rosterRows.length}} {{rosterRows.length===1?'account':'accounts'}}</span>
+    </div>
+    <ContextHelp label="About research accounts" title="People & access">
+     <p>Searches FQ accounts only. This is not the neumDESK staff directory. Professional profiles and research permissions are verified independently.</p>
+     <p>Every role assignment or revocation requires explicit confirmation and is enforced and audited by the FQ database. Guest accounts receive a separate designation, never a research role automatically.</p>
     </ContextHelp>
-   </div>
-   <div class="nfq-roster-controls">
-    <label for="nfq-account-search">Find an FQ account by email</label>
-    <input id="nfq-account-search" v-model.trim="accountSearch" type="search"
-      maxlength="120" autocomplete="off" placeholder="Search registered accounts"
-      @keydown.enter.prevent="loadRoster"/>
-    <button class="admin-role-refresh" type="button" :disabled="rosterPhase==='loading'"
-      @click="loadRoster">{{rosterPhase==='loading'?'Loading…':'Load accounts'}}</button>
-   </div>
-   <p v-if="rosterMessage" role="alert" class="admin-session-state">{{rosterMessage}}</p>
-   <p v-if="rosterPhase==='ready'&&!rosterRows.length" class="admin-session-state">No registered FQ accounts matched this search.</p>
-   <div v-if="rosterPhase==='ready'&&rosterRows.length" class="nfq-roster" role="list" aria-label="FQ registered accounts">
-    <div v-for="account in rosterRows" :key="account.userId" class="nfq-roster-row" :class="{'nfq-roster-selected':targetAccount===account.userId}" role="listitem">
-     <div class="nfq-roster-identity">
-      <strong>{{account.email}}</strong>
-      <span>{{account.role|| (account.revoked?'Access revoked':'No FQ role assigned')}} · {{account.emailConfirmed?'Email confirmed':'Email pending'}}</span>
+   </header>
+   <div class="nfq-people-layout" :class="{'nfq-people-layout-editing':roleEditorOpen}">
+    <div class="nfq-people-directory">
+     <form class="nfq-roster-search" role="search" @submit.prevent="loadRoster">
+      <label for="nfq-account-search" class="nfq-sr-only">Find an FQ account by email</label>
+      <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+      <input id="nfq-account-search" v-model="accountSearch" type="search" maxlength="120"
+       autocomplete="off" placeholder="Find account by email" />
+      <button v-if="accountSearch" type="button" class="nfq-roster-clear" aria-label="Clear account search" @click="accountSearch=''">×</button>
+      <button type="button" class="nfq-roster-reload" :disabled="rosterPhase==='loading'" aria-label="Refresh accounts" title="Refresh accounts" @click="loadRoster">
+       <span aria-hidden="true">↻</span>
+      </button>
+     </form>
+     <p v-if="rosterPhase==='loading'" role="status" class="nfq-directory-feedback">Checking registered accounts…</p>
+     <p v-else-if="rosterPhase==='error'" role="alert" class="nfq-directory-feedback">{{rosterMessage}}</p>
+     <p v-else-if="rosterPhase==='ready'&&!rosterRows.length" role="status" class="nfq-directory-feedback">No accounts match this search.</p>
+     <div v-if="rosterPhase==='ready'&&rosterRows.length" class="nfq-people-results" role="list" aria-label="FQ registered accounts">
+      <div v-for="account in rosterRows" :key="account.userId" role="listitem" class="nfq-person-item">
+       <button type="button" class="nfq-person-select"
+        :class="{'nfq-person-selected':roleEditorOpen&&targetAccount===account.userId}"
+        :disabled="permissionPhase!=='idle'" :aria-pressed="roleEditorOpen&&targetAccount===account.userId"
+        :aria-label="'Manage research permissions for '+account.email" @click="selectRosterAccount(account)">
+        <span class="nfq-person-avatar" aria-hidden="true">{{account.email.charAt(0).toLocaleUpperCase()}}</span>
+        <span class="nfq-person-label"><strong>{{account.email}}</strong>
+         <small>{{account.emailConfirmed?'Email verified':'Email pending'}}<span v-if="account.revoked"> · Access revoked</span></small>
+        </span>
+        <span class="nfq-person-role" :class="{'nfq-person-role-unassigned':!account.role||account.revoked}">{{account.revoked?'Revoked':account.role||'Unassigned'}}</span>
+        <span class="nfq-person-arrow" aria-hidden="true">›</span>
+       </button>
+      </div>
      </div>
-     <button class="admin-role-refresh" type="button" @click="selectRosterAccount(account)"
-       :disabled="permissionPhase!=='idle'" :aria-pressed="targetAccount===account.userId&&roleEditorOpen" :aria-label="'Manage research permissions for '+account.email">{{targetAccount===account.userId&&roleEditorOpen?'Selected · Manage access':'Manage access'}}</button>
+     <p v-if="rosterPhase==='ready'&&rosterRows.length>=50" class="nfq-directory-feedback">Showing up to 50 accounts. Narrow your search to find another account.</p>
+     <div class="nfq-directory-footer">
+      <span>Account changes require an independent identity check.</span>
+      <button v-if="!roleEditorOpen" type="button" class="nfq-inline-action" @click="roleEditorOpen=true;permissionStatus='';targetAccount='';permissionConfirmation=false">Use verified account ID</button>
+     </div>
+     <p v-if="permissionStatus&&!roleEditorOpen" role="status" class="nfq-role-result">{{permissionStatus}}</p>
     </div>
+    <aside v-if="roleEditorOpen" id="nfq-role-management" class="nfq-account-inspector" aria-label="Research permission management" data-testid="admin-role-management">
+     <div class="nfq-account-inspector-head">
+      <div><span>Research permissions</span><h3>{{selectedRosterAccount?.email||'Verified account ID'}}</h3></div>
+      <button type="button" class="nfq-inspector-close" aria-label="Close permission editor" :disabled="permissionPhase==='saving'" @click="roleEditorOpen=false;permissionConfirmation=false">×</button>
+     </div>
+     <p class="nfq-inspector-context">{{selectedRosterAccount?(selectedRosterAccount.revoked?'Research membership revoked':selectedRosterAccount.role?'Current role: '+selectedRosterAccount.role:'No research membership assigned'):'Enter an independently confirmed account identifier.'}}</p>
+     <form id="nfq-role-management-form" class="nfq-role-management-form" @submit.prevent="submitPermissionChange">
+      <div class="nfq-form-field nfq-form-full">
+       <label for="nfq-target-account">Account ID</label>
+       <input id="nfq-target-account" v-model.trim="targetAccount" type="text" required
+        :readonly="Boolean(selectedRosterAccount)" spellcheck="false" autocomplete="off"
+        pattern="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+        placeholder="Verified account UUID" :disabled="permissionPhase!=='idle'" />
+      </div>
+      <div class="nfq-form-field nfq-form-full">
+       <label for="nfq-permission-action">Change type</label>
+       <select id="nfq-permission-action" v-model="permissionAction" :disabled="permissionPhase!=='idle'">
+        <option value="assign">Assign or update role</option>
+        <option value="revoke">Revoke research access</option>
+       </select>
+      </div>
+      <div v-if="permissionAction==='assign'" class="nfq-form-field nfq-form-full">
+       <label for="nfq-target-role">Research role</label>
+       <select id="nfq-target-role" v-model="targetRole" :disabled="permissionPhase!=='idle'">
+        <option value="contributor">Contributor</option>
+        <option value="reviewer">Scientific reviewer</option>
+        <option value="administrator">Administrator</option>
+       </select>
+      </div>
+      <label class="nfq-role-confirm nfq-form-full">
+       <input v-model="permissionConfirmation" type="checkbox" :disabled="permissionPhase!=='idle'"/>
+       <span>I verified this identity and authorize the recorded change.</span>
+      </label>
+      <button type="submit" class="nfq-save-role nfq-form-full"
+       :disabled="permissionPhase!=='idle'||!permissionConfirmation">
+       {{permissionPhase==='saving'?'Saving…':permissionAction==='revoke'?'Confirm revocation':'Save permission'}}
+      </button>
+      <button v-if="permissionPhase==='uncertain'" type="button" class="nfq-inline-action nfq-form-full" @click="resetPermissionRetry">Check membership before retrying</button>
+      <p v-if="permissionStatus" role="status" class="nfq-role-result nfq-form-full">{{permissionStatus}}</p>
+     </form>
+    </aside>
    </div>
-  </section>
-  <section v-if="manageRolesAllowed" id="nfq-role-management" class="admin-readiness" aria-label="Research permission management" data-testid="admin-role-management">
-   <div class="admin-section-heading">
-    <h2>Research permissions</h2>
-    <ContextHelp label="About research permission changes" title="Administrator permissions">
-     <p>Membership in neumACt is distinct from authorisation to change CFTR evidence. Assign contributor, reviewer or administrator access only after confirming the intended research account UUID with its owner. Each change is authorised and audited by the database.</p>
-     <p>Revocation prevents future research operations, including private proposal reads. A scientific review decision does not publish evidence automatically.</p>
-    </ContextHelp>
-   </div>
-   <div class="nfq-role-editor-head">
-    <p>Select an account above or enter an independently verified account identifier.</p>
-    <button type="button" class="admin-role-refresh" :aria-expanded="roleEditorOpen" aria-controls="nfq-role-management-form" @click="roleEditorOpen=!roleEditorOpen">{{roleEditorOpen?'Close permission editor':'Open permission editor'}}</button>
-   </div>
-   <form v-show="roleEditorOpen" id="nfq-role-management-form" class="nfq-role-management-form" @submit.prevent="submitPermissionChange">
-    <div class="nfq-form-field nfq-form-full">
-     <label for="nfq-target-account">Research account identifier</label>
-     <input id="nfq-target-account" v-model.trim="targetAccount" type="text"
-      autocomplete="off" spellcheck="false" required
-      pattern="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
-      placeholder="Verified account UUID" :disabled="permissionPhase!=='idle'"/>
-    </div>
-    <div class="nfq-form-field">
-     <label for="nfq-permission-action">Action</label>
-     <select id="nfq-permission-action" v-model="permissionAction" :disabled="permissionPhase!=='idle'">
-      <option value="assign">Assign or change role</option>
-      <option value="revoke">Revoke research access</option>
-     </select>
-    </div>
-    <div v-if="permissionAction==='assign'" class="nfq-form-field">
-     <label for="nfq-target-role">Research role</label>
-     <select id="nfq-target-role" v-model="targetRole" :disabled="permissionPhase!=='idle'">
-      <option value="contributor">Contributor</option>
-      <option value="reviewer">Scientific reviewer</option>
-      <option value="administrator">Administrator</option>
-     </select>
-    </div>
-    <label class="nfq-role-confirm nfq-form-full">
-     <input v-model="permissionConfirmation" type="checkbox" :disabled="permissionPhase!=='idle'"/>
-     <span>I have verified this account and authorize the recorded access change.</span>
-    </label>
-    <div class="nfq-role-actions nfq-form-full">
-     <button type="submit" class="admin-role-refresh" :disabled="permissionPhase!=='idle'||!permissionConfirmation">
-      {{permissionPhase==='saving'?'Recording…':permissionAction==='revoke'?'Revoke access':'Save research role'}}
-     </button>
-     <button v-if="permissionPhase==='uncertain'" type="button" class="admin-role-refresh"
-      @click="resetPermissionRetry">Acknowledge and verify current membership</button>
-    </div>
-    <p v-if="permissionStatus" role="status" class="admin-session-state nfq-form-full">{{permissionStatus}}</p>
-   </form>
   </section>
   <section v-if="isAdministrator" class="admin-readiness" aria-label="Research operations readiness">
    <div class="admin-section-heading">
