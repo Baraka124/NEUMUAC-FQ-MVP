@@ -28,9 +28,10 @@ jobs:
           node-version: '22'
       - name: Test invitation authorization and delivery safety
         run: node --test supabase/functions/_shared/adminInvitationGateway.test.mjs
-      - name: Ensure no invitation endpoint is enabled by default
+      - name: Verify server credential gate and emergency kill switch
         run: |
-          grep -F "NFQ_ADMIN_INVITES_ENABLED')==='true'" supabase/functions/nfq-admin-invite/index.ts
+          grep -F "Deno.env.get('NFQ_ADMIN_INVITES_DISABLED')!=='true'" supabase/functions/nfq-admin-invite/index.ts
+          grep -F "Boolean(endpoint&&secret)" supabase/functions/nfq-admin-invite/index.ts
           grep -F "revoke all on public.nfq_account_invitations from public,anon,authenticated;" supabase/proposed/14h124_fq_account_invitations.sql
           grep -F 'enable row level security;' supabase/proposed/14h124_fq_account_invitations.sql
       - name: Prevent embedded privileged service keys
