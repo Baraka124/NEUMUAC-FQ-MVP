@@ -1123,7 +1123,7 @@ test('14H121 public account workspace is compact and contains no administrator c
   await page.locator('.admin-head summary').click();
   await expect(page.getByRole('note',{name:'Research access'})).toContainText('verified FQ research membership');
   await page.keyboard.press('Escape');
-  await access.locator('.admin-section-heading summary').click();
+  await access.locator('.nfq-access-head summary').click();
   await expect(access.getByRole('note',{name:'Research permissions'})).toContainText('verified FQ research membership');
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button',{name:/approve|publish|edit|save/i})).toHaveCount(0);
