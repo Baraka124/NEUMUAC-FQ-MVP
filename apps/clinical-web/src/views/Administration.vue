@@ -372,7 +372,7 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
     <p>Select an account above or enter an independently verified account identifier.</p>
     <button type="button" class="admin-role-refresh" :aria-expanded="roleEditorOpen" aria-controls="nfq-role-management-form" @click="roleEditorOpen=!roleEditorOpen">{{roleEditorOpen?'Close permission editor':'Open permission editor'}}</button>
    </div>
-   <form v-if="roleEditorOpen" id="nfq-role-management-form" class="nfq-role-management-form" @submit.prevent="submitPermissionChange">
+   <form v-show="roleEditorOpen" id="nfq-role-management-form" class="nfq-role-management-form" @submit.prevent="submitPermissionChange">
     <div class="nfq-form-field nfq-form-full">
      <label for="nfq-target-account">Research account identifier</label>
      <input id="nfq-target-account" v-model.trim="targetAccount" type="text"
