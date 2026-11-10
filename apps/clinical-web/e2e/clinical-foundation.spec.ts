@@ -1111,7 +1111,7 @@ test('14H121 public account workspace is compact and contains no administrator c
   await page.setViewportSize({width,height:850});
   await page.goto('/#/admin');
   await expect(page.getByTestId('account-workspace-heading')).toHaveText('Research access');
-  await expect(page.getByText('Staff authentication is not configured here. No management operations are available.')).toBeVisible();
+  await expect(page.getByText('Sign in to see your verified professional profile and assigned research capabilities.')).toBeVisible();
   const access=page.getByRole('complementary',{name:'Research access'});
   await expect(access.locator('.research-capabilities>div')).toHaveCount(2);
   await expect(access.getByTestId('admin-membership-status')).toContainText('Not verifiable');
