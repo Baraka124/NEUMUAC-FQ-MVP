@@ -163,7 +163,9 @@ async function submitPermissionChange():Promise<void>{
   permissionConfirmation.value=false;targetAccount.value='';
   roleEditorOpen.value=false;
   permissionPhase.value='idle';
-  void refreshResearcherRole();
+  // Changing another account must not clear the visible confirmation
+  // by needlessly restarting the current administrator's role lookup.
+  if(target.toLowerCase()===authController?.state.userId?.toLowerCase())void refreshResearcherRole();
   void loadRoster();
  }catch(error){
   if(run!==permissionGeneration)return;
