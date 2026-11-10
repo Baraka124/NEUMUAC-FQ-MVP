@@ -1,0 +1,41 @@
+name: FQ administrator invitation security contract
+on:
+  pull_request:
+    paths:
+      - 'supabase/functions/nfq-admin-invite/**'
+      - 'supabase/functions/_shared/adminInvitationGateway*'
+      - 'supabase/proposed/14h124_fq_account_invitations.sql'
+      - '.github/workflows/admin-invitation-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/functions/nfq-admin-invite/**'
+      - 'supabase/functions/_shared/adminInvitationGateway*'
+      - 'supabase/proposed/14h124_fq_account_invitations.sql'
+      - '.github/workflows/admin-invitation-contract.yml'
+permissions:
+  contents: read
+jobs:
+  deny-by-default:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test invitation authorization and delivery safety
+        run: node --test supabase/functions/_shared/adminInvitationGateway.test.mjs
+      - name: Ensure no invitation endpoint is enabled by default
+        run: |
+          grep -F "NFQ_ADMIN_INVITES_ENABLED')==='true'" supabase/functions/nfq-admin-invite/index.ts
+          grep -F "revoke all on public.nfq_account_invitations from public,anon,authenticated;" supabase/proposed/14h124_fq_account_invitations.sql
+          grep -F 'enable row level security;' supabase/proposed/14h124_fq_account_invitations.sql
+      - name: Prevent embedded privileged service keys
+        run: |
+          if grep -RIE 'sb_secret_[a-zA-Z0-9_-]+|service_role.{0,25}eyJ' supabase/functions/nfq-admin-invite; then
+            echo 'Embedded privileged credentials forbidden'
+            exit 1
+          fi
