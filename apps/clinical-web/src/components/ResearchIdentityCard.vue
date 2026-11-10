@@ -30,7 +30,7 @@ const profileStatus=computed(()=>{
  if(props.professionalPhase==='unavailable')return 'Professional details unavailable. FQ access is independent.';
  if(props.professionalPhase==='unlinked')return props.persona==='guest'
   ? 'This external account has no linked institutional profile.'
-  : 'No verified professional profile is linked to this account.';
+  : 'No linked institutional profile';
  return 'Professional information has not been retrieved.';
 });
 </script>
@@ -77,9 +77,8 @@ const profileStatus=computed(()=>{
     </ContextHelp>
    </div>
    <nav class="nfq-profile-links" aria-label="Account quick links">
-    <RouterLink to="/variants">Variants <span aria-hidden="true">↗</span></RouterLink>
-    <RouterLink v-if="persona!=='guest'" to="/workspace">Research tools <span aria-hidden="true">↗</span></RouterLink>
-    <button v-if="persona==='administrator'" type="button" @click="emit('open-people')">People &amp; access <span aria-hidden="true">↓</span></button>
+    <RouterLink to="/variants">Variant explorer</RouterLink>
+    <button v-if="persona==='administrator'" type="button" @click="emit('open-people')">Manage people</button>
    </nav>
   </div>
  </section>
@@ -119,4 +118,26 @@ const profileStatus=computed(()=>{
  .nfq-profile-role{font-size:10px}
 }
 @media(prefers-reduced-motion:reduce){.nfq-profile-card *{scroll-behavior:auto}}
+
+/* 14H123 compact clinical identity — no inflated hero/padded tool row */
+.nfq-profile-card{border-radius:11px;box-shadow:none;border-color:#e3e9f0}
+.nfq-profile-top{padding:15px 17px 11px;gap:13px}
+.nfq-profile-avatar{width:45px;height:45px;border-radius:11px;font-size:14px;box-shadow:none;background:#214b71}
+.nfq-profile-display-name{font-size:clamp(18px,1.75vw,21px)}
+.nfq-profile-role{border-radius:5px;border:0;background:#eaf2fb;color:#285b86;padding:3px 8px;font-size:10px;min-height:21px}
+.nfq-profile-empty{font-size:11.5px;margin:0;padding:0 17px 12px;color:#688095}
+.nfq-profile-affiliation{padding:0 17px 11px;gap:8px}
+.nfq-profile-fact{padding:7px 10px;background:#f8fafc;border-color:#edf1f6}
+.nfq-profile-bottom{padding:8px 14px 8px 17px;background:#fcfdff}
+.nfq-profile-source{font-size:10px;gap:5px}
+.nfq-profile-source :deep(.nfq-context-help summary){width:23px;height:23px}
+.nfq-profile-links{gap:12px}
+.nfq-profile-links a,.nfq-profile-links button{font-size:10.5px;color:#316488;font-weight:680}
+@media(max-width:600px){
+ .nfq-profile-top{padding:13px;gap:10px}
+ .nfq-profile-avatar{width:40px;height:40px}
+ .nfq-profile-empty{padding:0 13px 10px}
+ .nfq-profile-affiliation{padding:0 13px 10px}
+ .nfq-profile-bottom{padding:8px 13px}
+}
 </style>

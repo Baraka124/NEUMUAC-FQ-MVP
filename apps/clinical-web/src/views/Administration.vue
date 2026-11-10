@@ -119,12 +119,23 @@ function selectRosterAccount(item:ResearchAccountRow){
  roleEditorOpen.value=true;
  targetAccount.value=item.userId;
  targetRole.value=item.role??'contributor';
- permissionAction.value='assign';permissionConfirmation.value=false;
+ permissionAction.value='assign';permissionConfirmation.value=false;permissionStatus.value='';
 }
-watch(()=>[authController?.state.phase,authController?.state.userId,researcherRole.phase,researcherRole.role],clearRoster);
-onUnmounted(clearRoster);
+let rosterSearchTimer:ReturnType<typeof setTimeout>|null=null;
+watch(()=>[authController?.state.phase,authController?.state.userId,researcherRole.phase,researcherRole.role],()=>{
+ if(rosterSearchTimer!==null){clearTimeout(rosterSearchTimer);rosterSearchTimer=null;}
+ clearRoster();
+ if(manageRolesAllowed.value)void loadRoster();
+},{immediate:true});
+watch(accountSearch,()=>{
+ if(!manageRolesAllowed.value)return;
+ if(rosterSearchTimer!==null)clearTimeout(rosterSearchTimer);
+ rosterSearchTimer=setTimeout(()=>{rosterSearchTimer=null;void loadRoster();},320);
+});
+onUnmounted(()=>{if(rosterSearchTimer!==null)clearTimeout(rosterSearchTimer);clearRoster();});
 const roleEditorOpen=ref(false);
 const targetAccount=ref('');
+const selectedRosterAccount=computed(()=>rosterRows.value.find(x=>x.userId===targetAccount.value)??null);
 const targetRole=ref<AssignableRole>('contributor');
 const permissionAction=ref<'assign'|'revoke'>('assign');
 const permissionConfirmation=ref(false);
@@ -150,9 +161,12 @@ async function submitPermissionChange():Promise<void>{
    'Access revoked. The server recorded the membership change.':
    'Research permission assigned. The server recorded the membership change.';
   permissionConfirmation.value=false;targetAccount.value='';
+  roleEditorOpen.value=false;
   permissionPhase.value='idle';
-  void refreshResearcherRole();
-  clearRoster();
+  // Changing another account must not clear the visible confirmation
+  // by needlessly restarting the current administrator's role lookup.
+  if(target.toLowerCase()===authController?.state.userId?.toLowerCase())void refreshResearcherRole();
+  void loadRoster();
  }catch(error){
   if(run!==permissionGeneration)return;
   permissionPhase.value='uncertain';
@@ -160,7 +174,9 @@ async function submitPermissionChange():Promise<void>{
  }
 }
 function resetPermissionRetry():void{
- permissionPhase.value='idle';permissionConfirmation.value=false;permissionStatus.value='';
+ permissionPhase.value='idle';permissionConfirmation.value=false;
+ permissionStatus.value='Verify the account state in the refreshed directory before submitting another request.';
+ void loadRoster();
 }
 watch(()=>[authController?.state.phase,authController?.state.userId,researcherRole.phase,researcherRole.role],clearPermissionForm);
 onUnmounted(clearPermissionForm);
@@ -305,109 +321,125 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
     </details>
    </div>
    <aside class="research-entry-aside" :aria-label="accessSectionLabel">
-    <div class="admin-section-heading">
-     <h2>{{isAdministrator?'Access & permissions':persona==='guest'?'Guest access':'Research access'}}</h2>
+    <div class="nfq-access-head">
+     <h2>Access</h2>
      <ContextHelp label="About role verification" title="Research permissions">
       <p>A verified FQ research membership establishes your assigned role. A signed-in session or professional affiliation does not independently grant scientific or administrative permissions.</p>
-      <p>Editing, decisions and account management remain authorized by protected database functions and access policies.</p>
+      <p>Protected research actions are authorized by the server. An account badge never grants access.</p>
      </ContextHelp>
     </div>
     <dl class="research-capabilities">
      <div><dt>Session</dt><dd>{{signedIn?'Authenticated':'Not signed in'}}</dd></div>
-     <div><dt>{{persona==='guest'?'Guest designation':'Research role'}}</dt><dd data-testid="admin-membership-status">{{persona==='guest'?'Verified external guest':roleLabel}}</dd></div>
-     <div v-if="isAdministrator"><dt>Administrator</dt><dd data-testid="admin-role-status">{{adminStatus}}</dd></div>
-     <div v-if="isReviewer"><dt>Scientific reviewer</dt><dd>{{reviewerStatus}}</dd></div>
-     <div v-if="isAdministrator||isReviewer"><dt>Independent review</dt><dd>Role eligible</dd></div>
-     <div v-if="isAdministrator||isReviewer||isContributor"><dt>Variant nomenclature</dt><dd>Curate in dossier</dd></div>
+     <div>
+      <dt>{{persona==='guest'?'Designation':'Research membership'}}</dt>
+      <dd data-testid="admin-membership-status">{{persona==='guest'?'Guest · verified':roleLabel}}
+       <small v-if="isAdministrator" data-testid="admin-role-status" class="nfq-access-verified">Verified</small>
+      </dd>
+     </div>
+     <div v-if="isAdministrator||isReviewer||isContributor"><dt>Research operations</dt><dd>{{isContributor?'Submit curation proposals':'Curate and independently review'}}</dd></div>
     </dl>
-    <div class="admin-role-actions">
-     <p v-if="signedIn&&researcherRole.phase==='unavailable'" role="alert">{{researcherRole.message||'Membership verification is unavailable. Protected operations remain disabled.'}}</p>
-     <button v-if="signedIn" type="button" class="admin-role-refresh" :disabled="researcherRole.phase==='checking'" @click="refreshResearcherRole">{{researcherRole.phase==='checking'?'Verifying…':'Recheck access'}}</button>
-     <button v-if="isAdministrator&&accessProbe" type="button" class="admin-role-refresh"
-      :disabled="probePhase==='checking'" data-testid="admin-access-check"
-      @click="runAccessProbe">{{probePhase==='checking'?'Checking…':'Verify server access'}}</button>
-     <p v-if="probeMessage" role="status" data-testid="admin-access-check-status">{{probeMessage}}</p>
-     <p v-if="probeResult" class="admin-session-state">Membership: {{probeResult.membership==='verified'?probeResult.role:'Unassigned'}} · Private proposals: {{probeResult.privateProposalCount}}</p>
-    </div>
+    <p v-if="signedIn&&researcherRole.phase==='unavailable'" role="alert" class="nfq-access-warning">{{researcherRole.message||'Access could not be verified.'}}</p>
+    <details v-if="signedIn" class="nfq-access-diagnostics" data-testid="admin-access-diagnostics">
+     <summary>Access diagnostics</summary>
+     <div class="nfq-diagnostics-panel">
+      <button type="button" :disabled="researcherRole.phase==='checking'" @click="refreshResearcherRole">{{researcherRole.phase==='checking'?'Verifying…':'Recheck membership'}}</button>
+      <button v-if="isAdministrator&&accessProbe" type="button" :disabled="probePhase==='checking'" data-testid="admin-access-check" @click="runAccessProbe">{{probePhase==='checking'?'Checking…':'Verify server access'}}</button>
+      <p v-if="probeMessage" role="status" data-testid="admin-access-check-status">{{probeMessage}}</p>
+      <p v-if="probeResult">Membership: {{probeResult.membership==='verified'?probeResult.role:'Unassigned'}} · Private proposals: {{probeResult.privateProposalCount}}</p>
+     </div>
+    </details>
    </aside>
   </section>
-  <section v-if="manageRolesAllowed" id="nfq-people-access" class="admin-readiness" aria-label="People and access" data-testid="admin-people-access">
-   <div class="admin-section-heading">
-    <h2>People &amp; access</h2>
-    <ContextHelp label="About research accounts" title="Research account directory">
-     <p>These are verified FQ authentication accounts and their current FQ research permissions. This is not the neumDESK professional directory; member and guest affiliations will appear only after independently verified identity linkage.</p>
-     <p>No passwords, recovery tokens, staff contact numbers or clinical data are exposed here.</p>
+  <section v-if="manageRolesAllowed" id="nfq-people-access" class="nfq-people-section" aria-label="People and access" data-testid="admin-people-access">
+   <header class="nfq-people-heading">
+    <div class="nfq-people-heading-title">
+     <h2>People &amp; access</h2>
+     <span v-if="rosterPhase==='ready'" class="nfq-people-count">{{rosterRows.length}} {{rosterRows.length===1?'account':'accounts'}}</span>
+    </div>
+    <ContextHelp label="About research accounts" title="People & access">
+     <p>Searches FQ accounts only. This is not the neumDESK staff directory. Professional profiles and research permissions are verified independently.</p>
+     <p>Every role assignment or revocation requires explicit confirmation and is enforced and audited by the FQ database. Guest accounts receive a separate designation, never a research role automatically.</p>
     </ContextHelp>
-   </div>
-   <div class="nfq-roster-controls">
-    <label for="nfq-account-search">Find an FQ account by email</label>
-    <input id="nfq-account-search" v-model.trim="accountSearch" type="search"
-      maxlength="120" autocomplete="off" placeholder="Search registered accounts"
-      @keydown.enter.prevent="loadRoster"/>
-    <button class="admin-role-refresh" type="button" :disabled="rosterPhase==='loading'"
-      @click="loadRoster">{{rosterPhase==='loading'?'Loading…':'Load accounts'}}</button>
-   </div>
-   <p v-if="rosterMessage" role="alert" class="admin-session-state">{{rosterMessage}}</p>
-   <p v-if="rosterPhase==='ready'&&!rosterRows.length" class="admin-session-state">No registered FQ accounts matched this search.</p>
-   <div v-if="rosterPhase==='ready'&&rosterRows.length" class="nfq-roster" role="list" aria-label="FQ registered accounts">
-    <div v-for="account in rosterRows" :key="account.userId" class="nfq-roster-row" :class="{'nfq-roster-selected':targetAccount===account.userId}" role="listitem">
-     <div class="nfq-roster-identity">
-      <strong>{{account.email}}</strong>
-      <span>{{account.role|| (account.revoked?'Access revoked':'No FQ role assigned')}} · {{account.emailConfirmed?'Email confirmed':'Email pending'}}</span>
+   </header>
+   <div class="nfq-people-layout" :class="{'nfq-people-layout-editing':roleEditorOpen}">
+    <div class="nfq-people-directory">
+     <form class="nfq-roster-search" role="search" @submit.prevent="loadRoster">
+      <label for="nfq-account-search" class="nfq-sr-only">Find an FQ account by email</label>
+      <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+      <input id="nfq-account-search" v-model="accountSearch" type="search" maxlength="120"
+       autocomplete="off" placeholder="Find account by email" />
+      <button v-if="accountSearch" type="button" class="nfq-roster-clear" aria-label="Clear account search" @click="accountSearch=''">×</button>
+      <button type="button" class="nfq-roster-reload" :disabled="rosterPhase==='loading'" aria-label="Refresh accounts" title="Refresh accounts" @click="loadRoster">
+       <span aria-hidden="true">↻</span>
+      </button>
+     </form>
+     <p v-if="rosterPhase==='loading'" role="status" class="nfq-directory-feedback">Checking registered accounts…</p>
+     <p v-else-if="rosterPhase==='error'" role="alert" class="nfq-directory-feedback">{{rosterMessage}}</p>
+     <p v-else-if="rosterPhase==='ready'&&!rosterRows.length" role="status" class="nfq-directory-feedback">No accounts match this search.</p>
+     <div v-if="rosterPhase==='ready'&&rosterRows.length" class="nfq-people-results" role="list" aria-label="FQ registered accounts">
+      <div v-for="account in rosterRows" :key="account.userId" role="listitem" class="nfq-person-item">
+       <button type="button" class="nfq-person-select"
+        :class="{'nfq-person-selected':roleEditorOpen&&targetAccount===account.userId}"
+        :disabled="permissionPhase!=='idle'" :aria-pressed="roleEditorOpen&&targetAccount===account.userId"
+        :aria-label="'Manage research permissions for '+account.email" @click="selectRosterAccount(account)">
+        <span class="nfq-person-avatar" aria-hidden="true">{{account.email.charAt(0).toLocaleUpperCase()}}</span>
+        <span class="nfq-person-label"><strong>{{account.email}}</strong>
+         <small>{{account.emailConfirmed?'Email verified':'Email pending'}}<span v-if="account.revoked"> · Access revoked</span></small>
+        </span>
+        <span class="nfq-person-role" :class="{'nfq-person-role-unassigned':!account.role||account.revoked}">{{account.revoked?'Revoked':account.role||'Unassigned'}}</span>
+        <span class="nfq-person-arrow" aria-hidden="true">›</span>
+       </button>
+      </div>
      </div>
-     <button class="admin-role-refresh" type="button" @click="selectRosterAccount(account)"
-       :disabled="permissionPhase!=='idle'" :aria-pressed="targetAccount===account.userId&&roleEditorOpen" :aria-label="'Manage research permissions for '+account.email">{{targetAccount===account.userId&&roleEditorOpen?'Selected · Manage access':'Manage access'}}</button>
+     <p v-if="rosterPhase==='ready'&&rosterRows.length>=50" class="nfq-directory-feedback">Showing up to 50 accounts. Narrow your search to find another account.</p>
+     <div class="nfq-directory-footer">
+      <span>Account changes require an independent identity check.</span>
+      <button v-if="!roleEditorOpen" type="button" class="nfq-inline-action" @click="roleEditorOpen=true;permissionStatus='';targetAccount='';permissionConfirmation=false">Use verified account ID</button>
+     </div>
+     <p v-if="permissionStatus&&!roleEditorOpen" role="status" class="nfq-role-result">{{permissionStatus}}</p>
     </div>
+    <aside v-if="roleEditorOpen" id="nfq-role-management" class="nfq-account-inspector" aria-label="Research permission management" data-testid="admin-role-management">
+     <div class="nfq-account-inspector-head">
+      <div><span>Research permissions</span><h3>{{selectedRosterAccount?.email||'Verified account ID'}}</h3></div>
+      <button type="button" class="nfq-inspector-close" aria-label="Close permission editor" :disabled="permissionPhase==='saving'" @click="roleEditorOpen=false;permissionConfirmation=false">×</button>
+     </div>
+     <p class="nfq-inspector-context">{{selectedRosterAccount?(selectedRosterAccount.revoked?'Research membership revoked':selectedRosterAccount.role?'Current role: '+selectedRosterAccount.role:'No research membership assigned'):'Enter an independently confirmed account identifier.'}}</p>
+     <form id="nfq-role-management-form" class="nfq-role-management-form" @submit.prevent="submitPermissionChange">
+      <div class="nfq-form-field nfq-form-full">
+       <label for="nfq-target-account">Account ID</label>
+       <input id="nfq-target-account" v-model.trim="targetAccount" type="text" required
+        :readonly="Boolean(selectedRosterAccount)" spellcheck="false" autocomplete="off"
+        pattern="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+        placeholder="Verified account UUID" :disabled="permissionPhase!=='idle'" />
+      </div>
+      <div class="nfq-form-field nfq-form-full">
+       <label for="nfq-permission-action">Change type</label>
+       <select id="nfq-permission-action" v-model="permissionAction" :disabled="permissionPhase!=='idle'">
+        <option value="assign">Assign or update role</option>
+        <option value="revoke">Revoke research access</option>
+       </select>
+      </div>
+      <div v-if="permissionAction==='assign'" class="nfq-form-field nfq-form-full">
+       <label for="nfq-target-role">Research role</label>
+       <select id="nfq-target-role" v-model="targetRole" :disabled="permissionPhase!=='idle'">
+        <option value="contributor">Contributor</option>
+        <option value="reviewer">Scientific reviewer</option>
+        <option value="administrator">Administrator</option>
+       </select>
+      </div>
+      <label class="nfq-role-confirm nfq-form-full">
+       <input v-model="permissionConfirmation" type="checkbox" :disabled="permissionPhase!=='idle'"/>
+       <span>I verified this identity and authorize the recorded change.</span>
+      </label>
+      <button type="submit" class="nfq-save-role nfq-form-full"
+       :disabled="permissionPhase!=='idle'||!permissionConfirmation">
+       {{permissionPhase==='saving'?'Saving…':permissionAction==='revoke'?'Confirm revocation':'Save permission'}}
+      </button>
+      <button v-if="permissionPhase==='uncertain'" type="button" class="nfq-inline-action nfq-form-full" @click="resetPermissionRetry">Check membership before retrying</button>
+      <p v-if="permissionStatus" role="status" class="nfq-role-result nfq-form-full">{{permissionStatus}}</p>
+     </form>
+    </aside>
    </div>
-  </section>
-  <section v-if="manageRolesAllowed" id="nfq-role-management" class="admin-readiness" aria-label="Research permission management" data-testid="admin-role-management">
-   <div class="admin-section-heading">
-    <h2>Research permissions</h2>
-    <ContextHelp label="About research permission changes" title="Administrator permissions">
-     <p>Membership in neumACt is distinct from authorisation to change CFTR evidence. Assign contributor, reviewer or administrator access only after confirming the intended research account UUID with its owner. Each change is authorised and audited by the database.</p>
-     <p>Revocation prevents future research operations, including private proposal reads. A scientific review decision does not publish evidence automatically.</p>
-    </ContextHelp>
-   </div>
-   <div class="nfq-role-editor-head">
-    <p>Select an account above or enter an independently verified account identifier.</p>
-    <button type="button" class="admin-role-refresh" :aria-expanded="roleEditorOpen" aria-controls="nfq-role-management-form" @click="roleEditorOpen=!roleEditorOpen">{{roleEditorOpen?'Close permission editor':'Open permission editor'}}</button>
-   </div>
-   <form v-show="roleEditorOpen" id="nfq-role-management-form" class="nfq-role-management-form" @submit.prevent="submitPermissionChange">
-    <div class="nfq-form-field nfq-form-full">
-     <label for="nfq-target-account">Research account identifier</label>
-     <input id="nfq-target-account" v-model.trim="targetAccount" type="text"
-      autocomplete="off" spellcheck="false" required
-      pattern="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
-      placeholder="Verified account UUID" :disabled="permissionPhase!=='idle'"/>
-    </div>
-    <div class="nfq-form-field">
-     <label for="nfq-permission-action">Action</label>
-     <select id="nfq-permission-action" v-model="permissionAction" :disabled="permissionPhase!=='idle'">
-      <option value="assign">Assign or change role</option>
-      <option value="revoke">Revoke research access</option>
-     </select>
-    </div>
-    <div v-if="permissionAction==='assign'" class="nfq-form-field">
-     <label for="nfq-target-role">Research role</label>
-     <select id="nfq-target-role" v-model="targetRole" :disabled="permissionPhase!=='idle'">
-      <option value="contributor">Contributor</option>
-      <option value="reviewer">Scientific reviewer</option>
-      <option value="administrator">Administrator</option>
-     </select>
-    </div>
-    <label class="nfq-role-confirm nfq-form-full">
-     <input v-model="permissionConfirmation" type="checkbox" :disabled="permissionPhase!=='idle'"/>
-     <span>I have verified this account and authorize the recorded access change.</span>
-    </label>
-    <div class="nfq-role-actions nfq-form-full">
-     <button type="submit" class="admin-role-refresh" :disabled="permissionPhase!=='idle'||!permissionConfirmation">
-      {{permissionPhase==='saving'?'Recording…':permissionAction==='revoke'?'Revoke access':'Save research role'}}
-     </button>
-     <button v-if="permissionPhase==='uncertain'" type="button" class="admin-role-refresh"
-      @click="resetPermissionRetry">Acknowledge and verify current membership</button>
-    </div>
-    <p v-if="permissionStatus" role="status" class="admin-session-state nfq-form-full">{{permissionStatus}}</p>
-   </form>
   </section>
   <section v-if="isAdministrator" class="admin-readiness" aria-label="Research operations readiness">
    <div class="admin-section-heading">
@@ -659,6 +691,113 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
  .admin-operation-status{white-space:normal}
  .nfq-account-welcome{padding:14px;gap:11px}
  .nfq-welcome-mark{width:44px;height:44px}
+}
+
+
+/* Phase 14H123 — an account directory, not three separate dashboard cards. */
+.research-admin{max-width:1190px}
+.research-admin .admin-head{margin-bottom:8px}
+.research-admin .admin-head h1{font-size:clamp(22px,2.1vw,28px);letter-spacing:-.035em!important}
+.research-admin .admin-trail{border:0;margin:0 0 10px;padding:0;font-size:11px}
+.research-admin .research-entry{grid-template-columns:minmax(0,1.15fr) minmax(260px,.85fr);gap:12px}
+.research-admin .research-entry-aside{padding:13px 17px;border-radius:11px;box-shadow:none}
+.nfq-access-head{display:flex;align-items:center;justify-content:space-between;gap:9px;margin:0}
+.nfq-access-head h2{font-size:14px!important;line-height:1.25;margin:0!important;color:#243f5a;font-weight:720}
+.nfq-access-head :deep(.nfq-context-help summary){width:24px;height:24px}
+.research-admin .research-capabilities{margin:3px 0 0}
+.research-admin .research-capabilities>div{padding:5px 0}
+.research-admin .research-capabilities dt{font-size:11px}
+.research-admin .research-capabilities dd{font-size:11.5px}
+.nfq-access-verified{display:inline-block;margin-left:8px;color:#6a8095;font-size:10px;font-weight:550}
+.nfq-access-diagnostics{font-size:11px;color:#607890;margin-top:7px;border-top:1px solid #edf1f6;padding-top:7px}
+.nfq-access-diagnostics summary{cursor:pointer;width:max-content;max-width:100%;font-size:10.5px;color:#54708a;line-height:1.6}
+.nfq-diagnostics-panel{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap;padding:9px 0 3px}
+.nfq-diagnostics-panel button{padding:3px 0;border:0;background:none;color:#2a608e;cursor:pointer;font-size:10.5px;font-weight:650}
+.nfq-diagnostics-panel button:hover{text-decoration:underline;text-underline-offset:3px}
+.nfq-diagnostics-panel button:disabled{opacity:.55;cursor:wait}
+.nfq-diagnostics-panel p{width:100%;margin:0;color:#58738b;font-size:10.5px;line-height:1.4}
+.nfq-access-warning{margin:7px 0 0;color:#915c42;font-size:11px}
+.nfq-people-section{border:1px solid #e0e8f0;border-radius:12px;background:#fff;margin-top:13px;padding:16px 17px;min-width:0}
+.nfq-people-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}
+.nfq-people-heading-title{display:flex;gap:12px;align-items:baseline;min-width:0}
+.nfq-people-heading h2{margin:0!important;font-size:17px!important;line-height:1.25;color:#253f59;font-weight:730;letter-spacing:-.02em}
+.nfq-people-count{font-size:10.5px;color:#7690a8;font-weight:600;white-space:nowrap}
+.nfq-people-heading :deep(.nfq-context-help summary){width:26px;height:26px}
+.nfq-people-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:17px;align-items:start}
+.nfq-people-layout-editing{grid-template-columns:minmax(0,1fr) minmax(290px,.85fr)}
+.nfq-people-directory{min-width:0}
+.nfq-roster-search{display:flex;align-items:center;gap:8px;width:min(100%,570px);height:40px;padding:0 7px 0 12px;border:1px solid #d8e3ed;border-radius:8px;color:#7890a6;background:#fff}
+.nfq-roster-search:focus-within{border-color:#6396bd;outline:2px solid #e8f1fa}
+.nfq-roster-search input{border:0;outline:0!important;box-shadow:none!important;padding:0;min-width:0;flex:1;font:inherit;font-size:12px;height:100%;background:transparent;color:#233e57}
+.nfq-roster-search input::-webkit-search-cancel-button{display:none}
+.nfq-roster-search button{border:0;background:transparent;color:#66839c;padding:0;display:grid;place-items:center;cursor:pointer;line-height:1}
+.nfq-roster-search .nfq-roster-clear{font-size:18px;width:22px;height:26px}
+.nfq-roster-search .nfq-roster-reload{font-size:21px;width:28px;height:28px;border-radius:6px}
+.nfq-roster-reload:hover{background:#eff5fa;color:#31628d}
+.nfq-roster-reload:disabled{opacity:.4;cursor:wait}
+.nfq-directory-feedback{font-size:11.5px;line-height:1.5;color:#637d91;margin:12px 0}
+.nfq-people-results{display:grid;gap:0;margin-top:12px;max-height:380px;overflow:auto;scrollbar-width:thin;overscroll-behavior:contain}
+.nfq-person-item{min-width:0;border-top:1px solid #edf1f5}
+.nfq-person-item:first-child{border-top:0}
+.nfq-person-select{display:flex;gap:10px;align-items:center;width:100%;border:0;background:transparent;padding:10px 7px;min-height:54px;text-align:left;color:#25415b;cursor:pointer;border-radius:6px}
+.nfq-person-select:hover{background:#f6f9fc}
+.nfq-person-select.nfq-person-selected{background:#eef5fc}
+.nfq-person-select:disabled{cursor:wait;opacity:.6}
+.nfq-person-avatar{height:29px;width:29px;display:grid;place-items:center;border-radius:8px;flex:none;background:#eef3f9;color:#345f82;font-size:12px;font-weight:760}
+.nfq-person-label{min-width:0;flex:1;display:grid;gap:3px}
+.nfq-person-label strong{font-size:11.75px;line-height:1.3;font-weight:690;color:#2c4861;overflow-wrap:anywhere}
+.nfq-person-label small{font-size:10px;line-height:1.3;color:#8192a2;overflow-wrap:anywhere}
+.nfq-person-role{color:#416987;background:#f0f5fa;border-radius:5px;font-size:10px;font-weight:620;padding:4px 8px;white-space:nowrap;max-width:100%;text-overflow:ellipsis;overflow:hidden}
+.nfq-person-role-unassigned{background:#f4f6f8;color:#7a8794}
+.nfq-person-arrow{font-size:19px;color:#9aacbb;line-height:1}
+.nfq-directory-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:9px 15px;margin:12px 2px 0;font-size:10px;color:#8a9aaa;line-height:1.5}
+.nfq-inline-action{padding:0;border:0;background:transparent;color:#326795;font:inherit;font-size:10.5px;cursor:pointer;font-weight:650}
+.nfq-inline-action:hover{text-decoration:underline;text-underline-offset:3px}
+.nfq-account-inspector{min-width:0;border-left:1px solid #e6edf3;padding:3px 0 2px 17px}
+.nfq-account-inspector-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.nfq-account-inspector-head span{color:#7b8fa1;font-size:10px;font-weight:600}
+.nfq-account-inspector-head h3{font-size:13px;letter-spacing:-.012em;line-height:1.45;margin:4px 0 0;color:#29445e;overflow-wrap:anywhere}
+.nfq-inspector-close{display:grid;place-items:center;width:28px;height:28px;flex:none;background:transparent;border:0;border-radius:7px;color:#617a91;font-size:22px;cursor:pointer}
+.nfq-inspector-close:hover{background:#edf3f9}
+.nfq-inspector-context{font-size:10.5px;color:#718499;line-height:1.5;margin:7px 0}
+.research-admin .nfq-account-inspector .nfq-role-management-form{display:grid;grid-template-columns:minmax(0,1fr);padding:0;margin:10px 0 0;background:transparent;border:0;gap:11px;max-width:none}
+.research-admin .nfq-account-inspector .nfq-form-full{grid-column:auto}
+.research-admin .nfq-account-inspector .nfq-form-field{gap:5px}
+.research-admin .nfq-account-inspector .nfq-form-field label{font-size:10.5px;color:#5f7389}
+.research-admin .nfq-account-inspector input,
+.research-admin .nfq-account-inspector select{font-size:11.5px;border:1px solid #d6e1eb;border-radius:7px;min-height:36px;color:#24435e;background:#fff;padding:7px 9px;width:100%}
+.research-admin .nfq-account-inspector input[readonly]{background:#f8fafc;color:#526b81}
+.research-admin .nfq-account-inspector .nfq-role-confirm{display:flex;gap:8px;align-items:flex-start;margin:0;font-size:10.5px;line-height:1.5;color:#597189}
+.research-admin .nfq-account-inspector .nfq-role-confirm input{width:14px;height:14px;min-height:14px;margin:2px 0 0;padding:0;flex:none}
+.nfq-save-role{min-height:37px;padding:8px 13px;border:1px solid #1c527e;border-radius:7px;background:#1c527e;color:#fff;font-size:11.5px;font-weight:690;cursor:pointer}
+.nfq-save-role:hover{background:#143d61}
+.nfq-save-role:disabled{opacity:.47;cursor:not-allowed}
+.nfq-role-result{margin:9px 0 0;color:#395f7c;font-size:11px;line-height:1.5}
+.research-admin .nfq-people-section :focus-visible{outline:2px solid #327eac;outline-offset:2px}
+.research-admin .admin-readiness{padding:13px 16px;margin-top:11px;box-shadow:none;border-color:#e7edf3}
+.research-admin .admin-readiness .admin-section-heading{margin-bottom:5px}
+.research-admin .admin-readiness .admin-section-heading h2{font-size:15px!important}
+.research-admin .admin-operations-list li{padding:7px 10px;border:0;background:transparent;border-bottom:1px solid #edf1f5;border-radius:0}
+.research-admin .admin-operations-list li:last-child{border-bottom:0}
+.research-admin .admin-operations-list h3{font-size:11.5px}
+@media(max-width:970px){
+ .nfq-people-layout-editing{grid-template-columns:minmax(0,1fr)}
+ .nfq-account-inspector{border-left:0;border-top:1px solid #e5edf4;padding:14px 0 0}
+}
+@media(max-width:700px){
+ .research-admin .research-entry{grid-template-columns:minmax(0,1fr);gap:10px}
+ .research-admin .research-entry-aside{padding:12px 14px}
+ .nfq-people-section{padding:14px;margin-top:10px}
+ .nfq-people-heading{margin-bottom:10px}
+ .nfq-person-select{gap:7px;padding:8px 2px}
+ .nfq-person-avatar{width:27px;height:27px}
+ .nfq-person-role{font-size:9.5px}
+}
+@media(max-width:410px){
+ .nfq-person-arrow{display:none}
+ .nfq-people-heading-title{gap:6px;flex-wrap:wrap}
+ .nfq-person-select{flex-wrap:wrap}
+ .nfq-person-role{margin-left:auto}
 }
 
 </style>
