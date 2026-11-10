@@ -34,7 +34,7 @@ async function setup(page:Page,opts:{failTherapy?:boolean}={}):Promise<void>{
   if(request.method()!=='GET'){await route.fulfill({status:405,body:'No writes supported'});return;}
   const id=url.searchParams.get('id')?.replace(/^eq\./,'');
   if(table==='variants'&&opts.failTherapy&&
-     (url.searchParams.get('select')||'').includes('class_subtype')){
+     (url.searchParams.get('select')||'').includes('alyftrek_evidence_level')){
    await route.fulfill({status:503,headers:{'access-control-allow-origin':'*'},body:'Service unavailable'});return;
   }
   let response:unknown[]=[];
