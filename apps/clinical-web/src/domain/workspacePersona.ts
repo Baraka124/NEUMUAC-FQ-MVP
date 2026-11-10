@@ -8,10 +8,12 @@ export function resolveWorkspacePersona(
  if(authPhase!=='signed-in')return 'public';
  if(rolePhase==='verified'&&role==='administrator')return 'administrator';
  if(guestPhase==='verified')return 'guest';
- if(rolePhase==='checking'||guestPhase==='checking'||guestPhase==='unavailable'||rolePhase==='unavailable')
-  return 'account';
+ // A verified research role remains valid if the independent Guest lookup fails.
+ // This is UI classification only; sensitive actions still require server authorization.
  if(rolePhase==='verified'&&role==='reviewer')return 'reviewer';
  if(rolePhase==='verified'&&role==='contributor')return 'researcher';
+ if(rolePhase==='checking'||guestPhase==='checking'||guestPhase==='unavailable'||rolePhase==='unavailable')
+  return 'account';
  return 'pending';
 }
 export function workspaceTitle(persona:WorkspacePersona):string {
