@@ -526,7 +526,7 @@ function select(id:string):void{
       <span>{{mobileResultsExpanded?'Hide other results':'View other results'}} <small>({{displayedRows.length}} on page)</small></span>
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
     </button>
-    <div v-if="!pending&&!busy&&!error&&rows.length&&!scientificInputAssessment.blocked" id="variant-results" class="record-list" :class="{'nfq-mobile-results-hidden':selected&&!mobileResultsExpanded}" aria-label="Search results"><button v-for="(record,index) in displayedRows" :key="record.id" type="button" @keydown="onResultKeydown($event,index)" @focus="activeResultIndex=index" @mouseenter="activeResultIndex=index" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span v-if="record.proteinName && !/^p\.\?$/.test(record.proteinName.trim())" class="record-subline">{{record.proteinName}}</span><span v-else-if="record.cdnaName" class="record-subline">{{record.cdnaName}}</span><span class="nfq-record-meta"><span v-if="search.trim()" class="record-match-reason">{{matchExplanation(record)}}</span><span v-if="record.recordedClass" class="record-class">Class {{record.recordedClass}}</span><span v-if="selected?.id===record.id" class="record-current-label">Selected</span></span></button></div>
+    <div v-if="!pending&&!busy&&!error&&rows.length&&!scientificInputAssessment.blocked" id="variant-results" class="record-list" :class="{'nfq-mobile-results-hidden':selected&&!mobileResultsExpanded}" aria-label="Search results"><button v-for="(record,index) in displayedRows" :key="record.id" type="button" @keydown="onResultKeydown($event,index)" @focus="activeResultIndex=index" @mouseenter="activeResultIndex=index" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span v-if="record.proteinName && !/^p\.\?$/.test(record.proteinName.trim())" class="record-subline">{{record.proteinName}}</span><span v-else-if="record.cdnaName" class="record-subline">{{record.cdnaName}}</span><span class="nfq-record-meta"><span v-if="search.trim()" class="record-match-reason">{{matchExplanation(record)}}</span><span v-if="record.recordedClass" class="record-class">Class {{record.recordedClass}}</span><span v-if="record.classSubtype==='exceptional'" class="nfq-exceptional-tag" data-testid="variant-exceptional-list-tag">Exceptional</span><span v-if="selected?.id===record.id" class="record-current-label">Selected</span></span></button></div>
     <nav v-if="!pending&&!busy&&!error&&(rows.length||page>0||hasMore)" class="pagination-controls discovery-pagination" :class="{'nfq-mobile-results-hidden':selected&&!mobileResultsExpanded}" aria-label="Variant result pages">
       <button type="button" :disabled="busy||page===0" aria-label="Previous variant page" @click="page--"><span aria-hidden="true">←</span> Previous</button>
       <span class="discovery-page-current" aria-current="page">Page {{page+1}}</span>
@@ -559,6 +559,7 @@ function select(id:string):void{
          <div class="nfq-identity-title">
           <h2 id="selected-title">{{variantDisplayName(selected)}}</h2>
           <span v-if="dossier?.functionalClass||selected.recordedClass" class="nfq-class-annotation"><span class="nfq-class-caption">Recorded class</span><strong>{{dossier?.functionalClass||selected.recordedClass}}</strong></span>
+           <span v-if="selected.classSubtype==='exceptional'||dossier?.subtype==='exceptional'" class="nfq-exceptional-tag nfq-dossier-exceptional" data-testid="variant-exceptional-tag">Exceptional subtype</span>
           <ContextHelp label="About variant nomenclature" title="Recorded variant identity">
            <p>Names, aliases, notations and functional class are values stored in the research catalog. A recorded classification is not an independent clinical validation.</p>
            <p>A protein notation of p.? indicates that the protein consequence has not been specified in that record.</p>
@@ -573,7 +574,16 @@ function select(id:string):void{
          <button v-if="!selectedFromSearch" type="button" class="nfq-save-record" data-testid="copy-variant-record-link" @click="copyVariantLink">Copy link</button>
        </div>
        <p v-if="shareNotice" role="status" class="nfq-saved-feedback">{{shareNotice}}</p>
-       <div id="nfq-variant-curation" tabindex="-1">
+       <div v-if="selected.classSubtype||selected.etiPrediction||selected.alyftrekPrediction" class="nfq-dossier-classification-strip" aria-label="Recorded class subtype and modulator results" data-testid="variant-response-summary">
+         <span v-if="selected.classSubtype" class="nfq-recorded-fact"><span>Subtype</span> <strong>{{selected.classSubtype}}</strong></span>
+         <span v-if="selected.etiPrediction" class="nfq-recorded-fact"><span>ETI</span> <strong>{{selected.etiPrediction==='non_responsive'?'Non-responsive':selected.etiPrediction==='responsive'?'Responsive':'Unknown'}}</strong></span>
+         <span v-if="selected.alyftrekPrediction" class="nfq-recorded-fact"><span>Alyftrek</span> <strong>{{selected.alyftrekPrediction==='non_responsive'?'Non-responsive':selected.alyftrekPrediction==='responsive'?'Responsive':'Unknown'}}</strong></span>
+         <ContextHelp label="About recorded class and treatment response" title="Independent scientific fields">
+          <p>Class subtype is recorded independently of ETI and Alyftrek predictions. Exceptional does not by itself prove responsiveness, efficacy or prescribing eligibility.</p>
+          <p>Kalydeco, Symkevi and Orkambi have separate genotype-level research rules but no individual variant-response category in the archived register. Inspect all five regimens and their source references below.</p>
+         </ContextHelp>
+        </div>
+        <div id="nfq-variant-curation" tabindex="-1">
         <VariantCuration v-if="!selectedFromSearch" :key="selected.id" :variant="selected" @published="loadDetail(selected.id)" />
        </div>
        <dl class="identity-grid nfq-dossier-identity" aria-label="Variant nomenclature">
@@ -767,6 +777,12 @@ function select(id:string):void{
 </template>
 
 <style scoped>
+.nfq-exceptional-tag{display:inline-flex;align-items:center;min-height:20px;color:#7d5d24;border:1px solid #e7d9bd;border-radius:5px;padding:2px 6px;font-size:10px;font-weight:680;line-height:1.2;background:transparent}
+.nfq-dossier-exceptional{font-size:10.5px;min-height:24px;white-space:nowrap}
+.nfq-dossier-classification-strip{display:flex;flex-wrap:wrap;align-items:center;gap:7px 16px;padding:7px 0 9px;margin:0;font-size:11.5px;color:#5a7288;line-height:1.4}
+.nfq-recorded-fact{display:inline-flex;gap:5px;align-items:baseline}
+.nfq-recorded-fact strong{font-size:11.5px;color:#29445d;font-weight:690;overflow-wrap:anywhere}
+.nfq-dossier-classification-strip :deep(.nfq-context-help summary){width:25px;height:25px}
 .nfq-saved-trigger,.nfq-save-record{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;flex:none;border:1px solid var(--border,#dce2e7);border-radius:8px;background:transparent;color:inherit;padding:.4rem .65rem;font:inherit;font-size:.78rem;font-weight:550;cursor:pointer}
 .nfq-saved-trigger[aria-expanded="true"],.nfq-save-record[aria-pressed="true"]{background:var(--surface-secondary,#f4f6f8)}
 .nfq-saved-trigger:focus-visible,.nfq-save-record:focus-visible,.nfq-saved-panel button:focus-visible{outline:2px solid currentColor;outline-offset:2px}
