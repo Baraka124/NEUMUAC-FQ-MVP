@@ -119,12 +119,23 @@ function selectRosterAccount(item:ResearchAccountRow){
  roleEditorOpen.value=true;
  targetAccount.value=item.userId;
  targetRole.value=item.role??'contributor';
- permissionAction.value='assign';permissionConfirmation.value=false;
+ permissionAction.value='assign';permissionConfirmation.value=false;permissionStatus.value='';
 }
-watch(()=>[authController?.state.phase,authController?.state.userId,researcherRole.phase,researcherRole.role],clearRoster);
-onUnmounted(clearRoster);
+let rosterSearchTimer:ReturnType<typeof setTimeout>|null=null;
+watch(()=>[authController?.state.phase,authController?.state.userId,researcherRole.phase,researcherRole.role],()=>{
+ if(rosterSearchTimer!==null){clearTimeout(rosterSearchTimer);rosterSearchTimer=null;}
+ clearRoster();
+ if(manageRolesAllowed.value)void loadRoster();
+},{immediate:true});
+watch(accountSearch,()=>{
+ if(!manageRolesAllowed.value)return;
+ if(rosterSearchTimer!==null)clearTimeout(rosterSearchTimer);
+ rosterSearchTimer=setTimeout(()=>{rosterSearchTimer=null;void loadRoster();},320);
+});
+onUnmounted(()=>{if(rosterSearchTimer!==null)clearTimeout(rosterSearchTimer);clearRoster();});
 const roleEditorOpen=ref(false);
 const targetAccount=ref('');
+const selectedRosterAccount=computed(()=>rosterRows.value.find(x=>x.userId===targetAccount.value)??null);
 const targetRole=ref<AssignableRole>('contributor');
 const permissionAction=ref<'assign'|'revoke'>('assign');
 const permissionConfirmation=ref(false);
@@ -150,9 +161,10 @@ async function submitPermissionChange():Promise<void>{
    'Access revoked. The server recorded the membership change.':
    'Research permission assigned. The server recorded the membership change.';
   permissionConfirmation.value=false;targetAccount.value='';
+  roleEditorOpen.value=false;
   permissionPhase.value='idle';
   void refreshResearcherRole();
-  clearRoster();
+  void loadRoster();
  }catch(error){
   if(run!==permissionGeneration)return;
   permissionPhase.value='uncertain';
@@ -160,7 +172,9 @@ async function submitPermissionChange():Promise<void>{
  }
 }
 function resetPermissionRetry():void{
- permissionPhase.value='idle';permissionConfirmation.value=false;permissionStatus.value='';
+ permissionPhase.value='idle';permissionConfirmation.value=false;
+ permissionStatus.value='Verify the account state in the refreshed directory before submitting another request.';
+ void loadRoster();
 }
 watch(()=>[authController?.state.phase,authController?.state.userId,researcherRole.phase,researcherRole.role],clearPermissionForm);
 onUnmounted(clearPermissionForm);
