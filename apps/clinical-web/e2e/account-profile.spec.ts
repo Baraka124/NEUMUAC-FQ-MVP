@@ -145,3 +145,71 @@ test('14H124 Reviewer sees operational source queue but no account administratio
  await expect(review.getByText(/No submitted source corrections/)).toBeVisible();
  await expect(page.getByRole('heading',{name:'Source review queue'})).toBeVisible();
 });
+
+test('14H126 Administrator invitation: no send before explicit confirmation and history is read-only',async({page})=>{
+ await mockFqAccount(page,'administrator');
+ const deliveries:{email:string,kind:string}[]=[];
+ const invitations:{id:string,email:string,kind:string,status:string,createdAt:string,updatedAt:string}[]=[];
+ let reads=0;
+ await page.route('https://example.supabase.co/functions/v1/nfq-admin-invite',async route=>{
+  const method=route.request().method();
+  const headers={'access-control-allow-origin':'*','access-control-allow-headers':'*','access-control-allow-methods':'GET,POST,OPTIONS'};
+  if(method==='OPTIONS'){await route.fulfill({status:204,headers});return;}
+  if(method==='GET'){
+   reads++;
+   await route.fulfill({status:200,headers,contentType:'application/json',body:JSON.stringify({status:'ready',invitations})});
+   return;
+  }
+  if(method==='POST'){
+   const payload=JSON.parse(route.request().postData()||'{}');
+   deliveries.push(payload);
+   invitations.push({id:'9a6a0489-6c29-4e57-8144-c4e82c946aff',email:payload.email,kind:payload.kind,
+    status:'sent',createdAt:'2026-11-10T12:00:00Z',updatedAt:'2026-11-10T12:00:00Z'});
+   await route.fulfill({status:202,headers,contentType:'application/json',body:JSON.stringify({status:'invitation-requested'})});
+   return;
+  }
+  await route.fulfill({status:405,headers});
+ });
+ await page.goto('/#/admin');
+ const panel=page.getByTestId('admin-invitations');
+ await expect(panel.getByRole('button',{name:'Invite researcher'})).toBeEnabled();
+ await expect.poll(()=>reads).toBeGreaterThan(0);
+ expect(deliveries).toHaveLength(0);
+ await panel.getByRole('button',{name:'Invite researcher'}).click();
+ const send=panel.getByRole('button',{name:'Send invitation'});
+ await expect(send).toBeDisabled();
+ await panel.getByLabel('Recipient email').fill('guest@example.org');
+ await expect(panel.getByText(/already has an FQ account/)).toBeVisible();
+ await expect(send).toBeDisabled();
+ await panel.getByLabel('Recipient email').fill(' NEW.CLINICIAN@EXAMPLE.ORG ');
+ await panel.getByRole('radio',{name:'Clinician / researcher'}).check();
+ await expect(send).toBeDisabled();
+ await panel.getByRole('checkbox',{name:/confirmed the recipient/}).check();
+ await expect(send).toBeEnabled();
+ await send.click();
+ await expect.poll(()=>deliveries.length).toBe(1);
+ expect(deliveries).toEqual([{email:'new.clinician@example.org',kind:'clinician'}]);
+ await expect(panel).toContainText('Invitation requested for new.clinician@example.org');
+ await panel.getByText('Recent invitation requests').click();
+ await expect(panel.getByTestId('admin-invitation-history')).toContainText('new.clinician@example.org');
+ await panel.getByRole('button',{name:'Refresh'}).click();
+ expect(deliveries).toHaveLength(1);
+});
+test('14H126 disabled invitation backend keeps send unavailable',async({page})=>{
+ await mockFqAccount(page,'administrator');
+ await page.route('https://example.supabase.co/functions/v1/nfq-admin-invite',async route=>{
+  await route.fulfill({status:503,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify({error:'disabled'})});
+ });
+ await page.goto('/#/admin');
+ const panel=page.getByTestId('admin-invitations');
+ await expect(panel).toContainText('Invitation service not enabled');
+ await expect(panel.getByRole('button',{name:'Invite researcher'})).toBeDisabled();
+});
+test('14H126 Contributor and Reviewer have no invitation sender or invitation history',async({page})=>{
+ for(const persona of ['contributor','reviewer'] as const){
+  await mockFqAccount(page,persona);
+  await page.goto('/#/admin');
+  await expect(page.getByTestId('admin-invitations')).toHaveCount(0);
+  await expect(page.getByRole('button',{name:'Invite researcher'})).toHaveCount(0);
+ }
+});
