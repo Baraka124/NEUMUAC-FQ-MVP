@@ -115,12 +115,14 @@ async function loadRoster(){
 }
 function selectRosterAccount(item:ResearchAccountRow){
  if(permissionPhase.value!=='idle')return;
+ roleEditorOpen.value=true;
  targetAccount.value=item.userId;
  targetRole.value=item.role??'contributor';
  permissionAction.value='assign';permissionConfirmation.value=false;
 }
 watch(()=>[authController?.state.phase,authController?.state.userId,researcherRole.phase,researcherRole.role],clearRoster);
 onUnmounted(clearRoster);
+const roleEditorOpen=ref(false);
 const targetAccount=ref('');
 const targetRole=ref<AssignableRole>('contributor');
 const permissionAction=ref<'assign'|'revoke'>('assign');
@@ -131,6 +133,7 @@ let permissionGeneration=0;
 function clearPermissionForm():void{
  ++permissionGeneration;permissionConfirmation.value=false;
  permissionPhase.value='idle';permissionStatus.value='';
+ roleEditorOpen.value=false;
  targetAccount.value='';targetRole.value='contributor';permissionAction.value='assign';
 }
 async function submitPermissionChange():Promise<void>{
@@ -327,7 +330,7 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
     </div>
    </aside>
   </section>
-  <section v-if="manageRolesAllowed" class="admin-readiness" aria-label="People and access" data-testid="admin-people-access">
+  <section v-if="manageRolesAllowed" id="nfq-people-access" class="admin-readiness" aria-label="People and access" data-testid="admin-people-access">
    <div class="admin-section-heading">
     <h2>People &amp; access</h2>
     <ContextHelp label="About research accounts" title="Research account directory">
@@ -346,17 +349,17 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
    <p v-if="rosterMessage" role="alert" class="admin-session-state">{{rosterMessage}}</p>
    <p v-if="rosterPhase==='ready'&&!rosterRows.length" class="admin-session-state">No registered FQ accounts matched this search.</p>
    <div v-if="rosterPhase==='ready'&&rosterRows.length" class="nfq-roster" role="list" aria-label="FQ registered accounts">
-    <div v-for="account in rosterRows" :key="account.userId" class="nfq-roster-row" role="listitem">
+    <div v-for="account in rosterRows" :key="account.userId" class="nfq-roster-row" :class="{'nfq-roster-selected':targetAccount===account.userId}" role="listitem">
      <div class="nfq-roster-identity">
       <strong>{{account.email}}</strong>
       <span>{{account.role|| (account.revoked?'Access revoked':'No FQ role assigned')}} · {{account.emailConfirmed?'Email confirmed':'Email pending'}}</span>
      </div>
      <button class="admin-role-refresh" type="button" @click="selectRosterAccount(account)"
-       :disabled="permissionPhase!=='idle'" :aria-label="'Manage research permissions for '+account.email">Manage permissions</button>
+       :disabled="permissionPhase!=='idle'" :aria-pressed="targetAccount===account.userId&&roleEditorOpen" :aria-label="'Manage research permissions for '+account.email">{{targetAccount===account.userId&&roleEditorOpen?'Selected · Manage access':'Manage access'}}</button>
     </div>
    </div>
   </section>
-  <section v-if="manageRolesAllowed" class="admin-readiness" aria-label="Research permission management" data-testid="admin-role-management">
+  <section v-if="manageRolesAllowed" id="nfq-role-management" class="admin-readiness" aria-label="Research permission management" data-testid="admin-role-management">
    <div class="admin-section-heading">
     <h2>Research permissions</h2>
     <ContextHelp label="About research permission changes" title="Administrator permissions">
@@ -364,35 +367,45 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
      <p>Revocation prevents future research operations, including private proposal reads. A scientific review decision does not publish evidence automatically.</p>
     </ContextHelp>
    </div>
-   <form class="nfq-role-management-form" @submit.prevent="submitPermissionChange">
-    <label for="nfq-target-account">Verified research account UUID</label>
-    <input id="nfq-target-account" v-model.trim="targetAccount" type="text"
-     autocomplete="off" spellcheck="false" required
-     pattern="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
-     placeholder="Account UUID" :disabled="permissionPhase!=='idle'"/>
-    <label for="nfq-permission-action">Action</label>
-    <select id="nfq-permission-action" v-model="permissionAction" :disabled="permissionPhase!=='idle'">
-     <option value="assign">Assign or change research role</option>
-     <option value="revoke">Revoke research access</option>
-    </select>
-    <label for="nfq-target-role">Research role</label>
-    <select id="nfq-target-role" v-model="targetRole" :disabled="permissionPhase!=='idle'">
-     <option value="contributor">Contributor</option>
-     <option value="reviewer">Scientific reviewer</option>
-     <option value="administrator">Administrator</option>
-    </select>
-    <label class="nfq-role-confirm">
+   <div class="nfq-role-editor-head">
+    <p>Select an account above or enter an independently verified account identifier.</p>
+    <button type="button" class="admin-role-refresh" :aria-expanded="roleEditorOpen" aria-controls="nfq-role-management-form" @click="roleEditorOpen=!roleEditorOpen">{{roleEditorOpen?'Close permission editor':'Open permission editor'}}</button>
+   </div>
+   <form v-if="roleEditorOpen" id="nfq-role-management-form" class="nfq-role-management-form" @submit.prevent="submitPermissionChange">
+    <div class="nfq-form-field nfq-form-full">
+     <label for="nfq-target-account">Research account identifier</label>
+     <input id="nfq-target-account" v-model.trim="targetAccount" type="text"
+      autocomplete="off" spellcheck="false" required
+      pattern="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+      placeholder="Verified account UUID" :disabled="permissionPhase!=='idle'"/>
+    </div>
+    <div class="nfq-form-field">
+     <label for="nfq-permission-action">Action</label>
+     <select id="nfq-permission-action" v-model="permissionAction" :disabled="permissionPhase!=='idle'">
+      <option value="assign">Assign or change role</option>
+      <option value="revoke">Revoke research access</option>
+     </select>
+    </div>
+    <div v-if="permissionAction==='assign'" class="nfq-form-field">
+     <label for="nfq-target-role">Research role</label>
+     <select id="nfq-target-role" v-model="targetRole" :disabled="permissionPhase!=='idle'">
+      <option value="contributor">Contributor</option>
+      <option value="reviewer">Scientific reviewer</option>
+      <option value="administrator">Administrator</option>
+     </select>
+    </div>
+    <label class="nfq-role-confirm nfq-form-full">
      <input v-model="permissionConfirmation" type="checkbox" :disabled="permissionPhase!=='idle'"/>
-     I verified the account identity and authorise this access change.
+     <span>I have verified this account and authorize the recorded access change.</span>
     </label>
-    <div class="nfq-role-actions">
+    <div class="nfq-role-actions nfq-form-full">
      <button type="submit" class="admin-role-refresh" :disabled="permissionPhase!=='idle'||!permissionConfirmation">
       {{permissionPhase==='saving'?'Recording…':permissionAction==='revoke'?'Revoke access':'Save research role'}}
      </button>
      <button v-if="permissionPhase==='uncertain'" type="button" class="admin-role-refresh"
-      @click="resetPermissionRetry">Acknowledge and check membership</button>
+      @click="resetPermissionRetry">Acknowledge and verify current membership</button>
     </div>
-    <p v-if="permissionStatus" role="status" class="admin-session-state">{{permissionStatus}}</p>
+    <p v-if="permissionStatus" role="status" class="admin-session-state nfq-form-full">{{permissionStatus}}</p>
    </form>
   </section>
   <section v-if="isAdministrator" class="admin-readiness" aria-label="Research operations readiness">
