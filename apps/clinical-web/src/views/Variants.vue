@@ -276,11 +276,13 @@ const inputActive=ref(false);
 const exactMatchedId=ref<string|null>(null);
 const showSearchInfo=ref(false);
 const classFilter=ref(typeof route.query.class==='string'&&['I','II','III','IV','V','VI','unclassified'].includes(route.query.class)?route.query.class:'all');
+const subtypeFilter=ref(typeof route.query.subtype==='string'&&['exceptional','true','presumed','atypical','standard','unclassified'].includes(route.query.subtype)?route.query.subtype:'all');
+const responseFilter=ref(typeof route.query.response==='string'&&['eti-responsive','eti-non-responsive','alyftrek-responsive','alyftrek-non-responsive'].includes(route.query.response)?route.query.response:'all');
 const sort=ref(typeof route.query.sort==='string'&&['name-desc','recent-record','fewest-validations','most-validations'].includes(route.query.sort)?route.query.sort:'name-asc');
 const searchMode=ref(typeof route.query.mode==='string'&&route.query.mode==='exact-name'?'exact-name':'contains');
 const showAdvanced=ref(false);
-const activeFilterCount=computed(()=>Number(classFilter.value!=='all')+Number(sort.value!=='name-asc')+Number(searchMode.value!=='contains'));
-function resetAdvancedFilters():void{classFilter.value='all';sort.value='name-asc';searchMode.value='contains';}
+const activeFilterCount=computed(()=>Number(classFilter.value!=='all')+Number(subtypeFilter.value!=='all')+Number(responseFilter.value!=='all')+Number(sort.value!=='name-asc')+Number(searchMode.value!=='contains'));
+function resetAdvancedFilters():void{classFilter.value='all';subtypeFilter.value='all';responseFilter.value='all';sort.value='name-asc';searchMode.value='contains';}
 watch(search,()=>{
  exactMatchedId.value=null;
  // A changed query is a new research context: never retain a previously opened dossier.
@@ -330,9 +332,9 @@ const detailBusy=ref(false);
 const error=ref(configError);
 const completed=ref(false);
 const pending=ref(true);
-const emptyReason=computed(()=>emptySearchReason({query:search.value,completed:completed.value,pending:pending.value,blocked:scientificInputAssessment.value.blocked,error:Boolean(error.value),visibleCount:displayedRows.value.length,restrictiveFilters:classFilter.value!=='all'||searchMode.value!=='contains',page:page.value}));
+const emptyReason=computed(()=>emptySearchReason({query:search.value,completed:completed.value,pending:pending.value,blocked:scientificInputAssessment.value.blocked,error:Boolean(error.value),visibleCount:displayedRows.value.length,restrictiveFilters:classFilter.value!=='all'||subtypeFilter.value!=='all'||responseFilter.value!=='all'||searchMode.value!=='contains',page:page.value}));
 function retrySearch():void{pending.value=true;completed.value=false;void load();void resolveSearch();}
-function broadenSearch():void{classFilter.value='all';searchMode.value='contains';page.value=0;}
+function broadenSearch():void{classFilter.value='all';subtypeFilter.value='all';responseFilter.value='all';searchMode.value='contains';page.value=0;}
 let current:AbortController|null=null;
 let detailRequest:AbortController|null=null;
 let exactRequest:AbortController|null=null;
@@ -352,7 +354,7 @@ async function load():Promise<void>{
   if(scientificInputAssessment.value.blocked){rows.value=[];busy.value=false;pending.value=false;return;}
   if(!source){rows.value=[];pending.value=false;error.value=configError||'The public variant catalog has not been connected yet.';return;}
   busy.value=true;
-  try {const data=await source.list({query:search.value,page:page.value,classFilter:classFilter.value as 'all'|'I'|'II'|'III'|'IV'|'V'|'VI'|'unclassified',sort:sort.value as 'name-asc'|'name-desc'|'recent-record'|'fewest-validations'|'most-validations',searchMode:searchMode.value as 'contains'|'exact-name',signal:abort.signal});if(run===listSequence){
+  try {const data=await source.list({query:search.value,page:page.value,classFilter:classFilter.value as 'all'|'I'|'II'|'III'|'IV'|'V'|'VI'|'unclassified',subtypeFilter:subtypeFilter.value as 'all'|'exceptional'|'true'|'presumed'|'atypical'|'standard'|'unclassified',responseFilter:responseFilter.value as 'all'|'eti-responsive'|'eti-non-responsive'|'alyftrek-responsive'|'alyftrek-non-responsive',sort:sort.value as 'name-asc'|'name-desc'|'recent-record'|'fewest-validations'|'most-validations',searchMode:searchMode.value as 'contains'|'exact-name',signal:abort.signal});if(run===listSequence){
     rows.value=data.records;hasMore.value=data.hasMore;completed.value=true;
 
   }}
@@ -367,7 +369,7 @@ async function resolveSearch():Promise<void>{
  const abort=new AbortController();exactRequest=abort;
  const text=search.value.trim();
  try{
-   const hit=await source.resolveExact(text,classFilter.value as 'all'|'I'|'II'|'III'|'IV'|'V'|'VI'|'unclassified',abort.signal);
+   const hit=await source.resolveExact(text,classFilter.value as 'all'|'I'|'II'|'III'|'IV'|'V'|'VI'|'unclassified',abort.signal,{subtypeFilter:subtypeFilter.value as 'all'|'exceptional'|'true'|'presumed'|'atypical'|'standard'|'unclassified',responseFilter:responseFilter.value as 'all'|'eti-responsive'|'eti-non-responsive'|'alyftrek-responsive'|'alyftrek-non-responsive'});
    if(run!==exactSequence||abort.signal.aborted||scientificInputAssessment.value.blocked||search.value.trim()!==text)return;
    if(hit && (route.params.id!==hit.id || selected.value?.id!==hit.id)){
      revealNextId=hit.id;
@@ -401,14 +403,16 @@ watch(()=>authController?.state.phase,()=>{
  const id=route.params.id;
  if(typeof id==='string'&&/^[1-9]\d{0,17}$/.test(id))void loadDetail(id);
 });
-watch([search,page,classFilter,sort,searchMode],()=>{clearTimeout(timer);current?.abort();exactRequest?.abort();++listSequence;++exactSequence;rows.value=[];hasMore.value=false;busy.value=false;completed.value=false;pending.value=!scientificInputAssessment.value.blocked;timer=setTimeout(()=>{void load();void resolveSearch();},search.value?250:0)},{immediate:true});
-watch([search,classFilter,sort,searchMode],()=>{page.value=0;});
+watch([search,page,classFilter,subtypeFilter,responseFilter,sort,searchMode],()=>{clearTimeout(timer);current?.abort();exactRequest?.abort();++listSequence;++exactSequence;rows.value=[];hasMore.value=false;busy.value=false;completed.value=false;pending.value=!scientificInputAssessment.value.blocked;timer=setTimeout(()=>{void load();void resolveSearch();},search.value?250:0)},{immediate:true});
+watch([search,classFilter,subtypeFilter,responseFilter,sort,searchMode],()=>{page.value=0;});
 watch(()=>route.params.id,id=>{void loadDetail(id);},{immediate:true});
 onUnmounted(()=>{current?.abort();detailRequest?.abort();exactRequest?.abort();evidenceAbort?.abort();dossierAbort?.abort();legacyEtiAbort?.abort();clinVarAbort?.abort();briefAbort?.abort();historyAbort?.abort();clearTimeout(timer);});
 function updateWorklistRoute():void {
  const query:Record<string,string>={};
  if(search.value.trim())query.q=search.value.trim();
  if(classFilter.value!=='all')query.class=classFilter.value;
+  if(subtypeFilter.value!=='all')query.subtype=subtypeFilter.value;
+  if(responseFilter.value!=='all')query.response=responseFilter.value;
  if(sort.value!=='name-asc')query.sort=sort.value;
  if(searchMode.value!=='contains')query.mode=searchMode.value;
  if(page.value>0)query.page=String(page.value);
@@ -416,7 +420,7 @@ function updateWorklistRoute():void {
  // Retain deep-link identity even during asynchronous detail loading.
  void router.replace({path:selected.value?.id===route.params.id?route.path:'/variants',query});
 }
-watch([search,classFilter,sort,searchMode,page],updateWorklistRoute);
+watch([search,classFilter,subtypeFilter,responseFilter,sort,searchMode,page],updateWorklistRoute);
 function onSearchKeydown(event:KeyboardEvent):void{
  if(event.key==='Escape'){search.value='';return;}
  if(event.key==='ArrowDown'&&!pending.value&&!busy.value){event.preventDefault();focusResult(0);}
@@ -471,7 +475,7 @@ function select(id:string):void{
         <svg class="discovery-chevron" aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
         <span v-if="activeFilterCount" class="discovery-active-count">{{activeFilterCount}} active</span>
        </button>
-       <VariantFilterPanel v-if="showAdvanced" v-model:class-filter="classFilter" v-model:sort="sort" v-model:search-mode="searchMode" @close="showAdvanced=false" @reset="resetAdvancedFilters"/>
+       <VariantFilterPanel v-if="showAdvanced" v-model:class-filter="classFilter" v-model:subtype-filter="subtypeFilter" v-model:response-filter="responseFilter" v-model:sort="sort" v-model:search-mode="searchMode" @close="showAdvanced=false" @reset="resetAdvancedFilters"/>
       </div>
       <button type="button" class="nfq-saved-trigger" data-testid="saved-variants-toggle" :aria-expanded="savedOpen" aria-controls="saved-variants-panel" @click="savedOpen=!savedOpen">Saved<span v-if="savedIds.length"> · {{savedIds.length}}</span></button>
        <span v-if="!busy&&!error&&displayedRows.length" class="record-total" aria-live="polite" aria-label="Visible results on this page">{{displayedRows.length}} on page</span>
