@@ -28,6 +28,7 @@ const isAdministrator=computed(()=>roleAssignment.value==='administrator');
 const isReviewer=computed(()=>roleAssignment.value==='reviewer');
 const isContributor=computed(()=>roleAssignment.value==='contributor');
 const accessSectionLabel=computed(()=>isAdministrator.value?'Administration availability':persona.value==='guest'?'Guest access':'Research access');
+function openPeopleAccess():void{document.getElementById('nfq-people-access')?.scrollIntoView({behavior:'auto',block:'start'});}
 
 const accessConfig=readConfigFromEnvironment();
 const professionalClient=accessConfig&&authController?createProfessionalProfileClient(accessConfig,authController):null;
@@ -278,7 +279,7 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
     <h2 id="admin-access-heading" class="nfq-sr-only">My account profile</h2>
     <div v-if="signedIn" data-testid="professional-profile" aria-label="Professional profile">
      <ResearchIdentityCard :email="identity" :persona="persona" :role-label="roleLabel"
-      :professional-profile="professionalProfile" :professional-phase="professionalPhase" />
+      :professional-profile="professionalProfile" :professional-phase="professionalPhase" @open-people="openPeopleAccess" />
     </div>
     <div v-else class="nfq-account-welcome">
      <div class="nfq-welcome-mark" aria-hidden="true">FQ</div>
