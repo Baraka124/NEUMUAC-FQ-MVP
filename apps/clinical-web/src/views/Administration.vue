@@ -2,6 +2,7 @@
 import {computed,ref,watch,onUnmounted} from 'vue';
 import {RouterLink,useRoute} from 'vue-router';
 import ContextHelp from '../components/ContextHelp.vue';
+import ResearchIdentityCard from '../components/ResearchIdentityCard.vue';
 import {authController} from '../services/authSession';
 import {researcherRole,refreshResearcherRole} from '../services/researchRole';
 import {guestDesignation} from '../services/guestDesignation';
@@ -271,64 +272,58 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
   </nav>
   <section class="research-entry" aria-labelledby="admin-access-heading">
    <div class="research-entry-main">
-    <div class="admin-section-heading">
-     <h2 id="admin-access-heading">{{isAdministrator?'Research account signed in':persona==='guest'?'Guest account':persona==='researcher'?'Professional profile':persona==='reviewer'?'Reviewer profile':signedIn?'Account signed in':'Research staff access'}}</h2>
+    <h2 id="admin-access-heading" class="nfq-sr-only">My account profile</h2>
+    <div v-if="signedIn" data-testid="professional-profile" aria-label="Professional profile">
+     <ResearchIdentityCard :email="identity" :persona="persona" :role-label="roleLabel"
+      :professional-profile="professionalProfile" :professional-phase="professionalPhase" />
     </div>
-    <p class="admin-identity">{{identity}}</p>
-    <div v-if="signedIn" class="nfq-professional-details" data-testid="professional-profile" aria-label="Professional profile">
-      <template v-if="professionalPhase==='ready'&&professionalProfile">
-       <p class="nfq-professional-name">{{professionalProfile.name}}</p>
-       <p class="nfq-professional-meta">{{professionalProfile.staffType.replaceAll('_',' ')}}<span v-if="professionalProfile.department"> · {{professionalProfile.department}}</span></p>
-       <p class="nfq-professional-meta" v-if="professionalProfile.researchGroup">{{professionalProfile.researchGroup}}<span v-if="professionalProfile.researchLine"> · {{professionalProfile.researchLine}}</span></p>
-       <p class="nfq-professional-note">Professional details: verified neumDESK snapshot · checked {{new Date(professionalProfile.sourceVerifiedAt).toLocaleDateString()}}. FQ research permissions are assigned separately.</p>
-      </template>
-      <p v-else-if="professionalPhase==='checking'" role="status" class="nfq-professional-note">Checking professional profile…</p>
-      <p v-else-if="persona==='guest'" class="nfq-professional-note">External guest · Independent FQ account · No neumACt affiliation</p>
-      <p v-else-if="professionalPhase==='unlinked'" class="nfq-professional-note">No verified neumDESK professional profile is linked to this account.</p>
-      <p v-else-if="professionalPhase==='unavailable'" class="nfq-professional-note" role="status">Professional profile is temporarily unavailable. Research permissions are unaffected.</p>
+    <div v-else class="nfq-account-welcome">
+     <div class="nfq-welcome-mark" aria-hidden="true">FQ</div>
+     <div>
+      <h2>Research account</h2>
+      <p v-if="phase==='checking'" role="status">Checking your research session…</p>
+      <p v-else-if="phase==='error'" role="alert">The research session could not be verified. Scientific operations remain unavailable.</p>
+      <p v-else>Sign in to see your verified professional profile and assigned research capabilities.</p>
+      <div class="admin-session-actions">
+       <RouterLink v-if="authController" class="research-entry-link" to="/sign-in">Sign in <span aria-hidden="true">→</span></RouterLink>
+       <RouterLink class="research-entry-link" to="/variants">Public research <span aria-hidden="true">↗</span></RouterLink>
+      </div>
+     </div>
     </div>
     <details v-if="signedIn&&authController?.state.userId" class="admin-account-disclosure" data-testid="admin-account-disclosure">
-     <summary>Research account ID</summary>
+     <summary>Account identifier</summary>
      <div class="admin-account-detail">
       <code data-testid="admin-account-id">{{authController.state.userId}}</code>
       <ContextHelp label="About account ID" title="Account identity">
-       <p>This is the signed-in account identifier, not an administrator assignment or proof of ownership. Initial administrator setup requires independent identity verification and a recorded privileged procedure.</p>
+       <p>This is the signed-in FQ identity identifier, not an administrator assignment. Access is independently verified by the server.</p>
       </ContextHelp>
      </div>
     </details>
-    <p v-if="phase==='checking'" role="status" class="admin-session-state">Checking the existing session…</p>
-    <p v-else-if="phase==='error'" role="alert" class="admin-session-state">Authentication could not be confirmed. Editing remains unavailable.</p>
-    <p v-else-if="!signedIn&&authController" class="admin-session-state">Sign in to identify your research account.</p>
-    <p v-else-if="!signedIn" class="admin-session-state">Staff authentication is not configured here. No management operations are available.</p>
-    <p v-else class="admin-session-state">Account identity confirmed. Editing and approvals remain separate server-authorized operations.</p>
-    <div class="admin-session-actions">
-     <RouterLink v-if="!signedIn&&authController" class="research-entry-link" to="/sign-in">Sign in <span aria-hidden="true">→</span></RouterLink>
-     <RouterLink v-else class="research-entry-link" to="/variants">Explore public variants <span aria-hidden="true">→</span></RouterLink>
-    </div>
    </div>
    <aside class="research-entry-aside" :aria-label="accessSectionLabel">
     <div class="admin-section-heading">
-     <h2>{{isAdministrator?'Access verification':persona==='guest'?'Guest access':'Research access'}}</h2>
+     <h2>{{isAdministrator?'Access &amp; permissions':persona==='guest'?'Guest access':'Research access'}}</h2>
      <ContextHelp label="About role verification" title="Research permissions">
-      <p>A valid session identifies an account. A recorded researcher role is shown only when the research role service verifies it.</p>
-      <p>Contributor, reviewer and administrator assignments are displayed only after database verification against the signed-in account. A role alone cannot enable editing without protected write endpoints.</p>
+      <p>A verified FQ research membership establishes your assigned role. A signed-in session or professional affiliation does not independently grant scientific or administrative permissions.</p>
+      <p>Editing, decisions and account management remain authorized by protected database functions and access policies.</p>
      </ContextHelp>
     </div>
     <dl class="research-capabilities">
-     <div><dt>Identity</dt><dd>{{signedIn?'Session present':'Not authenticated'}}</dd></div>
-     <div><dt>{{persona==='guest'?'Scientific role':'Research membership'}}</dt><dd data-testid="admin-membership-status">{{persona==='guest'&&researcherRole.phase==='unassigned'?'None assigned':roleLabel}}</dd></div>
-     <div v-if="isAdministrator||isReviewer"><dt>Scientific reviewer role</dt><dd>{{reviewerStatus}}</dd></div>
-     <div v-if="isAdministrator"><dt>Administrator role</dt><dd data-testid="admin-role-status">{{adminStatus}}</dd></div>
-     <div v-if="isAdministrator"><dt>Database editing</dt><dd>Not connected</dd></div>
+     <div><dt>Session</dt><dd>{{signedIn?'Authenticated':'Not signed in'}}</dd></div>
+     <div><dt>{{persona==='guest'?'Guest designation':'Research role'}}</dt><dd data-testid="admin-membership-status">{{persona==='guest'?'Verified external guest':roleLabel}}</dd></div>
+     <div v-if="isAdministrator"><dt>Administrator</dt><dd data-testid="admin-role-status">{{adminStatus}}</dd></div>
+     <div v-if="isReviewer"><dt>Scientific reviewer</dt><dd>{{reviewerStatus}}</dd></div>
+     <div v-if="isAdministrator||isReviewer"><dt>Independent review</dt><dd>Role eligible</dd></div>
+     <div v-if="isAdministrator||isReviewer||isContributor"><dt>Variant nomenclature</dt><dd>Curate in dossier</dd></div>
     </dl>
     <div class="admin-role-actions">
-     <p v-if="signedIn&&researcherRole.phase==='unavailable'" role="alert">{{researcherRole.message||'Role verification unavailable. No operations will be enabled.'}}</p>
-     <button v-if="signedIn" type="button" class="admin-role-refresh" :disabled="researcherRole.phase==='checking'" @click="refreshResearcherRole">Recheck role</button>
+     <p v-if="signedIn&&researcherRole.phase==='unavailable'" role="alert">{{researcherRole.message||'Membership verification is unavailable. Protected operations remain disabled.'}}</p>
+     <button v-if="signedIn" type="button" class="admin-role-refresh" :disabled="researcherRole.phase==='checking'" @click="refreshResearcherRole">{{researcherRole.phase==='checking'?'Verifying…':'Recheck access'}}</button>
      <button v-if="isAdministrator&&accessProbe" type="button" class="admin-role-refresh"
       :disabled="probePhase==='checking'" data-testid="admin-access-check"
-      @click="runAccessProbe">{{probePhase==='checking'?'Checking server…':'Verify server access'}}</button>
+      @click="runAccessProbe">{{probePhase==='checking'?'Checking…':'Verify server access'}}</button>
      <p v-if="probeMessage" role="status" data-testid="admin-access-check-status">{{probeMessage}}</p>
-     <p v-if="probeResult" class="admin-session-state">Membership: {{probeResult.membership==='verified'?probeResult.role:'Unassigned'}} · Private proposals visible: {{probeResult.privateProposalCount}}</p>
+     <p v-if="probeResult" class="admin-session-state">Membership: {{probeResult.membership==='verified'?probeResult.role:'Unassigned'}} · Private proposals: {{probeResult.privateProposalCount}}</p>
     </div>
    </aside>
   </section>
