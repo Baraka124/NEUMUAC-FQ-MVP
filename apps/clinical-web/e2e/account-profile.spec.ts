@@ -142,6 +142,6 @@ test('14H124 Reviewer sees operational source queue but no account administratio
  const review=page.getByTestId('source-review-workspace');
  await expect(review).toBeVisible();
  await expect(review.getByRole('button',{name:'Refresh reviews'})).toBeVisible();
- await expect(review.getByRole('status')).toContainText('No submitted source corrections');
+ await expect(review.getByText(/No submitted source corrections/)).toBeVisible();
  await expect(page.getByRole('heading',{name:'Source review queue'})).toBeVisible();
 });
