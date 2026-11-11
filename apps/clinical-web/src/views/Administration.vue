@@ -4,6 +4,7 @@ import {RouterLink,useRoute} from 'vue-router';
 import ContextHelp from '../components/ContextHelp.vue';
 import ResearchIdentityCard from '../components/ResearchIdentityCard.vue';
 import AdminInvitationPanel from '../components/AdminInvitationPanel.vue';
+import AdminGuestAccessPanel from '../components/AdminGuestAccessPanel.vue';
 import {authController} from '../services/authSession';
 import {researcherRole,refreshResearcherRole} from '../services/researchRole';
 import {guestDesignation} from '../services/guestDesignation';
@@ -16,6 +17,7 @@ import {createResearchAccessDiagnostic,type ResearchAccessDiagnostic} from '../s
 import {canManageResearchRoles,createRoleAdministrationClient,type AssignableRole} from '../services/roleAdministration';
 import {createResearchAccountDirectory,type ResearchAccountRow} from '../services/researchAccountDirectory';
 import {createAdminInvitationClient} from '../services/adminInvitations';
+import {createGuestAccessAdminClient} from '../services/guestAccessAdministration';
 import {createProfessionalProfileClient,type ProfessionalProfile} from '../services/professionalProfile';
 
 const route=useRoute();
@@ -93,6 +95,7 @@ const manageRolesAllowed=computed(()=>Boolean(permissionClient)&&canManageResear
 ));
 const rosterClient=accessConfig&&authController?createResearchAccountDirectory(accessConfig,authController):null;
 const invitationClient=accessConfig&&authController?createAdminInvitationClient(accessConfig,authController):null;
+const guestAccessAdminClient=accessConfig&&authController?createGuestAccessAdminClient(accessConfig,authController):null;
 const accountSearch=ref('');
 const rosterRows=ref<ResearchAccountRow[]>([]);
 const rosterPhase=ref<'idle'|'loading'|'ready'|'error'>('idle');
@@ -448,6 +451,9 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
       <button v-if="permissionPhase==='uncertain'" type="button" class="nfq-inline-action nfq-form-full" @click="resetPermissionRetry">Check membership before retrying</button>
       <p v-if="permissionStatus" role="status" class="nfq-role-result nfq-form-full">{{permissionStatus}}</p>
      </form>
+     <AdminGuestAccessPanel v-if="selectedRosterAccount" :key="selectedRosterAccount.userId"
+      :client="guestAccessAdminClient" :target="selectedRosterAccount" :allowed="manageRolesAllowed"
+      @changed="loadRoster" />
     </aside>
    </div>
   </section>
