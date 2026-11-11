@@ -452,8 +452,7 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
       <p v-if="permissionStatus" role="status" class="nfq-role-result nfq-form-full">{{permissionStatus}}</p>
      </form>
      <AdminGuestAccessPanel v-if="selectedRosterAccount" :key="selectedRosterAccount.userId"
-      :client="guestAccessAdminClient" :target="selectedRosterAccount" :allowed="manageRolesAllowed"
-      @changed="loadRoster" />
+      :client="guestAccessAdminClient" :target="selectedRosterAccount" :allowed="manageRolesAllowed" />
     </aside>
    </div>
   </section>
