@@ -10,7 +10,7 @@ export type GuestAccessAction='grant'|'revoke';
 export class GuestAccessError extends Error {
  constructor(readonly kind:'invalid'|'denied'|'uncertain',message:string){super(message);this.name='GuestAccessError';}
 }
-const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i;
+const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export function validGuestAccessAction(target:string,action:string,reason:string,actor:string):boolean{
  return uuid.test(target)&&uuid.test(actor)&&target.toLowerCase()!==actor.toLowerCase()&&
  (action==='grant'||action==='revoke')&&reason.trim().length>=8&&reason.trim().length<=160;
