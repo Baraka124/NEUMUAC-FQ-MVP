@@ -213,3 +213,45 @@ test('14H126 Contributor and Reviewer have no invitation sender or invitation hi
   await expect(page.getByRole('button',{name:'Invite researcher'})).toHaveCount(0);
  }
 });
+
+test('14H129 Guest designation is separate from Reviewer permissions and explicitly audited',async({page})=>{
+ await mockFqAccount(page,'administrator');
+ const writes:unknown[]=[];
+ let active=false;
+ await page.route('https://example.supabase.co/rest/v1/rpc/nfq_admin_get_guest_access',async route=>{
+  await route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},
+    body:JSON.stringify([{is_active:active,designation_reason:null,designated_at:null}])});
+ });
+ await page.route('https://example.supabase.co/rest/v1/rpc/nfq_admin_set_guest_access',async route=>{
+  const payload=JSON.parse(route.request().postData()||'{}');
+  writes.push(payload);
+  active=payload.p_action==='grant';
+  await route.fulfill({status:204,headers:{'access-control-allow-origin':'*'}});
+ });
+ await page.goto('/#/admin');
+ await page.getByRole('button',{name:'Manage research permissions for guest@example.org'}).click();
+ const panel=page.getByTestId('admin-guest-access');
+ await expect(panel).toBeVisible();
+ await expect(panel.getByTestId('guest-designation-status')).toContainText('Not designated');
+ const submit=panel.getByRole('button',{name:'Designate external Guest'});
+ await expect(submit).toBeDisabled();
+ await panel.getByLabel('Reason for designation').fill('External research access requested by study team');
+ await expect(submit).toBeDisabled();
+ await panel.getByRole('checkbox',{name:/verified the account/}).check();
+ await expect(submit).toBeEnabled();
+ await submit.click();
+ await expect.poll(()=>writes.length).toBe(1);
+ expect(writes[0]).toEqual({p_user_id:accounts.guest,p_action:'grant',
+  p_reason:'External research access requested by study team'});
+ await expect(panel.getByTestId('guest-designation-status')).toContainText('Active');
+ await panel.getByLabel('Reason for revocation').fill('End of invited research observation');
+ await panel.getByRole('checkbox',{name:/verified the account/}).check();
+ await panel.getByRole('button',{name:'Revoke Guest access'}).click();
+ await expect.poll(()=>writes.length).toBe(2);
+ expect(writes[1]).toEqual({p_user_id:accounts.guest,p_action:'revoke',p_reason:'End of invited research observation'});
+});
+test('14H129 Reviewer never sees Guest designation administration',async({page})=>{
+ await mockFqAccount(page,'reviewer');
+ await page.goto('/#/admin');
+ await expect(page.getByTestId('admin-guest-access')).toHaveCount(0);
+});
