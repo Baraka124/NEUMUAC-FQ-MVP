@@ -27,7 +27,7 @@ const ivaNames=new Set(ivacaftorLegacyNames.map(s=>s.toUpperCase()));
 function recordedNames(v:NamedVariant):readonly string[]{
  return v.names.filter((n):n is string=>typeof n==='string'&&!!n.trim()).map(n=>n.trim().toUpperCase());
 }
-function isF508(v:NamedVariant):boolean{
+export function hasExactF508delName(v:NamedVariant):boolean{
  return recordedNames(v).some(s=>s==='F508DEL'||s==='P.PHE508DEL'||s==='C.1521_1523DEL');
 }
 function ivaMatch(v:NamedVariant):boolean{
@@ -63,8 +63,8 @@ export function compareLegacyFiveRegimens(first:NamedVariant,second:NamedVariant
  });
  const classKnown=pair.some(v=>Boolean(v.profile.functionalClass));
  const bothClassI=pair.every(v=>v.profile.functionalClass==='I');
- const bothF508=pair.every(isF508);
- const f508Iva=(isF508(first)&&ivaMatch(second))||(isF508(second)&&ivaMatch(first));
+ const bothF508=pair.every(hasExactF508delName);
+ const f508Iva=(hasExactF508delName(first)&&ivaMatch(second))||(hasExactF508delName(second)&&ivaMatch(first));
  const outcome:RegimenRuleResult[]=[
   etiStrong?
    result('ETI','match','A recorded ETI response has an original direct-evidence tier.','variant-tier'):
