@@ -1516,6 +1516,10 @@ test('14H137C4 Helios review areas remain complete and compact in both themes',a
  const mobile=page.getByRole('navigation',{name:'Mobile workspaces'});
  await mobile.getByRole('button',{name:'Switch to midnight theme'}).click();
  await expect(page.locator('.app-frame')).toHaveAttribute('data-nfq-theme','midnight');
+ // The mobile workspace menu intentionally remains open after appearance
+ // changes; close it before interacting with underlying scientific tabs.
+ await page.keyboard.press('Escape');
+ await expect(mobile).toHaveCount(0);
  await expect(page.getByRole('group',{name:'Helios review areas'}).getByRole('button')).toHaveCount(4);
  await page.getByTestId('helios-tab-evidence').click();
  await expect(page.getByTestId('helios-panel-evidence')).toBeVisible();
