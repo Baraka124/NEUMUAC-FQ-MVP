@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import {computed,ref,watch,onUnmounted} from 'vue';
-import {THERAPIES,type VariantTherapyProfile} from '../domain/therapyRegistry';
-import {compareLegacyFiveRegimens} from '../domain/legacyFiveRegimenRules';
+import {THERAPIES,type CoreModulatorId,type VariantTherapyProfile} from '../domain/therapyRegistry';
+import {compareLegacyFiveRegimens,type NamedVariant,type RegimenRuleResult} from '../domain/legacyFiveRegimenRules';
+import {originalPairReviewFindings} from '../domain/originalPairReviewFindings';
 import {haplotypeContextFindings} from '../domain/haplotypeContext';
 import {createVariantTherapySource} from '../services/variantTherapySource';
 import {readConfigFromEnvironment,type RealVariant} from '../services/liveVariants';
@@ -28,13 +29,29 @@ const haplotypeFindings=computed(()=>haplotypeContextFindings([
  {id:props.first.id,names:[props.first.legacyName,props.first.proteinName,...props.first.aliases]},
  {id:props.second.id,names:[props.second.legacyName,props.second.proteinName,...props.second.aliases]}
 ]));
-const outcomes=computed(()=>{
- if(!profiles.value)return [];
- return compareLegacyFiveRegimens(
+const namedPair=computed<readonly [NamedVariant,NamedVariant]|null>(()=>{
+ if(!profiles.value)return null;
+ return [
   {id:props.first.id,names:[props.first.legacyName,props.first.proteinName,props.first.cdnaName,...props.first.aliases],profile:profiles.value[0]},
   {id:props.second.id,names:[props.second.legacyName,props.second.proteinName,props.second.cdnaName,...props.second.aliases],profile:profiles.value[1]}
- );
+ ];
 });
+const outcomes=computed<readonly RegimenRuleResult[]>(()=>
+ namedPair.value?compareLegacyFiveRegimens(namedPair.value[0],namedPair.value[1]):[]
+);
+const reviewFindings=computed(()=>namedPair.value?
+ originalPairReviewFindings(namedPair.value[0],namedPair.value[1],outcomes.value):[]
+);
+const overallReviewFindings=computed(()=>reviewFindings.value.filter(x=>x.therapy===null));
+function regimenReviewFindings(therapy:CoreModulatorId){
+ return reviewFindings.value.filter(x=>x.therapy===therapy);
+}
+const basisLabel=(basis:RegimenRuleResult['basis']):string=>({
+ 'variant-tier':'Recorded variant evidence tier',
+ 'legacy-name-list':'Historical exact-name rule',
+ 'legacy-class-rule':'Historical class-based research rule',
+ 'missing-evidence':'Evidence not confirmed'
+})[basis];
 watch([()=>props.first.id,()=>props.second.id,attempts],async ([firstId,secondId])=>{
  active?.abort();profiles.value=null;phase.value=source?'loading':'unavailable';detail.value=null;
  if(!source)return;
@@ -72,6 +89,10 @@ onUnmounted(()=>active?.abort());
      <p>This two-record research comparison does not evaluate poly-T/TG modifiers or establish a patient haplotype. The five regimen-rule results and recorded source values remain unchanged.</p>
     </ContextHelp>
    </div>
+   <details v-if="overallReviewFindings.length" class="pair-original-review" data-testid="pair-original-review-signals">
+    <summary>Original review signals · {{overallReviewFindings.length}}</summary>
+    <ul><li v-for="finding in overallReviewFindings" :key="finding.kind">{{finding.message}}</li></ul>
+   </details>
    <div class="pair-drugs-rows">
     <div v-for="item in outcomes" :key="item.therapy" class="pair-drugs-row">
      <div class="pair-drugs-main">
@@ -79,7 +100,13 @@ onUnmounted(()=>active?.abort());
       <span class="pair-drugs-result">{{item.outcome==='match'?'Rule matched':item.outcome==='not-matched'?'Rule not matched':'Evidence check needed'}}</span>
       <button type="button" :aria-expanded="detail===item.therapy" :aria-controls="'pair-drugs-'+item.therapy" @click="detail=detail===item.therapy?null:item.therapy">{{detail===item.therapy?'Close':'Details'}}</button>
      </div>
-     <p v-if="detail===item.therapy" :id="'pair-drugs-'+item.therapy" class="pair-drugs-explain">{{item.rationale}}</p>
+     <div v-if="detail===item.therapy" :id="'pair-drugs-'+item.therapy" class="pair-drugs-explain" role="region" :aria-label="(THERAPIES.find(t=>t.id===item.therapy)?.label??'Regimen')+' research rule details'">
+      <p>{{item.rationale}}</p>
+      <p class="pair-drugs-basis">Rule basis · {{basisLabel(item.basis)}}</p>
+      <ul v-if="regimenReviewFindings(item.therapy).length" class="pair-regimen-review">
+       <li v-for="finding in regimenReviewFindings(item.therapy)" :key="finding.kind">{{finding.message}}</li>
+      </ul>
+     </div>
     </div>
    </div>
   </template>
@@ -104,5 +131,14 @@ onUnmounted(()=>active?.abort());
 .pair-drugs-main button,.pair-drugs-status button{border:1px solid var(--border,#dce4e5);background:transparent;color:inherit;border-radius:6px;cursor:pointer;font:inherit;font-size:.72rem;padding:.35rem .65rem}
 .pair-drugs-main button:focus-visible,.pair-drugs-status button:focus-visible{outline:2px solid currentColor;outline-offset:3px}
 .pair-drugs-explain{font-size:.74rem;color:var(--text-muted,#687381);line-height:1.6;margin:0;padding:.25rem 0 .75rem}
+.pair-drugs-explain p{margin:0}
+.pair-drugs-basis{font-size:.69rem;opacity:.82;padding-top:.2rem}
+.pair-regimen-review{margin:.45rem 0 0;padding-left:1.1rem}
+.pair-regimen-review li+li{margin-top:.28rem}
+.pair-original-review{font-size:.72rem;color:var(--text-muted,#687381);margin:.35rem 0 .7rem}
+.pair-original-review summary{cursor:pointer;font-weight:580;padding:.2rem 0;width:max-content;max-width:100%}
+.pair-original-review ul{margin:.25rem 0 0;padding-left:1.1rem;line-height:1.5}
+.pair-original-review li+li{margin-top:.3rem}
+.pair-original-review summary:focus-visible{outline:2px solid currentColor;outline-offset:2px}
 @media(max-width:620px){.pair-drugs-main{grid-template-columns:minmax(0,1fr) auto;padding:.5rem 0;gap:.3rem .5rem}.pair-drugs-result{grid-column:1;grid-row:2}.pair-drugs-main button{grid-column:2;grid-row:1/span 2}}
 </style>

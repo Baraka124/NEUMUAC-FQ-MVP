@@ -604,3 +604,27 @@ test('14H132 original R117H poly-T/TG context is visible without changing five r
  await expect(pair.locator('.pair-drugs-row')).toHaveCount(5);
  await expect(pair.getByTestId('pair-haplotype-context')).toHaveCount(0);
 });
+
+
+test('14H133 original review signals and five-regimen provenance stay readable on phone',async({page})=>{
+ await page.setViewportSize({width:390,height:800});
+ await setup(page);
+ await page.goto('/#/genotype?a=1&b=35');
+ const pair=page.getByTestId('pair-five-regimen-research');
+ await expect(pair.locator('.pair-drugs-row')).toHaveCount(5);
+ const original=pair.getByTestId('pair-original-review-signals');
+ await expect(original).toContainText('Original review signals');
+ await original.locator('summary').click();
+ await expect(original).toContainText('exceptional subtype');
+ await expect(original).toContainText('different recorded ETI response categories');
+ const eti=pair.locator('.pair-drugs-row').nth(0);
+ const aly=pair.locator('.pair-drugs-row').nth(1);
+ await eti.getByRole('button',{name:'Details'}).click();
+ await expect(eti.getByRole('region',{name:'ETI research rule details'})).toContainText('Rule basis · Evidence not confirmed');
+ await aly.getByRole('button',{name:'Details'}).click();
+ await expect(aly.getByRole('region',{name:'Alyftrek research rule details'})).toContainText('Rule basis · Recorded variant evidence tier');
+ await expect(aly).toContainText('multidisciplinary review');
+ await expect(aly).toContainText('does not establish ETI ineligibility');
+ await expect(pair.locator('.pair-drugs-row')).toHaveCount(5);
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
