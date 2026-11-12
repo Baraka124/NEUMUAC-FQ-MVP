@@ -149,7 +149,7 @@ test('Phase 3A responsive navigation and scientific layout at additional widths'
  }
 });
 
-test('Clinical Mineral institutional shell stays legible and usable across viewports',async({page})=>{
+test('Original chromatic institutional shell stays legible and usable across viewports',async({page})=>{
  for(const width of [320,390,768,1366]){
   await page.setViewportSize({width,height:860});
   await page.goto('/#/workspace');
@@ -159,7 +159,8 @@ test('Clinical Mineral institutional shell stays legible and usable across viewp
     const background=await page.locator('.sidebar').evaluate(el=>getComputedStyle(el).backgroundColor);
     const channels=background.match(/\d+/g)?.slice(0,3).map(Number)||[];
     expect(channels).toHaveLength(3);
-    expect(channels).toEqual([41,47,51]);
+    // 14H137A: original index.html navy (#0c1422), intentionally replacing Clinical Mineral graphite.
+    expect(channels).toEqual([12,20,34]);
     await expect(page.getByRole('navigation',{name:'Workspaces'})).toBeVisible();
   }else{
     // The overview is now reached from the outer entry; assert mobile
