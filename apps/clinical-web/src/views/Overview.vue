@@ -46,25 +46,96 @@ function openVariantSearch():void{
 </template>
 
 <style scoped>
-.nfq-workspace-home{width:100%;max-width:1020px;margin-inline:0;padding-top:clamp(12px,2vw,24px)}
-.nfq-workspace-intro{max-width:780px;margin:0 0 25px}
-.nfq-workspace-intro h1{font-size:clamp(30px,3vw,44px);line-height:1.15;margin:8px 0 9px;letter-spacing:-.055em}
-.nfq-workspace-intro .intro{font-size:14px;line-height:1.6;max-width:650px;margin:0;color:#526d60}
-.nfq-home-discovery{background:#fff;border:1px solid #dbe8df;border-radius:10px;padding:clamp(20px,2.6vw,34px);box-shadow:0 4px 20px #173c2308}
-.nfq-home-discovery-heading{display:flex;align-items:start;justify-content:space-between;gap:15px}
-.nfq-home-discovery-heading h2{font-size:clamp(19px,2vw,25px);letter-spacing:-.04em;margin:6px 0 22px;color:#163b2b}
-.nfq-home-read-status{font-size:11px;color:#4b7663;background:#edf5ef;border:1px solid #d6e8da;border-radius:5px;white-space:nowrap;padding:7px 9px}
+/* 14H137C — original instrument scale: quiet controls, proportionate search.
+   Source: original neumuacFQ; search behaviour and form semantics unchanged. */
+.nfq-workspace-home{
+ width:100%;max-width:880px;margin-inline:0;
+ padding-top:clamp(10px,1.6vw,20px);
+}
+.nfq-workspace-intro{max-width:780px;margin:0 0 21px}
+.nfq-workspace-intro h1{
+ font-size:clamp(30px,3vw,44px);line-height:1.15;margin:8px 0 9px;letter-spacing:-.055em;
+}
+.nfq-workspace-intro .intro{
+ font-size:14px;line-height:1.6;max-width:650px;margin:0;color:#526780;
+}
+.nfq-home-discovery{
+ width:100%;max-width:780px;background:#fff;border:1px solid #d9e2ed;
+ border-radius:8px;padding:clamp(16px,2vw,24px);box-shadow:none;
+}
+.nfq-home-discovery-heading{
+ display:flex;align-items:start;justify-content:space-between;gap:12px;
+}
+.nfq-home-discovery-heading h2{
+ font-size:clamp(19px,2vw,24px);letter-spacing:-.035em;
+ margin:5px 0 17px;color:#162540;
+}
+.nfq-home-read-status{
+ font-size:11px;color:#60758f;background:transparent;
+ border:1px solid #d8e2f0;border-radius:5px;
+ white-space:nowrap;padding:4px 7px;
+}
 .nfq-home-search-form{display:block}
-.nfq-home-search-form label{font-size:12px;font-weight:650;color:#365c4b;display:block;margin-bottom:8px}
-.nfq-home-search-controls{display:flex;gap:10px;min-width:0}
-.nfq-home-search-controls input{width:100%;min-width:0;min-height:52px;flex:1 1 auto;border:1px solid #b9d3c4;border-radius:7px;background:#fbfdfb;color:#1d3d2c;padding:12px 15px;font:inherit;font-size:15px}
-.nfq-home-search-controls input:focus-visible{outline:3px solid #198366;outline-offset:2px}
-.nfq-home-search-controls button{flex-shrink:0;display:flex;align-items:center;gap:15px;min-height:52px;padding:12px 18px;border-radius:7px;border:1px solid #185a42;background:#185a42;color:#fff;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
-.nfq-home-search-controls button:hover{background:#114d38}
-.nfq-home-search-controls button:focus-visible{outline:3px solid #198366;outline-offset:2px}
-.nfq-home-links{display:flex;gap:10px 30px;flex-wrap:wrap;border-top:1px solid #e4ece6;margin-top:25px;padding-top:18px}
-.nfq-home-links a{font-size:13px;font-weight:650;color:#17694d;text-decoration:none;text-underline-offset:4px}
+.nfq-home-search-form label{
+ display:block;margin:0 0 7px;font-size:12px;font-weight:610;color:#455a78;
+}
+.nfq-home-search-controls{
+ display:grid;grid-template-columns:minmax(0,1fr) auto;
+ align-items:center;gap:8px;width:100%;max-width:640px;min-width:0;
+}
+.nfq-home-search-controls input{
+ display:block;min-width:0;width:100%;max-width:100%;
+ height:42px;min-height:42px;
+ border:1px solid #c6d6e8;border-radius:6px;background:#fff;
+ color:#162540;padding:8px 11px;
+ font:inherit;font-size:13px;font-weight:400;
+ box-shadow:none;outline-offset:2px;
+}
+.nfq-home-search-controls input::placeholder{color:#6b7e96;opacity:1}
+.nfq-home-search-controls input:hover{border-color:#a8bddd}
+.nfq-home-search-controls input:focus-visible{
+ outline:2px solid #2979ff;outline-offset:2px;border-color:#2979ff;
+}
+.nfq-home-search-controls button{
+ display:inline-flex;align-items:center;justify-content:center;gap:7px;
+ flex:none;min-width:0;min-height:40px;height:40px;
+ border:1px solid #bdcee5;border-radius:6px;background:transparent;
+ color:#275eaf;padding:7px 12px;box-shadow:none;
+ font:inherit;font-size:12px;font-weight:600;letter-spacing:0;
+ white-space:nowrap;cursor:pointer;transition:background-color .12s ease,border-color .12s ease;
+}
+.nfq-home-search-controls button:hover{
+ background:rgba(41,121,255,.065);border-color:#8eafe1;color:#164d9f;
+}
+.nfq-home-search-controls button:focus-visible{
+ outline:2px solid #2979ff;outline-offset:3px;
+}
+.nfq-home-links{
+ display:flex;gap:9px 22px;flex-wrap:wrap;
+ border-top:1px solid #e4eaf2;margin-top:20px;padding-top:14px;
+}
+.nfq-home-links a{
+ color:#285caa;font-size:12px;font-weight:590;
+ text-decoration:none;text-underline-offset:4px;
+}
 .nfq-home-links a:hover{text-decoration:underline}
-.nfq-home-research-note{font-size:12px;color:#668174;line-height:1.6;max-width:750px;margin:17px 0 0}
-@media(max-width:620px){.nfq-workspace-home{padding-top:10px}.nfq-home-search-controls{flex-direction:column}.nfq-home-search-controls button{justify-content:space-between}.nfq-home-read-status{display:none}.nfq-home-links{display:grid;gap:13px}}
+.nfq-home-links a:focus-visible{outline:2px solid #2979ff;outline-offset:3px}
+.nfq-home-research-note{
+ font-size:12px;color:#65798f;line-height:1.6;
+ max-width:740px;margin:15px 0 0;
+}
+@media(max-width:520px){
+ .nfq-workspace-home{padding-top:10px}
+ .nfq-workspace-intro{margin-bottom:16px}
+ .nfq-home-discovery{padding:15px 14px}
+ .nfq-home-discovery-heading h2{margin-bottom:13px}
+ .nfq-home-read-status{display:none}
+ .nfq-home-search-controls{grid-template-columns:minmax(0,1fr);justify-items:start;gap:9px}
+ .nfq-home-search-controls input{height:42px;min-height:42px}
+ .nfq-home-search-controls button{width:auto;min-height:40px;height:40px}
+ .nfq-home-links{display:flex;gap:12px 18px;margin-top:16px}
+}
+@media(prefers-reduced-motion:reduce){
+ .nfq-home-search-controls button{transition:none}
+}
 </style>
