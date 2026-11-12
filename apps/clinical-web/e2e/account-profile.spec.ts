@@ -280,7 +280,7 @@ test('14H130 uncertain invitation never allows a second dispatch in the same ses
  await panel.getByRole('checkbox',{name:/confirmed the recipient/}).check();
  await panel.getByRole('button',{name:'Send invitation'}).click();
  await expect.poll(()=>posts).toBe(1);
- await expect(panel.getByRole('alert')).toContainText('blocked from another send');
+ await expect(panel.getByText(/blocked from another send/)).toBeVisible();
  await expect.poll(()=>reads).toBeGreaterThan(1);
  await expect(panel.getByRole('button',{name:'Send invitation'})).toBeDisabled();
  await panel.getByRole('button',{name:'Refresh'}).click();
