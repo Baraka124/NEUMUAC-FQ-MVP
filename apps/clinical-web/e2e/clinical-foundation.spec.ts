@@ -1299,3 +1299,61 @@ test('14H137C quiet overview search is legible in midnight and returns to daylig
  await expect(input).toHaveCSS('background-color','rgb(255, 255, 255)');
  await expect(button).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
 });
+
+
+test('14H137C2 research shell preserves compact navigation, accessible launcher and dark/daylight behavior',async({page})=>{
+ await page.setViewportSize({width:1366,height:850});
+ await page.goto('/#/workspace');
+ const frame=page.locator('.app-frame');
+ const brand=page.locator('.sidebar .wordmark');
+ const nav=page.getByRole('navigation',{name:'Workspaces'});
+ const launcher=page.getByRole('button',{name:'Open workspace switcher'});
+ await expect(nav).toBeVisible();
+ await expect(brand).toBeVisible();
+ const brandMetrics=await brand.evaluate(el=>{
+  const style=getComputedStyle(el);
+  return {minHeight:parseFloat(style.minHeight),marginBottom:parseFloat(style.marginBottom)};
+ });
+ expect(brandMetrics.minHeight).toBeLessThanOrEqual(62);
+ expect(brandMetrics.marginBottom).toBeLessThanOrEqual(15);
+ const navHeight=await nav.locator('a').first().evaluate(el=>el.getBoundingClientRect().height);
+ expect(navHeight).toBeGreaterThanOrEqual(44);
+ expect(navHeight).toBeLessThanOrEqual(55);
+ const lightWidth=await launcher.evaluate(el=>el.getBoundingClientRect().width);
+ expect(lightWidth).toBeGreaterThanOrEqual(140);
+ expect(lightWidth).toBeLessThanOrEqual(160);
+ await expect(launcher).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
+ await page.keyboard.press('Control+k');
+ await expect(page.getByRole('dialog',{name:'Research workspace switcher'})).toBeVisible();
+ await page.keyboard.press('Escape');
+ await expect(page.getByRole('dialog',{name:'Research workspace switcher'})).toHaveCount(0);
+ await page.getByRole('button',{name:'Collapse sidebar'}).click();
+ await expect(frame).toHaveClass(/sidebar-collapsed/);
+ await expect(page.getByRole('button',{name:'Expand sidebar'})).toBeVisible();
+ await expect(nav.getByRole('link',{name:'Variants'})).toBeVisible();
+ await page.getByRole('button',{name:'Expand sidebar'}).click();
+ await expect(frame).not.toHaveClass(/sidebar-collapsed/);
+ await page.getByTestId('nfq-research-theme-switch').click();
+ await expect(frame).toHaveAttribute('data-nfq-theme','midnight');
+ await expect(launcher).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
+ await expect(page.locator('.sidebar')).toHaveCSS('background-color','rgb(12, 20, 34)');
+ await page.getByRole('button',{name:'Switch to light theme'}).click();
+ for(const width of [1024,820,768]){
+  await page.setViewportSize({width,height:850});
+  await expect(launcher).toBeVisible();
+  const actualWidth=await launcher.evaluate(el=>el.getBoundingClientRect().width);
+  expect(actualWidth,String(width)).toBeLessThanOrEqual(width<=1000?59:160);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+ await page.setViewportSize({width:390,height:800});
+ await expect(launcher).toBeVisible();
+ const mobileWidth=await launcher.evaluate(el=>el.getBoundingClientRect().width);
+ expect(mobileWidth).toBeLessThanOrEqual(45);
+ await page.getByRole('button',{name:/workspaces/i}).click();
+ const mobileNav=page.getByRole('navigation',{name:'Mobile workspaces'});
+ await expect(mobileNav).toBeVisible();
+ await mobileNav.getByRole('link',{name:'Genotype'}).click();
+ await expect(page.getByRole('heading',{name:'Variant comparison'})).toBeVisible();
+ await expect(mobileNav).toHaveCount(0);
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});

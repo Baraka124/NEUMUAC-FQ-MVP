@@ -5,7 +5,7 @@
  .app-frame.sidebar-collapsed{grid-template-columns:76px minmax(0,1fr)}
  .sidebar{background:#15352e!important;padding:26px 15px 18px!important;border-right:1px solid #274b3e;overflow-x:visible}
  .sidebar-scroll{min-width:0}
- .wordmark{display:flex;align-items:center;padding:9px 10px 23px;margin:0 0 21px!important;border-bottom:1px solid #355448}
+ .wordmark{display:flex;align-items:center;padding:9px 10px 23px;margin:0 0 21px;border-bottom:1px solid #355448}
  .wordmark-text strong{font-size:18px;line-height:1.35;letter-spacing:-.04em}
  .wordmark-text small{font-size:11px;color:#a9c5b6;letter-spacing:.015em}
  .sidebar-caption{font-size:10px;letter-spacing:.12em;color:#a9c4b5;margin:0 0 9px;padding-inline:11px}
