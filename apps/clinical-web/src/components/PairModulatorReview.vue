@@ -3,6 +3,7 @@ import {computed,ref,watch,onUnmounted} from 'vue';
 import {THERAPIES,type CoreModulatorId,type VariantTherapyProfile} from '../domain/therapyRegistry';
 import {compareLegacyFiveRegimens,type NamedVariant,type RegimenRuleResult} from '../domain/legacyFiveRegimenRules';
 import {originalPairReviewFindings} from '../domain/originalPairReviewFindings';
+import {originalEtiListFinding,originalEtiListCaption} from '../domain/originalEtiAuthorityAudit';
 import {haplotypeContextFindings} from '../domain/haplotypeContext';
 import {createVariantTherapySource} from '../services/variantTherapySource';
 import {readConfigFromEnvironment,type RealVariant} from '../services/liveVariants';
@@ -38,6 +39,9 @@ const namedPair=computed<readonly [NamedVariant,NamedVariant]|null>(()=>{
 });
 const outcomes=computed<readonly RegimenRuleResult[]>(()=>
  namedPair.value?compareLegacyFiveRegimens(namedPair.value[0],namedPair.value[1]):[]
+);
+const etiListAudit=computed(()=>namedPair.value?
+ namedPair.value.map(originalEtiListFinding):[]
 );
 const reviewFindings=computed(()=>namedPair.value?
  originalPairReviewFindings(namedPair.value[0],namedPair.value[1],outcomes.value):[]
@@ -103,6 +107,15 @@ onUnmounted(()=>active?.abort());
      <div v-if="detail===item.therapy" :id="'pair-drugs-'+item.therapy" class="pair-drugs-explain" role="region" :aria-label="(THERAPIES.find(t=>t.id===item.therapy)?.label??'Regimen')+' research rule details'">
       <p>{{item.rationale}}</p>
       <p class="pair-drugs-basis">Rule basis · {{basisLabel(item.basis)}}</p>
+      <details v-if="item.therapy==='ETI'" class="pair-eti-original-audit" data-testid="pair-eti-historical-audit">
+       <summary>Original ETI authority-list audit</summary>
+       <p>Historical mixed-jurisdiction names from the original HTML; not a current FDA/EMA indication, clinical response or replacement for recorded evidence.</p>
+       <div v-for="(finding,index) in etiListAudit" :key="finding.variantId+'-'+index" class="pair-eti-original-row">
+        <span>Allele {{index+1}}</span>
+        <span>{{originalEtiListCaption(finding.state)}}</span>
+        <span v-if="finding.discrepancy" class="pair-eti-original-conflict">Review source discrepancy</span>
+       </div>
+      </details>
       <ul v-if="regimenReviewFindings(item.therapy).length" class="pair-regimen-review">
        <li v-for="finding in regimenReviewFindings(item.therapy)" :key="finding.kind">{{finding.message}}</li>
       </ul>
@@ -133,6 +146,13 @@ onUnmounted(()=>active?.abort());
 .pair-drugs-explain{font-size:.74rem;color:var(--text-muted,#687381);line-height:1.6;margin:0;padding:.25rem 0 .75rem}
 .pair-drugs-explain p{margin:0}
 .pair-drugs-basis{font-size:.69rem;opacity:.82;padding-top:.2rem}
+.pair-eti-original-audit{margin:.4rem 0;border-top:1px solid var(--border,#dce4e5);padding-top:.35rem;font-size:.71rem}
+.pair-eti-original-audit summary{cursor:pointer;font-weight:580;max-width:max-content}
+.pair-eti-original-audit summary:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+.pair-eti-original-audit p{margin:.4rem 0;color:var(--text-muted,#687381)}
+.pair-eti-original-row{display:flex;align-items:baseline;flex-wrap:wrap;gap:.3rem .7rem;padding:.2rem 0}
+.pair-eti-original-row span:first-child{min-width:3rem;font-weight:600}
+.pair-eti-original-conflict{color:var(--text-warning,#99623b)}
 .pair-regimen-review{margin:.45rem 0 0;padding-left:1.1rem}
 .pair-regimen-review li+li{margin-top:.28rem}
 .pair-original-review{font-size:.72rem;color:var(--text-muted,#687381);margin:.35rem 0 .7rem}

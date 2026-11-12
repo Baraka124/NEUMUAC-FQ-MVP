@@ -628,3 +628,19 @@ test('14H133 original review signals and five-regimen provenance stay readable o
  await expect(pair.locator('.pair-drugs-row')).toHaveCount(5);
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
+
+
+test('14H134 ETI historical label list is inspectable, not treated as current eligibility',async({page})=>{
+ await setup(page);
+ await page.goto('/#/genotype?a=1&b=19');
+ const pair=page.getByTestId('pair-five-regimen-research');
+ await expect(pair.locator('.pair-drugs-row')).toHaveCount(5);
+ await pair.locator('.pair-drugs-row').first().getByRole('button',{name:'Details'}).click();
+ const audit=pair.getByTestId('pair-eti-historical-audit');
+ await audit.locator('summary').click();
+ await expect(audit).toContainText('No original name-list match');
+ await expect(audit).toContainText('Present in original non-response-name list');
+ await expect(audit).toContainText('not a current FDA/EMA indication');
+ await expect(pair.locator('.pair-drugs-row')).toHaveCount(5);
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
