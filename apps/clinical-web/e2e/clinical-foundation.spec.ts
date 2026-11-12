@@ -1236,3 +1236,66 @@ test('14H137B invalid or absent persisted visual settings never force the midnig
  await expect(page.locator('.app-frame')).toHaveAttribute('data-nfq-theme','light');
  await expect(page.getByTestId('nfq-research-theme-switch')).toHaveAttribute('aria-pressed','false');
 });
+
+
+test('14H137C original-scale overview search stays proportionate and quiet across screen widths',async({page})=>{
+ for(const width of [320,390,520,768,1024,1366,1600]){
+  await page.setViewportSize({width,height:820});
+  await page.goto('/#/workspace');
+  const form=page.getByRole('search',{name:'Search CFTR variants'});
+  const input=form.getByRole('searchbox',{name:'Search CFTR variants'});
+  const submit=form.getByRole('button',{name:'Search variants'});
+  await expect(input).toBeVisible();
+  await expect(submit).toBeVisible();
+  const geometry=await page.evaluate(()=>{
+   const form=document.querySelector<HTMLElement>('.nfq-home-search-controls')!;
+   const input=form.querySelector<HTMLInputElement>('input')!;
+   const button=form.querySelector<HTMLButtonElement>('button')!;
+   const panel=document.querySelector<HTMLElement>('.nfq-home-discovery')!;
+   const fill=getComputedStyle(button).backgroundColor;
+   return {
+    formWidth:form.getBoundingClientRect().width,
+    inputWidth:input.getBoundingClientRect().width,
+    inputHeight:input.getBoundingClientRect().height,
+    buttonWidth:button.getBoundingClientRect().width,
+    buttonHeight:button.getBoundingClientRect().height,
+    panelWidth:panel.getBoundingClientRect().width,
+    buttonBackground:fill,
+    buttonBorder:getComputedStyle(button).borderTopWidth
+   };
+  });
+  expect(geometry.panelWidth, String(width)).toBeLessThanOrEqual(781);
+  expect(geometry.formWidth, String(width)).toBeLessThanOrEqual(641);
+  expect(geometry.inputWidth, String(width)).toBeLessThanOrEqual(510);
+  expect(geometry.inputHeight, String(width)).toBeGreaterThanOrEqual(40);
+  expect(geometry.inputHeight, String(width)).toBeLessThanOrEqual(44);
+  expect(geometry.buttonHeight, String(width)).toBeGreaterThanOrEqual(40);
+  expect(geometry.buttonHeight, String(width)).toBeLessThanOrEqual(44);
+  expect(geometry.buttonWidth, String(width)).toBeLessThan(165);
+  expect(geometry.buttonBackground, String(width)).toBe('rgba(0, 0, 0, 0)');
+  expect(geometry.buttonBorder).toBe('1px');
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+ await page.getByRole('searchbox',{name:'Search CFTR variants'}).fill('R117H');
+ await page.getByRole('search',{name:'Search CFTR variants'}).getByRole('button',{name:'Search variants'}).click();
+ await expect(page).toHaveURL(/#\/variants\?q=R117H/);
+ await expect(page.getByRole('heading',{name:'Variants',exact:true})).toBeVisible();
+});
+
+test('14H137C quiet overview search is legible in midnight and returns to daylight',async({page})=>{
+ await page.setViewportSize({width:1200,height:780});
+ await page.goto('/#/workspace');
+ await page.getByTestId('nfq-research-theme-switch').click();
+ await expect(page.locator('.app-frame')).toHaveAttribute('data-nfq-theme','midnight');
+ const panel=page.locator('.nfq-home-discovery');
+ const input=page.getByRole('searchbox',{name:'Search CFTR variants'});
+ const button=page.getByRole('search',{name:'Search CFTR variants'}).getByRole('button',{name:'Search variants'});
+ await expect(panel).toHaveCSS('background-color','rgb(15, 29, 48)');
+ await expect(input).toHaveCSS('background-color','rgb(17, 31, 51)');
+ await expect(button).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
+ await expect(button).toHaveCSS('color','rgb(150, 190, 255)');
+ await page.getByRole('button',{name:'Switch to light theme'}).click();
+ await expect(panel).toHaveCSS('background-color','rgb(255, 255, 255)');
+ await expect(input).toHaveCSS('background-color','rgb(255, 255, 255)');
+ await expect(button).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
+});
