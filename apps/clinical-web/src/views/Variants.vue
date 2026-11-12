@@ -805,6 +805,216 @@ function select(id:string):void{
 .nfq-saved-muted,.nfq-saved-feedback{font-size:.73rem;line-height:1.45;color:var(--text-muted,#687381);margin:.6rem 0 0}
 .nfq-saved-export{margin-top:.35rem;border:1px solid var(--border,#dce2e7);border-radius:7px;background:transparent;padding:.5rem .7rem;color:inherit;font:inherit;font-size:.78rem;cursor:pointer}
 @media(max-width:640px){.nfq-save-record{padding:.45rem .6rem}.nfq-saved-panel{max-width:100%}}
+
+/* 14H137C3 — original-scale CFTR discovery controls.
+   Only presentation: preserve responsive search, filters, saved variants,
+   source navigation, science and roles as originally implemented. */
+.variant-page .record-rail .rail-topline{
+ margin-bottom:7px;
+}
+.variant-page .rail-topline h2{
+ font-size:16px;
+ line-height:1.3;
+}
+.variant-page .discovery-accessible-label{
+ display:block;
+ font-size:11.5px;
+ line-height:1.4;
+ margin:5px 0 6px;
+ color:#516784;
+}
+.variant-page .discovery-input{
+ min-width:0;
+ min-height:44px!important;
+ height:44px;
+ padding:0 9px;
+ gap:8px;
+ border:1px solid #c5d5e8!important;
+ border-radius:6px;
+ background:#fff!important;
+ color:#537bb0;
+ box-shadow:none!important;
+}
+.variant-page .discovery-input:focus-within{
+ border-color:#2979ff!important;
+ box-shadow:0 0 0 2px rgba(41,121,255,.12)!important;
+}
+.variant-page .discovery-input>svg{
+ flex:0 0 17px;
+ width:17px;
+ height:17px;
+}
+.variant-page .discovery-input input{
+ width:100%;
+ height:42px!important;
+ min-height:42px!important;
+ max-width:100%;
+ min-width:0;
+ padding:7px 1px!important;
+ font-size:12.5px;
+ color:#162540;
+ caret-color:#2979ff;
+}
+.variant-page .discovery-input input::placeholder{
+ color:#70839b;
+ opacity:1;
+}
+.variant-page .discovery-clear{
+ width:40px;
+ min-width:40px!important;
+ height:40px;
+ min-height:40px!important;
+ padding:0;
+ border:0;
+ border-radius:5px;
+ color:#4773a8;
+ background:transparent!important;
+ box-shadow:none!important;
+}
+.variant-page .discovery-clear:hover{
+ background:rgba(41,121,255,.07)!important;
+}
+.variant-page .discovery-info-button{
+ flex:0 0 40px;
+ width:40px;
+ height:40px;
+ border:1px solid #d4e1ef;
+ border-radius:6px;
+ background:transparent!important;
+ color:#5075a2;
+ box-shadow:none;
+}
+.variant-page .discovery-info-button:hover,
+.variant-page .discovery-info-button[aria-expanded=true]{
+ background:rgba(41,121,255,.06)!important;
+ border-color:#9dbce7;
+}
+.variant-page .discovery-utility-row{
+ display:flex;
+ flex-wrap:wrap;
+ align-items:center;
+ justify-content:flex-start;
+ min-height:40px;
+ margin:8px 0 7px;
+ gap:5px 8px;
+}
+.variant-page .variant-filter-trigger,
+.variant-page .nfq-saved-trigger{
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ gap:6px;
+ flex:0 0 auto;
+ min-width:0;
+ width:auto;
+ height:40px;
+ min-height:40px!important;
+ padding:7px 10px!important;
+ border:1px solid #c8d5e8!important;
+ border-radius:6px!important;
+ background:transparent!important;
+ color:#2d60a9!important;
+ box-shadow:none!important;
+ font:inherit;
+ font-size:12px!important;
+ font-weight:590!important;
+ line-height:1.25!important;
+ white-space:nowrap;
+}
+.variant-page .variant-filter-trigger:hover,
+.variant-page .nfq-saved-trigger:hover{
+ background:rgba(41,121,255,.065)!important;
+ border-color:#94b7e4!important;
+}
+.variant-page .variant-filter-trigger[aria-expanded=true],
+.variant-page .nfq-saved-trigger[aria-expanded=true]{
+ background:rgba(41,121,255,.07)!important;
+ border-color:#94b7e4!important;
+}
+.variant-page .discovery-utility-row .record-total{
+ margin:0 0 0 auto;
+ align-self:center;
+ font-size:10.5px;
+ font-weight:520;
+ color:#657a94;
+}
+.variant-page .record-rail>.record-list{
+ margin-top:8px;
+ gap:5px;
+}
+.variant-page .record-list button{
+ min-height:65px;
+ padding:9px 11px;
+ border-radius:6px;
+}
+.variant-page .nfq-dossier-navigation .nfq-dossier-jump a{
+ min-height:40px!important;
+ padding:7px 10px!important;
+ border:1px solid #d2deec!important;
+ border-radius:6px!important;
+ background:transparent!important;
+ color:#285caa!important;
+ box-shadow:none!important;
+ font-size:11.5px!important;
+ font-weight:590!important;
+ text-decoration:none;
+}
+.variant-page .nfq-dossier-navigation .nfq-dossier-jump a:hover{
+ border-color:#98b9e6!important;
+ background:rgba(41,121,255,.055)!important;
+}
+.variant-page .nfq-save-record{
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ gap:6px;
+ min-height:40px!important;
+ height:auto;
+ width:auto;
+ padding:7px 10px!important;
+ border:1px solid #cfdbec!important;
+ border-radius:6px!important;
+ background:transparent!important;
+ color:#285caa!important;
+ box-shadow:none!important;
+ font-size:11.5px!important;
+ font-weight:590!important;
+ line-height:1.35;
+}
+.variant-page .nfq-save-record:hover{
+ background:rgba(41,121,255,.055)!important;
+ border-color:#98b9e6!important;
+}
+.variant-page :is(
+ .discovery-info-button,.variant-filter-trigger,.nfq-saved-trigger,
+ .discovery-clear,.nfq-save-record
+):focus-visible,
+.variant-page .nfq-dossier-navigation .nfq-dossier-jump a:focus-visible{
+ outline:2px solid #2979ff!important;
+ outline-offset:2px!important;
+}
+@media(max-width:760px){
+ .variant-page .record-rail .rail-topline{margin-bottom:6px}
+ .variant-page .discovery-utility-row .record-total{
+  flex:1 1 auto;
+  text-align:right;
+ }
+ .variant-page .nfq-dossier-navigation .nfq-dossier-jump{
+  gap:4px;
+ }
+ .variant-page .nfq-dossier-navigation .nfq-dossier-jump a{
+  min-height:40px!important;
+  padding:7px 5px!important;
+  font-size:11px!important;
+ }
+}
+@media(max-width:360px){
+ .variant-page .discovery-utility-row .record-total{
+  flex:1 1 100%;
+  text-align:left;
+ }
+}
+
 </style>
 
 <style scoped>
