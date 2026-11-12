@@ -204,6 +204,14 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
           {{ section.name }}
         </RouterLink>
         <RouterLink class="mobile-admin-link" :to="workspaceTarget('/admin')" @click="closeNavigation">{{accountWorkspaceTitle}}</RouterLink>
+        <div class="nfq-mobile-theme-row">
+          <span>Research appearance</span>
+          <button type="button" class="nfq-mobile-theme-switch"
+            :aria-label="researchTheme==='light'?'Switch to midnight theme':'Switch to light theme'"
+            :aria-pressed="researchTheme==='midnight'" @click="switchResearchTheme">
+            {{researchTheme==='light'?'Midnight':'Daylight'}}
+          </button>
+        </div>
       </nav>
 
       <div v-if="launcherOpen" class="launcher-backdrop" @click.self="closeLauncher">
