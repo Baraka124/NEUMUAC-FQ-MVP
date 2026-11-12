@@ -4,6 +4,7 @@ import {THERAPIES,type CoreModulatorId,type VariantTherapyProfile} from '../doma
 import {compareLegacyFiveRegimens,type NamedVariant,type RegimenRuleResult} from '../domain/legacyFiveRegimenRules';
 import {originalPairReviewFindings} from '../domain/originalPairReviewFindings';
 import {originalEtiListFinding,originalEtiListCaption} from '../domain/originalEtiAuthorityAudit';
+import {describeOriginalPairVerdict} from '../domain/originalPairVerdictContext';
 import {haplotypeContextFindings} from '../domain/haplotypeContext';
 import {createVariantTherapySource} from '../services/variantTherapySource';
 import {readConfigFromEnvironment,type RealVariant} from '../services/liveVariants';
@@ -45,6 +46,9 @@ const etiListAudit=computed(()=>namedPair.value?
 );
 const reviewFindings=computed(()=>namedPair.value?
  originalPairReviewFindings(namedPair.value[0],namedPair.value[1],outcomes.value):[]
+);
+const originalPairContext=computed(()=>namedPair.value?
+ describeOriginalPairVerdict(namedPair.value[0],namedPair.value[1],outcomes.value):null
 );
 const overallReviewFindings=computed(()=>reviewFindings.value.filter(x=>x.therapy===null));
 function regimenReviewFindings(therapy:CoreModulatorId){
@@ -96,6 +100,21 @@ onUnmounted(()=>active?.abort());
    <details v-if="overallReviewFindings.length" class="pair-original-review" data-testid="pair-original-review-signals">
     <summary>Original review signals · {{overallReviewFindings.length}}</summary>
     <ul><li v-for="finding in overallReviewFindings" :key="finding.kind">{{finding.message}}</li></ul>
+   </details>
+   <details v-if="originalPairContext" class="pair-verdict-context" data-testid="pair-original-verdict-context">
+    <summary>Original paired-allele research context</summary>
+    <p>Historic descriptors reproduced for source comparison. Class-order selection is not a validated predictor of phenotype; selected variants do not prove allelic phase.</p>
+    <dl class="pair-verdict-facts">
+     <div><dt>Five-regimen rule matches</dt><dd>{{originalPairContext.matchedRuleCount}} / 5</dd></div>
+     <div><dt>Historical class-order record</dt><dd>#{{originalPairContext.originalClassOrderSelectedId}}</dd></div>
+     <div><dt>Recorded ETI-responsive allele</dt><dd>{{originalPairContext.originalEtiResponsiveRecordId?'#'+originalPairContext.originalEtiResponsiveRecordId:'Not recorded'}}</dd></div>
+     <div><dt>ETI response missing / unknown</dt><dd>{{originalPairContext.anyEtiUnrecorded?'Yes':'No'}}</dd></div>
+     <div><dt>Two recorded ETI values differ</dt><dd>{{originalPairContext.etiValuesDiffer?'Yes':'No'}}</dd></div>
+     <div><dt>Class I exceptional subtype recorded</dt><dd>{{originalPairContext.classIDeclaredExceptional?'Yes':'No'}}</dd></div>
+     <div><dt>Alyftrek-only research rule match</dt><dd>{{originalPairContext.alyftrekOnlyRuleMatched?'Yes':'No'}}</dd></div>
+     <div><dt>Alyftrek expansion review context</dt><dd>{{originalPairContext.alyftrekExpansionReview?'Yes':'No'}}</dd></div>
+     <div><dt>Matched rule with ETI uncertainty</dt><dd>{{originalPairContext.researchMatchHasEtiUncertainty?'Yes':'No'}}</dd></div>
+    </dl>
    </details>
    <div class="pair-drugs-rows">
     <div v-for="item in outcomes" :key="item.therapy" class="pair-drugs-row">
@@ -155,6 +174,15 @@ onUnmounted(()=>active?.abort());
 .pair-eti-original-conflict{color:var(--text-warning,#99623b)}
 .pair-regimen-review{margin:.45rem 0 0;padding-left:1.1rem}
 .pair-regimen-review li+li{margin-top:.28rem}
+.pair-verdict-context{font-size:.72rem;color:var(--text-muted,#687381);margin:.3rem 0 .65rem}
+.pair-verdict-context summary{cursor:pointer;font-weight:580;padding:.25rem 0;max-width:max-content}
+.pair-verdict-context summary:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+.pair-verdict-context>p{line-height:1.5;margin:.25rem 0 .55rem}
+.pair-verdict-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.4rem .9rem;margin:0}
+.pair-verdict-facts>div{display:flex;justify-content:space-between;gap:.5rem;min-width:0}
+.pair-verdict-facts dt{min-width:0}
+.pair-verdict-facts dd{margin:0;font-weight:600;color:inherit;white-space:nowrap}
+@media(max-width:620px){.pair-verdict-facts{grid-template-columns:1fr}}
 .pair-original-review{font-size:.72rem;color:var(--text-muted,#687381);margin:.35rem 0 .7rem}
 .pair-original-review summary{cursor:pointer;font-weight:580;padding:.2rem 0;width:max-content;max-width:100%}
 .pair-original-review ul{margin:.25rem 0 0;padding-left:1.1rem;line-height:1.5}
