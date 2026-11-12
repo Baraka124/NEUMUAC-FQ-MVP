@@ -55,3 +55,32 @@ describe('14H11 five-drug catalog and safe data projection',()=>{
   expect(Object.isFrozen(x.entries[0])).toBe(true);
  });
 });
+
+
+describe('14H131 original-monolith response-preservation matrix',()=>{
+ it('keeps every recorded ETI/Alyftrek combination independent of Class I subtype',()=>{
+  const responses=['responsive','non_responsive','unknown',null] as const;
+  const subtypes=['exceptional','true',null] as const;
+  for(const subtype of subtypes)for(const eti of responses)for(const alyftrek of responses){
+   const projected=projectVariantTherapies({...record,classSubtype:subtype,eti,alyftrek});
+   expect(projected.functionalClass).toBe('I');
+   expect(projected.classSubtype).toBe(subtype);
+   expect(projected.entries.map(x=>x.therapy)).toEqual(THERAPIES.map(x=>x.id));
+   expect(projected.entries[0].response).toBe(eti);
+   expect(projected.entries[1].response).toBe(alyftrek);
+   expect(projected.entries.slice(2).map(x=>x.response)).toEqual([null,null,null]);
+   expect(projected.entries.slice(2).every(x=>x.coverage==='genotype-rule-only')).toBe(true);
+   expect(projected.entries[0].evidenceLevel).toBe(record.etiEvidenceLevel);
+   expect(projected.entries[1].authoritySource).toBe(record.alyftrekAuthority);
+  }
+ });
+ it('never turns a named regimen or descriptive class into a standalone response',()=>{
+  expect(THERAPIES.filter(x=>x.responseField===null).map(x=>x.id)).toEqual([
+   'IVACAFTOR','TEZACAFTOR_IVACAFTOR','LUMACAFTOR_IVACAFTOR'
+  ]);
+  for(const functionalClass of ['I','II','III','IV','V','VI']){
+   const projected=projectVariantTherapies({...record,functionalClass,eti:null,alyftrek:null});
+   expect(projected.entries.every(x=>x.response===null)).toBe(true);
+  }
+ });
+});
