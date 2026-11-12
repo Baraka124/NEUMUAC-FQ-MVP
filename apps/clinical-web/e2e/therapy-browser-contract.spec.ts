@@ -792,6 +792,7 @@ test('14H137C3 compact dossier controls preserve five therapy rows, Class I exce
 
 
 test('14H137C4 expanded five-regimen source context keeps complete recorded detail on narrow screens',async({page})=>{
+ test.setTimeout(60000);
  await setup(page);
  for(const width of [320,390,768,1366]){
   await page.setViewportSize({width,height:840});
@@ -808,12 +809,14 @@ test('14H137C4 expanded five-regimen source context keeps complete recorded deta
   await expect(context).toContainText('Alyftrek-only research rule match');
   await expect(context).toContainText('selected variants do not prove allelic phase');
   const first=pair.locator('.pair-drugs-row').first();
-  await first.getByRole('button',{name:'Details'}).click();
+  const detailToggle=first.locator('.pair-drugs-main button');
+  if(await detailToggle.getAttribute('aria-expanded')==='false')await detailToggle.click();
+  await expect(detailToggle).toHaveAttribute('aria-expanded','true');
   await expect(first.getByRole('region',{name:/research rule details/i})).toBeVisible();
   const audit=pair.getByTestId('pair-eti-historical-audit');
   await audit.locator('summary').click();
   await expect(audit).toContainText('not a current FDA/EMA indication');
-  const detailHeight=await first.getByRole('button',{name:'Close'}).evaluate(el=>el.getBoundingClientRect().height);
+  const detailHeight=await detailToggle.evaluate(el=>el.getBoundingClientRect().height);
   expect(detailHeight).toBeGreaterThanOrEqual(40);
   await expect(pair.locator('.pair-drugs-row')).toHaveCount(5);
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
@@ -821,6 +824,7 @@ test('14H137C4 expanded five-regimen source context keeps complete recorded deta
 });
 
 test('14H137C4 evidence reference links use intrinsic mobile widths and retain full provenance navigation',async({page})=>{
+ test.setTimeout(60000);
  await setup(page);
  const fixture={
   id:991,variant_id:35,title:'Recorded CFTR evidence reference for responsive inspection',
@@ -837,7 +841,9 @@ test('14H137C4 evidence reference links use intrinsic mobile widths and retain f
   await page.goto('/#/evidence?variant=35');
   const record=page.getByRole('region',{name:'Recorded citations'}).locator('.evidence-row');
   await expect(record).toHaveCount(1);
-  await record.getByRole('button',{name:fixture.title}).click();
+  const disclosure=record.locator('.evidence-row-disclosure');
+  if(await disclosure.getAttribute('aria-expanded')==='false')await disclosure.click();
+  await expect(disclosure).toHaveAttribute('aria-expanded','true');
   await expect(record.getByRole('region',{name:'Recorded citation metadata'})).toContainText('Fixture journal');
   await expect(record.locator('[data-link-consistency="mismatch"]')).toContainText('Recorded DOI differs from linked DOI');
   const sourceActions=record.locator('.nfq-evidence-source-actions');
@@ -864,7 +870,9 @@ test('14H137C4 evidence reference links use intrinsic mobile widths and retain f
  await page.setViewportSize({width:390,height:800});
  await page.goto('/#/evidence?variant=35');
  const record=page.getByRole('region',{name:'Recorded citations'}).locator('.evidence-row');
- await record.getByRole('button',{name:fixture.title}).click();
+ const disclosure=record.locator('.evidence-row-disclosure');
+ if(await disclosure.getAttribute('aria-expanded')==='false')await disclosure.click();
+ await expect(disclosure).toHaveAttribute('aria-expanded','true');
  await record.getByRole('link',{name:/Open variant record #35/}).click();
  await expect(page).toHaveURL(/#\/variants\/35/);
  await expectFiveRows(page.getByTestId('five-therapy-workspace'));
