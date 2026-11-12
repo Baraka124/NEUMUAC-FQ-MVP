@@ -140,4 +140,61 @@ const profileStatus=computed(()=>{
  .nfq-profile-affiliation{padding:0 13px 10px}
  .nfq-profile-bottom{padding:8px 13px}
 }
+
+/* 14H137C5 · Verified identity, not a decorative dashboard badge. */
+.nfq-profile-card{
+ border-radius:8px;
+ border-color:#dce6f1;
+ box-shadow:none;
+}
+.nfq-profile-top{
+ gap:11px;
+ padding:14px 16px 12px;
+ align-items:center;
+}
+.nfq-profile-avatar{
+ width:42px;
+ height:42px;
+ flex:0 0 42px;
+ border:1px solid #bbd0e7;
+ border-radius:9px;
+ background:transparent;
+ color:#345d87;
+ font-size:13px;
+ font-weight:710;
+ box-shadow:none;
+}
+.nfq-profile-role{
+ background:transparent;
+ border-color:#d4e0ed;
+ color:#466b93;
+ font-weight:650;
+}
+.nfq-profile-affiliation{gap:8px;padding:0 16px 12px}
+.nfq-profile-fact{
+ border-radius:6px;
+ padding:8px 10px;
+ background:transparent;
+ border-color:#e4ebf3;
+}
+.nfq-profile-empty{padding:0 16px 13px}
+.nfq-profile-bottom{
+ background:transparent;
+ padding:10px 13px 10px 16px;
+ border-color:#e7edf4;
+}
+.nfq-profile-links :is(button,a){
+ min-height:40px;
+ display:inline-flex;
+ align-items:center;
+}
+@media(max-width:420px){
+ .nfq-profile-top{padding:12px 12px 10px;gap:9px}
+ .nfq-profile-avatar{width:38px;height:38px;flex-basis:38px;font-size:12px}
+ .nfq-profile-affiliation{padding:0 12px 10px}
+ .nfq-profile-fact{min-width:0}
+ .nfq-profile-empty{padding:0 12px 12px}
+ .nfq-profile-bottom{padding:9px 12px}
+}
+
 </style>
