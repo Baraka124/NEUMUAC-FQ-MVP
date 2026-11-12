@@ -1,0 +1,161 @@
+/*
+ * 14H137A · ORIGINAL CHROMATIC / QUIET CONTROLS
+ *
+ * Design baseline: owner-supplied "index (85)(1).html", untouched.
+ * Its original palette used #05091a, #0c1422, #0f1d30, #2979ff and
+ * light mode #f4f5f7 / #162540. Compact secondary/ghost buttons used
+ * transparent surfaces and fine outlines, with IBM Plex/Syne fallbacks.
+ *
+ * This file loads AFTER Clinical Mineral so prior scientific classes,
+ * layouts, responsive structure, roles and calculations remain intact.
+ * It adjusts only the authenticated research shell and its named controls.
+ * Public sign-in/invitation and review semantics are NOT redesigned here.
+ */
+
+/* Original tokens as explicit, inspectable design vocabulary. */
+.app-frame{
+ --nfq-signature-night:#05091a;
+ --nfq-signature-sidebar:#0c1422;
+ --nfq-signature-surface:#0f1d30;
+ --nfq-signature-electric:#2979ff;
+ --nfq-signature-cyan:#22c8d8;
+ --nfq-signature-ink:#162540;
+ --nfq-signature-secondary:#455672;
+ --nfq-signature-muted:#64748b;
+ --nfq-signature-rule:rgba(60,80,120,.15);
+ --nfq-signature-day:#f4f5f7;
+ --nfq-signature-paper:#fff;
+ --nfq-signature-hover:rgba(41,121,255,.065);
+ --ink:var(--nfq-signature-ink);
+ --muted:var(--nfq-signature-muted);
+ --line:var(--nfq-signature-rule);
+ --paper:var(--nfq-signature-paper);
+ --accent:var(--nfq-signature-electric);
+ --focus:var(--nfq-signature-electric);
+ --nfq-ink:var(--nfq-signature-ink);
+ --nfq-muted:var(--nfq-signature-muted);
+ --nfq-line:var(--nfq-signature-rule);
+ --nfq-accent:var(--nfq-signature-electric);
+ font-family:'IBM Plex Sans',Inter,ui-sans-serif,system-ui,sans-serif;
+ color:var(--nfq-signature-ink);
+}
+
+.app-frame .workspace-frame{background:var(--nfq-signature-day)!important;color:var(--nfq-signature-ink)!important}
+.app-frame .institution-header{background:#fff!important;border-bottom:1px solid var(--nfq-signature-rule)!important;box-shadow:0 1px 0 rgba(15,29,48,.02)!important}
+.app-frame .header-path{color:#536784!important}
+.app-frame .page h1,
+.app-frame .variant-page .variant-heading h1,
+.app-frame .variant-page .nfq-identity-title h2,
+.app-frame .nfq-evidence-heading h1,
+.app-frame .helios-head h1{color:var(--nfq-signature-ink)!important}
+.app-frame .page h2,.app-frame .nfq-therapy-heading h3,
+.app-frame .variant-page .rail-topline h2{color:#243a58!important}
+.app-frame .eyebrow,.app-frame .section-label,
+.app-frame .nfq-therapy-kicker{color:#5e7391!important}
+.app-frame :is(.surface,.record-overview,.record-rail,.nfq-therapy,.unselected-record){
+ background:#fff!important;border-color:var(--nfq-signature-rule)!important;box-shadow:none!important;
+}
+
+/* Original night navigation against the calm, premium daylight workspace. */
+@media(min-width:761px){
+ .app-frame .sidebar{background:var(--nfq-signature-sidebar)!important;border-right:1px solid rgba(99,140,210,.19)!important;color:#f0f6ff!important}
+ .app-frame .wordmark{border-bottom-color:rgba(99,140,210,.2)!important}
+ .app-frame .wordmark-text strong{color:#f0f6ff}
+ .app-frame .wordmark-text small,
+ .app-frame .sidebar-caption,.app-frame .sidebar-base{color:#9ab8e0!important}
+ .app-frame .workspace-nav a{color:#bbcee9!important;border-color:transparent!important}
+ .app-frame .workspace-nav a:hover{background:rgba(41,121,255,.12)!important;color:#f0f6ff!important}
+ .app-frame .workspace-nav a[aria-current="page"],
+ .app-frame .workspace-nav a.router-link-exact-active,
+ .app-frame .workspace-nav a.variant-route-active{
+  color:#eff5ff!important;background:rgba(41,121,255,.17)!important;
+  border-color:rgba(99,140,210,.19)!important;box-shadow:inset 2px 0 var(--nfq-signature-electric)!important;
+ }
+ .app-frame .workspace-nav a[aria-current="page"] .nav-glyph,
+ .app-frame .workspace-nav a.variant-route-active .nav-glyph{stroke:#82b4ff!important}
+ .app-frame.sidebar-collapsed .workspace-nav a[aria-current="page"]{box-shadow:inset 2px 0 var(--nfq-signature-electric)!important}
+ .app-frame .sidebar-toggle{background:#111d30!important;border:1px solid rgba(99,140,210,.26)!important;color:#cbdcf5!important;box-shadow:none!important}
+ .app-frame .sidebar-toggle:hover{background:#1a3050!important}
+}
+
+/* Apply original electric/cyan accents without altering CFTR class semantics. */
+.app-frame .record-list button.record-selected,
+.app-frame .variant-page .record-list button.record-selected{
+ background:rgba(41,121,255,.055)!important;
+ border-color:rgba(41,121,255,.34)!important;
+ box-shadow:inset 2px 0 var(--nfq-signature-electric)!important;
+}
+.app-frame .nfq-therapy-row[data-therapy="ETI"] .nfq-therapy-row-main,
+.app-frame .nfq-therapy-row[data-therapy="ALYFTREK"] .nfq-therapy-row-main{
+ background:linear-gradient(90deg,rgba(41,121,255,.045),#fff 75%)!important;
+}
+.app-frame :is(.nfq-therapy-jump a,.nfq-dossier-jump a,.nfq-therapy-genotype-link){
+ color:#255bb4!important;background:#fff!important;border-color:#cbd6e6!important;box-shadow:none!important;
+}
+.app-frame :is(.nfq-therapy-jump a,.nfq-dossier-jump a,.nfq-therapy-genotype-link):hover{
+ background:var(--nfq-signature-hover)!important;border-color:#9ab9e8!important;
+}
+.app-frame .nfq-therapy-detail{border-left-color:var(--nfq-signature-electric)!important;background:#f7faff!important}
+.app-frame .nfq-therapy-result{color:#244b79!important}
+
+/* Quiet buttons: 40px interactive floor with much calmer visible weight.
+ * The original .btn-sm was 34px; we retain that compact feeling using
+ * transparent fills and 7px/11px padding without shrinking click targets.
+ * Scope to known research controls; no blanket button rule. */
+.app-frame .nfq-science-ui :is(
+ .nfq-therapy-inspect,.nfq-details-trigger,.nfq-save-record,
+ .nfq-save-export,.nfq-therapy-genotype-link,.nfq-dossier-jump a,
+ .nfq-therapy-jump a,.nfq-evidence-heading-actions button,
+ .nfq-evidence-page-tools button,.nfq-evidence-source-actions a
+),
+.app-frame .pair-drugs :is(.pair-drugs-actions button,.pair-drugs-main button),
+.app-frame .nfq-evidence-curation-item button{
+ min-height:40px!important;
+ padding:7px 11px!important;
+ border-radius:6px!important;
+ font-family:'IBM Plex Sans',Inter,ui-sans-serif,system-ui,sans-serif;
+ font-size:12px!important;
+ font-weight:580!important;
+ letter-spacing:0!important;
+ line-height:1.3!important;
+ text-decoration:none;
+ background:transparent!important;
+ color:#285caa!important;
+ border:1px solid #c8d5e8!important;
+ box-shadow:none!important;
+ transform:none!important;
+ transition:background-color .12s ease,border-color .12s ease,color .12s ease!important;
+}
+.app-frame .nfq-science-ui :is(
+ .nfq-therapy-inspect,.nfq-details-trigger,.nfq-save-record,
+ .nfq-save-export,.nfq-therapy-genotype-link,.nfq-dossier-jump a,
+ .nfq-therapy-jump a,.nfq-evidence-heading-actions button,
+ .nfq-evidence-page-tools button,.nfq-evidence-source-actions a
+):hover:not(:disabled),
+.app-frame .pair-drugs :is(.pair-drugs-actions button,.pair-drugs-main button):hover:not(:disabled),
+.app-frame .nfq-evidence-curation-item button:hover:not(:disabled){
+ background:var(--nfq-signature-hover)!important;border-color:#92b4ea!important;color:#164da4!important;
+}
+.app-frame .nfq-science-ui :is(.nfq-therapy-inspect,.nfq-details-trigger)[aria-expanded=true]{
+ background:rgba(41,121,255,.075)!important;border-color:#88b2ee!important;
+}
+.app-frame :is(button,a,input,select,textarea):focus-visible{
+ outline:2px solid var(--nfq-signature-electric)!important;outline-offset:2px!important;
+}
+
+/* Research pages are information-dense; cut excessive framing, not content. */
+.app-frame .nfq-therapy-row-main{min-height:64px!important}
+.app-frame .nfq-evidence-heading{padding-bottom:12px;margin-bottom:14px!important}
+.app-frame .evidence-register .evidence-row{border-color:var(--nfq-signature-rule)!important;box-shadow:none!important}
+
+/* Original light-theme navigation on narrow screens. No fixed overlays. */
+@media(max-width:760px){
+ .app-frame .mobile-nav{background:#fff!important;border-bottom:1px solid var(--nfq-signature-rule)!important}
+ .app-frame .mobile-nav a{background:#fff!important;color:#344e71!important;border-bottom-color:var(--nfq-signature-rule)!important}
+ .app-frame .mobile-nav a.router-link-exact-active{background:rgba(41,121,255,.085)!important;color:#184d9f!important;box-shadow:inset 2px 0 var(--nfq-signature-electric)!important}
+ .app-frame .nfq-therapy-row-main{min-height:60px!important}
+ .app-frame .nfq-science-ui :is(.nfq-therapy-inspect,.nfq-dossier-jump a,.nfq-therapy-jump a){padding:7px 8px!important;font-size:11px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .app-frame .nfq-science-ui :is(button,a){transition:none!important}
+}

@@ -149,7 +149,7 @@ test('Phase 3A responsive navigation and scientific layout at additional widths'
  }
 });
 
-test('Clinical Mineral institutional shell stays legible and usable across viewports',async({page})=>{
+test('Original chromatic institutional shell stays legible and usable across viewports',async({page})=>{
  for(const width of [320,390,768,1366]){
   await page.setViewportSize({width,height:860});
   await page.goto('/#/workspace');
@@ -159,7 +159,8 @@ test('Clinical Mineral institutional shell stays legible and usable across viewp
     const background=await page.locator('.sidebar').evaluate(el=>getComputedStyle(el).backgroundColor);
     const channels=background.match(/\d+/g)?.slice(0,3).map(Number)||[];
     expect(channels).toHaveLength(3);
-    expect(channels).toEqual([41,47,51]);
+    // 14H137A: original index.html navy (#0c1422), intentionally replacing Clinical Mineral graphite.
+    expect(channels).toEqual([12,20,34]);
     await expect(page.getByRole('navigation',{name:'Workspaces'})).toBeVisible();
   }else{
     // The overview is now reached from the outer entry; assert mobile
@@ -1137,3 +1138,35 @@ test('14H121 public account workspace is compact and contains no administrator c
  }
 });
 
+
+
+test('14H137A original blue signature and calm research controls preserve desktop and phone navigation',async({page})=>{
+ await page.setViewportSize({width:1280,height:850});
+ await page.goto('/#/evidence');
+ const frame=page.locator('.app-frame');
+ await expect(frame).toBeVisible();
+ expect(await frame.evaluate(el=>getComputedStyle(el).getPropertyValue('--nfq-signature-electric').trim())).toBe('#2979ff');
+ const sidebar=page.getByRole('complementary',{name:'Application navigation'});
+ await expect(sidebar).toBeVisible();
+ expect(await sidebar.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(12, 20, 34)');
+ const control=page.getByRole('button',{name:'Copy view link'});
+ await expect(control).toBeVisible();
+ const style=await control.evaluate(el=>{
+  const css=getComputedStyle(el);
+  return {height:el.getBoundingClientRect().height,background:css.backgroundColor,padding:css.padding,border:css.borderColor};
+ });
+ expect(style.height).toBeGreaterThanOrEqual(40);
+ expect(style.background).toBe('rgba(0, 0, 0, 0)');
+ expect(style.border).toBe('rgb(200, 213, 232)');
+ await page.getByRole('navigation',{name:'Workspaces'}).getByRole('link',{name:'Variants'}).click();
+ await expect(page.getByRole('heading',{name:'Variants',exact:true})).toBeVisible();
+ await expect(page.locator('.app-frame')).toHaveCSS('font-family',/IBM Plex Sans/);
+ await page.setViewportSize({width:360,height:800});
+ await expect(page.locator('.app-frame')).toBeVisible();
+ await page.getByRole('button',{name:/workspaces/i}).click();
+ await expect(page.getByRole('navigation',{name:'Mobile workspaces'})).toBeVisible();
+ await page.getByRole('navigation',{name:'Mobile workspaces'}).getByRole('link',{name:'Evidence & Curation'}).click();
+ await expect(page.getByRole('heading',{name:'Evidence & provenance'})).toBeVisible();
+ await expect(page.getByRole('navigation',{name:'Mobile workspaces'})).toHaveCount(0);
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
