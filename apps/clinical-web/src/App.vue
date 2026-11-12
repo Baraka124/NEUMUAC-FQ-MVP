@@ -8,6 +8,7 @@ import {researcherRole} from './services/researchRole';
 import {guestDesignation} from './services/guestDesignation';
 import {resolveWorkspacePersona,workspaceTitle} from './domain/workspacePersona';
 import {readConfigFromEnvironment} from './services/liveVariants';
+import {nextResearchTheme,parseResearchTheme,RESEARCH_THEME_STORAGE_KEY,type ResearchTheme} from './domain/researchTheme';
 
 const route = useRoute();
 const router=useRouter();
@@ -25,6 +26,12 @@ function workspaceTarget(path:string){return connectedResearchDestination(path,{
 function goToShortcut(path:string){closeLauncher();void router.push(workspaceTarget(path));}
 const isHome = computed(() => route.path==='/workspace');
 const isOuterEntry = computed(() => route.path==='/' || route.path==='/sign-in' || route.path==='/activate' || route.path==='/recover');
+const researchTheme=ref<ResearchTheme>('light');
+function switchResearchTheme():void{
+ researchTheme.value=nextResearchTheme(researchTheme.value);
+ try{window.localStorage.setItem(RESEARCH_THEME_STORAGE_KEY,researchTheme.value);}
+ catch{/* Nonessential visual preference is still active for this session. */}
+}
 const mobileMenuOpen = ref(false);
 const launcherOpen=ref(false);
 const launcherQuery=ref('');
@@ -50,6 +57,8 @@ function syncSidebarToViewport(): void {
 }
 
 onMounted(() => {
+  try{researchTheme.value=parseResearchTheme(window.localStorage.getItem(RESEARCH_THEME_STORAGE_KEY));}
+  catch{researchTheme.value='light';}
   compactQuery = window.matchMedia('(max-width: 760px)');
   try {
     const stored = window.localStorage.getItem(NAV_STORAGE_KEY);
@@ -78,7 +87,7 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
 
 <template>
   <div v-if="isOuterEntry" class="nfq-outer-shell"><a class="skip-link" href="#main">Skip to main content</a><RouterView /></div>
-  <div v-else class="app-frame" :class="{ 'sidebar-collapsed': sidebarCollapsed }" @keydown.esc="closeNavigation">
+  <div v-else class="app-frame" :data-nfq-theme="researchTheme" :class="{ 'sidebar-collapsed': sidebarCollapsed }" @keydown.esc="closeNavigation">
     <a class="skip-link" href="#main">Skip to main content</a>
 
     <aside class="sidebar" aria-label="Application navigation">
@@ -159,6 +168,19 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
           <RouterLink class="header-path header-overview-link" to="/workspace" aria-label="Research overview">Research</RouterLink>
         </div>
         <button type="button" class="workspace-launcher-trigger" @click="openLauncher" aria-label="Open workspace switcher"><span>Switch workspace</span><kbd>Ctrl K</kbd></button>
+        <div class="nfq-header-right">
+          <button type="button" class="nfq-theme-switch" data-testid="nfq-research-theme-switch"
+            :aria-label="researchTheme==='light'?'Switch to midnight theme':'Switch to light theme'"
+            :title="researchTheme==='light'?'Switch to midnight scientific workspace':'Switch to light scientific workspace'"
+            :aria-pressed="researchTheme==='midnight'" @click="switchResearchTheme">
+            <svg v-if="researchTheme==='light'" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20.9 13.2A8.7 8.7 0 0 1 10.8 3.1 8.8 8.8 0 1 0 20.9 13.2Z"/>
+            </svg>
+            <svg v-else viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/>
+            </svg>
+            <span class="nfq-theme-switch-label">{{researchTheme==='light'?'Midnight':'Daylight'}}</span>
+          </button>
         <div class="header-environment" :class="{ 'preview-environment': !sourceConfigured }" role="status">
           <span class="environment-dot" aria-hidden="true"></span>
           <template v-if="!sourceConfigured"><span>Live variant source · configuration pending</span></template>
@@ -172,6 +194,7 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
           <RouterLink v-else-if="authController" to="/sign-in">Sign in</RouterLink>
           <span v-else>Public research access</span>
         </div>
+        </div>
       </header>
 
       <button v-if="mobileMenuOpen" type="button" class="mobile-nav-backdrop" tabindex="-1" aria-label="Close workspace navigation" @click="closeNavigation"></button>
@@ -181,6 +204,14 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
           {{ section.name }}
         </RouterLink>
         <RouterLink class="mobile-admin-link" :to="workspaceTarget('/admin')" @click="closeNavigation">{{accountWorkspaceTitle}}</RouterLink>
+        <div class="nfq-mobile-theme-row">
+          <span>Research appearance</span>
+          <button type="button" class="nfq-mobile-theme-switch"
+            :aria-label="researchTheme==='light'?'Switch to midnight theme':'Switch to light theme'"
+            :aria-pressed="researchTheme==='midnight'" @click="switchResearchTheme">
+            {{researchTheme==='light'?'Midnight':'Daylight'}}
+          </button>
+        </div>
       </nav>
 
       <div v-if="launcherOpen" class="launcher-backdrop" @click.self="closeLauncher">
