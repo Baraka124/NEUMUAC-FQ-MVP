@@ -444,3 +444,75 @@
 }
 .app-frame[data-nfq-theme="midnight"] .nfq-home-links{border-color:var(--nfq-night-line)!important}
 .app-frame[data-nfq-theme="midnight"] .nfq-home-links a{color:var(--nfq-night-link)!important}
+
+
+/*
+ * 14H137C3 · Original Midnight variant-discovery precision controls.
+ * Presentation only: do not change scientific response/status colors.
+ */
+.app-frame[data-nfq-theme="midnight"] .variant-page .discovery-accessible-label,
+.app-frame[data-nfq-theme="midnight"] .variant-page .record-total{
+ color:var(--nfq-night-muted)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .discovery-input{
+ background:var(--nfq-night-soft)!important;
+ border-color:var(--nfq-night-line)!important;
+ color:var(--nfq-night-link)!important;
+ box-shadow:none!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .discovery-input:focus-within{
+ border-color:#8db9ff!important;
+ box-shadow:0 0 0 2px rgba(96,152,255,.17)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .discovery-input input{
+ background:transparent!important;
+ color:var(--nfq-night-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .discovery-clear,
+.app-frame[data-nfq-theme="midnight"] .variant-page .discovery-info-button,
+.app-frame[data-nfq-theme="midnight"] .variant-page .variant-filter-trigger,
+.app-frame[data-nfq-theme="midnight"] .variant-page .nfq-saved-trigger,
+.app-frame[data-nfq-theme="midnight"] .variant-page .nfq-save-record,
+.app-frame[data-nfq-theme="midnight"] .variant-page .nfq-dossier-navigation .nfq-dossier-jump a{
+ background:transparent!important;
+ color:var(--nfq-night-link)!important;
+ border-color:var(--nfq-night-line)!important;
+ box-shadow:none!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page :is(
+ .discovery-clear,.discovery-info-button,.variant-filter-trigger,.nfq-saved-trigger,.nfq-save-record
+):hover,
+.app-frame[data-nfq-theme="midnight"] .variant-page .nfq-dossier-navigation .nfq-dossier-jump a:hover{
+ background:var(--nfq-night-hover)!important;
+ border-color:rgba(139,186,255,.5)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-filter-panel{
+ background:var(--nfq-night-paper)!important;
+ color:var(--nfq-night-ink)!important;
+ border-color:var(--nfq-night-line)!important;
+ box-shadow:0 9px 24px rgba(0,0,0,.22)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-filter-panel :is(
+ h3,.variant-filter-panel-head h3
+){color:var(--nfq-night-ink)!important}
+.app-frame[data-nfq-theme="midnight"] .variant-filter-panel :is(
+ label,.variant-filter-panel-kicker,.nfq-response-filter-note
+){color:var(--nfq-night-muted)!important}
+.app-frame[data-nfq-theme="midnight"] .variant-filter-panel select{
+ background:var(--nfq-night-soft)!important;
+ color:var(--nfq-night-ink)!important;
+ border-color:var(--nfq-night-line)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-filter-panel :is(
+ .variant-filter-close,.variant-filter-reset,.variant-filter-done
+){
+ background:transparent!important;
+ color:var(--nfq-night-link)!important;
+ border-color:var(--nfq-night-line)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-filter-panel :is(
+ .variant-filter-close,.variant-filter-reset,.variant-filter-done
+):hover{background:var(--nfq-night-hover)!important}
+.app-frame[data-nfq-theme="midnight"] .variant-filter-panel-foot{
+ border-color:var(--nfq-night-line)!important;
+}
