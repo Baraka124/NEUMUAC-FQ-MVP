@@ -240,4 +240,100 @@ const areas=[
  .helios-proposal-list button{flex-direction:column;align-items:flex-start}
 }
 @media(prefers-reduced-motion:reduce){.helios-area-nav button,.helios-review-steps button{transition:none}}
+
+/* 14H137C4: read-only review navigation uses original quiet blue accents.
+   Keep every review area and assessment step visible; no hidden controls. */
+.helios-workspace .helios-panel{
+ grid-template-columns:minmax(176px,210px) minmax(0,1fr);
+ border-radius:7px;
+ min-width:0;
+}
+.helios-workspace .helios-area-nav{
+ gap:4px;
+ padding:10px 8px;
+}
+.helios-workspace .helios-area-nav button{
+ min-width:0;
+ min-height:40px;
+ padding:8px 10px;
+ border-radius:6px;
+ background:transparent;
+ box-shadow:none;
+ font-size:11.75px;
+ font-weight:590;
+ line-height:1.35;
+}
+.helios-workspace .helios-area-nav button.helios-area-selected{
+ background:rgba(41,121,255,.065);
+ color:#285caa;
+ border-color:#aec6e8;
+ box-shadow:inset 2px 0 #2979ff;
+}
+.helios-workspace .helios-area-detail{
+ padding:clamp(14px,1.7vw,22px);
+}
+.helios-workspace .helios-review-steps{
+ flex-wrap:wrap;
+ gap:5px;
+}
+.helios-workspace .helios-review-steps button{
+ min-height:40px;
+ width:auto;
+ flex:0 1 auto;
+ padding:7px 10px;
+ border:1px solid #d5e0ee;
+ border-radius:6px;
+ background:transparent;
+ box-shadow:none;
+ color:#426182;
+ font-size:11.5px;
+ font-weight:580;
+}
+.helios-workspace .helios-review-steps button[aria-pressed="true"]{
+ background:rgba(41,121,255,.065);
+ border-color:#9fbee9;
+ color:#285caa;
+}
+.helios-workspace .helios-queue-pages{
+ flex-wrap:wrap;
+}
+.helios-workspace :is(.helios-area-nav button,.helios-review-steps button):focus-visible{
+ outline:2px solid #2979ff;
+ outline-offset:2px;
+}
+@media(max-width:900px){
+ .helios-workspace .helios-panel{grid-template-columns:minmax(0,1fr)}
+ .helios-workspace .helios-area-nav{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:5px;
+  padding:9px;
+ }
+ .helios-workspace .helios-area-nav button{
+  justify-content:flex-start;
+  min-width:0;
+  width:100%;
+  min-height:40px;
+  text-align:left;
+ }
+ .helios-workspace .helios-area-detail{
+  grid-column:1;grid-row:2;min-width:0;
+ }
+}
+@media(max-width:460px){
+ .helios-workspace .helios-area-nav{gap:4px;padding:7px}
+ .helios-workspace .helios-area-nav button{
+  min-width:0;
+  padding:7px 8px;
+  font-size:11px;
+  overflow-wrap:anywhere;
+ }
+ .helios-workspace .helios-area-detail{padding:12px 10px}
+ .helios-workspace .helios-review-steps button{
+  min-height:40px;
+  padding:7px 9px;
+  font-size:11px;
+ }
+}
+
 </style>

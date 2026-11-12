@@ -269,4 +269,86 @@ onUnmounted(()=>{stopReads(0);stopReads(1);});
 .nfq-pair-recovery{display:flex;align-items:center;flex-wrap:wrap;gap:.4rem .75rem;font-size:.79rem;line-height:1.45;color:var(--text-muted,#687381);margin:.5rem 0}
 @media(max-width:1020px){.genotype-page .nfq-pair-heading{flex-wrap:wrap;min-width:0}.genotype-page .nfq-pair-heading > *{min-width:0;max-width:100%}.genotype-page .nfq-pair-heading-actions{flex:1 1 100%;min-width:0;width:100%;max-width:100%;flex-wrap:wrap;justify-content:flex-start}.genotype-page .nfq-pair-heading-actions button{max-width:100%;white-space:normal;overflow-wrap:anywhere}}
 @media(max-width:560px){.genotype-page .nfq-pair-heading{display:flex;flex-wrap:wrap;min-width:0}.nfq-pair-heading h1{min-width:0}.nfq-pair-heading-actions{flex:1 1 100%;width:100%;max-width:100%;min-width:0;margin-left:0;justify-content:flex-end;flex-wrap:wrap;box-sizing:border-box}.nfq-pair-heading-actions button{max-width:100%;font-size:11px;padding:7px 9px;white-space:normal;overflow-wrap:anywhere}}
+
+/* 14H137C4: keep scientific comparison actions intrinsically sized.
+   No full-width toolbar buttons or hidden actions on phones. */
+.genotype-page .nfq-pair-heading{
+ gap:8px 16px;
+ min-width:0;
+}
+.genotype-page .nfq-pair-heading-actions{
+ display:flex;
+ align-items:center;
+ justify-content:flex-end;
+ flex:0 1 auto;
+ flex-wrap:wrap;
+ gap:6px;
+ min-width:0;
+ width:auto;
+ max-width:100%;
+ margin-left:auto;
+}
+.genotype-page .nfq-pair-heading-actions button{
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ flex:0 0 auto;
+ width:auto;
+ max-width:100%;
+ min-height:40px;
+ padding:7px 11px;
+ border:1px solid #c5d5e8;
+ border-radius:6px;
+ background:transparent;
+ color:#285caa;
+ box-shadow:none;
+ font:inherit;
+ font-size:11.5px;
+ font-weight:590;
+ line-height:1.35;
+ white-space:normal;
+ overflow-wrap:anywhere;
+}
+.genotype-page .nfq-pair-heading-actions button:hover:not(:disabled){
+ background:rgba(41,121,255,.06);
+ border-color:#96b8e4;
+}
+.genotype-page .nfq-pair-heading-actions button:focus-visible{
+ outline:2px solid #2979ff;
+ outline-offset:2px;
+}
+.genotype-page :is(.nfq-pair-ready button,.nfq-pair-recovery button){
+ min-height:40px;
+ padding:7px 10px;
+ border-radius:6px;
+ background:transparent;
+ box-shadow:none;
+}
+@media(max-width:1020px){
+ .genotype-page .nfq-pair-heading{
+  flex-wrap:wrap;
+  align-items:flex-start;
+ }
+ .genotype-page .nfq-pair-heading-actions{
+  flex:0 1 auto;
+  width:auto;
+  max-width:100%;
+  justify-content:flex-start;
+  margin-left:0;
+ }
+}
+@media(max-width:560px){
+ .genotype-page .nfq-pair-heading-actions{
+  flex:0 1 100%;
+  width:auto;
+  max-width:100%;
+  justify-content:flex-start;
+  gap:6px;
+ }
+ .genotype-page .nfq-pair-heading-actions button{
+  padding:7px 9px;
+  font-size:11px;
+ }
+}
+
 </style>

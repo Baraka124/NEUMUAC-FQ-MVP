@@ -343,4 +343,99 @@ watch([query,page,focusId,invalidVariantScope],()=>{exportNotice.value='';});
  .nfq-evidence-source-actions a{width:100%;justify-content:center}
 }
 @media(max-width:600px){.nfq-evidence-heading{flex-wrap:wrap;min-width:0}.nfq-evidence-heading h1{min-width:0}.nfq-evidence-heading-actions{gap:6px;flex-wrap:wrap;margin-left:auto;min-width:0}.nfq-evidence-heading-actions button{font-size:11px;padding:7px 9px}}
+
+/* 14H137C4 · expanded source evidence remains legible and connected;
+   phone links use intrinsic width, never attention-grabbing full-width slabs. */
+.evidence-page .evidence-search-head,
+.evidence-page .nfq-science-search-line{
+ min-width:0;
+ max-width:680px;
+}
+.evidence-page .nfq-science-search-line{
+ display:flex;
+ flex-wrap:wrap;
+ align-items:center;
+ gap:7px;
+}
+.evidence-page .nfq-science-search-line input{
+ flex:1 1 200px;
+ width:auto;
+ min-width:0;
+ max-width:100%;
+ min-height:40px;
+}
+.evidence-page .nfq-evidence-heading-actions button,
+.evidence-page .nfq-evidence-page-tools button,
+.evidence-page .nfq-evidence-source-actions a,
+.evidence-page .nfq-evidence-pubmed button,
+.evidence-page .nfq-science-clear{
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ min-height:40px;
+ width:auto;
+ max-width:100%;
+ flex:0 1 auto;
+ padding:7px 11px;
+ border:1px solid #c8d5e8;
+ border-radius:6px;
+ background:transparent;
+ color:#285caa;
+ box-shadow:none;
+ font:inherit;
+ font-size:11.5px;
+ font-weight:590;
+ text-decoration:none;
+ line-height:1.35;
+ overflow-wrap:anywhere;
+ cursor:pointer;
+}
+.evidence-page :is(.nfq-evidence-source-actions a,.nfq-evidence-pubmed button):hover{
+ background:rgba(41,121,255,.065);
+ border-color:#99b8df;
+}
+.evidence-page .nfq-evidence-detail-grid{
+ min-width:0;
+ gap:clamp(12px,1.7vw,20px);
+}
+.evidence-page .nfq-evidence-facts dd{
+ overflow-wrap:anywhere;
+ word-break:normal;
+}
+.evidence-page .nfq-evidence-curation-item button{
+ flex:0 1 auto;
+ min-height:40px;
+ max-width:100%;
+ padding:7px 10px;
+ border-radius:6px;
+ overflow-wrap:anywhere;
+}
+.evidence-page :is(.nfq-evidence-source-actions a,.nfq-evidence-curation-item button):focus-visible{
+ outline:2px solid #2979ff;
+ outline-offset:2px;
+}
+@media(max-width:600px){
+ .evidence-page .nfq-evidence-source-actions{
+  justify-content:flex-start;
+  gap:6px;
+ }
+ .evidence-page .nfq-evidence-source-actions a{
+  width:auto;
+  flex:0 1 auto;
+  max-width:100%;
+  justify-content:center;
+  padding:7px 10px;
+ }
+ .evidence-page .nfq-evidence-facts>div{
+  flex-wrap:wrap;
+  gap:3px 10px;
+ }
+ .evidence-page .nfq-evidence-facts dt{flex:1 1 90px}
+ .evidence-page .nfq-evidence-facts dd{
+  flex:1 1 115px;
+  min-width:0;
+  text-align:right;
+ }
+}
+
 </style>
