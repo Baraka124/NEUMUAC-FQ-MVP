@@ -92,3 +92,49 @@ describe('14H63–65 five-regimen behavioral parity matrix',()=>{
   ]);
  });
 });
+
+
+describe('14H135 full original IVACAFTOR_VARIANTS and strict paired-regimen matrix',()=>{
+ const originalIvaNames=[
+  'G551D','G1244E','G1349D','G178R','G551S',
+  'S1251N','S1255P','S549N','S549R','R117H','p.Arg117His',
+  'E56K','P67L','R74W','D110H','R117C','L206W','R347H',
+  'R352Q','A455E','S977F','F1052V','K1060T','A1067T',
+  'G1069R','R1070Q','R1070W','F1074L','D1152H','G970R','D579G'
+ ];
+ it('retains all 31 original exact Kalydeco name/alias matches',()=>{
+  expect(originalIvaNames).toHaveLength(31);
+  for(const [i,name] of originalIvaNames.entries()){
+   const a=v('101',name,'III',null,'unknown','unknown');
+   const b=v('102','D110E','III',null,'unknown','unknown');
+   const outcomes=compareLegacyFiveRegimens(a,b);
+   expect(outcomes).toHaveLength(5);
+   expect(outcomes.find(x=>x.therapy==='IVACAFTOR')?.outcome,name).toBe('match');
+   expect(outcomes.find(x=>x.therapy==='LUMACAFTOR_IVACAFTOR')?.outcome,name).toBe('not-matched');
+  }
+ });
+ it('keeps F508del + named Ivacaftor research rule distinct from strict Orkambi homozygote',()=>{
+  for(const name of ['F508del','p.Phe508del','c.1521_1523del']){
+   const a=v('201',name,'II',null,'unknown','unknown');
+   const iva=v('202','G551D','III',null,'unknown','unknown');
+   const both=v('203','F508del','II',null,'unknown','unknown');
+   const mixed=compareLegacyFiveRegimens(a,iva);
+   const homo=compareLegacyFiveRegimens(a,both);
+   expect(mixed.find(x=>x.therapy==='TEZACAFTOR_IVACAFTOR')?.outcome).toBe('match');
+   expect(mixed.find(x=>x.therapy==='LUMACAFTOR_IVACAFTOR')?.outcome).toBe('not-matched');
+   expect(homo.find(x=>x.therapy==='LUMACAFTOR_IVACAFTOR')?.outcome).toBe('match');
+  }
+ });
+ it('preserves direct tier and class-tier ETI matches without automatically applying them to unknown',()=>{
+  const b=v('302','G542X','I','exceptional','unknown','unknown');
+  for(const tier of ['clinical_trial','frt_assay','fda_approved']){
+   const a=v('301','E831X','I','exceptional','responsive','unknown',tier);
+   const rule=result(a,b,'ETI');
+   expect(rule?.outcome).toBe('match');
+   expect(rule?.basis).toBe('variant-tier');
+  }
+  const cls=v('303','unlisted Class II','II',null,'responsive','unknown','class_rule');
+  expect(result(cls,b,'ETI')?.basis).toBe('legacy-class-rule');
+  expect(result(v('304','unlisted Class II','II',null,'unknown','unknown','class_rule'),b,'ETI')?.outcome).toBe('needs-evidence');
+ });
+});
