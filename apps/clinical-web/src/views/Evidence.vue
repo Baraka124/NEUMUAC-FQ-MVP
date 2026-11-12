@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import {ref,watch,onUnmounted} from 'vue';
+import {ref,watch,onUnmounted,nextTick} from 'vue';
 import {RouterLink,useRoute} from 'vue-router';
 import {computed} from 'vue';
 import {safeResearchReturnPath,workspaceJourneyPath} from '../domain/researchJourney';
 import {createLiveEvidenceSource, EVIDENCE_PAGE_SIZE, type LiveEvidenceReference} from '../services/liveEvidence';
 import {readConfigFromEnvironment} from '../services/liveVariants';
 import {referenceMetadata,referenceLinkConsistency} from '../domain/referencePresentation';
+import {evidenceCurationPageFindings} from '../domain/evidenceCurationPage';
 import {retrievePubMedMetadata,supportedPubMedId,type PubMedPublicationMetadata} from '../services/livePubMed';
 import {evidencePageCsv} from '../domain/evidencePageExport';
 import ContextHelp from '../components/ContextHelp.vue';
@@ -50,6 +51,26 @@ const hasMore=ref(false);
 const loading=ref(false);
 const error=ref('');
 const shareStatus=ref('');
+const curationFindings=computed(()=>loading.value||error.value?[]:evidenceCurationPageFindings(rows.value));
+const curationReferences=computed(()=>rows.value
+ .map(reference=>({
+  referenceId:reference.id,
+  title:reference.title,
+  findings:curationFindings.value.filter(f=>f.referenceId===reference.id)
+ }))
+ .filter(group=>group.findings.length>0)
+);
+function curationFor(referenceId:number){
+ return curationFindings.value.filter(f=>f.referenceId===referenceId);
+}
+async function openCurationReference(id:number):Promise<void>{
+ if(loading.value||error.value||!rows.value.some(reference=>reference.id===id))return;
+ if(!expandedRows.value.includes(id))expandedRows.value=[...expandedRows.value,id];
+ await nextTick();
+ const trigger=document.querySelector<HTMLElement>('#nfq-evidence-title-'+id+' button');
+ trigger?.focus({preventScroll:true});
+ trigger?.scrollIntoView({block:'nearest',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+}
 async function copyEvidenceView():Promise<void>{
  const url=portableEvidenceLink(shareableView.value,window.location.href);
  if(!url||!navigator.clipboard?.writeText){shareStatus.value='Cannot copy this view link. Check search filters or browser permissions.';return;}
@@ -158,11 +179,27 @@ watch([query,page,focusId,invalidVariantScope],()=>{exportNotice.value='';});
    </ContextHelp>
   </div>
   <p v-if="exportNotice" role="status" class="nfq-evidence-export-notice">{{exportNotice}}</p>
+  <details v-if="!loading&&!error&&curationReferences.length" class="nfq-evidence-curation" data-testid="evidence-curation-worklist">
+   <summary>Source curation · {{curationFindings.length}} {{curationFindings.length===1?'observation':'observations'}} across {{curationReferences.length}} {{curationReferences.length===1?'reference':'references'}}</summary>
+   <p class="nfq-evidence-curation-note">Current page only · Recorded metadata and identifier consistency. These are research review prompts, not evidence-quality grades, scientific contradictions or completed clinical validations.</p>
+   <div class="nfq-evidence-curation-items">
+    <div v-for="group in curationReferences" :key="group.referenceId" class="nfq-evidence-curation-item">
+     <button type="button" @click="openCurationReference(group.referenceId)">Inspect reference #{{group.referenceId}}</button>
+     <span>{{group.findings.map(f=>f.label).join(' · ')}}</span>
+    </div>
+   </div>
+  </details>
   <section v-if="rows.length" class="evidence-register" aria-label="Recorded citations">
    <article v-for="item in rows" :key="item.id" class="evidence-row" :aria-labelledby="'nfq-evidence-title-'+item.id">
     <div class="evidence-row-meta"><span class="nfq-evidence-recorded-meta">{{referenceMetadata(item).join(" · ")}}</span></div>
     <h2 :id="'nfq-evidence-title-'+item.id"><button type="button" class="evidence-row-disclosure" :aria-expanded="expandedRows.includes(item.id)" :aria-controls="'evidence-details-'+item.id" @click="toggleRow(item.id)"><span>{{item.title}}</span><span aria-hidden="true">{{expandedRows.includes(item.id)?'−':'+'}}</span></button></h2>
     <div v-if="expandedRows.includes(item.id)" :id="'evidence-details-'+item.id" class="evidence-row-foot">
+     <section v-if="curationFor(item.id).length" class="nfq-reference-curation" aria-label="Recorded source curation observations">
+      <h3>Source review observations</h3>
+      <ul>
+       <li v-for="finding in curationFor(item.id)" :key="finding.kind"><strong>{{finding.label}}</strong> · {{finding.context}}</li>
+      </ul>
+     </section>
      <div class="nfq-evidence-detail-grid">
       <section class="nfq-evidence-detail-section" aria-label="Recorded citation metadata">
        <h3>Source identity</h3>
@@ -238,6 +275,20 @@ watch([query,page,focusId,invalidVariantScope],()=>{exportNotice.value='';});
  </div>
 </template>
 <style scoped>
+/* 14H136 — calm, page-scoped research curation signals; no extra server calls. */
+.nfq-evidence-curation{margin:0 0 13px;border:1px solid var(--border,#dce1de);border-radius:6px;padding:9px 13px;color:inherit;background:var(--surface,#fff)}
+.nfq-evidence-curation summary{cursor:pointer;font-size:12px;font-weight:620;line-height:1.45;max-width:max-content}
+.nfq-evidence-curation summary:focus-visible,.nfq-evidence-curation button:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+.nfq-evidence-curation-note{font-size:11px;color:var(--text-muted,#687381);line-height:1.5;margin:8px 0}
+.nfq-evidence-curation-items{display:grid;gap:6px}
+.nfq-evidence-curation-item{display:flex;align-items:baseline;flex-wrap:wrap;gap:7px 12px;min-width:0;padding:4px 0}
+.nfq-evidence-curation-item button{border:1px solid var(--border,#dce1de);border-radius:5px;background:transparent;color:inherit;padding:5px 9px;font:inherit;font-size:11px;font-weight:600;cursor:pointer;flex-shrink:0}
+.nfq-evidence-curation-item span{font-size:11px;color:var(--text-muted,#687381);min-width:0;overflow-wrap:anywhere}
+.nfq-reference-curation{padding:0 0 9px;margin-bottom:11px;border-bottom:1px solid var(--border,#dce1de)}
+.nfq-reference-curation h3{margin:0 0 6px;font-size:11px}
+.nfq-reference-curation ul{margin:0;padding-left:17px;color:var(--text-muted,#687381);font-size:11px;line-height:1.55}
+.nfq-reference-curation li+li{margin-top:3px}
+.nfq-reference-curation strong{font-weight:670;color:inherit}
 .nfq-evidence-heading-actions{display:inline-flex;align-items:center;gap:10px;flex:0 0 auto}
 .nfq-evidence-heading-actions button{border:1px solid #c8dbce;border-radius:6px;background:transparent;color:#2b6348;padding:8px 12px;font:inherit;font-size:12px;font-weight:600;min-height:40px;cursor:pointer}
 .nfq-evidence-heading-actions button:disabled{opacity:.45;cursor:not-allowed}

@@ -670,3 +670,42 @@ test('14H135 historical pair descriptors are inspectable without changing five o
  await expect(context).toContainText('Recorded ETI-responsive allele');
  await expect(context).toContainText('Not recorded');
 });
+
+
+test('14H136 source curation worklist is page-scoped, read-only and connected to source inspection on phone',async({page})=>{
+ await page.setViewportSize({width:390,height:780});
+ await setup(page);
+ const methods:string[]=[];
+ await page.route('https://cftr-contract.invalid/rest/v1/evidence_links*',async route=>{
+  methods.push(route.request().method());
+  const params=new URL(route.request().url()).searchParams;
+  const rows=params.get('variant_id')==='eq.35'? [{
+   id:901,variant_id:35,title:'Recorded paper requiring source review',
+   url:'https://doi.org/10.1000/linked',source:'Fixture journal',
+   type:null,category:'CFTR research',journal:'Fixture Journal',year:null,
+   pmid:null,doi:'10.1000/recorded',quality_score:2,source_weight:0.3,citation_count:4
+  }]:[];
+  await route.fulfill({status:200,contentType:'application/json',
+   headers:{'access-control-allow-origin':'*'},body:JSON.stringify(rows)});
+ });
+ await page.goto('/#/evidence?variant=35');
+ const worklist=page.getByTestId('evidence-curation-worklist');
+ await expect(worklist).toBeVisible();
+ await expect(worklist.locator('summary')).toContainText('3 observations across 1 reference');
+ await worklist.locator('summary').click();
+ await expect(worklist).toContainText('Current page only');
+ await expect(worklist).toContainText('Identifier mismatch');
+ await expect(worklist).toContainText('Publication year not recorded');
+ await expect(worklist).toContainText('Publication type not recorded');
+ await worklist.getByRole('button',{name:'Inspect reference #901'}).click();
+ const reference=page.getByRole('region',{name:'Recorded citations'}).locator('.evidence-row');
+ await expect(reference).toHaveCount(1);
+ await expect(reference.getByRole('heading',{name:'Recorded paper requiring source review'})).toBeVisible();
+ await expect(reference.getByRole('region',{name:'Recorded source curation observations'})).toContainText('Recorded DOI differs from linked DOI');
+ await expect(reference.getByRole('button',{name:'Recorded paper requiring source review'})).toBeFocused();
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ await page.goto('/#/evidence?variant=19');
+ await expect(page.getByTestId('evidence-curation-worklist')).toHaveCount(0);
+ await expect(page.getByRole('region',{name:'Recorded citations'}).locator('.evidence-row')).toHaveCount(0);
+ expect(methods.every(m=>m==='GET')).toBe(true);
+});
