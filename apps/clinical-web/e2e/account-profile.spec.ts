@@ -202,7 +202,7 @@ test('14H126 disabled invitation backend keeps send unavailable',async({page})=>
  });
  await page.goto('/#/admin');
  const panel=page.getByTestId('admin-invitations');
- await expect(panel).toContainText('Invitation service not enabled');
+ await expect(panel).toContainText('Invitation service unavailable or unverified');
  await expect(panel.getByRole('button',{name:'Invite researcher'})).toBeDisabled();
 });
 test('14H126 Contributor and Reviewer have no invitation sender or invitation history',async({page})=>{
