@@ -53,7 +53,7 @@ async function submit(){
    failed.value=false;
   }else if(current.value){
    notice.value='The server accepted a change request, but the current Guest designation does not match it. Recheck before taking another action.';
-   failed.value=true;
+   failed.value=true;uncertain.value=true;
   }
   emit('changed');
  }catch(error){
