@@ -754,3 +754,38 @@ test('14H136b historical classification snapshots show divergence without claimi
   return !/clinician_name|clinician_role|notes|institution|session_id/i.test(query);
  })).toBe(true);
 });
+
+
+test('14H137C3 compact dossier controls preserve five therapy rows, Class I exception and connected navigation',async({page})=>{
+ await setup(page);
+ for(const width of [390,1280]){
+  await page.setViewportSize({width,height:820});
+  await page.goto('/#/variants/1');
+  const therapies=page.getByTestId('five-therapy-workspace');
+  await expectFiveRows(therapies);
+  await expect(page.getByTestId('variant-exceptional-tag')).toBeVisible();
+  const dossier=page.getByRole('navigation',{name:'Selected variant sections'});
+  await expect(dossier.getByRole('link',{name:'Therapies'})).toBeVisible();
+  const save=page.getByTestId('save-current-variant');
+  const copy=page.getByTestId('copy-variant-record-link');
+  for(const button of [save,copy]){
+   await expect(button).toBeVisible();
+   const geometry=await button.evaluate(el=>({
+    height:el.getBoundingClientRect().height,
+    background:getComputedStyle(el).backgroundColor
+   }));
+   expect(geometry.height).toBeGreaterThanOrEqual(40);
+   expect(geometry.height).toBeLessThanOrEqual(46);
+   expect(geometry.background).toBe('rgba(0, 0, 0, 0)');
+  }
+  await dossier.getByRole('link',{name:'Therapies'}).click();
+  await expect(page.locator('#nfq-variant-therapy')).toBeFocused();
+  await expectFiveRows(therapies);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+ await page.getByTestId('nfq-research-theme-switch').click();
+ await expect(page.locator('.app-frame')).toHaveAttribute('data-nfq-theme','midnight');
+ await expect(page.getByTestId('save-current-variant')).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
+ await expect(page.getByTestId('variant-exceptional-tag')).toBeVisible();
+ await expectFiveRows(page.getByTestId('five-therapy-workspace'));
+});

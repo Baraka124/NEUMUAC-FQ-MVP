@@ -1357,3 +1357,96 @@ test('14H137C2 research shell preserves compact navigation, accessible launcher 
  await expect(mobileNav).toHaveCount(0);
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
+
+
+test('14H137C3 variant rail uses restrained controls and complete compact filters across viewports',async({page})=>{
+ for(const width of [320,390,768,1024,1366]){
+  await page.setViewportSize({width,height:820});
+  await page.goto('/#/variants');
+  const rail=page.locator('.variant-page .record-rail');
+  const input=page.getByRole('searchbox',{name:'Variant name, HGVS or recorded alias'});
+  const filter=rail.getByRole('button',{name:/Filters/});
+  const saved=rail.getByTestId('saved-variants-toggle');
+  const help=rail.getByRole('button',{name:'Search help and scientific data limitations'});
+  await expect(input).toBeVisible();
+  await expect(filter).toBeVisible();
+  await expect(saved).toBeVisible();
+  await expect(help).toBeVisible();
+  const metrics=await rail.evaluate(el=>{
+   const search=el.querySelector<HTMLInputElement>('.discovery-input input')!;
+   const wrapper=el.querySelector<HTMLElement>('.discovery-input')!;
+   const filter=el.querySelector<HTMLButtonElement>('.variant-filter-trigger')!;
+   const saved=el.querySelector<HTMLButtonElement>('.nfq-saved-trigger')!;
+   const help=el.querySelector<HTMLButtonElement>('.discovery-info-button')!;
+   const geom=(node:HTMLElement)=>node.getBoundingClientRect();
+   return {
+    inputHeight:geom(search).height,searchHeight:geom(wrapper).height,
+    filterHeight:geom(filter).height,savedHeight:geom(saved).height,
+    helpHeight:geom(help).height,
+    filterBackground:getComputedStyle(filter).backgroundColor,
+    savedBackground:getComputedStyle(saved).backgroundColor,
+    inputText:getComputedStyle(search).color
+   };
+  });
+  expect(metrics.inputHeight,String(width)).toBeGreaterThanOrEqual(40);
+  expect(metrics.inputHeight,String(width)).toBeLessThanOrEqual(44);
+  expect(metrics.searchHeight,String(width)).toBeLessThanOrEqual(46);
+  expect(metrics.filterHeight,String(width)).toBeGreaterThanOrEqual(40);
+  expect(metrics.filterHeight,String(width)).toBeLessThanOrEqual(44);
+  expect(metrics.savedHeight,String(width)).toBeGreaterThanOrEqual(40);
+  expect(metrics.savedHeight,String(width)).toBeLessThanOrEqual(44);
+  expect(metrics.helpHeight,String(width)).toBeGreaterThanOrEqual(40);
+  expect(metrics.filterBackground).toBe('rgba(0, 0, 0, 0)');
+  expect(metrics.savedBackground).toBe('rgba(0, 0, 0, 0)');
+  await filter.click();
+  const panel=page.getByRole('region',{name:'Search preferences'});
+  await expect(panel).toBeVisible();
+  await expect(panel.locator('select')).toHaveCount(5);
+  const panelWidth=await panel.evaluate(el=>el.getBoundingClientRect().width);
+  expect(panelWidth,String(width)).toBeLessThanOrEqual(318);
+  await expect(panel.getByRole('button',{name:'Done'})).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
+  await panel.getByRole('button',{name:'Done'}).click();
+  await expect(filter).toHaveAttribute('aria-expanded','false');
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+ await page.getByRole('searchbox',{name:'Variant name, HGVS or recorded alias'}).fill('E831X');
+ await expect(page.getByRole('searchbox',{name:'Variant name, HGVS or recorded alias'})).toHaveValue('E831X');
+ await page.getByRole('button',{name:'Search help and scientific data limitations'}).click();
+ await expect(page.getByText(/Search updates while typing/)).toBeVisible();
+});
+
+test('14H137C3 filtered variant rail retains all scientific preferences in original midnight mode',async({page})=>{
+ await page.setViewportSize({width:1200,height:850});
+ await page.goto('/#/variants');
+ await page.getByTestId('nfq-research-theme-switch').click();
+ await expect(page.locator('.app-frame')).toHaveAttribute('data-nfq-theme','midnight');
+ const search=page.locator('.variant-page .discovery-input');
+ const filter=page.locator('.variant-filter-trigger');
+ await expect(search).toHaveCSS('background-color','rgb(17, 31, 51)');
+ await expect(filter).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
+ await filter.click();
+ const panel=page.getByRole('region',{name:'Search preferences'});
+ await expect(panel).toHaveCSS('background-color','rgb(15, 29, 48)');
+ await panel.locator('#class-filter').selectOption('I');
+ await panel.locator('#subtype-filter').selectOption('exceptional');
+ await panel.locator('#response-filter').selectOption('eti-responsive');
+ await panel.locator('#variant-sort').selectOption('name-desc');
+ await panel.locator('#search-mode').selectOption('exact-name');
+ await expect(panel.locator('select')).toHaveCount(5);
+ await expect(panel.getByText(/Kalydeco, Symkevi and Orkambi/)).toBeVisible();
+ await expect(panel.locator('#variant-sort')).toHaveValue('name-desc');
+ await panel.getByRole('button',{name:'Done'}).click();
+ await filter.click();
+ await expect(page.locator('#class-filter')).toHaveValue('I');
+ await expect(page.locator('#subtype-filter')).toHaveValue('exceptional');
+ await expect(page.locator('#response-filter')).toHaveValue('eti-responsive');
+ await expect(page.locator('#variant-sort')).toHaveValue('name-desc');
+ await expect(page.locator('#search-mode')).toHaveValue('exact-name');
+ await page.getByRole('button',{name:'Reset preferences'}).click();
+ await expect(page.locator('#class-filter')).toHaveValue('all');
+ await expect(page.locator('#search-mode')).toHaveValue('contains');
+ await page.getByRole('button',{name:'Done'}).click();
+ await page.getByRole('button',{name:'Switch to light theme'}).click();
+ await expect(page.locator('.app-frame')).toHaveAttribute('data-nfq-theme','light');
+ await expect(search).toHaveCSS('background-color','rgb(255, 255, 255)');
+});
