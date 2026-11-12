@@ -189,4 +189,90 @@ onUnmounted(()=>active?.abort());
 .pair-original-review li+li{margin-top:.3rem}
 .pair-original-review summary:focus-visible{outline:2px solid currentColor;outline-offset:2px}
 @media(max-width:620px){.pair-drugs-main{grid-template-columns:minmax(0,1fr) auto;padding:.5rem 0;gap:.3rem .5rem}.pair-drugs-result{grid-column:1;grid-row:2}.pair-drugs-main button{grid-column:2;grid-row:1/span 2}}
+
+/* 14H137C4: review source details remain complete without fixed-width
+   facts, oversized buttons or clipped explanatory text. */
+.pair-drugs{
+ min-width:0;
+ overflow-wrap:break-word;
+ border-radius:7px;
+}
+.pair-drugs-head{
+ min-width:0;
+ flex-wrap:wrap;
+ gap:6px 12px;
+}
+.pair-drugs-head h2{
+ min-width:0;
+ overflow-wrap:anywhere;
+}
+.pair-drugs-actions{
+ flex:0 1 auto;
+ gap:6px;
+ min-width:0;
+ margin-left:auto;
+}
+.pair-drugs-actions button,
+.pair-drugs-main button,
+.pair-drugs-status button{
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ min-height:40px;
+ max-width:100%;
+ padding:7px 10px;
+ border:1px solid var(--border,#c8d5e8);
+ border-radius:6px;
+ background:transparent;
+ box-shadow:none;
+ font-size:11.5px;
+ line-height:1.3;
+ font-weight:570;
+ white-space:normal;
+ overflow-wrap:anywhere;
+}
+.pair-drugs-actions button:hover:not(:disabled),
+.pair-drugs-main button:hover:not(:disabled){
+ background:rgba(41,121,255,.065);
+}
+.pair-drugs-main{
+ min-width:0;
+}
+.pair-drugs-main :is(strong,.pair-drugs-result){
+ min-width:0;
+ overflow-wrap:anywhere;
+}
+.pair-verdict-facts>div{
+ min-width:0;
+ gap:.35rem .65rem;
+ flex-wrap:wrap;
+}
+.pair-verdict-facts dt{
+ min-width:0;
+ overflow-wrap:anywhere;
+}
+.pair-verdict-facts dd{
+ min-width:0;
+ max-width:100%;
+ white-space:normal;
+ overflow-wrap:anywhere;
+ text-align:right;
+}
+.pair-original-review,.pair-eti-original-audit,.pair-verdict-context,.pair-drugs-explain{
+ max-width:100%;
+ min-width:0;
+ overflow-wrap:anywhere;
+}
+@media(max-width:620px){
+ .pair-drugs{padding:12px}
+ .pair-drugs-head{align-items:center}
+ .pair-drugs-actions{margin-left:0}
+ .pair-drugs-main{
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:4px 8px;
+ }
+ .pair-drugs-main button{min-width:0}
+ .pair-verdict-facts>div{justify-content:space-between}
+}
+
 </style>
