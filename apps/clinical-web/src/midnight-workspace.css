@@ -1,0 +1,404 @@
+/*
+ * 14H137B · Optional ORIGINAL MIDNIGHT scientific theme.
+ * Baseline: the untouched owner-supplied index (85)(1).html.
+ * Scope exclusively to the modular research app-frame; public auth and
+ * original HTML remain unchanged. No CSS filters or semantic status recolors.
+ */
+
+/* Quiet preference control in either theme, without a swollen filled button. */
+.nfq-header-right{display:flex;align-items:center;justify-content:flex-end;gap:9px;min-width:0;max-width:55%;flex:0 1 auto}
+.nfq-header-right .header-environment{min-width:0;max-width:100%}
+.nfq-theme-switch{
+ display:inline-flex;align-items:center;justify-content:center;gap:7px;
+ flex:none;min-height:40px;padding:6px 10px;border-radius:6px;
+ border:1px solid #c8d5e8;background:transparent;box-shadow:none;
+ color:#285caa;font-family:inherit;font-size:11.5px;font-weight:570;
+ letter-spacing:0;cursor:pointer;white-space:nowrap;
+}
+.nfq-theme-switch:hover{background:rgba(41,121,255,.065);border-color:#92b4ea}
+.nfq-theme-switch svg{flex:none}
+.nfq-theme-switch:focus-visible,.nfq-mobile-theme-switch:focus-visible{
+ outline:2px solid #83b7ff!important;outline-offset:3px!important;
+}
+.nfq-mobile-theme-row{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid #dce5ef;padding:11px 4px 2px;font-size:12px;color:#536784}
+.nfq-mobile-theme-switch{min-height:40px;border:1px solid #c8d5e8;border-radius:6px;padding:7px 12px;background:transparent;color:#285caa;font:inherit;font-size:12px;cursor:pointer}
+.nfq-mobile-theme-switch:hover{background:rgba(41,121,255,.065)}
+@media(max-width:1050px){.nfq-theme-switch-label{display:none}.nfq-theme-switch{width:40px;padding:0}}
+@media(max-width:760px){.nfq-header-right{max-width:48%;gap:6px}.nfq-header-right .header-environment{max-width:100%!important;overflow:hidden;text-overflow:ellipsis}}
+@media(max-width:600px){.nfq-theme-switch{display:none}.nfq-header-right{max-width:43%}}
+@media(min-width:601px){.nfq-mobile-theme-row{display:none}}
+
+/* Midnight semantic tokens: preserve original electric blue/cyan and class colors. */
+.app-frame[data-nfq-theme="midnight"]{
+ color-scheme:dark;
+ --nfq-night-canvas:#05091a;
+ --nfq-night-header:#0c1422;
+ --nfq-night-paper:#0f1d30;
+ --nfq-night-raised:#15263d;
+ --nfq-night-soft:#111f33;
+ --nfq-night-line:rgba(119,157,218,.25);
+ --nfq-night-ink:#eef5ff;
+ --nfq-night-muted:#abc0dc;
+ --nfq-night-subtle:#859fbe;
+ --nfq-night-link:#96beff;
+ --nfq-night-hover:rgba(41,121,255,.13);
+ --nfq-signature-day:var(--nfq-night-canvas);
+ --nfq-signature-paper:var(--nfq-night-paper);
+ --nfq-signature-ink:var(--nfq-night-ink);
+ --nfq-signature-secondary:var(--nfq-night-muted);
+ --nfq-signature-muted:var(--nfq-night-muted);
+ --nfq-signature-rule:var(--nfq-night-line);
+ --nfq-signature-hover:var(--nfq-night-hover);
+ --ink:var(--nfq-night-ink);
+ --muted:var(--nfq-night-muted);
+ --subtle:var(--nfq-night-subtle);
+ --paper:var(--nfq-night-paper);
+ --line:var(--nfq-night-line);
+ --accent:#7caeff;
+ --focus:#94c5ff;
+ --nfq-ink:var(--nfq-night-ink);
+ --nfq-muted:var(--nfq-night-muted);
+ --nfq-line:var(--nfq-night-line);
+ --nfq-canvas:var(--nfq-night-canvas);
+ --nfq-surface:var(--nfq-night-paper);
+ --nfq-accent:#7caeff;
+ --border:var(--nfq-night-line);
+ --border-strong:rgba(133,176,240,.42);
+ --surface:var(--nfq-night-paper);
+ --surface-alt:var(--nfq-night-soft);
+ --text-primary:var(--nfq-night-ink);
+ --text-secondary:var(--nfq-night-muted);
+ --text-tertiary:var(--nfq-night-subtle);
+ --text-muted:var(--nfq-night-muted);
+ color:var(--nfq-night-ink);
+ background:var(--nfq-night-canvas);
+}
+/* All research reading surfaces; never apply to sign-in/activation pages. */
+.app-frame[data-nfq-theme="midnight"] .workspace-frame,
+.app-frame[data-nfq-theme="midnight"] .workspace-frame>main{
+ background:var(--nfq-night-canvas)!important;
+ color:var(--nfq-night-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .institution-header{
+ background:var(--nfq-night-header)!important;
+ border-bottom:1px solid var(--nfq-night-line)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .header-path{color:#c1d2e9!important}
+.app-frame[data-nfq-theme="midnight"] .header-environment{color:var(--nfq-night-muted)!important}
+.app-frame[data-nfq-theme="midnight"] .header-environment a{color:var(--nfq-night-link)!important}
+.app-frame[data-nfq-theme="midnight"] .workspace-launcher-trigger,
+.app-frame[data-nfq-theme="midnight"] .workspace-launcher-trigger kbd{
+ background:transparent!important;border-color:var(--nfq-night-line)!important;color:var(--nfq-night-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .workspace-launcher-trigger:hover{background:var(--nfq-night-hover)!important}
+.app-frame[data-nfq-theme="midnight"] .nfq-theme-switch{
+ border-color:var(--nfq-night-line);color:var(--nfq-night-link);background:transparent;
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-theme-switch:hover{background:var(--nfq-night-hover)}
+.app-frame[data-nfq-theme="midnight"] .nfq-header-profile-link,
+.app-frame[data-nfq-theme="midnight"] .header-environment .nfq-header-profile-link{
+ background:transparent!important;border-color:var(--nfq-night-line)!important;color:var(--nfq-night-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-header-profile-copy strong{color:var(--nfq-night-ink)!important}
+.app-frame[data-nfq-theme="midnight"] .nfq-header-profile-copy small{color:var(--nfq-night-muted)!important}
+.app-frame[data-nfq-theme="midnight"] .nfq-header-profile-mark{
+ background:rgba(41,121,255,.13)!important;border:1px solid rgba(139,186,255,.4)!important;color:#c9ddff!important;
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-header-signout{color:var(--nfq-night-muted)!important}
+.app-frame[data-nfq-theme="midnight"] .page-footer{
+ color:var(--nfq-night-muted)!important;border-top-color:var(--nfq-night-line)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .development-notice{
+ background:var(--nfq-night-soft)!important;border-color:var(--nfq-night-line)!important;color:var(--nfq-night-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .development-notice p{color:var(--nfq-night-muted)!important}
+
+/* Scientific sections: preserve density and hierarchy, not color inversion. */
+.app-frame[data-nfq-theme="midnight"] :is(
+ .page,.variant-page,.genotype-page,.evidence-page,.helios-workspace,
+ .research-admin,.record-content,.genotype-comparison
+){color:var(--nfq-night-ink)!important}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .page h1,.page h2,.page h3,.page h4,
+ .variant-page .variant-heading h1,.variant-page .nfq-identity-title h2,
+ .nfq-evidence-heading h1,.nfq-therapy-heading h3,
+ .helios-head h1,.helios-area-intro h2,
+ .admin-head h1,.admin-section-heading h2,
+ .research-admin .admin-section-heading h2
+){color:var(--nfq-night-ink)!important}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .intro,.section-description,.rail-caption,.nfq-therapy-summary,
+ .nfq-therapy-kicker,.eyebrow,.section-label,.record-total,
+ .nfq-access-note,.record-subline,.record-bottom,
+ .nfq-evidence-caution,.nfq-evidence-recorded-meta,
+ .nfq-evidence-facts dt,.nfq-therapy-meta dt,.nfq-therapy-source-type,
+ .pair-drugs-context,.pair-drugs-status,.nfq-pair-status,
+ .nfq-evidence-curation-note,.nfq-evidence-curation-item span,
+ .nfq-history-count,.nfq-history-undated-label,
+ .research-entry-main .admin-session-state
+){color:var(--nfq-night-muted)!important}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .surface,.record-rail,.record-overview,.record-section,.unselected-record,
+ .nfq-therapy,.evidence-register .evidence-row,
+ .nfq-evidence-curation,.genotype-locus,
+ .helios-panel,.research-entry-aside,
+ .nfq-people-directory,.nfq-account-inspector,
+ .admin-account-detail
+){
+ background:var(--nfq-night-paper)!important;
+ border-color:var(--nfq-night-line)!important;
+ box-shadow:none!important;
+ color:var(--nfq-night-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .record-list button,.worklist button,.genotype-suggestions button,
+ .helios-proposal-list button,.nfq-person-item,.nfq-people-results button
+){
+ background:var(--nfq-night-soft)!important;
+ border-color:var(--nfq-night-line)!important;
+ color:var(--nfq-night-ink)!important;
+ box-shadow:none!important;
+}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .record-list button,.worklist button,.genotype-suggestions button,
+ .helios-proposal-list button,.nfq-person-item
+):hover{background:var(--nfq-night-hover)!important}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .record-list button.record-selected,.variant-page .record-list button.record-selected,
+ .worklist button.selected,.nfq-person-selected
+){
+ background:rgba(41,121,255,.17)!important;
+ border-color:rgba(139,186,255,.5)!important;
+ box-shadow:inset 2px 0 #67a6ff!important;
+}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .record-first strong,.record-list button .record-first strong,.nfq-therapy-name strong,
+ .nfq-identity-title h2,.nfq-dossier-group-title,
+ .nfq-evidence-facts dd,.evidence-register .evidence-row h2,
+ .evidence-register .evidence-row-disclosure,.nfq-evidence-link-check strong,
+ .research-entry-main .admin-identity,.research-capabilities dd,
+ .admin-operation-name h3,.source-review-item strong,
+ .nfq-professional-name,.nfq-person-label
+){color:var(--nfq-night-ink)!important}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .record-identity p,.unselected-record p,.surface p,
+ .nfq-evidence-facts dt,.research-capabilities dt,
+ .admin-operation-status,.nfq-professional-note,.nfq-professional-meta,
+ .nfq-roster-identity span,.source-review-item p,
+ .evidence-row-meta,.evidence-row-foot
+){color:var(--nfq-night-muted)!important}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .record-state,.nfq-therapy-context,.nfq-therapy-detail,
+ .nfq-professional-details,.nfq-diagnostics-panel,
+ .nfq-access-diagnostics,.nfq-pubmed-metadata
+){
+ background:var(--nfq-night-soft)!important;
+ border-color:var(--nfq-night-line)!important;
+ color:var(--nfq-night-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-therapy-row[data-therapy] .nfq-therapy-row-main{
+ background:linear-gradient(90deg,rgba(41,121,255,.09),transparent 78%)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-therapy-result{color:#c4dcff!important}
+.app-frame[data-nfq-theme="midnight"] .nfq-therapy-unknown{color:var(--nfq-night-muted)!important}
+
+/* Source navigation, disclosure details and research links. */
+.app-frame[data-nfq-theme="midnight"] :is(
+ .nfq-therapy-jump a,.nfq-dossier-jump a,.nfq-therapy-genotype-link,
+ .nfq-research-trail a,.nfq-pair-source-link,.variant-evidence-browse,
+ .variant-evidence-list a,.evidence-row-foot a,
+ .nfq-evidence-source-actions a,.research-entry-link,
+ .helios-source-continuity a,.helios-queue-access a
+){color:var(--nfq-night-link)!important}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .nfq-therapy-jump a,.nfq-dossier-jump a,.nfq-therapy-genotype-link,
+ .nfq-evidence-source-actions a,.research-entry-link
+){
+ background:transparent!important;border-color:var(--nfq-night-line)!important;
+}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .nfq-therapy-jump a,.nfq-dossier-jump a,.nfq-therapy-genotype-link,
+ .nfq-evidence-source-actions a,.research-entry-link
+):hover{background:var(--nfq-night-hover)!important}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .nfq-evidence-heading,.nfq-research-trail,.variant-heading,
+ .nfq-dossier-navigation,.nfq-dossier-therapy-anchor,
+ .nfq-therapy-section-label,.nfq-therapy-row,
+ .evidence-row-foot,.nfq-reference-curation,.nfq-evidence-curation,
+ .admin-head,.research-entry,.helios-current,
+ .nfq-class-snapshot-review,.pair-drugs,.pair-drugs-row,
+ .pair-drugs-rows,.pair-original-review,.pair-verdict-context,
+ .nfq-therapy-jump,.nfq-dossier-jump
+){border-color:var(--nfq-night-line)!important}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .nfq-evidence-row-foot,.evidence-register .evidence-row-foot,
+ .nfq-evidence-facts dd,.nfq-evidence-link-check span,
+ .nfq-class-snapshot-review,.nfq-details-trigger-label,
+ .pair-drugs-explain,.pair-verdict-facts dd,.pair-drugs-result
+){color:var(--nfq-night-ink)!important}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .pair-haplotype-note,.pair-drugs-context,.pair-drugs-status,
+ .pair-original-review,.pair-verdict-context,
+ .pair-eti-original-audit p,.nfq-evidence-curation-note
+){color:var(--nfq-night-muted)!important}
+
+/* Calm controls and form inputs; keep native disabled/checked behavior. */
+.app-frame[data-nfq-theme="midnight"] :is(
+ .nfq-therapy-inspect,.nfq-details-trigger,.nfq-save-record,
+ .nfq-save-export,.nfq-therapy-genotype-link,
+ .nfq-evidence-heading-actions button,.nfq-evidence-page-tools button,
+ .nfq-pair-heading-actions button,.nfq-pair-ready button,
+ .nfq-pair-recovery button,.pagination-controls button,
+ .pair-drugs button,.nfq-evidence-curation-item button,
+ .nfq-proposal-toggle,.nfq-proposal-content button,
+ .nfq-roster-clear,.nfq-roster-reload,.admin-role-refresh,
+ .research-entry-link,.helios-queue-pages button
+){
+ background:transparent!important;color:var(--nfq-night-link)!important;
+ border-color:var(--nfq-night-line)!important;box-shadow:none!important;
+}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .nfq-therapy-inspect,.nfq-details-trigger,.nfq-evidence-heading-actions button,
+ .nfq-pair-heading-actions button,.pagination-controls button,
+ .pair-drugs button,.nfq-proposal-toggle
+):hover:not(:disabled){background:var(--nfq-night-hover)!important}
+.app-frame[data-nfq-theme="midnight"] :is(
+ input:not([type="checkbox"]):not([type="radio"]),select,textarea
+){
+ background:var(--nfq-night-soft)!important;
+ border-color:var(--nfq-night-line)!important;
+ color:var(--nfq-night-ink)!important;
+ caret-color:#9dc4ff;
+}
+.app-frame[data-nfq-theme="midnight"] :is(input,textarea)::placeholder{
+ color:#96abc8!important;opacity:1!important;
+}
+.app-frame[data-nfq-theme="midnight"] :is(
+ label,.genotype-locus label,.nfq-form-field label,
+ .nfq-role-management-form label,.nfq-evidence-contribution label
+){color:var(--nfq-night-muted)!important}
+.app-frame[data-nfq-theme="midnight"] :is(button,a,input,select,textarea):focus-visible{
+ outline:2px solid #9bc4ff!important;outline-offset:3px!important;
+}
+
+/* Genotype: paired-allele sources and scientific review context. */
+.app-frame[data-nfq-theme="midnight"] :is(
+ .genotype-comparison,.genotype-locus,.genotype-fields,.genotype-references,
+ .pair-drugs,.nfq-pair-ready,.nfq-pair-recovery
+){color:var(--nfq-night-ink)!important}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .genotype-locus h2,.genotype-locus h3,.genotype-topline,
+ .pair-drugs-head h2,.pair-drugs-main strong
+){color:var(--nfq-night-ink)!important}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .nfq-pair-ready,.nfq-pair-copy-status,.nfq-pair-recovery,.genotype-topline span
+){border-color:var(--nfq-night-line)!important;color:var(--nfq-night-muted)!important}
+
+/* Evidence & Curation: keep source-level identity and distinct metadata visible. */
+.app-frame[data-nfq-theme="midnight"] :is(
+ .evidence-search-head,.evidence-row,.evidence-row-foot,
+ .nfq-evidence-detail-section,.nfq-evidence-pubmed,
+ .nfq-evidence-contribution,.nfq-reference-curation
+){color:var(--nfq-night-ink)!important}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .evidence-register .evidence-row-disclosure>span:last-child,
+ .nfq-evidence-link-check,.nfq-evidence-facts dt,
+ .nfq-evidence-caution,.nfq-evidence-recorded-meta
+){border-color:var(--nfq-night-line)!important;color:var(--nfq-night-muted)!important}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .nfq-evidence-curation-item button,.evidence-register .evidence-row-disclosure,
+ .nfq-evidence-source-actions a
+){color:var(--nfq-night-link)!important}
+.app-frame[data-nfq-theme="midnight"] .nfq-evidence-curation{background:var(--nfq-night-paper)!important}
+
+/* Helios: preserve current restricted read-only workflow, not "approve" chrome. */
+.app-frame[data-nfq-theme="midnight"] .helios-panel{
+ background:var(--nfq-night-paper)!important;border-color:var(--nfq-night-line)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .helios-area-nav{
+ background:var(--nfq-night-soft)!important;border-color:var(--nfq-night-line)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .helios-area-nav button{
+ background:transparent!important;color:var(--nfq-night-muted)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .helios-area-nav button:hover{background:var(--nfq-night-hover)!important}
+.app-frame[data-nfq-theme="midnight"] .helios-area-nav button.helios-area-selected,
+.app-frame[data-nfq-theme="midnight"] .helios-review-steps button[aria-pressed="true"]{
+ background:rgba(41,121,255,.17)!important;border-color:var(--nfq-night-line)!important;
+ color:var(--nfq-night-ink)!important;box-shadow:inset 2px 0 #6aa7ff!important;
+}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .helios-current,.helios-read-state,.helios-selected-review,
+ .helios-assessment-label,.helios-assessment-cell p,
+ .helios-recovery-sections span,.helios-area-nav button,
+ .helios-proposal-list button,.helios-queue-pages
+){color:var(--nfq-night-muted)!important}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .helios-proposal-list button,.helios-queue-pages button
+){background:var(--nfq-night-soft)!important;border-color:var(--nfq-night-line)!important}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .helios-area-intro h2,.helios-recovery-sections strong,
+ .helios-proposal-list button strong
+){color:var(--nfq-night-ink)!important}
+
+/* Administration and identity: preserve role/approval semantics, never invent permissions. */
+.app-frame[data-nfq-theme="midnight"] .research-admin{
+ color:var(--nfq-night-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .research-entry-aside,.nfq-people-directory,
+ .nfq-account-inspector,.nfq-professional-details,
+ .nfq-diagnostics-panel,.source-review-item,.nfq-person-item
+){border-color:var(--nfq-night-line)!important}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .research-capabilities dd,.admin-operation-name h3,
+ .research-entry-main .admin-identity,.nfq-professional-name,
+ .source-review-item strong,.admin-section-heading h2
+){color:var(--nfq-night-ink)!important}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .research-capabilities dt,.admin-operation-status,
+ .research-entry-main .admin-session-state,
+ .nfq-person-role,.nfq-professional-note
+){color:var(--nfq-night-muted)!important}
+
+/* Workspace switcher and mobile menus must follow the chosen surface. */
+.app-frame[data-nfq-theme="midnight"] .workspace-launcher{
+ background:var(--nfq-night-paper)!important;
+ border:1px solid var(--nfq-night-line)!important;
+ color:var(--nfq-night-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .launcher-heading,
+.app-frame[data-nfq-theme="midnight"] .launcher-footnote{color:var(--nfq-night-muted)!important}
+.app-frame[data-nfq-theme="midnight"] .launcher-options button{
+ background:transparent!important;color:var(--nfq-night-ink)!important;border-color:var(--nfq-night-line)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .launcher-options button:hover{background:var(--nfq-night-hover)!important}
+.app-frame[data-nfq-theme="midnight"] .launcher-options button span{color:var(--nfq-night-muted)!important}
+.app-frame[data-nfq-theme="midnight"] .launcher-search{border-color:var(--nfq-night-line)!important}
+.app-frame[data-nfq-theme="midnight"] .mobile-nav{
+ background:var(--nfq-night-header)!important;border-color:var(--nfq-night-line)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .mobile-nav a{
+ background:var(--nfq-night-soft)!important;border-color:var(--nfq-night-line)!important;
+ color:var(--nfq-night-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .mobile-nav a.router-link-exact-active{
+ background:rgba(41,121,255,.17)!important;color:#d6e6ff!important;
+ box-shadow:inset 2px 0 #6aa7ff!important;
+}
+.app-frame[data-nfq-theme="midnight"] .mobile-nav-heading,
+.app-frame[data-nfq-theme="midnight"] .nfq-mobile-theme-row{
+ border-color:var(--nfq-night-line)!important;color:var(--nfq-night-muted)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-mobile-theme-switch{
+ background:transparent;border-color:var(--nfq-night-line);color:var(--nfq-night-link);
+}
+.app-frame[data-nfq-theme="midnight"] .mobile-menu-button{
+ color:var(--nfq-night-ink)!important;background:transparent!important;
+ border-color:var(--nfq-night-line)!important;
+}
+
+/* Do not animate every nested scientific element during theme change. */
+@media(prefers-reduced-motion:reduce){
+ .nfq-theme-switch,.nfq-mobile-theme-switch{transition:none!important}
+}
