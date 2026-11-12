@@ -202,7 +202,7 @@ test('14H126 disabled invitation backend keeps send unavailable',async({page})=>
  });
  await page.goto('/#/admin');
  const panel=page.getByTestId('admin-invitations');
- await expect(panel).toContainText('Invitation service not enabled');
+ await expect(panel).toContainText('Invitation service unavailable or unverified');
  await expect(panel.getByRole('button',{name:'Invite researcher'})).toBeDisabled();
 });
 test('14H126 Contributor and Reviewer have no invitation sender or invitation history',async({page})=>{
@@ -254,4 +254,36 @@ test('14H129 Reviewer never sees Guest designation administration',async({page})
  await mockFqAccount(page,'reviewer');
  await page.goto('/#/admin');
  await expect(page.getByTestId('admin-guest-access')).toHaveCount(0);
+});
+
+
+test('14H130 uncertain invitation never allows a second dispatch in the same session',async({page})=>{
+ await mockFqAccount(page,'administrator');
+ let posts=0,reads=0;
+ await page.route('https://example.supabase.co/functions/v1/nfq-admin-invite',async route=>{
+  const headers={'access-control-allow-origin':'*','access-control-allow-headers':'*','access-control-allow-methods':'GET,POST,OPTIONS'};
+  const method=route.request().method();
+  if(method==='OPTIONS'){await route.fulfill({status:204,headers});return;}
+  if(method==='GET'){
+   reads++;
+   await route.fulfill({status:200,headers,contentType:'application/json',
+    body:JSON.stringify({status:'ready',invitations:[]})});
+   return;
+  }
+  posts++;
+  await route.fulfill({status:503,headers,contentType:'application/json',body:'{}'});
+ });
+ await page.goto('/#/admin');
+ const panel=page.getByTestId('admin-invitations');
+ await panel.getByRole('button',{name:'Invite researcher'}).click();
+ await panel.getByLabel('Recipient email').fill('uncertain@example.org');
+ await panel.getByRole('checkbox',{name:/confirmed the recipient/}).check();
+ await panel.getByRole('button',{name:'Send invitation'}).click();
+ await expect.poll(()=>posts).toBe(1);
+ await expect(panel.getByText(/blocked from another send/)).toBeVisible();
+ await expect.poll(()=>reads).toBeGreaterThan(1);
+ await expect(panel.getByRole('button',{name:'Send invitation'})).toBeDisabled();
+ await panel.getByRole('button',{name:'Refresh'}).click();
+ await expect(panel.getByRole('button',{name:'Send invitation'})).toBeDisabled();
+ expect(posts).toBe(1);
 });
