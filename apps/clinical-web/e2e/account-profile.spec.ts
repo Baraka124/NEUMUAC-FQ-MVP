@@ -376,3 +376,39 @@ test('14H137C5 administrator role editor stays accessible and quiet across deskt
  await expect(inspector.locator('.nfq-save-role')).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
  await expect(inspector.getByRole('button',{name:'Save permission'})).toBeDisabled();
 });
+
+
+test('14H137C5 contextual research access help stays above mobile workspace content and restores focus',async({page})=>{
+ await mockFqAccount(page,'administrator');
+ await page.setViewportSize({width:390,height:800});
+ await page.goto('/#/admin');
+ const people=page.getByTestId('admin-people-access');
+ const summary=people.locator('.nfq-people-heading .nfq-context-help summary');
+ await summary.click();
+ const note=people.getByRole('note',{name:'People & access'});
+ await expect(note).toBeVisible();
+ const layer=await note.evaluate(el=>{
+  const r=el.getBoundingClientRect();
+  const x=Math.min(window.innerWidth-8,Math.max(8,r.left+r.width/2));
+  const y=Math.min(window.innerHeight-8,Math.max(8,r.top+Math.min(r.height/2,65)));
+  const hit=document.elementFromPoint(x,y);
+  return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,front:hit===el||el.contains(hit)};
+ });
+ expect(layer.left).toBeGreaterThanOrEqual(0);
+ expect(layer.right).toBeLessThanOrEqual(390);
+ expect(layer.top).toBeGreaterThanOrEqual(0);
+ expect(layer.front).toBe(true);
+ await page.keyboard.press('Escape');
+ await expect(note).toBeHidden();
+ await expect(summary).toBeFocused();
+ await page.getByRole('button',{name:/workspaces/i}).click();
+ await page.getByRole('navigation',{name:'Mobile workspaces'})
+  .getByRole('button',{name:'Switch to midnight theme'}).click();
+ await page.keyboard.press('Escape');
+ await summary.click();
+ await expect(note).toBeVisible();
+ await expect(note).toHaveCSS('background-color','rgb(15, 29, 48)');
+ await page.keyboard.press('Escape');
+ await expect(summary).toBeFocused();
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
