@@ -305,7 +305,8 @@ test('14H137C5 administrator invitation composer restores focus and never bypass
  await page.setViewportSize({width:1366,height:850});
  await page.goto('/#/admin');
  const panel=page.getByTestId('admin-invitations');
- const launch=panel.getByRole('button',{name:'Invite researcher'});
+ const launch=panel.locator('.nfq-invite-launch');
+ await expect(launch).toHaveText('Invite researcher');
  await expect(launch).toBeEnabled();
  await launch.click();
  const composer=panel.getByTestId('admin-invite-composer');
