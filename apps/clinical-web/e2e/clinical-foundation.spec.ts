@@ -1450,3 +1450,90 @@ test('14H137C3 filtered variant rail retains all scientific preferences in origi
  await expect(page.locator('.app-frame')).toHaveAttribute('data-nfq-theme','light');
  await expect(search).toHaveCSS('background-color','rgb(255, 255, 255)');
 });
+
+
+test('14H137C4 genotype toolbar remains intrinsic and accessible, without introducing horizontal scroll',async({page})=>{
+ for(const width of [320,390,768,1024,1366]){
+  await page.setViewportSize({width,height:820});
+  await page.goto('/#/genotype');
+  const actions=page.locator('.genotype-page .nfq-pair-heading-actions');
+  await expect(actions).toBeVisible();
+  const copy=page.getByTestId('comparison-copy-link');
+  const exportAction=page.getByTestId('comparison-download');
+  await expect(copy).toBeVisible();
+  await expect(exportAction).toBeVisible();
+  const metrics=await actions.evaluate(el=>{
+   const buttons=[...el.querySelectorAll<HTMLButtonElement>('button')];
+   return {
+    wrapperWidth:el.getBoundingClientRect().width,
+    buttonWidths:buttons.map(b=>b.getBoundingClientRect().width),
+    heights:buttons.map(b=>b.getBoundingClientRect().height),
+    backgrounds:buttons.map(b=>getComputedStyle(b).backgroundColor)
+   };
+  });
+  expect(metrics.buttonWidths.length).toBe(2);
+  expect(metrics.buttonWidths.every(w=>w>50&&w<200),String(width)).toBe(true);
+  expect(metrics.heights.every(h=>h>=40&&h<60),String(width)).toBe(true);
+  expect(metrics.backgrounds.every(c=>c==='rgba(0, 0, 0, 0)')).toBe(true);
+  await expect(page.getByRole('region',{name:'Variant 1'})).toBeVisible();
+  await expect(page.getByRole('region',{name:'Variant 2'})).toBeVisible();
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
+
+test('14H137C4 Helios review areas remain complete and compact in both themes',async({page})=>{
+ for(const width of [320,390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/helios');
+  const nav=page.getByRole('group',{name:'Helios review areas'});
+  const buttons=nav.getByRole('button');
+  await expect(buttons).toHaveCount(4);
+  const heights=await buttons.evaluateAll(els=>els.map(el=>el.getBoundingClientRect().height));
+  expect(heights.every(x=>x>=40)).toBe(true);
+  if(width<=900){
+   expect(await nav.evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length)).toBe(2);
+  }
+  for(const area of ['queue','evidence','signals','history']){
+   const button=page.getByTestId('helios-tab-'+area);
+   await button.click();
+   await expect(button).toHaveAttribute('aria-pressed','true');
+   await expect(page.getByTestId('helios-panel-'+area)).toBeVisible();
+  }
+  await page.getByTestId('helios-tab-evidence').click();
+  for(const step of ['record','sources','uncertainty']){
+   const button=page.getByTestId('helios-step-'+step);
+   await button.click();
+   await expect(button).toHaveAttribute('aria-pressed','true');
+   expect(await button.evaluate(el=>el.getBoundingClientRect().height)).toBeGreaterThanOrEqual(40);
+  }
+  await expect(page.getByTestId('helios-status-banner')).toContainText('Read-only preparation');
+  await expect(page.getByRole('button',{name:/approve|reject|claim/i})).toHaveCount(0);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+ await page.setViewportSize({width:390,height:810});
+ await page.goto('/#/helios');
+ await page.getByRole('button',{name:/workspaces/i}).click();
+ const mobile=page.getByRole('navigation',{name:'Mobile workspaces'});
+ await mobile.getByRole('button',{name:'Switch to midnight theme'}).click();
+ await expect(page.locator('.app-frame')).toHaveAttribute('data-nfq-theme','midnight');
+ await expect(page.getByRole('group',{name:'Helios review areas'}).getByRole('button')).toHaveCount(4);
+ await page.getByTestId('helios-tab-evidence').click();
+ await expect(page.getByTestId('helios-panel-evidence')).toBeVisible();
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
+
+test('14H137C4 account overview stays proportionate without implying admin permissions',async({page})=>{
+ for(const width of [320,390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/admin');
+  await expect(page.getByTestId('account-workspace-heading')).toHaveText('Research access');
+  await expect(page.getByRole('complementary',{name:'Research access'})).toBeVisible();
+  await expect(page.getByTestId('admin-role-management')).toHaveCount(0);
+  const sections=await page.locator('.research-entry').evaluate(el=>({
+   width:el.getBoundingClientRect().width,
+   columns:getComputedStyle(el).gridTemplateColumns
+  }));
+  expect(sections.width).toBeGreaterThan(0);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
