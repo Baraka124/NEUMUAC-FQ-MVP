@@ -1170,3 +1170,69 @@ test('14H137A original blue signature and calm research controls preserve deskto
  await expect(page.getByRole('navigation',{name:'Mobile workspaces'})).toHaveCount(0);
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
+
+
+test('14H137B original midnight workspace persists across scientific views and restores daylight',async({page})=>{
+ await page.setViewportSize({width:1366,height:850});
+ await page.goto('/#/workspace');
+ const frame=page.locator('.app-frame');
+ const switcher=page.getByTestId('nfq-research-theme-switch');
+ await expect(frame).toHaveAttribute('data-nfq-theme','light');
+ await expect(switcher).toHaveAttribute('aria-pressed','false');
+ await switcher.click();
+ await expect(frame).toHaveAttribute('data-nfq-theme','midnight');
+ await expect(page.locator('.workspace-frame')).toHaveCSS('background-color','rgb(5, 9, 26)');
+ await expect(page.locator('.institution-header')).toHaveCSS('background-color','rgb(12, 20, 34)');
+ await expect(page.getByRole('heading',{name:'CFTR variant research',exact:true})).toHaveCSS('color','rgb(238, 245, 255)');
+ await expect(switcher).toHaveAttribute('aria-label','Switch to light theme');
+ await page.goto('/#/variants');
+ await expect(frame).toHaveAttribute('data-nfq-theme','midnight');
+ await expect(page.locator('.record-rail')).toHaveCSS('background-color','rgb(15, 29, 48)');
+ await page.goto('/#/genotype');
+ await expect(page.getByRole('heading',{name:'Variant comparison'})).toHaveCSS('color','rgb(238, 245, 255)');
+ await page.goto('/#/evidence');
+ await expect(page.getByRole('heading',{name:'Evidence & provenance'})).toHaveCSS('color','rgb(238, 245, 255)');
+ await page.goto('/#/helios');
+ await expect(page.locator('.helios-panel')).toHaveCSS('background-color','rgb(15, 29, 48)');
+ await expect(page.getByTestId('helios-status-banner')).toContainText('Read-only preparation');
+ await page.goto('/#/admin');
+ await expect(page.locator('.research-admin')).toHaveCSS('color','rgb(238, 245, 255)');
+ await page.reload();
+ await expect(frame).toHaveAttribute('data-nfq-theme','midnight');
+ expect(await page.evaluate(()=>localStorage.getItem('nfq-research-theme-v1'))).toBe('midnight');
+ await page.getByRole('button',{name:'Switch to light theme'}).click();
+ await expect(frame).toHaveAttribute('data-nfq-theme','light');
+ await expect(page.locator('.workspace-frame')).toHaveCSS('background-color','rgb(244, 245, 247)');
+ expect(await page.evaluate(()=>localStorage.getItem('nfq-research-theme-v1'))).toBe('light');
+});
+
+test('14H137B mobile midnight switch stays in navigation and never steals clinical workspace width',async({page})=>{
+ await page.setViewportSize({width:360,height:800});
+ await page.goto('/#/variants');
+ await expect(page.locator('.app-frame')).toHaveAttribute('data-nfq-theme','light');
+ await expect(page.getByTestId('nfq-research-theme-switch')).toBeHidden();
+ await page.getByRole('button',{name:/workspaces/i}).click();
+ const nav=page.getByRole('navigation',{name:'Mobile workspaces'});
+ await expect(nav).toBeVisible();
+ await nav.getByRole('button',{name:'Switch to midnight theme'}).click();
+ await expect(page.locator('.app-frame')).toHaveAttribute('data-nfq-theme','midnight');
+ await expect(nav).toHaveCSS('background-color','rgb(12, 20, 34)');
+ await nav.getByRole('link',{name:'Evidence & Curation'}).click();
+ await expect(nav).toHaveCount(0);
+ await expect(page.getByRole('heading',{name:'Evidence & provenance'})).toBeVisible();
+ await expect(page.locator('.workspace-frame')).toHaveCSS('background-color','rgb(5, 9, 26)');
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ await page.getByRole('button',{name:/workspaces/i}).click();
+ await page.getByRole('navigation',{name:'Mobile workspaces'})
+  .getByRole('button',{name:'Switch to light theme'}).click();
+ await expect(page.locator('.app-frame')).toHaveAttribute('data-nfq-theme','light');
+ await expect(page.locator('.workspace-frame')).toHaveCSS('background-color','rgb(244, 245, 247)');
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
+
+test('14H137B invalid or absent persisted visual settings never force the midnight theme',async({page})=>{
+ await page.addInitScript(()=>localStorage.setItem('nfq-research-theme-v1','unknown-old-value'));
+ await page.goto('/#/workspace');
+ await expect(page.locator('.app-frame')).toHaveAttribute('data-nfq-theme','light');
+ await expect(page.getByTestId('nfq-research-theme-switch')).toHaveAttribute('aria-pressed','false');
+});
