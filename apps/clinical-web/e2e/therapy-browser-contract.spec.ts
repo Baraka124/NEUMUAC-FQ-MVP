@@ -709,3 +709,48 @@ test('14H136 source curation worklist is page-scoped, read-only and connected to
  await expect(page.getByRole('region',{name:'Recorded citations'}).locator('.evidence-row')).toHaveCount(0);
  expect(methods.every(m=>m==='GET')).toBe(true);
 });
+
+
+test('14H136b historical classification snapshots show divergence without claiming independent validators',async({page})=>{
+ await page.setViewportSize({width:390,height:780});
+ await setup(page);
+ const historyUrls:string[]=[];
+ await page.route('https://cftr-contract.invalid/rest/v1/validation_history*',async route=>{
+  const url=new URL(route.request().url());
+  historyUrls.push(url.toString());
+  const variantId=url.searchParams.get('variant_id')==='eq.35'?35:19;
+  const classes=variantId===35?['I','II']:['I','I'];
+  await route.fulfill({status:200,contentType:'application/json',
+   headers:{'access-control-allow-origin':'*'},
+   body:JSON.stringify(classes.map((cls,index)=>({
+    id:500+index,variant_id:variantId,action:'VALIDATED',
+    created_at:'2026-10-0'+(index+1)+'T10:00:00Z',
+    confidence_level:'high',snapshot_cftr_class:cls
+   })))});
+ });
+ await page.goto('/#/variants/35');
+ await expectFiveRows(page.getByTestId('five-therapy-workspace'));
+ await page.locator('.nfq-details-trigger').click();
+ await page.getByTestId('variant-history-toggle').click();
+ const history=page.getByTestId('variant-history-panel');
+ await expect(history).toContainText('2 validation entries');
+ const comparison=history.getByTestId('recorded-class-snapshot-review');
+ await expect(comparison.locator('summary')).toContainText('Different recorded CFTR class snapshots · 2');
+ await comparison.locator('summary').click();
+ await expect(comparison).toContainText('I · II');
+ await expect(comparison).toContainText('not proven inter-rater disagreement');
+ await expect(comparison).toContainText('Validator independence cannot be established');
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ await page.goto('/#/variants/19');
+ await expectFiveRows(page.getByTestId('five-therapy-workspace'));
+ await page.locator('.nfq-details-trigger').click();
+ await page.getByTestId('variant-history-toggle').click();
+ await expect(page.getByTestId('variant-history-panel')).toContainText('2 validation entries');
+ await expect(page.getByTestId('recorded-class-snapshot-review')).toHaveCount(0);
+ expect(historyUrls.length).toBeGreaterThanOrEqual(2);
+ expect(historyUrls.every(url=>{
+  const u=new URL(url);
+  const query=u.searchParams.get('select')||'';
+  return !/clinician_name|clinician_role|notes|institution|session_id/i.test(query);
+ })).toBe(true);
+});

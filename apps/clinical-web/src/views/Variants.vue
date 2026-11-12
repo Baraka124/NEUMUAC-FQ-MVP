@@ -28,6 +28,7 @@ import {portableSavedVariantsCsv,portableVariantLink} from '../domain/portableVa
 import {scientificFieldInventory} from '../domain/scientificFieldInventory';
 import {createLiveResearchHistorySource,type ResearchHistory} from '../services/liveResearchHistory';
 import {recordedResearchChronology} from '../domain/recordedResearchChronology';
+import {compareRecordedClassSnapshots} from '../domain/recordedClassSnapshotComparison';
 import {recordedConflictFocus} from '../domain/recordedConflictFocus';
 import {prepareConflictReviewPacket} from '../domain/conflictReviewPacket';
 import { createReadOnlyRepository, readConfigFromEnvironment, variantDisplayName, formatReadStatus, type RealVariant, type RealVariantSource } from '../services/liveVariants';
@@ -150,6 +151,7 @@ watch(selected,()=>{
 });
 const researchHistory=ref<ResearchHistory|null>(null);
 const researchChronology=computed(()=>researchHistory.value&&selected.value?recordedResearchChronology(researchHistory.value,selected.value.id):null);
+const classSnapshotReview=computed(()=>researchHistory.value?compareRecordedClassSnapshots(researchHistory.value):null);
 const conflictFocus=computed(()=>researchHistory.value&&selected.value?recordedConflictFocus(researchHistory.value,selected.value.id):null);
 const unresolvedOpen=ref(false);
 const reviewPacketNotice=ref('');
@@ -708,6 +710,7 @@ function select(id:string):void{
        <ContextHelp label="About recorded review history" title="Limits of the review register">
         <p>Events come from database-recorded validation and conflict records. Dates are normalized to UTC; entries without dates are shown separately and cannot be placed in time.</p>
         <p>Resolution status is recorded metadata, not proof of a medically validated decision or an immutable audit trail. Personal identities and free-text notes are excluded.</p>
+        <p>Multiple recorded validation events do not establish that two different clinicians independently validated the record. Historical classification snapshots may differ after legitimate changes.</p>
        </ContextHelp>
       </div>
       <button class="disclosure-button" type="button" :aria-expanded="historyOpen" aria-controls="variant-research-history" data-testid="variant-history-toggle" @click="toggleResearchHistory">
@@ -719,6 +722,11 @@ function select(id:string):void{
        <p v-else-if="researchHistory&&!researchChronology" role="alert">The recorded history is inconsistent and cannot be placed in a reliable chronology.</p>
        <template v-else-if="researchChronology">
         <p class="nfq-history-count" role="status">{{researchChronology.validationCount}} validation entries · {{researchChronology.conflictCount}} conflict records</p>
+        <details v-if="classSnapshotReview?.status==='different-class-text-recorded'" class="nfq-class-snapshot-review" data-testid="recorded-class-snapshot-review">
+         <summary>Different recorded CFTR class snapshots · {{classSnapshotReview.distinctRecordedClasses.length}}</summary>
+         <p>Historical recorded values: {{classSnapshotReview.distinctRecordedClasses.join(' · ')}}. These snapshots may reflect legitimate record changes; this is not proven inter-rater disagreement or clinical reclassification.</p>
+         <p>Validator independence cannot be established from these non-identifying records.</p>
+        </details>
         <div v-if="conflictFocus?.unresolved.length" class="nfq-conflict-focus" data-testid="recorded-unresolved-focus">
          <button type="button" class="disclosure-button" :aria-expanded="unresolvedOpen" aria-controls="nfq-unresolved-conflicts" @click="unresolvedOpen=!unresolvedOpen">Unresolved records · {{conflictFocus.unresolved.length}} <span aria-hidden="true">{{unresolvedOpen?'−':'+'}}</span></button>
          <ul v-if="unresolvedOpen" id="nfq-unresolved-conflicts" class="research-history-list" aria-label="Recorded unresolved conflicts">
@@ -801,6 +809,10 @@ function select(id:string):void{
 
 <style scoped>
 .nfq-history-count{font-size:12px;color:var(--muted,#526b7b);margin:14px 0 6px}
+.nfq-class-snapshot-review{color:var(--text-muted,#687381);font-size:11px;margin:6px 0 11px;line-height:1.55}
+.nfq-class-snapshot-review summary{cursor:pointer;max-width:max-content;font-weight:650}
+.nfq-class-snapshot-review summary:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+.nfq-class-snapshot-review p{margin:5px 0 0;max-width:72ch}
 .nfq-history-timeline{margin:5px 0 0;padding:0}
 .nfq-history-time{display:block;color:#496d65;font-size:11px;font-variant-numeric:tabular-nums;font-weight:600;margin-bottom:3px}
 .nfq-history-undated{margin-top:13px;border-top:1px solid var(--line,#dce5e8);padding-top:9px}
