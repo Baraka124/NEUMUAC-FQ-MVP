@@ -139,6 +139,6 @@ onUnmounted(()=>active?.abort());
 .pair-original-review summary{cursor:pointer;font-weight:580;padding:.2rem 0;width:max-content;max-width:100%}
 .pair-original-review ul{margin:.25rem 0 0;padding-left:1.1rem;line-height:1.5}
 .pair-original-review li+li{margin-top:.3rem}
-.pair-original-review summary:focus-visible{outline:2px solid currentColor;outline-offset:2px
+.pair-original-review summary:focus-visible{outline:2px solid currentColor;outline-offset:2px}
 @media(max-width:620px){.pair-drugs-main{grid-template-columns:minmax(0,1fr) auto;padding:.5rem 0;gap:.3rem .5rem}.pair-drugs-result{grid-column:1;grid-row:2}.pair-drugs-main button{grid-column:2;grid-row:1/span 2}}
 </style>
