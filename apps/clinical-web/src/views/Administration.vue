@@ -815,4 +815,89 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
  .nfq-person-role{margin-left:auto}
 }
 
+
+/* 14H137C4: administrative directory actions remain available but quiet,
+   touch-reachable, and contained on phone screens. Permission logic unchanged. */
+.research-admin .nfq-roster-search{
+ width:min(100%,440px);
+ max-width:100%;
+ min-width:0;
+ height:42px;
+ min-height:42px;
+ gap:6px;
+ padding:0 4px 0 10px;
+ border:1px solid #cbd9e8;
+ border-radius:6px;
+ background:transparent;
+ box-shadow:none;
+}
+.research-admin .nfq-roster-search:focus-within{
+ border-color:#2979ff;
+ outline:2px solid rgba(41,121,255,.16);
+ outline-offset:1px;
+}
+.research-admin .nfq-roster-search>svg{
+ flex:0 0 16px;
+ width:16px;
+ height:16px;
+}
+.research-admin .nfq-roster-search input{
+ flex:1 1 auto;
+ width:auto;
+ min-width:0;
+ max-width:100%;
+ font-size:12px;
+}
+.research-admin .nfq-roster-search :is(.nfq-roster-clear,.nfq-roster-reload){
+ display:grid;
+ place-items:center;
+ flex:0 0 40px;
+ width:40px;
+ height:40px;
+ min-width:40px;
+ min-height:40px;
+ padding:0;
+ border:0;
+ border-radius:6px;
+ background:transparent;
+ color:#476f9e;
+ box-shadow:none;
+}
+.research-admin .nfq-roster-search :is(.nfq-roster-clear,.nfq-roster-reload):hover{
+ background:rgba(41,121,255,.065);
+}
+.research-admin .nfq-inspector-close{
+ display:grid;
+ place-items:center;
+ width:40px;
+ height:40px;
+ min-width:40px;
+ min-height:40px;
+ flex:0 0 40px;
+ border:1px solid #d1ddeb;
+ border-radius:6px;
+ background:transparent;
+ box-shadow:none;
+ color:#476f9e;
+}
+.research-admin .nfq-inspector-close:hover{
+ background:rgba(41,121,255,.065);
+}
+.research-admin :is(.nfq-roster-clear,.nfq-roster-reload,.nfq-inspector-close):focus-visible{
+ outline:2px solid #2979ff;
+ outline-offset:2px;
+}
+.research-admin .nfq-people-layout,
+.research-admin .nfq-people-directory,
+.research-admin .nfq-account-inspector{
+ min-width:0;
+}
+@media(max-width:410px){
+ .research-admin .nfq-roster-search{padding-left:8px;gap:4px}
+ .research-admin .nfq-people-section{padding:12px 10px}
+ .research-admin .nfq-people-heading{flex-wrap:wrap}
+ .research-admin .nfq-account-inspector-head{min-width:0}
+ .research-admin .nfq-account-inspector-head>div{min-width:0;overflow-wrap:anywhere}
+}
+
 </style>
