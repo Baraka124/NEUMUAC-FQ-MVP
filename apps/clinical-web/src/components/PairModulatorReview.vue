@@ -2,6 +2,7 @@
 import {computed,ref,watch,onUnmounted} from 'vue';
 import {THERAPIES,type VariantTherapyProfile} from '../domain/therapyRegistry';
 import {compareLegacyFiveRegimens} from '../domain/legacyFiveRegimenRules';
+import {haplotypeContextFindings} from '../domain/haplotypeContext';
 import {createVariantTherapySource} from '../services/variantTherapySource';
 import {readConfigFromEnvironment,type RealVariant} from '../services/liveVariants';
 import {authSessionProvider} from '../services/authSession';
@@ -23,6 +24,10 @@ function editSelectedVariants():void{
  field?.focus({preventScroll:true});
 }
 let active:AbortController|null=null;
+const haplotypeFindings=computed(()=>haplotypeContextFindings([
+ {id:props.first.id,names:[props.first.legacyName,props.first.proteinName,...props.first.aliases]},
+ {id:props.second.id,names:[props.second.legacyName,props.second.proteinName,...props.second.aliases]}
+]));
 const outcomes=computed(()=>{
  if(!profiles.value)return [];
  return compareLegacyFiveRegimens(
@@ -60,6 +65,13 @@ onUnmounted(()=>active?.abort());
   <p v-else-if="phase==='unavailable'" role="status" class="pair-drugs-status">Therapy research data is unavailable for the selected pair.</p>
   <template v-else>
    <p class="pair-drugs-context">Original five-regimen rule comparison · two selected research records</p>
+   <div v-if="haplotypeFindings.length" class="pair-haplotype-note" role="note" data-testid="pair-haplotype-context">
+    <span>R117H · poly-T/TG context not assessed</span>
+    <ContextHelp label="About R117H haplotype context" title="R117H modifier context">
+     <p>R117H is present in a selected variant record. The original platform identifies its intron-8 poly-T and TG repeat context as relevant to interpretation.</p>
+     <p>This two-record research comparison does not evaluate poly-T/TG modifiers or establish a patient haplotype. The five regimen-rule results and recorded source values remain unchanged.</p>
+    </ContextHelp>
+   </div>
    <div class="pair-drugs-rows">
     <div v-for="item in outcomes" :key="item.therapy" class="pair-drugs-row">
      <div class="pair-drugs-main">
@@ -82,6 +94,8 @@ onUnmounted(()=>active?.abort());
 .pair-drugs-actions button:focus-visible{outline:2px solid currentColor;outline-offset:3px}
 @media(max-width:500px){.pair-drugs-head{align-items:flex-start}.pair-drugs-actions{gap:.25rem}}
 .pair-drugs-status,.pair-drugs-context{font-size:.76rem;color:var(--text-muted,#687381);line-height:1.5;margin:.55rem 0}
+.pair-haplotype-note{display:flex;align-items:center;flex-wrap:wrap;gap:.25rem .45rem;font-size:.73rem;color:var(--text-muted,#687381);line-height:1.35;padding:0 0 .6rem}
+.pair-haplotype-note :deep(.nfq-context-help summary){min-width:24px;min-height:24px}
 .pair-drugs-rows{border-top:1px solid var(--border,#dce4e5)}
 .pair-drugs-row{border-bottom:1px solid var(--border,#dce4e5)}
 .pair-drugs-main{display:grid;grid-template-columns:minmax(140px,1fr) minmax(125px,1fr) auto;gap:.7rem;align-items:center;min-height:3.2rem}

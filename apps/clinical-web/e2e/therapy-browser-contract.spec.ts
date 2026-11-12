@@ -22,9 +22,13 @@ const classFields={
 };
 const eu=['Kaftrio (ETI)','Alyftrek (VTD)','Kalydeco (IVA)','Symkevi (TEZ/IVA)']
  .map((drug_name,i)=>({id:i+1,drug_name,eligible_rule:'Recorded EU rule',jurisdiction:'EU',regulator:'EMA',approval_date:null,is_active:true}));
-async function setup(page:Page,opts:{failTherapy?:boolean}={}):Promise<void>{
+async function setup(page:Page,opts:{failTherapy?:boolean;r117h?:boolean}={}):Promise<void>{
  page.on('requestfailed',r=>{if(r.url().includes('cftr-contract.invalid'))console.error('Contract API request failed:',r.url(),r.failure()?.errorText);});
  const methods:string[]=[];
+ const catalog:Record<string,Record<string,unknown>>=opts.r117h?{
+  ...variants,'117':{id:117,legacy_name:'R117H',cftr_class:'IV',class_subtype:null,
+   eti_prediction:'unknown',alyftrek_prediction:'unknown'}
+ }:variants;
  return page.route('https://cftr-contract.invalid/rest/v1/**',async route=>{
   const request=route.request(),url=new URL(request.url()),table=url.pathname.split('/').pop();
   if(request.method()==='OPTIONS'){
@@ -39,8 +43,8 @@ async function setup(page:Page,opts:{failTherapy?:boolean}={}):Promise<void>{
   }
   let response:unknown[]=[];
   if(table==='variants'){
-   const ids=id?[id]:Object.keys(variants);
-   response=ids.filter(x=>Boolean(variants[x])).map(x=>({...classFields,...variants[x]}));
+   const ids=id?[id]:Object.keys(catalog);
+   response=ids.filter(x=>Boolean(catalog[x])).map(x=>({...classFields,...catalog[x]}));
   }else if(table==='drug_jurisdiction_rules')response=eu;
   // Other tables deliberately return an empty recorded source list.
   await route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*','access-control-allow-methods':'GET, OPTIONS','access-control-allow-headers':'apikey,authorization,content-type,accept'},body:JSON.stringify(response)});
@@ -582,4 +586,21 @@ test('14H125 subtype and therapy-specific searches survive deep links and use se
  await page.getByRole('button',{name:'Reset preferences'}).click();
  await expect(page.getByLabel('Class subtype')).toHaveValue('all');
  await expect(page.getByLabel('Recorded variant response')).toHaveValue('all');
+});
+
+
+test('14H132 original R117H poly-T/TG context is visible without changing five regimen outcomes',async({page})=>{
+ await page.setViewportSize({width:390,height:800});
+ await setup(page,{r117h:true});
+ await page.goto('/#/genotype?a=117&b=35');
+ const pair=page.getByTestId('pair-five-regimen-research');
+ await expect(pair.locator('.pair-drugs-row')).toHaveCount(5);
+ const note=pair.getByTestId('pair-haplotype-context');
+ await expect(note).toContainText('R117H · poly-T/TG context not assessed');
+ await expect(note.getByText(/not assessed/)).toBeVisible();
+ await expect(pair.locator('.pair-drugs-row')).toHaveCount(5);
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ await page.goto('/#/genotype?a=35&b=19');
+ await expect(pair.locator('.pair-drugs-row')).toHaveCount(5);
+ await expect(pair.getByTestId('pair-haplotype-context')).toHaveCount(0);
 });
