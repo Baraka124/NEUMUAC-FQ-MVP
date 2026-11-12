@@ -70,7 +70,7 @@ async function submit(){
     <span v-if="loading" role="status">Checking…</span>
     <span v-else-if="current" data-testid="guest-designation-status">{{current.active?'Active':'Not designated'}}</span>
    </div>
-   <button type="button" :disabled="saving||loading" class="nfq-guest-light" @click="check">Recheck</button>
+   <button type="button" :disabled="saving||loading" class="nfq-guest-light" @click="check()">Recheck</button>
   </div>
   <p class="nfq-guest-explain">Guest designation is separate from Contributor and Reviewer membership and from neumDESK professional identity.</p>
   <p v-if="blocked&&current&&!current.active" class="nfq-guest-info">
