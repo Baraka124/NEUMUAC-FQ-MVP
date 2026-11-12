@@ -19,13 +19,16 @@ const phase=ref<'idle'|'ready'|'unavailable'>('idle');
 const records=ref<InvitationRecord[]>([]);
 const notice=ref('');
 const warning=ref(false);
+// A possibly dispatched request must never be repeated from this mounted session.
+const unconfirmedAddress=ref<string|null>(null);
 let epoch=0;
 let currentAbort:AbortController|null=null;
 const normalized=computed(()=>normalizedInviteAddress(address.value));
 const registered=computed(()=>Boolean(normalized.value&&props.knownAccounts.some(a=>a.email.toLowerCase()===normalized.value)));
 const alreadyInvited=computed(()=>Boolean(normalized.value&&records.value.some(a=>a.email===normalized.value&&['sent','dispatching','uncertain'].includes(a.status))));
 const canSend=computed(()=>props.allowed&&phase.value==='ready'&&!loading.value&&!sending.value&&
- Boolean(normalized.value)&&!registered.value&&!alreadyInvited.value&&acknowledged.value);
+ Boolean(normalized.value)&&normalized.value!==unconfirmedAddress.value&&
+ !registered.value&&!alreadyInvited.value&&acknowledged.value);
 async function refresh(){
  const current=++epoch;
  currentAbort?.abort();
@@ -46,26 +49,28 @@ watch(()=>props.allowed,allowed=>{
  else void refresh();
 },{immediate:true});
 onUnmounted(()=>{++epoch;currentAbort?.abort();});
-function closePanel(){if(sending.value)return;open.value=false;address.value='';acknowledged.value=false;notice.value='';}
+function closePanel(){if(sending.value)return;open.value=false;address.value='';acknowledged.value=false;}
 async function submit(){
  if(!canSend.value||!normalized.value||!props.client)return;
  const email=normalized.value;
  sending.value=true;notice.value='';warning.value=false;
  try{
   await props.client.send(email,kind.value);
-  notice.value='Invitation requested for '+email+'. Research permissions must be assigned separately after activation.';
+  notice.value='Invitation requested for '+email+'. Check its history before assuming delivery. Access is assigned only after activation.';
   address.value='';acknowledged.value=false;open.value=false;
   await refresh();
  }catch(error){
   warning.value=true;
-  notice.value=error instanceof Error?error.message:'Delivery cannot be confirmed. Review invitation history.';
+  unconfirmedAddress.value=email;
+  notice.value=(error instanceof Error?error.message:'Delivery cannot be confirmed.')+
+   ' This address is blocked from another send in this session. Review the invitation history before taking further action.';
   await refresh();
  }finally{sending.value=false;}
 }
 const prettyStatus=(status:InvitationRecord['status']):string=>{
- if(status==='sent')return 'Email requested';
- if(status==='dispatching')return 'Dispatch pending';
- if(status==='uncertain')return 'Unconfirmed — verify before retry';
+ if(status==='sent')return 'Provider accepted request';
+ if(status==='dispatching')return 'Sending';
+ if(status==='uncertain')return 'Delivery unconfirmed';
  return 'Not delivered';
 };
 </script>
@@ -75,7 +80,7 @@ const prettyStatus=(status:InvitationRecord['status']):string=>{
    <div class="nfq-invite-intro">
     <strong>Invitations</strong>
     <span v-if="loading" role="status">Checking service…</span>
-    <span v-else-if="phase==='unavailable'" role="status">Invitation service not enabled</span>
+    <span v-else-if="phase==='unavailable'" role="status">Invitation service unavailable or unverified</span>
     <span v-else-if="phase==='ready'">{{records.length}} recent {{records.length===1?'request':'requests'}}</span>
     <ContextHelp label="About clinician invitations" title="Research account invitations">
      <p>Each invitation is emailed privately to the recipient by Supabase Auth. No passwords or one-use links are exposed here.</p>
@@ -100,6 +105,7 @@ const prettyStatus=(status:InvitationRecord['status']):string=>{
    </fieldset>
    <p v-if="registered" class="nfq-invite-alert">This email already has an FQ account. Manage its permissions in the directory instead of sending a new invitation.</p>
    <p v-else-if="alreadyInvited" class="nfq-invite-alert">An invitation for this address is already recorded. Check its status before requesting another.</p>
+   <p v-else-if="normalized===unconfirmedAddress" class="nfq-invite-alert" role="alert">Delivery for this address could not be confirmed. Another request is blocked in this session.</p>
    <label class="nfq-invite-confirm"><input v-model="acknowledged" type="checkbox" :disabled="sending"/>
     <span>I have confirmed the recipient and authorize this one-time invitation email. No research role is assigned automatically.</span>
    </label>
@@ -108,7 +114,7 @@ const prettyStatus=(status:InvitationRecord['status']):string=>{
     <button type="button" class="nfq-invite-light" :disabled="sending" @click="closePanel">Cancel</button>
    </div>
   </form>
-  <p v-if="notice" :role="warning?'alert':'status'" class="nfq-invite-notice">{{notice}}</p>
+  <p v-if="notice" :role="warning?'alert':'status'" class="nfq-invite-notice" :class="{'nfq-invite-notice-warning':warning}">{{notice}}</p>
   <details v-if="records.length" class="nfq-invite-history" data-testid="admin-invitation-history">
    <summary>Recent invitation requests</summary>
    <div class="nfq-invite-history-rows">
@@ -146,6 +152,7 @@ const prettyStatus=(status:InvitationRecord['status']):string=>{
 .nfq-invite-send:disabled{opacity:.42;cursor:not-allowed}
 .nfq-invite-alert,.nfq-invite-notice{font-size:11px;line-height:1.5;margin:0;color:#95603a}
 .nfq-invite-notice{margin:9px 0 0;color:#5b7389}
+.nfq-invite-notice-warning{color:#915b39}
 .nfq-invite-history{margin-top:10px;font-size:10.5px;color:#647d92}
 .nfq-invite-history summary{cursor:pointer}
 .nfq-invite-history-rows{display:grid;margin-top:8px;gap:0}
