@@ -68,20 +68,74 @@ const emit=defineEmits<{close:[];reset:[]}>();
  </section>
 </template>
 <style scoped>
-.variant-filter-panel{position:absolute;top:calc(100% + 8px);left:0;z-index:40;width:min(328px,calc(100vw - 54px));max-height:min(480px,calc(100dvh - 155px));overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;background:#fff;border:1px solid #cdded2;border-radius:10px;box-shadow:0 15px 36px #1c443321;padding:18px 18px 14px;color:#234638}
-.variant-filter-panel-head{display:flex;align-items:start;justify-content:space-between;gap:12px;margin-bottom:16px}
-.variant-filter-panel-kicker{font-size:10px;font-weight:700;letter-spacing:.09em;color:#6c8976}
-.variant-filter-panel h3{font-size:17px;line-height:1.3;letter-spacing:-.025em;margin:4px 0 0}
-.variant-filter-close{display:grid;place-items:center;width:31px;height:31px;flex:none;background:#f8faf8;border:1px solid #dbe8df;border-radius:7px;color:#52715d;cursor:pointer}
-.variant-filter-panel-fields{display:grid;gap:7px}
-.variant-filter-panel-fields label{font-size:12px;font-weight:660;color:#3c6350;margin-top:7px}
+/* 14H137C3: full original filter functionality in a smaller, calmer surface. */
+.variant-filter-panel{
+ position:absolute;top:calc(100% + 7px);left:0;z-index:40;
+ width:min(316px,calc(100vw - 42px));
+ max-height:min(490px,calc(100dvh - 122px));
+ overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;
+ background:#fff;border:1px solid #ccd9e9;border-radius:8px;
+ box-shadow:0 9px 24px rgba(18,44,83,.12);
+ padding:14px 15px 12px;color:#162540;
+}
+.variant-filter-panel-head{
+ display:flex;align-items:flex-start;justify-content:space-between;
+ gap:9px;margin-bottom:10px;
+}
+.variant-filter-panel-kicker{
+ font-size:10px;font-weight:640;letter-spacing:.055em;color:#6b7d96;
+}
+.variant-filter-panel h3{
+ font-size:16px;line-height:1.25;letter-spacing:-.025em;margin:4px 0 0;
+ color:#162540;
+}
+.variant-filter-close{
+ display:grid;place-items:center;flex:0 0 40px;
+ width:40px;height:40px;min-height:40px;
+ background:transparent;border:1px solid #d2deec;
+ border-radius:6px;color:#4773a8;cursor:pointer;box-shadow:none;
+}
+.variant-filter-panel-fields{display:grid;gap:5px}
+.variant-filter-panel-fields label{
+ font-size:11.5px;font-weight:630;color:#435976;margin-top:5px;
+}
 .variant-filter-panel-fields label:first-child{margin-top:0}
-.variant-filter-panel-fields select{width:100%;min-width:0;min-height:43px;border:1px solid #c9dbcf;border-radius:7px;background:#fcfdfc;color:#264435;padding:8px 11px;font:inherit;font-size:13px}
-.variant-filter-panel-fields select:focus-visible,.variant-filter-panel button:focus-visible{outline:3px solid #218b6a;outline-offset:2px}
-.variant-filter-panel-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid #e5ede7;margin-top:18px;padding-top:13px}
-.variant-filter-panel-foot button{min-height:36px;cursor:pointer;font:inherit;font-size:12px;font-weight:660}
-.variant-filter-reset{border:0;background:transparent;color:#3c7154;padding:7px 0;text-decoration:underline;text-underline-offset:3px}
-.variant-filter-done{border:1px solid #a9cdb4;border-radius:6px;background:#edf7f0;color:#205f41;padding:7px 14px}
- .nfq-response-filter-note{margin:2px 0 4px;font-size:11px;line-height:1.45;color:#667c8f}
-@media(max-width:420px){.variant-filter-panel{width:min(300px,calc(100vw - 44px));padding:14px}}
+.variant-filter-panel-fields select{
+ width:100%;min-width:0;min-height:40px;height:40px;
+ border:1px solid #c6d5e7;border-radius:6px;
+ background:#fff;color:#162540;
+ padding:6px 10px;font:inherit;font-size:12.5px;
+ box-shadow:none;
+}
+.variant-filter-panel-fields select:hover{border-color:#9bb9e2}
+.variant-filter-panel-fields select:focus-visible,
+.variant-filter-panel button:focus-visible{
+ outline:2px solid #2979ff;outline-offset:2px;
+}
+.variant-filter-panel-foot{
+ display:flex;align-items:center;justify-content:space-between;
+ gap:9px;border-top:1px solid #e2e9f2;margin-top:12px;padding-top:10px;
+}
+.variant-filter-panel-foot button{
+ min-height:40px;padding:7px 10px;
+ cursor:pointer;font:inherit;font-size:12px;font-weight:590;
+}
+.variant-filter-reset{
+ border:1px solid transparent;border-radius:6px;
+ background:transparent;color:#3d689e;
+ text-decoration:none;text-underline-offset:3px;
+}
+.variant-filter-done{
+ border:1px solid #bdcfe5;border-radius:6px;
+ background:transparent;color:#285caa;
+}
+.variant-filter-close:hover,.variant-filter-reset:hover,.variant-filter-done:hover{
+ background:rgba(41,121,255,.06);border-color:#9ebce8;
+}
+.nfq-response-filter-note{
+ margin:2px 0 4px;font-size:11px;line-height:1.5;color:#697d93;
+}
+@media(max-width:420px){
+ .variant-filter-panel{width:min(302px,calc(100vw - 38px));padding:12px}
+}
 </style>
