@@ -402,3 +402,45 @@
 @media(prefers-reduced-motion:reduce){
  .nfq-theme-switch,.nfq-mobile-theme-switch{transition:none!important}
 }
+
+
+/* 14H137C — the overview search uses quiet controls in BOTH appearances.
+   This explicit dark treatment prevents a white search sheet from floating
+   over the original Midnight scientific instrument. */
+.app-frame[data-nfq-theme="midnight"] .nfq-workspace-intro .intro,
+.app-frame[data-nfq-theme="midnight"] .nfq-home-research-note{
+ color:var(--nfq-night-muted)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-home-discovery{
+ background:var(--nfq-night-paper)!important;
+ border-color:var(--nfq-night-line)!important;box-shadow:none!important;
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-home-discovery-heading h2{
+ color:var(--nfq-night-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-home-read-status{
+ color:var(--nfq-night-muted)!important;background:transparent!important;
+ border-color:var(--nfq-night-line)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-home-search-form label{
+ color:var(--nfq-night-muted)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-home-search-controls input{
+ background:var(--nfq-night-soft)!important;
+ color:var(--nfq-night-ink)!important;
+ border-color:var(--nfq-night-line)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-home-search-controls input::placeholder{
+ color:#a5b8d3!important;opacity:1!important;
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-home-search-controls button{
+ background:transparent!important;
+ color:var(--nfq-night-link)!important;
+ border-color:var(--nfq-night-line)!important;box-shadow:none!important;
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-home-search-controls button:hover{
+ background:var(--nfq-night-hover)!important;
+ border-color:rgba(139,186,255,.48)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-home-links{border-color:var(--nfq-night-line)!important}
+.app-frame[data-nfq-theme="midnight"] .nfq-home-links a{color:var(--nfq-night-link)!important}
