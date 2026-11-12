@@ -644,3 +644,29 @@ test('14H134 ETI historical label list is inspectable, not treated as current el
  await expect(pair.locator('.pair-drugs-row')).toHaveCount(5);
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
+
+
+test('14H135 historical pair descriptors are inspectable without changing five outcomes on phone',async({page})=>{
+ await page.setViewportSize({width:390,height:800});
+ await setup(page);
+ await page.goto('/#/genotype?a=1&b=35');
+ const pair=page.getByTestId('pair-five-regimen-research');
+ await expect(pair.locator('.pair-drugs-row')).toHaveCount(5);
+ const context=pair.getByTestId('pair-original-verdict-context');
+ await context.locator('summary').click();
+ await expect(context).toContainText('Historical class-order record');
+ await expect(context).toContainText('#1');
+ await expect(context).toContainText('Recorded ETI-responsive allele');
+ await expect(context).toContainText('Alyftrek-only research rule match');
+ await expect(context).toContainText('selected variants do not prove allelic phase');
+ await expect(pair.locator('.pair-drugs-row').nth(0).locator('.pair-drugs-result')).toHaveText('Evidence check needed');
+ await expect(pair.locator('.pair-drugs-row').nth(1).locator('.pair-drugs-result')).toHaveText('Rule matched');
+ await expect(pair.locator('.pair-drugs-row')).toHaveCount(5);
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ await page.goto('/#/genotype?a=19&b=35');
+ await expect(pair.locator('.pair-drugs-row')).toHaveCount(5);
+ await context.locator('summary').click();
+ await expect(context).toContainText('Historical class-order record');
+ await expect(context).toContainText('Recorded ETI-responsive allele');
+ await expect(context).toContainText('Not recorded');
+});
