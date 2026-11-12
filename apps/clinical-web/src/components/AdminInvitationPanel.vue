@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed,ref,watch,onUnmounted} from 'vue';
+import {computed,ref,watch,onUnmounted,nextTick} from 'vue';
 import ContextHelp from './ContextHelp.vue';
 import {normalizedInviteAddress,type InvitationKind,type InvitationRecord,type createAdminInvitationClient} from '../services/adminInvitations';
 import type {ResearchAccountRow} from '../services/researchAccountDirectory';
@@ -10,6 +10,8 @@ const props=defineProps<{
  knownAccounts:readonly ResearchAccountRow[];
 }>();
 const open=ref(false);
+const launchButton=ref<HTMLButtonElement|null>(null);
+const emailField=ref<HTMLInputElement|null>(null);
 const address=ref('');
 const kind=ref<InvitationKind>('clinician');
 const acknowledged=ref(false);
@@ -49,7 +51,19 @@ watch(()=>props.allowed,allowed=>{
  else void refresh();
 },{immediate:true});
 onUnmounted(()=>{++epoch;currentAbort?.abort();});
-function closePanel(){if(sending.value)return;open.value=false;address.value='';acknowledged.value=false;}
+async function openComposer(){
+ if(open.value||sending.value||loading.value||phase.value!=='ready')return;
+ open.value=true;
+ await nextTick();
+ emailField.value?.focus();
+}
+async function closePanel(){
+ if(sending.value)return;
+ open.value=false;
+ address.value='';acknowledged.value=false;
+ await nextTick();
+ launchButton.value?.focus();
+}
 async function submit(){
  if(!canSend.value||!normalized.value||!props.client)return;
  const email=normalized.value;
@@ -89,13 +103,13 @@ const prettyStatus=(status:InvitationRecord['status']):string=>{
    </div>
    <div class="nfq-invite-actions">
     <button type="button" class="nfq-invite-light" :disabled="loading||sending" title="Refresh invitation history" @click="refresh">Refresh</button>
-    <button type="button" class="nfq-invite-launch" :disabled="phase!=='ready'||loading||sending" :aria-expanded="open" aria-controls="nfq-invite-composer" @click="open?closePanel():open=true">{{open?'Close':'Invite researcher'}}</button>
+    <button ref="launchButton" type="button" class="nfq-invite-launch" :disabled="phase!=='ready'||loading||sending" :aria-expanded="open" aria-controls="nfq-invite-composer" @click="open?closePanel():openComposer()">{{open?'Close':'Invite researcher'}}</button>
    </div>
   </div>
-  <form v-if="open&&phase==='ready'" id="nfq-invite-composer" class="nfq-invite-composer" @submit.prevent="submit">
+  <form v-if="open&&phase==='ready'" id="nfq-invite-composer" class="nfq-invite-composer" aria-label="Compose research account invitation" data-testid="admin-invite-composer" @submit.prevent="submit" @keydown.esc.stop.prevent="closePanel">
    <div class="nfq-invite-field">
     <label for="nfq-invite-address">Recipient email</label>
-    <input id="nfq-invite-address" v-model.trim="address" type="email" inputmode="email"
+    <input ref="emailField" id="nfq-invite-address" v-model.trim="address" type="email" inputmode="email"
      autocomplete="off" spellcheck="false" maxlength="254" required placeholder="clinician@example.org" :disabled="sending"/>
    </div>
    <fieldset class="nfq-invite-kind" :disabled="sending">
@@ -162,4 +176,88 @@ const prettyStatus=(status:InvitationRecord['status']):string=>{
 .nfq-invite-history-row .nfq-invite-uncertain{color:#966443}
 .nfq-admin-invites button:focus-visible,.nfq-admin-invites input:focus-visible{outline:2px solid #4187b9;outline-offset:2px}
 @media(max-width:540px){.nfq-admin-invites{padding:10px}.nfq-invite-toolbar{align-items:flex-start}.nfq-invite-intro{flex:1;min-width:170px}}
+
+/* 14H137C5 · Quiet, correctly-sized invitation composer with keyboard focus
+   and intact independent confirmation and audited delivery semantics. */
+.nfq-admin-invites{
+ min-width:0;
+ border-color:#dce5ef;
+ border-radius:8px;
+ background:transparent;
+ box-shadow:none;
+ padding:12px 13px;
+}
+.nfq-invite-intro{min-width:0;gap:5px 9px}
+.nfq-invite-toolbar{gap:9px 13px}
+.nfq-invite-actions{min-width:0;flex-wrap:wrap;gap:5px}
+.nfq-invite-launch,.nfq-invite-light,.nfq-invite-send{
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ width:auto;
+ min-width:0;
+ max-width:100%;
+ min-height:40px;
+ padding:7px 10px;
+ background:transparent;
+ border:1px solid #c6d7e9;
+ border-radius:6px;
+ color:#285caa;
+ font:inherit;
+ font-size:11.5px;
+ font-weight:590;
+ line-height:1.3;
+ box-shadow:none;
+ white-space:normal;
+ overflow-wrap:anywhere;
+ cursor:pointer;
+}
+.nfq-invite-light{border-color:transparent}
+.nfq-invite-launch:hover:not(:disabled),
+.nfq-invite-light:hover:not(:disabled),
+.nfq-invite-send:hover:not(:disabled){
+ background:rgba(41,121,255,.06);
+ border-color:#9dbce6;
+ color:#20549b;
+}
+.nfq-invite-composer{
+ width:100%;
+ max-width:510px;
+ min-width:0;
+ gap:9px;
+ margin-top:11px;
+ padding-top:12px;
+}
+.nfq-invite-field input{
+ height:42px;
+ min-height:42px;
+ max-width:100%;
+ border-radius:6px;
+ border-color:#cbd9e8;
+ background:transparent;
+}
+.nfq-invite-kind{gap:6px 15px}
+.nfq-invite-kind label{
+ min-height:30px;
+ width:auto;
+ max-width:100%;
+ overflow-wrap:anywhere;
+}
+.nfq-invite-form-actions{flex-wrap:wrap;gap:5px 8px}
+.nfq-invite-confirm span{min-width:0;overflow-wrap:anywhere}
+.nfq-invite-history{min-width:0}
+.nfq-invite-history-row{min-width:0;gap:4px 12px}
+.nfq-invite-history-row>span{min-width:0;overflow-wrap:anywhere}
+.nfq-admin-invites :is(button,input,summary):focus-visible{
+ outline:2px solid #2979ff;
+ outline-offset:2px;
+}
+@media(max-width:540px){
+ .nfq-admin-invites{padding:10px}
+ .nfq-invite-toolbar{align-items:flex-start}
+ .nfq-invite-intro{flex:1 1 150px}
+ .nfq-invite-actions{justify-content:flex-start}
+ .nfq-invite-composer{max-width:100%}
+}
+
 </style>
