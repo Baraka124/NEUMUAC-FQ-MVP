@@ -244,11 +244,14 @@ test('14H129 Guest designation is separate from Reviewer permissions and explici
  expect(writes[0]).toEqual({p_user_id:accounts.guest,p_action:'grant',
   p_reason:'External research access requested by study team'});
  await expect(panel.getByTestId('guest-designation-status')).toContainText('Active');
+ await expect(panel.getByRole('status')).toContainText('Guest access designated and verified.');
  await panel.getByLabel('Reason for revocation').fill('End of invited research observation');
  await panel.getByRole('checkbox',{name:/verified the account/}).check();
  await panel.getByRole('button',{name:'Revoke Guest access'}).click();
  await expect.poll(()=>writes.length).toBe(2);
  expect(writes[1]).toEqual({p_user_id:accounts.guest,p_action:'revoke',p_reason:'End of invited research observation'});
+ await expect(panel.getByTestId('guest-designation-status')).toContainText('Not designated');
+ await expect(panel.getByRole('status')).toContainText('Guest access revoked and verified.');
 });
 test('14H129 Reviewer never sees Guest designation administration',async({page})=>{
  await mockFqAccount(page,'reviewer');
@@ -286,4 +289,127 @@ test('14H130 uncertain invitation never allows a second dispatch in the same ses
  await panel.getByRole('button',{name:'Refresh'}).click();
  await expect(panel.getByRole('button',{name:'Send invitation'})).toBeDisabled();
  expect(posts).toBe(1);
+});
+
+
+test('14H137C5 administrator invitation composer restores focus and never bypasses send confirmation',async({page})=>{
+ await mockFqAccount(page,'administrator');
+ let posts=0;
+ await page.route('https://example.supabase.co/functions/v1/nfq-admin-invite',async route=>{
+  const headers={'access-control-allow-origin':'*','access-control-allow-headers':'*','access-control-allow-methods':'GET,POST,OPTIONS'};
+  if(route.request().method()==='OPTIONS'){await route.fulfill({status:204,headers});return;}
+  if(route.request().method()==='POST')posts++;
+  await route.fulfill({status:200,contentType:'application/json',headers,
+   body:JSON.stringify({status:'ready',invitations:[]})});
+ });
+ await page.setViewportSize({width:1366,height:850});
+ await page.goto('/#/admin');
+ const panel=page.getByTestId('admin-invitations');
+ const launch=panel.locator('.nfq-invite-launch');
+ await expect(launch).toHaveText('Invite researcher');
+ await expect(launch).toBeEnabled();
+ await launch.click();
+ const composer=panel.getByTestId('admin-invite-composer');
+ await expect(composer).toBeVisible();
+ await expect(panel.getByLabel('Recipient email')).toBeFocused();
+ await expect(launch).toHaveAttribute('aria-expanded','true');
+ await expect(panel.getByRole('button',{name:'Send invitation'})).toBeDisabled();
+ await panel.getByLabel('Recipient email').fill('scientist@example.org');
+ await panel.getByRole('radio',{name:'External guest'}).check();
+ await expect(composer.getByRole('button',{name:'Send invitation'})).toBeDisabled();
+ await page.keyboard.press('Escape');
+ await expect(composer).toHaveCount(0);
+ await expect(launch).toBeFocused();
+ await expect(launch).toHaveAttribute('aria-expanded','false');
+ await launch.click();
+ await expect(panel.getByLabel('Recipient email')).toBeFocused();
+ await expect(panel.getByLabel('Recipient email')).toHaveValue('');
+ await expect(panel.getByRole('checkbox',{name:/confirmed the recipient/})).not.toBeChecked();
+ await panel.getByRole('button',{name:'Cancel'}).click();
+ await expect(launch).toBeFocused();
+ expect(posts).toBe(0);
+ await page.getByTestId('nfq-research-theme-switch').click();
+ await expect(page.locator('.app-frame')).toHaveAttribute('data-nfq-theme','midnight');
+ await expect(panel).toHaveCSS('background-color','rgb(15, 29, 48)');
+ await launch.click();
+ await expect(panel.getByLabel('Recipient email')).toBeFocused();
+ await expect(panel.getByLabel('Recipient email')).toHaveCSS('background-color','rgb(17, 31, 51)');
+ await expect(composer.getByRole('button',{name:'Send invitation'})).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
+ expect(posts).toBe(0);
+});
+
+test('14H137C5 administrator role editor stays accessible and quiet across desktop and phone',async({page})=>{
+ await mockFqAccount(page,'administrator');
+ for(const width of [320,390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/admin');
+  const people=page.getByTestId('admin-people-access');
+  await expect(people).toBeVisible();
+  const member=people.getByRole('button',{name:'Manage research permissions for guest@example.org'});
+  await expect(member).toBeVisible();
+  await member.click();
+  const inspector=people.getByTestId('admin-role-management');
+  await expect(inspector).toBeVisible();
+  await expect(inspector.getByLabel('Account ID')).toBeFocused();
+  await expect(inspector.getByLabel('Account ID')).toHaveValue(accounts.guest);
+  await expect(inspector.getByRole('button',{name:'Save permission'})).toBeDisabled();
+  const saveMetrics=await inspector.locator('.nfq-save-role').evaluate(el=>({
+   width:el.getBoundingClientRect().width,
+   height:el.getBoundingClientRect().height,
+   background:getComputedStyle(el).backgroundColor
+  }));
+  expect(saveMetrics.height,String(width)).toBeGreaterThanOrEqual(40);
+  expect(saveMetrics.background).toBe('rgba(0, 0, 0, 0)');
+  const close=inspector.getByRole('button',{name:'Close permission editor'});
+  await close.click();
+  await expect(inspector).toHaveCount(0);
+  await expect(member).toBeFocused();
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+ await page.setViewportSize({width:1366,height:820});
+ await page.goto('/#/admin');
+ const people=page.getByTestId('admin-people-access');
+ await page.getByTestId('nfq-research-theme-switch').click();
+ await expect(people).toHaveCSS('background-color','rgb(15, 29, 48)');
+ await people.getByRole('button',{name:'Manage research permissions for guest@example.org'}).click();
+ const inspector=people.getByTestId('admin-role-management');
+ await expect(inspector.getByLabel('Account ID')).toHaveCSS('background-color','rgb(17, 31, 51)');
+ await expect(inspector.locator('.nfq-save-role')).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
+ await expect(inspector.getByRole('button',{name:'Save permission'})).toBeDisabled();
+});
+
+
+test('14H137C5 contextual research access help stays above mobile workspace content and restores focus',async({page})=>{
+ await mockFqAccount(page,'administrator');
+ await page.setViewportSize({width:390,height:800});
+ await page.goto('/#/admin');
+ const people=page.getByTestId('admin-people-access');
+ const summary=people.locator('.nfq-people-heading .nfq-context-help summary');
+ await summary.click();
+ const note=people.getByRole('note',{name:'People & access'});
+ await expect(note).toBeVisible();
+ const layer=await note.evaluate(el=>{
+  const r=el.getBoundingClientRect();
+  const x=Math.min(window.innerWidth-8,Math.max(8,r.left+r.width/2));
+  const y=Math.min(window.innerHeight-8,Math.max(8,r.top+Math.min(r.height/2,65)));
+  const hit=document.elementFromPoint(x,y);
+  return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,front:hit===el||el.contains(hit)};
+ });
+ expect(layer.left).toBeGreaterThanOrEqual(0);
+ expect(layer.right).toBeLessThanOrEqual(390);
+ expect(layer.top).toBeGreaterThanOrEqual(0);
+ expect(layer.front).toBe(true);
+ await page.keyboard.press('Escape');
+ await expect(note).toBeHidden();
+ await expect(summary).toBeFocused();
+ await page.getByRole('button',{name:/workspaces/i}).click();
+ await page.getByRole('navigation',{name:'Mobile workspaces'})
+  .getByRole('button',{name:'Switch to midnight theme'}).click();
+ await page.keyboard.press('Escape');
+ await summary.click();
+ await expect(note).toBeVisible();
+ await expect(note).toHaveCSS('background-color','rgb(15, 29, 48)');
+ await page.keyboard.press('Escape');
+ await expect(summary).toBeFocused();
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });

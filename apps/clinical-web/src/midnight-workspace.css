@@ -516,3 +516,129 @@
 .app-frame[data-nfq-theme="midnight"] .variant-filter-panel-foot{
  border-color:var(--nfq-night-line)!important;
 }
+
+
+/*
+ * 14H137C5 — authenticated scientific identity and operations in the
+ * ORIGINAL MIDNIGHT palette. Scoped to verified in-app workspaces.
+ * No permissions, statuses, clinical colours or state are reinterpreted.
+ */
+.app-frame[data-nfq-theme="midnight"] :is(
+ .nfq-profile-card,.nfq-admin-invites,.nfq-people-section,
+ .nfq-account-inspector,.nfq-guest-access,.nfq-invite-composer,
+ .nfq-invite-history,.nfq-people-results,.nfq-access-diagnostics
+){
+ background:var(--nfq-night-paper)!important;
+ border-color:var(--nfq-night-line)!important;
+ box-shadow:none!important;
+ color:var(--nfq-night-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .nfq-profile-top,.nfq-profile-bottom,.nfq-profile-affiliation,
+ .nfq-invite-composer,.nfq-invite-history-row,
+ .nfq-person-item,.nfq-guest-access,.nfq-account-inspector
+){border-color:var(--nfq-night-line)!important}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .nfq-profile-fact,.nfq-person-role,
+ .nfq-profile-role,.nfq-person-avatar,.nfq-profile-avatar
+){
+ background:transparent!important;
+ border-color:var(--nfq-night-line)!important;
+ box-shadow:none!important;
+ color:var(--nfq-night-link)!important;
+}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .nfq-profile-display-name,.nfq-profile-fact strong,
+ .nfq-invite-intro strong,.nfq-guest-top strong,
+ .nfq-people-heading h2,.nfq-person-label strong,
+ .nfq-account-inspector-head h3,.nfq-role-management-form h3
+){color:var(--nfq-night-ink)!important}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .nfq-profile-email,.nfq-profile-position,.nfq-profile-source,
+ .nfq-profile-empty,.nfq-profile-fact-label,.nfq-invite-intro,
+ .nfq-invite-history,.nfq-invite-history-row,
+ .nfq-invite-history-row small,.nfq-invite-field label,
+ .nfq-invite-kind legend,.nfq-invite-kind label,
+ .nfq-invite-confirm,.nfq-guest-explain,
+ .nfq-guest-top div,.nfq-guest-form>label,
+ .nfq-guest-ack,.nfq-person-label small,
+ .nfq-person-role,.nfq-account-inspector-head span,
+ .nfq-inspector-context,.nfq-directory-feedback,
+ .nfq-directory-footer,.nfq-role-result
+){color:var(--nfq-night-muted)!important}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .nfq-invite-launch,.nfq-invite-light,.nfq-invite-send,
+ .nfq-guest-light,.nfq-guest-action,
+ .nfq-save-role,.nfq-inspector-close,
+ .nfq-roster-clear,.nfq-roster-reload,
+ .nfq-inline-action,.nfq-profile-links button,
+ .nfq-profile-links a
+){
+ background:transparent!important;
+ color:var(--nfq-night-link)!important;
+ border-color:var(--nfq-night-line)!important;
+ box-shadow:none!important;
+}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .nfq-invite-launch,.nfq-invite-light,.nfq-invite-send,
+ .nfq-guest-light,.nfq-guest-action,
+ .nfq-save-role,.nfq-inspector-close,
+ .nfq-roster-clear,.nfq-roster-reload,
+ .nfq-profile-links button,.nfq-profile-links a
+):hover:not(:disabled){background:var(--nfq-night-hover)!important}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .nfq-invite-field input,.nfq-guest-form textarea,
+ .nfq-role-management-form input:not([type="checkbox"]),
+ .nfq-role-management-form select,.nfq-roster-search
+){
+ background:var(--nfq-night-soft)!important;
+ border-color:var(--nfq-night-line)!important;
+ color:var(--nfq-night-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-roster-search input{
+ background:transparent!important;
+ color:var(--nfq-night-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-roster-search input::placeholder,
+.app-frame[data-nfq-theme="midnight"] .nfq-invite-field input::placeholder,
+.app-frame[data-nfq-theme="midnight"] .nfq-guest-form textarea::placeholder{
+ color:#9db1cf!important;opacity:1!important;
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-person-select{
+ background:transparent!important;
+ border-color:var(--nfq-night-line)!important;
+ color:var(--nfq-night-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-person-select:hover{
+ background:var(--nfq-night-hover)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-person-select.nfq-person-selected{
+ background:rgba(41,121,255,.16)!important;
+ box-shadow:inset 2px 0 #75adff!important;
+}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .nfq-invite-alert,.nfq-invite-notice-warning,
+ .nfq-guest-info,.nfq-guest-message
+){color:#efc19a!important}
+.app-frame[data-nfq-theme="midnight"] .nfq-invite-notice:not(.nfq-invite-notice-warning){
+ color:#b3d2ff!important;
+}
+/* Contextual (i) notes are first-class content on midnight, not floating
+   bright panels; dropdown behavior is unchanged throughout the app. */
+.app-frame[data-nfq-theme="midnight"] .nfq-context-help summary{
+ background:var(--nfq-night-soft)!important;
+ border-color:var(--nfq-night-line)!important;
+ color:var(--nfq-night-link)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-context-help-panel{
+ background:var(--nfq-night-paper)!important;
+ border-color:var(--nfq-night-line)!important;
+ color:var(--nfq-night-muted)!important;
+ box-shadow:0 10px 25px rgba(0,0,0,.3)!important;
+}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .nfq-context-help-title,.nfq-context-help-body dt
+){color:var(--nfq-night-ink)!important}
+.app-frame[data-nfq-theme="midnight"] .nfq-context-help-body dd{
+ color:var(--nfq-night-muted)!important;
+}

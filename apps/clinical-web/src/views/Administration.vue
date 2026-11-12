@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed,ref,watch,onUnmounted} from 'vue';
+import {computed,ref,watch,onUnmounted,nextTick} from 'vue';
 import {RouterLink,useRoute} from 'vue-router';
 import ContextHelp from '../components/ContextHelp.vue';
 import ResearchIdentityCard from '../components/ResearchIdentityCard.vue';
@@ -120,12 +120,32 @@ async function loadRoster(){
   rosterPhase.value='error';rosterMessage.value='Account directory is unavailable or not authorised. No account data was displayed.';
  }
 }
+let editorReturnFocus:HTMLElement|null=null;
+function focusPermissionEditor():void{
+ void nextTick(()=>document.getElementById('nfq-target-account')?.focus());
+}
+function openVerifiedAccountEditor():void{
+ editorReturnFocus=document.activeElement instanceof HTMLElement?document.activeElement:null;
+ roleEditorOpen.value=true;permissionStatus.value='';targetAccount.value='';permissionConfirmation.value=false;
+ focusPermissionEditor();
+}
+function closePermissionEditor():void{
+ if(permissionPhase.value==='saving')return;
+ roleEditorOpen.value=false;permissionConfirmation.value=false;
+ const previous=editorReturnFocus;
+ void nextTick(()=>{
+  if(previous?.isConnected)previous.focus();
+  else document.querySelector<HTMLElement>('#nfq-people-access .nfq-people-heading h2')?.focus();
+ });
+}
 function selectRosterAccount(item:ResearchAccountRow){
  if(permissionPhase.value!=='idle')return;
+ editorReturnFocus=document.activeElement instanceof HTMLElement?document.activeElement:null;
  roleEditorOpen.value=true;
  targetAccount.value=item.userId;
  targetRole.value=item.role??'contributor';
  permissionAction.value='assign';permissionConfirmation.value=false;permissionStatus.value='';
+ focusPermissionEditor();
 }
 let rosterSearchTimer:ReturnType<typeof setTimeout>|null=null;
 watch(()=>[authController?.state.phase,authController?.state.userId,researcherRole.phase,researcherRole.role],()=>{
@@ -407,14 +427,14 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
      <p v-if="rosterPhase==='ready'&&rosterRows.length>=50" class="nfq-directory-feedback">Showing up to 50 accounts. Narrow your search to find another account.</p>
      <div class="nfq-directory-footer">
       <span>Account changes require an independent identity check.</span>
-      <button v-if="!roleEditorOpen" type="button" class="nfq-inline-action" @click="roleEditorOpen=true;permissionStatus='';targetAccount='';permissionConfirmation=false">Use verified account ID</button>
+      <button v-if="!roleEditorOpen" type="button" class="nfq-inline-action" @click="openVerifiedAccountEditor">Use verified account ID</button>
      </div>
      <p v-if="permissionStatus&&!roleEditorOpen" role="status" class="nfq-role-result">{{permissionStatus}}</p>
     </div>
     <aside v-if="roleEditorOpen" id="nfq-role-management" class="nfq-account-inspector" aria-label="Research permission management" data-testid="admin-role-management">
      <div class="nfq-account-inspector-head">
       <div><span>Research permissions</span><h3>{{selectedRosterAccount?.email||'Verified account ID'}}</h3></div>
-      <button type="button" class="nfq-inspector-close" aria-label="Close permission editor" :disabled="permissionPhase==='saving'" @click="roleEditorOpen=false;permissionConfirmation=false">×</button>
+      <button type="button" class="nfq-inspector-close" aria-label="Close permission editor" :disabled="permissionPhase==='saving'" @click="closePermissionEditor">×</button>
      </div>
      <p class="nfq-inspector-context">{{selectedRosterAccount?(selectedRosterAccount.revoked?'Research membership revoked':selectedRosterAccount.role?'Current role: '+selectedRosterAccount.role:'No research membership assigned'):'Enter an independently confirmed account identifier.'}}</p>
      <form id="nfq-role-management-form" class="nfq-role-management-form" @submit.prevent="submitPermissionChange">
@@ -898,6 +918,125 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
  .research-admin .nfq-people-heading{flex-wrap:wrap}
  .research-admin .nfq-account-inspector-head{min-width:0}
  .research-admin .nfq-account-inspector-head>div{min-width:0;overflow-wrap:anywhere}
+}
+
+
+/* 14H137C5 — premium authenticated research operations: unfilled,
+   proportionate actions, visible focus and no loss of editor context. */
+.research-admin .nfq-people-section{
+ min-width:0;
+ border-radius:8px;
+ padding:clamp(12px,1.5vw,16px);
+ box-shadow:none;
+}
+.research-admin .nfq-people-layout-editing{
+ min-width:0;
+ gap:clamp(12px,2vw,24px);
+ grid-template-columns:minmax(0,1fr) minmax(290px,.86fr);
+}
+.research-admin .nfq-people-directory,
+.research-admin .nfq-account-inspector{
+ min-width:0;
+ overflow-wrap:anywhere;
+}
+.research-admin .nfq-person-avatar{
+ display:grid;
+ place-items:center;
+ width:29px;
+ height:29px;
+ flex:0 0 29px;
+ border:1px solid #cadbec;
+ border-radius:8px;
+ background:transparent;
+ color:#315b84;
+ box-shadow:none;
+ font-size:11.5px;
+ font-weight:670;
+}
+.research-admin .nfq-person-role{
+ background:transparent;
+ border:1px solid #dbe6f0;
+ border-radius:5px;
+ color:#53718f;
+ padding:3px 7px;
+}
+.research-admin .nfq-person-role-unassigned{
+ background:transparent;
+ color:#72869c;
+}
+.research-admin .nfq-account-inspector-head{min-width:0}
+.research-admin .nfq-account-inspector-head>div{
+ min-width:0;
+ overflow-wrap:anywhere;
+}
+.research-admin .nfq-account-inspector .nfq-role-management-form{
+ min-width:0;
+ gap:9px;
+}
+.research-admin .nfq-account-inspector :is(input:not([type="checkbox"]),select){
+ min-width:0;
+ max-width:100%;
+ min-height:40px;
+ border-radius:6px;
+ background:transparent;
+}
+.research-admin .nfq-account-inspector input[readonly]{
+ background:rgba(41,121,255,.035);
+}
+.research-admin .nfq-save-role{
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ justify-self:start;
+ width:auto;
+ min-width:0;
+ max-width:100%;
+ min-height:40px;
+ padding:7px 11px;
+ border:1px solid #b8cce4;
+ border-radius:6px;
+ background:transparent;
+ color:#285caa;
+ box-shadow:none;
+ font:inherit;
+ font-size:11.5px;
+ font-weight:610;
+ line-height:1.35;
+ cursor:pointer;
+}
+.research-admin .nfq-save-role:hover:not(:disabled){
+ background:rgba(41,121,255,.065);
+ border-color:#93b5df;
+}
+.research-admin .nfq-inline-action{
+ min-height:40px;
+ display:inline-flex;
+ align-items:center;
+ padding:6px 2px;
+}
+.research-admin .nfq-role-result{
+ min-width:0;
+ overflow-wrap:anywhere;
+}
+.research-admin :is(.nfq-save-role,.nfq-inline-action,.nfq-person-select):focus-visible{
+ outline:2px solid #2979ff;
+ outline-offset:2px;
+}
+@media(max-width:970px){
+ .research-admin .nfq-people-layout-editing{
+  grid-template-columns:minmax(0,1fr);
+  gap:14px;
+ }
+ .research-admin .nfq-account-inspector{
+  padding:14px 0 0;
+  border-left:0;
+  border-top:1px solid #dce6f0;
+ }
+}
+@media(max-width:410px){
+ .research-admin .nfq-people-section{padding:12px 10px}
+ .research-admin .nfq-person-select{min-width:0}
+ .research-admin .nfq-account-inspector-head{gap:8px}
 }
 
 </style>
