@@ -312,9 +312,12 @@ async function loadSourceReviews():Promise<void>{
   queueNotice.value='Review data could not be verified. No records are displayed.';
  }
 }
+let reviewIdentity=authController?.state.phase==='signed-in'?authController.state.userId:null;
 watch(()=>[authController?.state.phase,authController?.state.userId,researcherRole.phase,researcherRole.role],()=>{
+ const subject=authController?.state.phase==='signed-in'?authController.state.userId:null;
+ // Role rechecks must NOT clear a blocked uncertain POST for the same user.
+ if(subject!==reviewIdentity){uncertainDecisionIds.value=[];reviewIdentity=subject;}
  ++decisionSequence;pendingDecision.value=null;uncertainDecision.value=false;
- uncertainDecisionIds.value=[];
  decisionNotes.value={};decisionTypes.value={};decisionConfirmed.value={};decisionNotice.value='';
  clearReviewQueue();
 });
@@ -545,7 +548,7 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
    <p v-if="!queueAllowed" class="admin-session-state">Reviewer access and the authorised review connection must be verified.</p>
    <template v-else>
     <button type="button" class="admin-role-refresh" :disabled="queuePhase==='loading'||Boolean(pendingDecision)" @click="refreshSourceReviewQueue">{{queuePhase==='loading'?'Checking…':'Refresh reviews'}}</button>
-    <p v-if="decisionNotice" role="status" class="admin-session-state">{{decisionNotice}}</p>
+    <p v-if="decisionNotice" :role="uncertainDecision?'alert':'status'" class="admin-session-state">{{decisionNotice}}</p>
     <p v-if="queueNotice" role="status" class="admin-session-state">{{queueNotice}}</p>
     <p v-else-if="queuePhase==='ready'&&!reviewItems.length" role="status" class="admin-session-state">No submitted source corrections were returned.</p>
     <div v-if="queuePhase==='ready'&&reviewItems.length" class="source-review-list" aria-label="Pending source corrections">
@@ -571,14 +574,14 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
        </p>
        <div v-else class="source-review-decision" :aria-label="'Decision for proposal '+item.id">
         <label :for="'nfq-source-decision-'+item.id">Review decision</label>
-        <select :id="'nfq-source-decision-'+item.id" v-model="decisionTypes[item.id]" :disabled="!canReviewItem(item)">
+        <select :id="'nfq-source-decision-'+item.id" v-model="decisionTypes[item.id]" :disabled="!canReviewItem(item)" @change="decisionConfirmed[item.id]=false">
          <option disabled value="">Choose a decision</option>
          <option value="accepted">Accept proposal for review record</option>
          <option value="rejected">Reject proposal</option>
         </select>
         <label :for="'nfq-source-rationale-'+item.id">Independent review rationale</label>
         <textarea :id="'nfq-source-rationale-'+item.id" v-model="decisionNotes[item.id]"
-         rows="3" maxlength="900" :disabled="!canReviewItem(item)" placeholder="Document the underlying scientific evidence; do not include patient details." />
+         rows="3" maxlength="900" :disabled="!canReviewItem(item)" @input="decisionConfirmed[item.id]=false" placeholder="Document the underlying scientific evidence; do not include patient details." />
         <label class="nfq-review-confirm">
          <input v-model="decisionConfirmed[item.id]" type="checkbox" :disabled="!canReviewItem(item)" />
          <span>I independently checked the recorded source and authorize this one-time audited review decision. This does not publish evidence.</span>
