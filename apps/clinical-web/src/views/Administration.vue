@@ -9,7 +9,7 @@ import {authController} from '../services/authSession';
 import {researcherRole,refreshResearcherRole} from '../services/researchRole';
 import {guestDesignation} from '../services/guestDesignation';
 import {resolveWorkspacePersona,workspaceTitle} from '../domain/workspacePersona';
-import {safeResearchReturnPath} from '../domain/researchJourney';
+import {safeResearchReturnPath,variantJourneyPath,workspaceJourneyPath} from '../domain/researchJourney';
 import {readConfigFromEnvironment} from '../services/liveVariants';
 import {canReadSourceReviewQueue,createSourceReviewQueue,type SourceCorrectionReviewItem} from '../services/sourceCorrectionReviewQueue';
 import {canDecideSourceCorrection,createSourceCorrectionDecisionClient,type SourceCorrectionDecision} from '../services/sourceCorrectionDecision';
@@ -231,17 +231,29 @@ const decisionAllowed=computed(()=>Boolean(decisionClient)&&queueAllowed.value&&
  canDecideSourceCorrection(decisionEnabled,authController?.state.phase??'signed-out',researcherRole));
 const decisionNotes=ref<Record<string,string>>({});
 const decisionTypes=ref<Record<string,SourceCorrectionDecision>>({});
+const decisionConfirmed=ref<Record<string,boolean>>({});
+// An uncertain decision may have committed server-side. Never automatically
+// re-dispatch that exact proposal again during the same mounted session.
+const uncertainDecisionIds=ref<readonly string[]>([]);
 const pendingDecision=ref<string|null>(null);
 const decisionNotice=ref('');
 const uncertainDecision=ref(false);
 let decisionSequence=0;
 function canReviewItem(item:SourceCorrectionReviewItem):boolean{
  const account=authController?.state.userId;
- return decisionAllowed.value&&!pendingDecision.value&&!uncertainDecision.value&&Boolean(account)
+ return decisionAllowed.value&&!pendingDecision.value&&!uncertainDecision.value&&
+  !uncertainDecisionIds.value.includes(item.id)&&Boolean(account)
   &&item.createdBy.toLowerCase()!==account?.toLowerCase();
 }
+function canSubmitReviewItem(item:SourceCorrectionReviewItem):boolean{
+ const choice=decisionTypes.value[item.id];
+ const note=(decisionNotes.value[item.id]??'').trim();
+ return canReviewItem(item)&&Boolean(decisionConfirmed.value[item.id])&&
+  (choice==='accepted'||choice==='rejected')&&note.length>=15&&note.length<=900&&
+  !/[\u0000-\u001f]/.test(note);
+}
 async function decideSourceCorrection(item:SourceCorrectionReviewItem):Promise<void>{
- if(!decisionClient||!canReviewItem(item))return;
+ if(!decisionClient||!canSubmitReviewItem(item))return;
  const choice=decisionTypes.value[item.id];
  const note=decisionNotes.value[item.id]??'';
  if((choice!=='accepted'&&choice!=='rejected')||note.trim().length<15||note.trim().length>900){
@@ -255,13 +267,17 @@ async function decideSourceCorrection(item:SourceCorrectionReviewItem):Promise<v
   if(run!==decisionSequence)return;
   // A successful RPC records a review only: evidence_links remains unchanged.
   decisionNotice.value='Decision recorded. The published reference has not changed.';
-  decisionNotes.value={};decisionTypes.value={};
-  clearReviewQueue();
+  decisionNotes.value={};decisionTypes.value={};decisionConfirmed.value={};
+  // A successful review is NOT publication. Reload pending source reviews
+  // while retaining the recorded-decision feedback for the reviewer.
+  await loadSourceReviews();
  }catch(error){
   if(run!==decisionSequence)return;
   // No automatic retry after a possibly committed POST.
   uncertainDecision.value=true;
-  decisionNotice.value=error instanceof Error?error.message:'Review was not confirmed. Reload the queue.';
+  uncertainDecisionIds.value=[...new Set([...uncertainDecisionIds.value,item.id])];
+  decisionNotice.value=(error instanceof Error?error.message:'Review was not confirmed.')+
+   ' This proposal cannot be submitted again in this session; verify the recorded review independently.';
  }finally{
   if(run===decisionSequence)pendingDecision.value=null;
  }
@@ -296,9 +312,13 @@ async function loadSourceReviews():Promise<void>{
   queueNotice.value='Review data could not be verified. No records are displayed.';
  }
 }
+let reviewIdentity=authController?.state.phase==='signed-in'?authController.state.userId:null;
 watch(()=>[authController?.state.phase,authController?.state.userId,researcherRole.phase,researcherRole.role],()=>{
+ const subject=authController?.state.phase==='signed-in'?authController.state.userId:null;
+ // Role rechecks must NOT clear a blocked uncertain POST for the same user.
+ if(subject!==reviewIdentity){uncertainDecisionIds.value=[];reviewIdentity=subject;}
  ++decisionSequence;pendingDecision.value=null;uncertainDecision.value=false;
- decisionNotes.value={};decisionTypes.value={};decisionNotice.value='';
+ decisionNotes.value={};decisionTypes.value={};decisionConfirmed.value={};decisionNotice.value='';
  clearReviewQueue();
 });
 watch(queueAllowed,canRead=>{
@@ -528,7 +548,7 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
    <p v-if="!queueAllowed" class="admin-session-state">Reviewer access and the authorised review connection must be verified.</p>
    <template v-else>
     <button type="button" class="admin-role-refresh" :disabled="queuePhase==='loading'||Boolean(pendingDecision)" @click="refreshSourceReviewQueue">{{queuePhase==='loading'?'Checking…':'Refresh reviews'}}</button>
-    <p v-if="decisionNotice" role="status" class="admin-session-state">{{decisionNotice}}</p>
+    <p v-if="decisionNotice" :role="uncertainDecision?'alert':'status'" class="admin-session-state">{{decisionNotice}}</p>
     <p v-if="queueNotice" role="status" class="admin-session-state">{{queueNotice}}</p>
     <p v-else-if="queuePhase==='ready'&&!reviewItems.length" role="status" class="admin-session-state">No submitted source corrections were returned.</p>
     <div v-if="queuePhase==='ready'&&reviewItems.length" class="source-review-list" aria-label="Pending source corrections">
@@ -538,20 +558,37 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
       <p>Recorded: {{item.recordedValue??'Not recorded'}}</p>
       <p>Proposed: {{item.proposedValue}}</p>
       <p>Rationale: {{item.rationale}}</p>
+      <nav class="nfq-review-source-links" :aria-label="'Research context for proposal '+item.id">
+       <RouterLink v-if="variantJourneyPath(item.variantId)" :to="variantJourneyPath(item.variantId)!" data-testid="review-open-variant">
+        Inspect variant dossier
+       </RouterLink>
+       <RouterLink v-if="workspaceJourneyPath('/evidence',{variant:item.variantId})"
+        :to="workspaceJourneyPath('/evidence',{variant:item.variantId})!" data-testid="review-open-evidence">
+        Inspect recorded evidence
+       </RouterLink>
+      </nav>
       <template v-if="decisionAllowed">
        <p v-if="item.createdBy.toLowerCase()===authController?.state.userId?.toLowerCase()" class="admin-session-state">A different scientific reviewer must assess this proposal.</p>
+       <p v-else-if="uncertainDecisionIds.includes(item.id)" class="nfq-review-uncertain" role="alert">
+        Review outcome uncertain. This proposal is blocked from another submission in this session; verify its audit record.
+       </p>
        <div v-else class="source-review-decision" :aria-label="'Decision for proposal '+item.id">
         <label :for="'nfq-source-decision-'+item.id">Review decision</label>
-        <select :id="'nfq-source-decision-'+item.id" v-model="decisionTypes[item.id]" :disabled="!canReviewItem(item)">
+        <select :id="'nfq-source-decision-'+item.id" v-model="decisionTypes[item.id]" :disabled="!canReviewItem(item)" @change="decisionConfirmed[item.id]=false">
          <option disabled value="">Choose a decision</option>
          <option value="accepted">Accept proposal for review record</option>
          <option value="rejected">Reject proposal</option>
         </select>
         <label :for="'nfq-source-rationale-'+item.id">Independent review rationale</label>
         <textarea :id="'nfq-source-rationale-'+item.id" v-model="decisionNotes[item.id]"
-         rows="3" maxlength="900" :disabled="!canReviewItem(item)" placeholder="Document the underlying scientific evidence; do not include patient details." />
-        <button type="button" class="admin-role-refresh"
-         :disabled="!canReviewItem(item)" @click="decideSourceCorrection(item)">
+         rows="3" maxlength="900" :disabled="!canReviewItem(item)" @input="decisionConfirmed[item.id]=false" placeholder="Document the underlying scientific evidence; do not include patient details." />
+        <label class="nfq-review-confirm">
+         <input v-model="decisionConfirmed[item.id]" type="checkbox" :disabled="!canReviewItem(item)" />
+         <span>I independently checked the recorded source and authorize this one-time audited review decision. This does not publish evidence.</span>
+        </label>
+        <p class="nfq-review-rationale-meta">{{(decisionNotes[item.id]??'').trim().length}} / 900 characters · minimum 15</p>
+        <button type="button" class="admin-role-refresh nfq-review-submit"
+         :disabled="!canSubmitReviewItem(item)" @click="decideSourceCorrection(item)">
          {{pendingDecision===item.id?'Recording…':'Record review decision'}}
         </button>
        </div>
@@ -1037,6 +1074,78 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
  .research-admin .nfq-people-section{padding:12px 10px}
  .research-admin .nfq-person-select{min-width:0}
  .research-admin .nfq-account-inspector-head{gap:8px}
+}
+
+
+/* 14H137C6 · Connected scientific review: original quiet instruments,
+   independent verification, complete evidence/variant pathways. */
+.research-admin .nfq-review-source-links{
+ display:flex;align-items:center;flex-wrap:wrap;gap:5px 9px;
+ margin:9px 0 10px;
+}
+.research-admin .nfq-review-source-links a{
+ display:inline-flex;align-items:center;justify-content:center;
+ min-height:40px;width:auto;max-width:100%;
+ border:1px solid #c9d8e9;border-radius:6px;
+ background:transparent;color:#285caa;
+ padding:7px 11px;font:inherit;font-size:11.5px;font-weight:590;
+ text-decoration:none;line-height:1.3;overflow-wrap:anywhere;
+}
+.research-admin .nfq-review-source-links a:hover{
+ background:rgba(41,121,255,.06);border-color:#9bbce4;
+}
+.research-admin .source-review-decision{
+ max-width:590px;min-width:0;gap:7px;
+ border:1px solid #dce6f0;border-radius:7px;
+ padding:11px 12px;margin:10px 0 3px;
+ background:transparent;
+}
+.research-admin .source-review-decision :is(select,textarea){
+ max-width:100%;min-width:0;
+ border:1px solid #cad9e9;border-radius:6px;
+ background:transparent;min-height:40px;padding:8px 10px;
+ color:inherit;
+}
+.research-admin .source-review-decision textarea{min-height:84px}
+.research-admin .nfq-review-confirm{
+ display:flex;align-items:flex-start;gap:8px;
+ min-width:0;line-height:1.5;margin-top:5px;
+ color:#4e6682;font-size:11px;font-weight:480;
+}
+.research-admin .nfq-review-confirm input{
+ width:17px;height:17px;flex:none;margin:2px 0 0;
+ accent-color:#2979ff;
+}
+.research-admin .nfq-review-confirm span{min-width:0;overflow-wrap:anywhere}
+.research-admin .nfq-review-rationale-meta{
+ font-size:10.5px;color:#687c94;line-height:1.4;
+ margin:0;
+}
+.research-admin .nfq-review-submit{
+ justify-self:start;min-height:40px;
+ padding:7px 12px;
+ border-radius:6px;
+ background:transparent;
+ box-shadow:none;
+ color:#285caa;
+ border-color:#b6cce5;
+ font-size:11.5px;font-weight:600;
+}
+.research-admin .nfq-review-submit:hover:not(:disabled){
+ background:rgba(41,121,255,.06);
+ border-color:#9bbce4;
+}
+.research-admin .nfq-review-uncertain{
+ margin:6px 0 10px;color:#95603a;
+ font-size:11.5px;line-height:1.5;overflow-wrap:anywhere;
+}
+.research-admin :is(.nfq-review-source-links a,.nfq-review-submit):focus-visible{
+ outline:2px solid #2979ff;outline-offset:2px;
+}
+@media(max-width:440px){
+ .research-admin .source-review-decision{padding:10px}
+ .research-admin .nfq-review-source-links{gap:5px}
+ .research-admin .nfq-review-source-links a{padding:7px 9px}
 }
 
 </style>
