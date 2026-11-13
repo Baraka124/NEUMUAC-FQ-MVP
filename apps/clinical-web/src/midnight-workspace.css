@@ -680,3 +680,84 @@
 .app-frame[data-nfq-theme="midnight"] .research-admin .nfq-review-uncertain{
  color:#efc19a!important;
 }
+
+
+/*
+ * 14H139 · Complete named Night surfaces without touching clinical semantics.
+ * These older Daylight-only account/search sheets otherwise stay pale after
+ * the user changes the workspace appearance. No global inversion or status
+ * color remapping: this is strictly a surface and typography reconciliation.
+ */
+.app-frame[data-nfq-theme="midnight"] :is(
+ .research-admin .admin-readiness,
+ .research-admin .nfq-account-welcome,
+ .research-admin .research-entry-aside,
+ .research-admin .nfq-roster-row,
+ .research-admin .nfq-role-management-form,
+ .research-admin .admin-operations-list li,
+ .variant-page .nfq-saved-panel,
+ .variant-page .discovery-help,
+ .variant-page .nfq-search-feedback,
+ .genotype-page .genotype-suggestions,
+ .intelligence-page .nfq-coverage-empty
+){
+ background:var(--nfq-night-paper)!important;
+ color:var(--nfq-night-ink)!important;
+ border-color:var(--nfq-night-line)!important;
+ box-shadow:none!important;
+}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .research-admin .nfq-roster-row,
+ .research-admin .nfq-role-management-form,
+ .research-admin .admin-operations-list li,
+ .genotype-page .genotype-suggestions,
+ .intelligence-page .nfq-coverage-empty
+){background:var(--nfq-night-soft)!important}
+.app-frame[data-nfq-theme="midnight"] .research-admin .nfq-roster-row.nfq-roster-selected{
+ background:rgba(41,121,255,.16)!important;
+ border-color:rgba(139,186,255,.5)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .research-admin :is(
+ .nfq-account-welcome h2,.nfq-roster-identity strong,.admin-section-heading h2,
+ .research-capabilities dd,.nfq-role-editor-head h3,.admin-operation-name h3
+){color:var(--nfq-night-ink)!important}
+.app-frame[data-nfq-theme="midnight"] .research-admin :is(
+ .nfq-account-welcome p,.nfq-roster-identity span,
+ .nfq-roster-controls label,.nfq-role-management-form .nfq-form-field label,
+ .nfq-role-confirm,.nfq-role-editor-head p,.admin-account-detail code,
+ .research-capabilities dt,.nfq-directory-footer
+){color:var(--nfq-night-muted)!important}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .variant-page .discovery-help,.variant-page .nfq-search-guide-note,
+ .variant-page .nfq-search-feedback p,.variant-page .nfq-saved-muted,
+ .variant-page .nfq-saved-feedback
+){color:var(--nfq-night-muted)!important}
+.app-frame[data-nfq-theme="midnight"] .variant-page .discovery-help :is(strong,code){
+ color:var(--nfq-night-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .nfq-saved-panel-head strong{
+ color:var(--nfq-night-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .nfq-saved-panel button,
+.app-frame[data-nfq-theme="midnight"] .variant-page .nfq-search-feedback button{
+ background:transparent!important;
+ color:var(--nfq-night-link)!important;
+ border-color:var(--nfq-night-line)!important;
+ box-shadow:none!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .nfq-saved-panel button:hover,
+.app-frame[data-nfq-theme="midnight"] .variant-page .nfq-search-feedback button:hover{
+ background:var(--nfq-night-hover)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .research-admin :is(
+ .nfq-roster-search,.nfq-roster-controls input,.nfq-roster-controls select,
+ .nfq-account-inspector input[readonly]
+){
+ background:var(--nfq-night-soft)!important;
+ border-color:var(--nfq-night-line)!important;
+ color:var(--nfq-night-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .research-admin .nfq-roster-search input{
+ background:transparent!important;
+ color:var(--nfq-night-ink)!important;
+}
