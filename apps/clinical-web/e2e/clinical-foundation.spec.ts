@@ -1541,3 +1541,91 @@ test('14H137C4 account overview stays proportionate without implying admin permi
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+
+test('14H138A compact search instruments have bounded geometry and original logo fills brand slot',async({page})=>{
+ await page.setViewportSize({width:1366,height:840});
+ await page.goto('/#/workspace');
+ const image=page.locator('.sidebar .wordmark-icon img');
+ const mark=page.locator('.sidebar .wordmark-icon');
+ await expect(image).toBeVisible();
+ const brand=await image.evaluate(el=>{
+  const img=el as HTMLImageElement;
+  const container=img.parentElement!;
+  return {
+   complete:img.complete,natural:img.naturalWidth,
+   objectFit:getComputedStyle(img).objectFit,
+   imageWidth:img.getBoundingClientRect().width,
+   boxWidth:container.getBoundingClientRect().width,
+   transform:getComputedStyle(img).transform
+  };
+ });
+ expect(brand.complete).toBe(true);
+ expect(brand.natural).toBeGreaterThan(0);
+ expect(brand.objectFit).toBe('contain');
+ expect(brand.boxWidth).toBeGreaterThanOrEqual(43);
+ expect(brand.imageWidth).toBeGreaterThan(brand.boxWidth);
+ const home=page.getByRole('search',{name:'Search CFTR variants'});
+ const homeInput=home.getByRole('searchbox',{name:'Search CFTR variants'});
+ await expect(homeInput).toBeVisible();
+ const homeWidth=await home.locator('.nfq-home-search-controls').evaluate(el=>el.getBoundingClientRect().width);
+ expect(homeWidth).toBeLessThanOrEqual(561);
+ await page.goto('/#/evidence');
+ const evidence=page.getByRole('searchbox',{name:'Find a source or reference'});
+ await expect(evidence).toBeVisible();
+ const evidenceWidth=await evidence.evaluate(el=>el.getBoundingClientRect().width);
+ expect(evidenceWidth).toBeLessThanOrEqual(561);
+ expect(evidenceWidth).toBeGreaterThan(100);
+ await page.goto('/#/genotype');
+ const genotype=page.getByRole('searchbox',{name:'Search variant 1'});
+ await expect(genotype).toBeVisible();
+ expect(await genotype.evaluate(el=>el.getBoundingClientRect().width)).toBeLessThanOrEqual(421);
+ await page.goto('/#/intelligence');
+ const coverage=page.getByRole('searchbox',{name:'Find a recorded variant'});
+ await expect(coverage).toBeVisible();
+ expect(await coverage.evaluate(el=>el.getBoundingClientRect().width)).toBeLessThanOrEqual(561);
+ await page.setViewportSize({width:390,height:800});
+ await page.goto('/#/workspace');
+ await expect(page.getByRole('searchbox',{name:'Search CFTR variants'})).toBeVisible();
+ for(const path of ['/variants','/evidence','/genotype','/intelligence']){
+  await page.goto('/#'+path);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
+
+test('14H138A Midnight changes all search controls and adjacent help, pagination and coverage surfaces',async({page})=>{
+ await page.setViewportSize({width:1280,height:850});
+ await page.goto('/#/workspace');
+ await page.getByTestId('nfq-research-theme-switch').click();
+ const frame=page.locator('.app-frame');
+ await expect(frame).toHaveAttribute('data-nfq-theme','midnight');
+ await expect(page.getByRole('searchbox',{name:'Search CFTR variants'}))
+  .toHaveCSS('background-color','rgb(17, 31, 51)');
+ await page.goto('/#/evidence');
+ await expect(page.getByRole('searchbox',{name:'Find a source or reference'}))
+  .toHaveCSS('background-color','rgb(17, 31, 51)');
+ await page.goto('/#/genotype');
+ await expect(page.getByRole('searchbox',{name:'Search variant 1'}))
+  .toHaveCSS('background-color','rgb(17, 31, 51)');
+ await page.goto('/#/intelligence');
+ await expect(page.getByRole('searchbox',{name:'Find a recorded variant'}))
+  .toHaveCSS('background-color','rgb(17, 31, 51)');
+ const coverageButtons=page.locator('.nfq-coverage-groups button');
+ await expect(coverageButtons.first()).toHaveCSS('background-color','rgb(15, 29, 48)');
+ await page.goto('/#/variants');
+ await page.getByRole('button',{name:'Search help and scientific data limitations'}).click();
+ const guide=page.getByRole('note',{name:'Search guidance'});
+ await expect(guide).toHaveCSS('background-color','rgb(17, 31, 51)');
+ await expect(page.locator('.variant-page .discovery-input'))
+  .toHaveCSS('background-color','rgb(17, 31, 51)');
+ await page.setViewportSize({width:390,height:800});
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ await page.getByRole('button',{name:/workspaces/i}).click();
+ const nav=page.getByRole('navigation',{name:'Mobile workspaces'});
+ await nav.getByRole('button',{name:'Switch to light theme'}).click();
+ await expect(frame).toHaveAttribute('data-nfq-theme','light');
+ await page.keyboard.press('Escape');
+ await expect(guide).toHaveCSS('background-color','rgb(247, 250, 255)');
+ await expect(page.locator('.variant-page .discovery-input'))
+  .toHaveCSS('background-color','rgb(255, 255, 255)');
+});
