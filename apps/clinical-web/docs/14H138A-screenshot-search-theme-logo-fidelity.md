@@ -29,3 +29,5 @@ The original monolithic `index (85)(1).html` remains untouched. Its deliberate o
 An application branch or green tests cannot prove the latest style is on **fq.neumact.org**. Current Vercel team access is not authorized, and external public browser inspection has not confirmed the site's live commit. This branch makes no live deployment, migration, permission, email, invitation or scientific record change. Once platform authorization is available, compare live release marker with the merged commit and inspect relevant full-screen screenshots under Daylight and Midnight.
 
 The separate 14H138 release identity/provenance work is **not overwritten or silently merged into this visual fix**.
+
+**Connected fixture addendum:** Public CI intentionally shows no Research Coverage search because no complete live catalog is configured; it must never invent documentation counts. The connected five-therapy browser fixture now verifies the actual Research Coverage search, selected group controls, Midnight colors and mobile containment using a full, read-only synthetic dataset.
