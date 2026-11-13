@@ -462,6 +462,15 @@ test('14H137C6 independent reviewer follows recorded evidence and records exactl
  await expect(submit).toBeDisabled();
  await record.getByLabel('Independent review rationale')
   .fill('Independent comparison with original publication metadata supports this correction.');
+ // Changing a rationale invalidates any previous independent authorization.
+ await expect(submit).toBeDisabled();
+ const acknowledge=record.getByRole('checkbox',{name:/independently checked/});
+ await acknowledge.check();
+ await expect(submit).toBeEnabled();
+ await record.getByRole('combobox',{name:'Review decision',exact:true}).selectOption('rejected');
+ await expect(submit).toBeDisabled();
+ await record.getByRole('combobox',{name:'Review decision',exact:true}).selectOption('accepted');
+ await acknowledge.check();
  await expect(submit).toBeEnabled();
  expect(writes).toHaveLength(0);
  const before=queueReads;
