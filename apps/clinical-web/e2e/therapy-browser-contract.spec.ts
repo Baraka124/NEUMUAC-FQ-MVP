@@ -895,6 +895,8 @@ test('14H138A complete synthetic research coverage verifies real search and Midn
  await expect(page.locator('.app-frame')).toHaveAttribute('data-nfq-theme','midnight');
  await expect(search).toHaveCSS('background-color','rgb(17, 31, 51)');
  await expect(group.getByRole('button').first())
+  .toHaveCSS('background-color','rgba(41, 121, 255, 0.17)');
+ await expect(group.getByRole('button').nth(1))
   .toHaveCSS('background-color','rgb(15, 29, 48)');
  await page.setViewportSize({width:390,height:800});
  await expect(search).toHaveCSS('background-color','rgb(17, 31, 51)');
