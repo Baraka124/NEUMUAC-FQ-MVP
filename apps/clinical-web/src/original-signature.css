@@ -328,3 +328,40 @@
 .app-frame[data-nfq-theme="midnight"] .workspace-launcher-trigger:hover{
  background:var(--nfq-night-hover)!important;
 }
+
+
+/* 14H138A · restore the original emblem's visual fill.
+   The brand file is UNCHANGED; the image retains aspect ratio. The 36px
+   presentation made a generously padded asset look smaller than its slot. */
+@media(min-width:761px){
+ .app-frame .sidebar .wordmark{
+  gap:10px;
+ }
+ .app-frame .sidebar .wordmark-icon{
+  width:44px;
+  height:44px;
+  flex:0 0 44px;
+  display:grid;
+  place-items:center;
+  overflow:visible;
+  border:0;
+  background:transparent;
+ }
+ .app-frame .sidebar .wordmark-icon img{
+  display:block;
+  position:static;
+  width:44px;
+  height:44px;
+  max-width:none;
+  max-height:none;
+  object-fit:contain;
+  object-position:center;
+  transform:scale(1.09);
+  transform-origin:center center;
+ }
+ .app-frame.sidebar-collapsed .sidebar .wordmark-icon{
+  margin-inline:auto;
+  width:44px;
+  flex-basis:44px;
+ }
+}
