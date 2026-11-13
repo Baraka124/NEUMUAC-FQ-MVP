@@ -97,7 +97,11 @@ test('14H139 scientific route sweep maintains responsive surfaces in both themes
  for(const width of [320,390,1366]){
   await page.setViewportSize({width,height:900});
   for(const theme of ['light','midnight']){
-   await page.addInitScript(choice=>window.localStorage.setItem('nfq-research-theme-v1',choice),theme);
+   // Reset the preference before reloading. Adding init scripts repeatedly
+   // can execute previous theme setters in an unspecified order.
+   await page.goto('/#/workspace');
+   await page.evaluate(choice=>window.localStorage.setItem('nfq-research-theme-v1',choice),theme);
+   await page.reload();
    for(const route of routes){
     await page.goto('/#'+route.path);
     await expect(page.locator('.app-frame')).toHaveAttribute('data-nfq-theme',theme);
