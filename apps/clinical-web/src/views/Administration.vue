@@ -250,7 +250,7 @@ function canSubmitReviewItem(item:SourceCorrectionReviewItem):boolean{
  const note=(decisionNotes.value[item.id]??'').trim();
  return canReviewItem(item)&&Boolean(decisionConfirmed.value[item.id])&&
   (choice==='accepted'||choice==='rejected')&&note.length>=15&&note.length<=900&&
-  !/[\\u0000-\\u001f]/.test(note);
+  !/[\u0000-\u001f]/.test(note);
 }
 async function decideSourceCorrection(item:SourceCorrectionReviewItem):Promise<void>{
  if(!decisionClient||!canSubmitReviewItem(item))return;
