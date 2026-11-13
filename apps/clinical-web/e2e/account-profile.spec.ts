@@ -456,7 +456,7 @@ test('14H137C6 independent reviewer follows recorded evidence and records exactl
  const record=review.locator('.source-review-item').filter({hasText:'Proposal 12'});
  const submit=record.getByRole('button',{name:'Record review decision'});
  await expect(submit).toBeDisabled();
- await record.getByLabel('Review decision').selectOption('accepted');
+ await record.getByRole('combobox',{name:'Review decision',exact:true}).selectOption('accepted');
  await record.getByLabel('Independent review rationale').fill('Too short');
  await record.getByRole('checkbox',{name:/independently checked/}).check();
  await expect(submit).toBeDisabled();
@@ -500,7 +500,7 @@ test('14H137C6 uncertain review never re-dispatches the same proposal even after
  const review=page.getByTestId('source-review-workspace');
  const record=review.locator('.source-review-item').filter({hasText:'Proposal 32'});
  await expect(record).toBeVisible();
- await record.getByLabel('Review decision').selectOption('rejected');
+ await record.getByRole('combobox',{name:'Review decision',exact:true}).selectOption('rejected');
  await record.getByLabel('Independent review rationale')
   .fill('The corrected identifier does not match the original indexed publication record.');
  await record.getByRole('checkbox',{name:/independently checked/}).check();
