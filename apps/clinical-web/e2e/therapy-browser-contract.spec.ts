@@ -877,3 +877,29 @@ test('14H137C4 evidence reference links use intrinsic mobile widths and retain f
  await expect(page).toHaveURL(/#\/variants\/35/);
  await expectFiveRows(page.getByTestId('five-therapy-workspace'));
 });
+
+
+test('14H138A complete synthetic research coverage verifies real search and Midnight controls without fabricated records',async({page})=>{
+ await setup(page);
+ await page.setViewportSize({width:1366,height:840});
+ await page.goto('/#/intelligence');
+ const search=page.getByRole('searchbox',{name:'Find a recorded variant'});
+ await expect(search).toBeVisible();
+ const group=page.getByRole('navigation',{name:'Documentation coverage groups'});
+ await expect(group.getByRole('button')).toHaveCount(5);
+ expect(await search.evaluate(el=>el.getBoundingClientRect().width)).toBeLessThanOrEqual(561);
+ await search.fill('G542X');
+ await expect(search).toHaveValue('G542X');
+ await expect(page.getByRole('button',{name:'Clear search'})).toBeVisible();
+ await page.getByTestId('nfq-research-theme-switch').click();
+ await expect(page.locator('.app-frame')).toHaveAttribute('data-nfq-theme','midnight');
+ await expect(search).toHaveCSS('background-color','rgb(17, 31, 51)');
+ await expect(group.getByRole('button').first())
+  .toHaveCSS('background-color','rgb(15, 29, 48)');
+ await page.setViewportSize({width:390,height:800});
+ await expect(search).toHaveCSS('background-color','rgb(17, 31, 51)');
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ await page.getByRole('button',{name:'Clear search'}).click();
+ await expect(search).toHaveValue('');
+ await expect(group.getByRole('button')).toHaveCount(5);
+});
