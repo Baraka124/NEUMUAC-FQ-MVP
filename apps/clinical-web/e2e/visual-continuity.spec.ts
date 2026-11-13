@@ -82,3 +82,34 @@ test('14H139 original PNG assets fill their intended brand slots without replace
  expect(mark.size).toBeGreaterThan(48);
  expect(mark.fit).toBe('contain');
 });
+
+
+test('14H139 scientific route sweep maintains responsive surfaces in both themes',async({page})=>{
+ // Public source-free smoke. It covers the interface while keeping all role-
+ // gated actions and live data writes out of the visual verification.
+ const routes=[
+  {path:'/variants',heading:'Variants',surface:'.record-rail'},
+  {path:'/genotype',heading:'Variant comparison',surface:'.genotype-locus'},
+  {path:'/evidence',heading:'Evidence & provenance',surface:'.nfq-evidence-heading'},
+  {path:'/helios',heading:'Helios',surface:'.helios-panel'},
+  {path:'/admin',heading:'Research access',surface:'.research-entry-aside'}
+ ];
+ for(const width of [320,390,1366]){
+  await page.setViewportSize({width,height:900});
+  for(const theme of ['light','midnight']){
+   await page.addInitScript(choice=>window.localStorage.setItem('nfq-research-theme-v1',choice),theme);
+   for(const route of routes){
+    await page.goto('/#'+route.path);
+    await expect(page.locator('.app-frame')).toHaveAttribute('data-nfq-theme',theme);
+    await expect(page.getByRole('heading',{name:route.heading,exact:true}).first()).toBeVisible();
+    const surface=page.locator(route.surface).first();
+    await expect(surface).toBeVisible();
+    if(theme==='midnight' && route.path!=='/evidence'){
+     await expect.poll(()=>surface.evaluate(el=>getComputedStyle(el).backgroundColor))
+      .toBe('rgb(15, 29, 48)');
+    }
+    await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+   }
+  }
+ }
+});
