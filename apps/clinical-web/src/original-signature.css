@@ -365,3 +365,31 @@
   flex-basis:44px;
  }
 }
+
+
+/* 14H138A · Daylight informational surfaces stay crisp, never cloudy
+   green-gray. Only named search/help regions are changed. */
+.app-frame[data-nfq-theme="light"] .variant-page .discovery-help{
+ background:#f7faff!important;
+ color:#455c78!important;
+ border:1px solid #d6e3f1!important;
+ box-shadow:none!important;
+}
+.app-frame[data-nfq-theme="light"] .genotype-page .genotype-suggestions{
+ background:#fff!important;
+ border-color:#d6e3f1!important;
+ box-shadow:none!important;
+}
+.app-frame[data-nfq-theme="light"] .genotype-page .genotype-suggestions button{
+ background:#fff!important;
+ border-color:#e1e9f3!important;
+ color:#162540!important;
+}
+.app-frame[data-nfq-theme="light"] .genotype-page .genotype-suggestions button:hover{
+ background:#f2f6fe!important;
+}
+.app-frame[data-nfq-theme="light"] .intelligence-page .nfq-coverage-empty{
+ background:#fff!important;
+ border-color:#d9e4f0!important;
+ box-shadow:none!important;
+}
