@@ -177,4 +177,52 @@ onUnmounted(()=>abort?.abort());
 .nfq-documentation-export button{min-height:38px;max-width:100%;border:1px solid #c8dbce;border-radius:7px;padding:8px 12px;background:transparent;color:#2b6348;font:inherit;font-size:12px;font-weight:600;cursor:pointer;white-space:normal;overflow-wrap:anywhere}
 .nfq-documentation-export button:focus-visible{outline:2px solid #218466;outline-offset:3px}
 .nfq-documentation-export-note{font-size:12px;line-height:1.45;color:#547662;margin:0 0 12px}
+
+/* 14H138A · recorded documentation search matches other research tools. */
+.intelligence-page .nfq-coverage-search{
+ width:100%;
+ max-width:560px;
+ min-width:0;
+}
+.intelligence-page .nfq-coverage-search input[type="search"]{
+ display:block;
+ width:100%;
+ max-width:100%;
+ min-height:42px;
+ height:42px;
+ padding:8px 11px;
+ border:1px solid #c5d5e8;
+ border-radius:6px;
+ background:#fff;
+ color:#162540;
+ box-shadow:none;
+ font-size:12.5px;
+}
+.intelligence-page .nfq-coverage-search input[type="search"]::placeholder{
+ color:#70839b;opacity:1;
+}
+.intelligence-page .nfq-coverage-search :is(input,button):focus-visible{
+ outline:2px solid #2979ff;outline-offset:2px;
+}
+.intelligence-page .nfq-coverage-search .nfq-coverage-clear{
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ min-height:40px;
+ max-width:100%;
+ margin-top:6px;
+ padding:7px 10px;
+ background:transparent;
+ border:1px solid #c6d5e8;
+ border-radius:6px;
+ color:#285caa;
+ box-shadow:none;
+ font:inherit;
+ font-size:11.5px;
+ font-weight:590;
+}
+.intelligence-page .nfq-coverage-search .nfq-coverage-clear:hover{
+ background:rgba(41,121,255,.06);
+}
+
 </style>
