@@ -413,3 +413,133 @@ test('14H137C5 contextual research access help stays above mobile workspace cont
  await expect(summary).toBeFocused();
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
+
+
+test('14H137C6 independent reviewer follows recorded evidence and records exactly one audited decision',async({page})=>{
+ test.setTimeout(60000);
+ await mockFqAccount(page,'reviewer');
+ const other={
+  id:12,reference_id:24,variant_id:42,field_name:'title',recorded_value:'Original title',
+  proposed_value:'Corrected source title',rationale:'The publication title was corrected after editorial review.',
+  status:'submitted',created_by:accounts.contributor,created_at:'2026-11-09T10:00:00Z'
+ };
+ const self={...other,id:11,reference_id:23,created_by:accounts.reviewer,
+  proposed_value:'A self-authored scientific correction'};
+ let rows=[self,other];
+ let queueReads=0;const writes:unknown[]=[];
+ await page.route('https://example.supabase.co/rest/v1/nfq_source_correction_proposals*',async route=>{
+  queueReads++;
+  await route.fulfill({status:200,contentType:'application/json',
+   headers:{'access-control-allow-origin':'*'},body:JSON.stringify(rows)});
+ });
+ await page.route('https://example.supabase.co/rest/v1/rpc/nfq_review_source_correction',async route=>{
+  const payload=JSON.parse(route.request().postData()||'{}');
+  writes.push(payload);
+  rows=rows.filter(r=>String(r.id)!==String(payload.p_proposal_id));
+  await route.fulfill({status:204,headers:{'access-control-allow-origin':'*'}});
+ });
+ await page.setViewportSize({width:390,height:820});
+ await page.goto('/#/admin');
+ const review=page.getByTestId('source-review-workspace');
+ await expect(review).toBeVisible();
+ const selfRow=review.locator('.source-review-item').filter({hasText:'Proposal 11'});
+ await expect(selfRow).toContainText('A different scientific reviewer must assess');
+ await expect(selfRow.getByRole('button',{name:'Record review decision'})).toHaveCount(0);
+ const otherRow=review.locator('.source-review-item').filter({hasText:'Proposal 12'});
+ await expect(otherRow).toBeVisible();
+ await expect(otherRow.getByTestId('review-open-variant')).toHaveAttribute('href',/#\/variants\/42/);
+ await expect(otherRow.getByTestId('review-open-evidence')).toHaveAttribute('href',/#\/evidence\?variant=42/);
+ const source=otherRow.getByTestId('review-open-evidence');
+ await source.click();
+ await expect(page).toHaveURL(/#\/evidence\?variant=42/);
+ await page.goto('/#/admin');
+ const record=review.locator('.source-review-item').filter({hasText:'Proposal 12'});
+ const submit=record.getByRole('button',{name:'Record review decision'});
+ await expect(submit).toBeDisabled();
+ await record.getByLabel('Review decision').selectOption('accepted');
+ await record.getByLabel('Independent review rationale').fill('Too short');
+ await record.getByRole('checkbox',{name:/independently checked/}).check();
+ await expect(submit).toBeDisabled();
+ await record.getByLabel('Independent review rationale')
+  .fill('Independent comparison with original publication metadata supports this correction.');
+ await expect(submit).toBeEnabled();
+ expect(writes).toHaveLength(0);
+ const before=queueReads;
+ await submit.click();
+ await expect.poll(()=>writes.length).toBe(1);
+ expect(writes).toEqual([{p_proposal_id:'12',p_decision:'accepted',
+  p_review_note:'Independent comparison with original publication metadata supports this correction.'}]);
+ await expect(review).toContainText('Decision recorded. The published reference has not changed.');
+ await expect.poll(()=>queueReads).toBeGreaterThan(before);
+ await expect(review.locator('.source-review-item')).toHaveCount(1);
+ await expect(selfRow).toBeVisible();
+ await expect(review.locator('.source-review-item').filter({hasText:'Proposal 12'})).toHaveCount(0);
+ await expect(page.getByTestId('admin-people-access')).toHaveCount(0);
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
+
+test('14H137C6 uncertain review never re-dispatches the same proposal even after refreshing the queue',async({page})=>{
+ await mockFqAccount(page,'reviewer');
+ const row={
+  id:32,reference_id:33,variant_id:42,field_name:'doi',recorded_value:'10.1000/old',
+  proposed_value:'10.1000/corrected',
+  rationale:'Independent evidence suggests this original DOI is recorded incorrectly.',
+  status:'submitted',created_by:accounts.contributor,created_at:'2026-11-10T09:00:00Z'
+ };
+ let writes=0;
+ await page.route('https://example.supabase.co/rest/v1/nfq_source_correction_proposals*',async route=>{
+  await route.fulfill({status:200,contentType:'application/json',
+   headers:{'access-control-allow-origin':'*'},body:JSON.stringify([row])});
+ });
+ await page.route('https://example.supabase.co/rest/v1/rpc/nfq_review_source_correction',async route=>{
+  writes++;
+  await route.fulfill({status:503,contentType:'application/json',
+   headers:{'access-control-allow-origin':'*'},body:'{}'});
+ });
+ await page.goto('/#/admin');
+ const review=page.getByTestId('source-review-workspace');
+ const record=review.locator('.source-review-item').filter({hasText:'Proposal 32'});
+ await expect(record).toBeVisible();
+ await record.getByLabel('Review decision').selectOption('rejected');
+ await record.getByLabel('Independent review rationale')
+  .fill('The corrected identifier does not match the original indexed publication record.');
+ await record.getByRole('checkbox',{name:/independently checked/}).check();
+ await record.getByRole('button',{name:'Record review decision'}).click();
+ await expect.poll(()=>writes).toBe(1);
+ await expect(record.getByText(/Review outcome uncertain/)).toBeVisible();
+ await expect(record.getByRole('button',{name:'Record review decision'})).toHaveCount(0);
+ await review.getByRole('button',{name:'Refresh reviews'}).click();
+ await expect(record).toBeVisible();
+ await expect(record.getByText(/Review outcome uncertain/)).toBeVisible();
+ await expect(record.getByRole('button',{name:'Record review decision'})).toHaveCount(0);
+ expect(writes).toBe(1);
+});
+
+test('14H137C6 role recheck follows verified server assignment rather than trusting prior account display',async({page})=>{
+ await mockFqAccount(page,'unassigned');
+ let assigned:'contributor'|'reviewer'|null=null;
+ await page.route('https://example.supabase.co/rest/v1/nfq_research_memberships*',async route=>{
+  const rows=assigned?[{user_id:accounts.unassigned,role:assigned,revoked_at:null}]:[];
+  await route.fulfill({status:200,contentType:'application/json',
+   headers:{'access-control-allow-origin':'*'},body:JSON.stringify(rows)});
+ });
+ await page.goto('/#/admin');
+ await expect(page.getByTestId('profile-role-label')).toContainText('Awaiting assignment');
+ await expect(page.getByTestId('source-review-workspace')).toHaveCount(0);
+ await expect(page.getByTestId('admin-people-access')).toHaveCount(0);
+ const details=page.getByTestId('admin-access-diagnostics');
+ await details.locator('summary').click();
+ assigned='contributor';
+ await details.getByRole('button',{name:'Recheck membership'}).click();
+ await expect(page.getByTestId('profile-role-label')).toHaveText('Research contributor');
+ await expect(page.getByTestId('source-review-workspace')).toHaveCount(0);
+ assigned='reviewer';
+ await details.getByRole('button',{name:'Recheck membership'}).click();
+ await expect(page.getByTestId('profile-role-label')).toHaveText('Scientific reviewer');
+ await expect(page.getByTestId('source-review-workspace')).toBeVisible();
+ await expect(page.getByTestId('admin-people-access')).toHaveCount(0);
+ assigned=null;
+ await details.getByRole('button',{name:'Recheck membership'}).click();
+ await expect(page.getByTestId('profile-role-label')).toHaveText('Awaiting assignment');
+ await expect(page.getByTestId('source-review-workspace')).toHaveCount(0);
+});
