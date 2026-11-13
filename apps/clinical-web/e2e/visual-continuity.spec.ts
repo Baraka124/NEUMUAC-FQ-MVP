@@ -55,6 +55,7 @@ test('14H139 Midnight preserves named research and account surfaces',async({page
 });
 
 test('14H139 original PNG assets fill their intended brand slots without replacement',async({page})=>{
+ await page.setViewportSize({width:1366,height:900});
  await page.goto('/#/');
  const publicBrand=page.locator('.nfq-portal-brand img');
  await expect(publicBrand).toBeVisible();
