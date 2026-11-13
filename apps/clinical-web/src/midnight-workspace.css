@@ -680,3 +680,111 @@
 .app-frame[data-nfq-theme="midnight"] .research-admin .nfq-review-uncertain{
  color:#efc19a!important;
 }
+
+
+/*
+ * 14H138A · Theme parity for search AND adjacent feedback surfaces.
+ * Older green-white states were not included in the original Midnight
+ * coverage. Do not invert scientific status/CFTR class colours.
+ */
+.app-frame[data-nfq-theme="midnight"] .variant-page :is(
+ .discovery-help,.discovery-notation-guidance,.nfq-search-guide,
+ .nfq-search-feedback,.discovery-pagination
+){
+ background:var(--nfq-night-soft)!important;
+ border-color:var(--nfq-night-line)!important;
+ color:var(--nfq-night-muted)!important;
+ box-shadow:none!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .discovery-help strong{
+ color:var(--nfq-night-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .discovery-help :is(p,li){
+ color:var(--nfq-night-muted)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .discovery-pagination button{
+ background:transparent!important;
+ border-color:var(--nfq-night-line)!important;
+ color:var(--nfq-night-link)!important;
+ box-shadow:none!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .discovery-pagination button:hover:not(:disabled){
+ background:var(--nfq-night-hover)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .discovery-pagination button:disabled{
+ color:var(--nfq-night-subtle)!important;
+ opacity:.58;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .discovery-page-current{
+ color:var(--nfq-night-muted)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .evidence-page .nfq-science-search-line input[type="search"],
+.app-frame[data-nfq-theme="midnight"] .genotype-page .genotype-locus input[type="search"],
+.app-frame[data-nfq-theme="midnight"] .intelligence-page .nfq-coverage-search input[type="search"]{
+ background:var(--nfq-night-soft)!important;
+ color:var(--nfq-night-ink)!important;
+ border-color:var(--nfq-night-line)!important;
+ box-shadow:none!important;
+}
+.app-frame[data-nfq-theme="midnight"] .evidence-page .nfq-science-search-line input[type="search"]:focus-visible,
+.app-frame[data-nfq-theme="midnight"] .genotype-page .genotype-locus input[type="search"]:focus-visible,
+.app-frame[data-nfq-theme="midnight"] .intelligence-page .nfq-coverage-search input[type="search"]:focus-visible{
+ outline:2px solid #9bc4ff!important;
+ outline-offset:2px!important;
+}
+.app-frame[data-nfq-theme="midnight"] .evidence-page .nfq-science-clear,
+.app-frame[data-nfq-theme="midnight"] .genotype-page .genotype-topline button,
+.app-frame[data-nfq-theme="midnight"] .intelligence-page :is(
+ .nfq-coverage-refresh,.nfq-coverage-clear,.nfq-coverage-empty button
+){
+ background:transparent!important;
+ border-color:var(--nfq-night-line)!important;
+ color:var(--nfq-night-link)!important;
+ box-shadow:none!important;
+}
+.app-frame[data-nfq-theme="midnight"] .evidence-page .nfq-science-clear:hover,
+.app-frame[data-nfq-theme="midnight"] .genotype-page .genotype-topline button:hover,
+.app-frame[data-nfq-theme="midnight"] .intelligence-page :is(
+ .nfq-coverage-refresh,.nfq-coverage-clear,.nfq-coverage-empty button
+):hover:not(:disabled){
+ background:var(--nfq-night-hover)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .genotype-page .genotype-suggestions{
+ background:var(--nfq-night-paper)!important;
+ border-color:var(--nfq-night-line)!important;
+ box-shadow:none!important;
+}
+.app-frame[data-nfq-theme="midnight"] .genotype-page .genotype-suggestions button{
+ background:var(--nfq-night-soft)!important;
+ border-color:var(--nfq-night-line)!important;
+ color:var(--nfq-night-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .genotype-page .genotype-suggestions button:hover{
+ background:var(--nfq-night-hover)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .genotype-page .genotype-suggestions :is(strong,span){
+ color:inherit!important;
+}
+.app-frame[data-nfq-theme="midnight"] .intelligence-page :is(
+ .nfq-coverage-empty,.nfq-coverage-groups button,
+ .nfq-documentation-export button
+){
+ background:var(--nfq-night-paper)!important;
+ border-color:var(--nfq-night-line)!important;
+ color:var(--nfq-night-ink)!important;
+ box-shadow:none!important;
+}
+.app-frame[data-nfq-theme="midnight"] .intelligence-page .nfq-coverage-groups button[aria-pressed="true"]{
+ background:rgba(41,121,255,.17)!important;
+ border-color:rgba(139,186,255,.45)!important;
+ box-shadow:inset 2px 0 #6aa7ff!important;
+}
+.app-frame[data-nfq-theme="midnight"] .intelligence-page :is(
+ .nfq-coverage-empty p,.nfq-coverage-results-count,.nfq-documentation-export-note
+){color:var(--nfq-night-muted)!important}
+.app-frame[data-nfq-theme="midnight"] .evidence-page .nfq-variant-scope :is(a,button){
+ background:transparent!important;
+ border-color:var(--nfq-night-line)!important;
+ color:var(--nfq-night-link)!important;
+ box-shadow:none!important;
+}
