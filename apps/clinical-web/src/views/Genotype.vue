@@ -351,4 +351,51 @@ onUnmounted(()=>{stopReads(0);stopReads(1);});
  }
 }
 
+
+/* 14H138A · individual genotype lookup should never consume the
+   entire comparison canvas when only one identifier is needed. */
+.genotype-page .genotype-locus input[type="search"]{
+ display:block;
+ width:100%;
+ max-width:420px;
+ min-width:0;
+ min-height:42px;
+ height:42px;
+ padding:8px 11px;
+ border:1px solid #c5d5e8;
+ border-radius:6px;
+ background:#fff;
+ color:#162540;
+ box-shadow:none;
+ font-size:12.5px;
+}
+.genotype-page .genotype-locus input[type="search"]::placeholder{
+ color:#70839b;opacity:1;
+}
+.genotype-page .genotype-locus input[type="search"]:focus-visible{
+ outline:2px solid #2979ff;outline-offset:2px;
+}
+.genotype-page .genotype-suggestions{
+ max-width:420px;
+ min-width:0;
+ border-radius:6px;
+ box-shadow:none;
+}
+.genotype-page .genotype-suggestions button{
+ min-height:44px;
+ padding:9px 11px;
+}
+.genotype-page .genotype-topline button{
+ min-height:40px;
+ width:auto;
+ padding:7px 10px;
+ background:transparent;
+ color:#285caa;
+ border:1px solid #c6d5e8;
+ border-radius:6px;
+ box-shadow:none;
+ font-size:11.5px;
+}
+.genotype-page .genotype-topline button:hover{background:rgba(41,121,255,.06)}
+
 </style>
