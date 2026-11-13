@@ -642,3 +642,41 @@
 .app-frame[data-nfq-theme="midnight"] .nfq-context-help-body dd{
  color:var(--nfq-night-muted)!important;
 }
+
+
+/* 14H137C6 · Independent source review, connected in Midnight as in Daylight.
+   Research evidence statuses retain their original scientific meanings. */
+.app-frame[data-nfq-theme="midnight"] .research-admin .source-review-item,
+.app-frame[data-nfq-theme="midnight"] .research-admin .source-review-decision{
+ border-color:var(--nfq-night-line)!important;
+ background:transparent!important;
+ color:var(--nfq-night-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .research-admin .source-review-item strong,
+.app-frame[data-nfq-theme="midnight"] .research-admin .source-review-decision label{
+ color:var(--nfq-night-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .research-admin .source-review-item p,
+.app-frame[data-nfq-theme="midnight"] .research-admin .nfq-review-confirm,
+.app-frame[data-nfq-theme="midnight"] .research-admin .nfq-review-rationale-meta{
+ color:var(--nfq-night-muted)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .research-admin .nfq-review-source-links a,
+.app-frame[data-nfq-theme="midnight"] .research-admin .nfq-review-submit{
+ border-color:var(--nfq-night-line)!important;
+ background:transparent!important;
+ color:var(--nfq-night-link)!important;
+ box-shadow:none!important;
+}
+.app-frame[data-nfq-theme="midnight"] .research-admin .nfq-review-source-links a:hover,
+.app-frame[data-nfq-theme="midnight"] .research-admin .nfq-review-submit:hover:not(:disabled){
+ background:var(--nfq-night-hover)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .research-admin .source-review-decision :is(select,textarea){
+ background:var(--nfq-night-soft)!important;
+ border-color:var(--nfq-night-line)!important;
+ color:var(--nfq-night-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .research-admin .nfq-review-uncertain{
+ color:#efc19a!important;
+}
