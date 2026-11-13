@@ -1620,6 +1620,8 @@ test('14H138A Midnight changes all search controls and adjacent help, pagination
  if(await coverage.count()){
   await expect(coverage).toHaveCSS('background-color','rgb(17, 31, 51)');
   await expect(page.locator('.nfq-coverage-groups button').first())
+   .toHaveCSS('background-color','rgba(41, 121, 255, 0.17)');
+  await expect(page.locator('.nfq-coverage-groups button').nth(1))
    .toHaveCSS('background-color','rgb(15, 29, 48)');
  }else{
   await expect(page.getByRole('alert')).toContainText('Live research coverage connection is not configured');
