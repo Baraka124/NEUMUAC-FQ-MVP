@@ -438,4 +438,56 @@ watch([query,page,focusId,invalidVariantScope],()=>{exportNotice.value='';});
  }
 }
 
+
+/* 14H138A · source lookup is an instrument, not a full-width call to action.
+   Keep input and Clear independently usable on phone and desktop. */
+.evidence-page .evidence-search-head{width:100%;max-width:560px}
+.evidence-page .nfq-science-search-line{width:100%;max-width:560px;gap:7px}
+.evidence-page .nfq-science-search-line input[type="search"]{
+ flex:1 1 220px;
+ width:auto;
+ max-width:100%;
+ min-width:0;
+ min-height:42px;
+ height:42px;
+ padding:8px 11px;
+ background:#fff;
+ border:1px solid #c5d5e8;
+ border-radius:6px;
+ color:#162540;
+ font-size:12.5px;
+ box-shadow:none;
+}
+.evidence-page .nfq-science-search-line input[type="search"]::placeholder{
+ color:#70839b;opacity:1;
+}
+.evidence-page .nfq-science-clear{
+ min-height:40px;
+ width:auto;
+ border:1px solid #c6d5e8;
+ border-radius:6px;
+ padding:7px 10px;
+ background:transparent;
+ color:#285caa;
+ box-shadow:none;
+ font-size:11.5px;
+ font-weight:590;
+}
+.evidence-page .nfq-science-clear:hover{
+ background:rgba(41,121,255,.06);
+ border-color:#99b9e1;
+}
+.evidence-page .nfq-science-search-line :is(input,button):focus-visible{
+ outline:2px solid #2979ff;outline-offset:2px;
+}
+@media(max-width:430px){
+ .evidence-page .nfq-science-search-line{align-items:start}
+ .evidence-page .nfq-science-search-line input[type="search"]{
+  flex:1 1 100%;
+ }
+ .evidence-page .nfq-science-clear{
+  margin-left:0;
+ }
+}
+
 </style>
