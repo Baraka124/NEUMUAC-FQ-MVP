@@ -117,3 +117,50 @@ test('14H139 scientific route sweep maintains responsive surfaces in both themes
   }
  }
 });
+
+
+test('14H143 reconciles #324 compact evidence and genotype search without enlarging approved home',async({page})=>{
+ await page.setViewportSize({width:1366,height:850});
+ await page.goto('/#/workspace');
+ const home=page.locator('.nfq-home-search-controls');
+ await expect(home).toBeVisible();
+ expect(await home.evaluate(el=>el.getBoundingClientRect().width)).toBeLessThanOrEqual(542);
+ await page.goto('/#/evidence');
+ const evidence=page.getByRole('searchbox',{name:'Find a source or reference'});
+ await expect(evidence).toBeVisible();
+ expect(await page.locator('.evidence-page .evidence-search-head')
+  .evaluate(el=>el.getBoundingClientRect().width)).toBeLessThanOrEqual(561);
+ await page.goto('/#/genotype');
+ const genotype=page.getByRole('searchbox',{name:'Search variant 1'});
+ await expect(genotype).toBeVisible();
+ expect(await genotype.evaluate(el=>el.getBoundingClientRect().width)).toBeLessThanOrEqual(421);
+ for(const width of [320,390,760]){
+  await page.setViewportSize({width,height:850});
+  await expect(genotype).toBeVisible();
+  await expect(genotype).toHaveCSS('font-size','16px');
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+  await page.goto('/#/evidence');
+  const sourceSearch=page.getByRole('searchbox',{name:'Find a source or reference'});
+  await expect(sourceSearch).toBeVisible();
+  await expect(sourceSearch).toHaveCSS('font-size','16px');
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+  await page.goto('/#/genotype');
+ }
+});
+
+test('14H143 Midnight secondary search and quiet controls are dark without scientific remapping',async({page})=>{
+ await page.addInitScript(()=>window.localStorage.setItem('nfq-research-theme-v1','midnight'));
+ await page.setViewportSize({width:390,height:850});
+ await page.goto('/#/evidence');
+ await expect(page.locator('.app-frame')).toHaveAttribute('data-nfq-theme','midnight');
+ const sourceSearch=page.getByRole('searchbox',{name:'Find a source or reference'});
+ await expect(sourceSearch).toHaveCSS('background-color','rgb(17, 31, 51)');
+ await page.goto('/#/genotype');
+ await expect(page.getByRole('searchbox',{name:'Search variant 1'}))
+  .toHaveCSS('background-color','rgb(17, 31, 51)');
+ await page.goto('/#/variants');
+ await page.getByRole('button',{name:'Search help and scientific data limitations'}).click();
+ await expect(page.locator('.variant-page .discovery-help')).toBeVisible();
+ await expect(page.locator('.variant-page .discovery-help')).toHaveCSS('background-color','rgb(15, 29, 48)');
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});

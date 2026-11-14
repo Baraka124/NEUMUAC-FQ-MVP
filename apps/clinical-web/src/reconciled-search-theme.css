@@ -1,0 +1,116 @@
+/**
+ * 14H143: reconcile the unsuperseded 14H138A search/theme details.
+ *
+ * Source is PR #324, rebased deliberately on top of the approved 14H139
+ * search/brand, 14H140 provenance and 14H142 phone-native workspaces.
+ * This is a narrow visual-only stylesheet: no clinical classifications,
+ * therapy conclusions, authorization, network requests or writes.
+ */
+
+/* Existing 14H139 home search is already narrower (540px). Do not undo it.
+ * The old 14H138A branch additionally bounded two DIFFERENT workspaces. */
+@media(min-width:761px){
+ .app-frame .evidence-page :is(.evidence-search-head,.nfq-science-search-line){
+  width:100%;
+  max-width:560px;
+ }
+ .app-frame .evidence-page .nfq-science-search-line input[type="search"]{
+  min-width:0;min-height:42px;height:42px;
+  padding:8px 11px;font-size:13px;
+ }
+ .app-frame .genotype-page .genotype-locus input[type="search"],
+ .app-frame .genotype-page .genotype-suggestions{
+  max-width:420px;
+ }
+ .app-frame .intelligence-page .nfq-coverage-search{
+  max-width:560px;
+ }
+}
+/* Do not set 12.5px search fields on phones: 14H142 specifies 16px
+ * to prevent unwanted Android/iOS input zoom and maintain readability. */
+.app-frame .evidence-page .nfq-science-search-line input[type="search"],
+.app-frame .genotype-page .genotype-locus input[type="search"],
+.app-frame .intelligence-page .nfq-coverage-search input[type="search"]{
+ box-shadow:none;
+}
+.app-frame .evidence-page .nfq-science-search-line input[type="search"]:focus-visible,
+.app-frame .genotype-page .genotype-locus input[type="search"]:focus-visible,
+.app-frame .intelligence-page .nfq-coverage-search input[type="search"]:focus-visible{
+ outline:2px solid #2979ff;outline-offset:2px;
+}
+
+/* Legacy page-scoped pagination, notation, scope controls and coverage
+ * groups could still inherit an opaque light fill under Midnight.
+ * Use existing original Midnight tokens, not a new palette. */
+.app-frame[data-nfq-theme="midnight"] .variant-page :is(
+ .discovery-notation-guidance,.discovery-pagination,.nfq-search-guide
+){
+ background:var(--nfq-night-soft)!important;
+ border-color:var(--nfq-night-line)!important;
+ color:var(--nfq-night-muted)!important;
+ box-shadow:none!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .discovery-pagination button,
+.app-frame[data-nfq-theme="midnight"] .evidence-page :is(.nfq-science-clear,.nfq-variant-scope a,.nfq-variant-scope button),
+.app-frame[data-nfq-theme="midnight"] .genotype-page .genotype-topline button,
+.app-frame[data-nfq-theme="midnight"] .intelligence-page :is(
+ .nfq-coverage-refresh,.nfq-coverage-clear,.nfq-coverage-empty button,.nfq-documentation-export button
+){
+ background:transparent!important;
+ border-color:var(--nfq-night-line)!important;
+ color:var(--nfq-night-link)!important;
+ box-shadow:none!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .discovery-pagination button:hover:not(:disabled),
+.app-frame[data-nfq-theme="midnight"] .evidence-page :is(.nfq-science-clear,.nfq-variant-scope a,.nfq-variant-scope button):hover,
+.app-frame[data-nfq-theme="midnight"] .genotype-page .genotype-topline button:hover,
+.app-frame[data-nfq-theme="midnight"] .intelligence-page :is(
+ .nfq-coverage-refresh,.nfq-coverage-clear,.nfq-coverage-empty button,.nfq-documentation-export button
+):hover:not(:disabled){
+ background:var(--nfq-night-hover)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .discovery-pagination button:disabled{
+ color:var(--nfq-night-subtle)!important;opacity:.58;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .discovery-page-current{
+ color:var(--nfq-night-muted)!important;
+}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .evidence-page .nfq-science-search-line input[type="search"],
+ .genotype-page .genotype-locus input[type="search"],
+ .intelligence-page .nfq-coverage-search input[type="search"]
+){
+ background:var(--nfq-night-soft)!important;
+ border-color:var(--nfq-night-line)!important;
+ color:var(--nfq-night-ink)!important;
+ box-shadow:none!important;
+}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .evidence-page .nfq-science-search-line input[type="search"],
+ .genotype-page .genotype-locus input[type="search"],
+ .intelligence-page .nfq-coverage-search input[type="search"]
+):focus-visible{
+ outline:2px solid #9bc4ff!important;
+ outline-offset:2px!important;
+}
+.app-frame[data-nfq-theme="midnight"] .genotype-page .genotype-suggestions :is(strong,span){
+ color:inherit!important;
+}
+.app-frame[data-nfq-theme="midnight"] .intelligence-page :is(
+ .nfq-coverage-groups button,.nfq-coverage-empty
+){
+ background:var(--nfq-night-paper)!important;
+ border-color:var(--nfq-night-line)!important;
+ color:var(--nfq-night-ink)!important;
+ box-shadow:none!important;
+}
+.app-frame[data-nfq-theme="midnight"] .intelligence-page .nfq-coverage-groups button[aria-pressed="true"]{
+ background:rgba(41,121,255,.17)!important;
+ border-color:rgba(139,186,255,.45)!important;
+ box-shadow:inset 2px 0 #6aa7ff!important;
+}
+.app-frame[data-nfq-theme="midnight"] .intelligence-page :is(
+ .nfq-coverage-empty p,.nfq-coverage-results-count,.nfq-documentation-export-note
+){
+ color:var(--nfq-night-muted)!important;
+}
