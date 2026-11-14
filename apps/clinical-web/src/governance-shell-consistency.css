@@ -61,7 +61,8 @@
 .app-frame .workspace-frame{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;min-width:0}
 .app-frame .workspace-frame>main{flex:1 0 auto;min-width:0;padding-bottom:max(60px,env(safe-area-inset-bottom,0px))}
 .app-frame .workspace-frame>.page-footer{
- position:relative;bottom:auto;z-index:auto;flex:none;min-width:0;
+ position:static!important;bottom:auto;z-index:auto;flex:none;min-width:0;
+ pointer-events:none; /* Informational footer cannot intercept floating research controls. */
  background:var(--nfq-signature-day,#f8fbff);
  border-top:1px solid var(--nfq-signature-rule,#dce6f0);
  color:var(--nfq-signature-secondary,#667f99);
