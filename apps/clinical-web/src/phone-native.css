@@ -1,0 +1,249 @@
+/**
+ * 14H142 · Phone-native research shell.
+ * Source: owner's 2026-11-14 Chrome phone recording.
+ * MOBILE ONLY. Preserve the already accepted desktop composition, typography,
+ * color signatures, scientific meanings, privileges and navigation contracts.
+ */
+.nfq-phone-wordmark,.nfq-phone-launcher-icon,.nfq-phone-signout-icon{display:none}
+.nfq-mobile-preview-control{display:none}
+@media(max-width:760px){
+ /* App-wide chrome: a genuine branded utility header instead of a
+    crowded 'Workspaces / Research / [blank square] / Sign in' strip. */
+ .app-frame .institution-header{
+  display:flex;align-items:center;justify-content:flex-start;
+  position:sticky;top:0;z-index:40;
+  width:100%;min-width:0;height:56px!important;min-height:56px!important;
+  padding:0 12px!important;gap:8px;
+ }
+ .app-frame .header-location{flex:0 0 40px;min-width:0}
+ .app-frame .header-overview-link{display:none!important}
+ .app-frame .mobile-menu-button{
+  flex:none;display:inline-flex;justify-content:center;align-items:center;
+  width:40px;height:40px;min-width:40px;min-height:40px;
+  padding:0;border:1px solid var(--nfq-signature-rule,#dce6f0);
+  border-radius:8px;background:transparent;color:#375b7d;
+ }
+ .app-frame .mobile-menu-button .hamburger{display:block;width:20px;height:20px;flex:none}
+ .app-frame .mobile-menu-button>span:not(.hamburger){display:none}
+ .app-frame .nfq-phone-wordmark{
+  display:inline-flex;align-items:center;flex:1 1 auto;
+  min-width:0;margin:0 0 0 2px;text-decoration:none;color:#193657;
+  letter-spacing:-.045em;line-height:1.1;
+ }
+ .app-frame .nfq-phone-wordmark strong{
+  display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:clamp(14px,4.1vw,17px);font-weight:750;
+ }
+ .app-frame .nfq-phone-wordmark strong span{color:#1989b6}
+ .app-frame .workspace-launcher-trigger{
+  flex:0 0 40px!important;display:grid!important;place-items:center!important;
+  width:40px!important;max-width:40px!important;min-width:40px!important;
+  height:40px;min-height:40px!important;
+  padding:0!important;margin:0!important;
+  border:1px solid var(--nfq-signature-rule,#dce6f0);
+  border-radius:8px!important;background:transparent!important;
+ }
+ .app-frame .workspace-launcher-trigger>span,
+ .app-frame .workspace-launcher-trigger>kbd{display:none!important}
+ .app-frame .workspace-launcher-trigger .nfq-phone-launcher-icon{
+  display:block!important;width:20px;height:20px;color:#41698b;
+ }
+ .app-frame .nfq-header-right{display:flex;align-items:center;flex:0 0 auto;min-width:0;max-width:none;gap:0}
+ .app-frame .nfq-theme-switch{display:none!important}
+ .app-frame .header-environment{
+  display:flex;align-items:center;justify-content:flex-end;
+  min-width:0;max-width:none!important;overflow:visible!important;
+  white-space:nowrap;text-align:right;font-size:12px;
+ }
+ .app-frame .header-environment .environment-dot{display:none}
+ /* Unconfigured test/preview environments may show a longer public-access
+    status instead of the sign-in link. Keep it readable but never let that
+    label squeeze the brand or push the search icon off-screen. */
+ .app-frame .header-environment>span:not(.environment-dot){
+  display:block;max-width:85px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;font-size:11px;
+ }
+ .app-frame .header-environment>a:not(.nfq-header-profile-link){
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:40px;padding:0 6px;text-decoration:none;
+  color:#285e9b;font-size:12px;font-weight:660;
+ }
+ .app-frame .header-environment .nfq-header-profile-link{min-width:40px;min-height:40px}
+ .app-frame .nfq-header-profile-copy{display:none}
+ .app-frame .nfq-header-signout{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:40px;min-width:40px;max-width:40px!important;
+  height:40px;min-height:40px;
+  padding:0!important;margin:0 0 0 4px;
+  border:1px solid var(--nfq-signature-rule,#dce6f0);
+  border-radius:8px;background:transparent!important;
+  color:#41698b;font:inherit;cursor:pointer;
+ }
+ .app-frame .nfq-header-signout .nfq-phone-signout-icon{display:block}
+ .app-frame .nfq-header-signout .nfq-signout-copy{display:none}
+ /* The navigation remains a complete scrollable drawer, no content is dropped.
+    The overlay begins *below* the now shorter header. */
+ .app-frame .mobile-nav-backdrop{
+  position:fixed;inset:56px 0 0!important;width:100%;height:auto;
+  z-index:41;background:rgba(14,27,45,.43);
+ }
+ .app-frame .mobile-nav{
+  position:fixed!important;top:56px!important;bottom:0!important;left:0!important;
+  width:min(340px,calc(100vw - 24px))!important;
+  height:auto!important;max-height:calc(100dvh - 56px)!important;
+  z-index:42;overflow-y:auto;overscroll-behavior:contain;
+  padding:12px 14px 24px!important;gap:3px;
+  box-shadow:14px 0 36px rgba(12,28,49,.14);
+ }
+ .app-frame .mobile-nav-heading{
+  padding:4px 2px 8px;font-size:13px;font-weight:750;letter-spacing:-.015em;
+ }
+ .app-frame .mobile-nav-heading button{
+  width:40px;height:40px;min-height:40px;font-size:24px;color:inherit;
+ }
+ .app-frame .mobile-nav a{
+  display:flex;align-items:center;min-height:44px;
+  padding:9px 12px!important;font-size:13px;
+  border-bottom:1px solid var(--nfq-signature-rule,#e0e7ee);
+  border-radius:6px!important;
+ }
+ .app-frame .mobile-nav .mobile-admin-link{margin-top:7px}
+ /* The header theme icon is intentionally removed to keep this usable;
+    retain the full appearance switch inside the drawer at ALL phone widths. */
+ .app-frame .nfq-mobile-theme-row{display:flex!important;margin-top:10px}
+ /* Research content: compact but legible without duplicating desktop pages. */
+ .workspace-frame>main{
+  min-width:0;padding:11px 12px 30px!important;
+ }
+ .workspace-frame>main>.page{min-width:0}
+ .app-frame .page-footer{
+  padding:12px!important;gap:4px;font-size:10.5px;
+ }
+ .app-frame :is(input[type="search"],input[type="text"]){
+  font-size:16px;
+ }
+ .app-frame .page h1{font-size:clamp(25px,7vw,31px)}
+ /* Variant discovery gets a four-record preview with an explicit opt-in for
+    the complete worklist. The page, not a box inside it, handles scrolling. */
+ .app-frame .variant-page .variant-heading{
+  display:block;min-width:0;margin-bottom:11px;
+ }
+ .app-frame .variant-page .variant-heading h1{
+  font-size:29px;margin:0 0 6px;line-height:1.15;
+ }
+ .app-frame .variant-page .nfq-access-note{
+  display:block;max-width:100%;margin:0;text-align:left;
+  font-size:11px;line-height:1.35;color:#718198;
+ }
+ .app-frame .variant-page .record-rail{
+  padding:12px!important;margin-bottom:12px;
+  border-radius:9px;
+ }
+ .app-frame .variant-page .record-rail .rail-topline{
+  margin-bottom:7px;
+ }
+ .app-frame .variant-page .record-rail>.record-list{
+  max-height:none!important;overflow:visible!important;
+  overscroll-behavior:auto!important;
+  scrollbar-width:none!important;gap:5px!important;
+  padding:0!important;margin-top:10px!important;
+ }
+ .app-frame .variant-page .record-list button{
+  min-height:59px!important;padding:9px 11px!important;
+  border-radius:7px;
+ }
+ .app-frame .variant-page .record-list .record-first strong{font-size:13px}
+ .app-frame .variant-page .record-list .record-subline{font-size:11px;line-height:1.3;margin-top:3px}
+ .app-frame .variant-page .record-list .record-class{font-size:10px;margin-top:3px}
+ .app-frame .variant-page .record-rail>.record-list.nfq-mobile-results-preview:not(.nfq-mobile-preview-expanded)>button:nth-child(n+5){display:none!important}
+ .app-frame .variant-page .nfq-mobile-preview-control{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;width:100%;min-height:44px;
+  margin:8px 0 2px;padding:8px 10px;
+  border:1px solid var(--nfq-signature-rule,#dce6f0);
+  border-radius:7px;background:transparent;color:#285c9b;
+  font:inherit;font-size:12px;font-weight:670;text-align:left;
+ }
+ .app-frame .variant-page .nfq-mobile-preview-control svg{flex:none}
+ .app-frame .variant-page .nfq-mobile-preview-control[aria-expanded="true"] svg{transform:rotate(180deg)}
+ .app-frame .variant-page .discovery-pagination{
+  gap:8px;margin-top:9px;
+ }
+ /* Evidence: preserve every source fact, but remove the excessive
+    card spacing that produces large, repetitive phone blocks. */
+ .app-frame .evidence-page .evidence-register{gap:8px}
+ .app-frame .evidence-page .evidence-register .evidence-row{
+  padding:12px 13px!important;border-radius:8px;
+ }
+ .app-frame .evidence-page .evidence-register .evidence-row h2{
+  margin:7px 0 0;font-size:16px;line-height:1.3;
+ }
+ .app-frame .evidence-page .nfq-evidence-recorded-meta{
+  font-size:11.5px;line-height:1.45;
+ }
+ .app-frame .evidence-page .evidence-register .evidence-row-foot{
+  padding-top:12px;margin-top:9px;
+ }
+ .app-frame .evidence-page .nfq-evidence-detail-grid{gap:13px}
+ .app-frame .evidence-page .nfq-evidence-facts>div{padding:5px 0}
+ /* Helios: accessible horizontal review rail, not a bulky 2x2 tile grid. */
+ .app-frame .helios-workspace .helios-area-nav{
+  display:flex!important;flex-flow:row nowrap!important;
+  grid-template-columns:none!important;align-items:stretch!important;
+  min-width:0;gap:3px!important;padding:7px 9px 5px!important;
+  overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;
+  scrollbar-width:thin;scrollbar-color:#c4d2e3 transparent;
+ }
+ .app-frame .helios-workspace .helios-area-nav button{
+  flex:0 0 auto!important;min-width:0!important;width:auto!important;
+  max-width:none!important;min-height:42px!important;
+  padding:8px 11px!important;margin:0;white-space:nowrap;
+  scroll-snap-align:start;font-size:12px!important;line-height:1.25;
+  border-radius:5px;
+ }
+ .app-frame .helios-workspace .helios-area-detail{
+  min-height:105px!important;padding:13px!important;
+ }
+ .app-frame .helios-workspace .helios-area-intro{margin-bottom:10px}
+ .app-frame .helios-workspace .helios-area-intro h2{font-size:19px}
+ .app-frame .helios-workspace .helios-read-state{margin:0;line-height:1.5}
+ /* Signed-out access: identity is not a large decorative filled avatar. */
+ .app-frame .research-admin .nfq-welcome-mark{
+  width:40px;height:40px;min-width:40px;
+  background:transparent!important;border:1px solid #a9bfd9;
+  border-radius:9px;color:#325f89!important;font-size:12px;
+ }
+ .app-frame .research-admin .nfq-account-welcome{min-height:0!important;gap:11px;padding:14px!important}
+ .app-frame .research-admin .nfq-account-welcome h2{font-size:18px}
+}
+@media(max-width:360px){
+ .app-frame .institution-header{padding:0 9px!important;gap:6px}
+ .app-frame .nfq-phone-wordmark strong{font-size:14px}
+ .app-frame .header-environment>a:not(.nfq-header-profile-link){padding-inline:2px;font-size:11.5px}
+ .app-frame .workspace-frame>main{padding-inline:10px!important}
+}
+@media(max-width:760px){
+ .app-frame[data-nfq-theme="midnight"] .nfq-phone-wordmark{color:var(--nfq-night-ink)!important}
+ .app-frame[data-nfq-theme="midnight"] .nfq-phone-wordmark span{color:var(--nfq-night-link)!important}
+ .app-frame[data-nfq-theme="midnight"] .mobile-menu-button,
+ .app-frame[data-nfq-theme="midnight"] .workspace-launcher-trigger{
+  border-color:var(--nfq-night-line)!important;
+  color:var(--nfq-night-link)!important;
+  background:transparent!important;
+ }
+ .app-frame[data-nfq-theme="midnight"] .nfq-phone-launcher-icon{color:var(--nfq-night-link)!important}
+ .app-frame[data-nfq-theme="midnight"] .nfq-header-signout{
+  color:var(--nfq-night-link)!important;
+  border-color:var(--nfq-night-line)!important;
+  background:transparent!important;
+ }
+ .app-frame[data-nfq-theme="midnight"] .nfq-mobile-preview-control{
+  border-color:var(--nfq-night-line)!important;
+  background:transparent!important;color:var(--nfq-night-link)!important;
+ }
+ .app-frame[data-nfq-theme="midnight"] .research-admin .nfq-welcome-mark{
+  color:var(--nfq-night-link)!important;border-color:var(--nfq-night-line)!important;
+  background:transparent!important;
+ }
+ .app-frame[data-nfq-theme="midnight"] .variant-page .nfq-access-note{color:var(--nfq-night-muted)!important}
+}

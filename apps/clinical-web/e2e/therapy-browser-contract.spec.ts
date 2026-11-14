@@ -22,12 +22,17 @@ const classFields={
 };
 const eu=['Kaftrio (ETI)','Alyftrek (VTD)','Kalydeco (IVA)','Symkevi (TEZ/IVA)']
  .map((drug_name,i)=>({id:i+1,drug_name,eligible_rule:'Recorded EU rule',jurisdiction:'EU',regulator:'EMA',approval_date:null,is_active:true}));
-async function setup(page:Page,opts:{failTherapy?:boolean;r117h?:boolean}={}):Promise<void>{
+async function setup(page:Page,opts:{failTherapy?:boolean;r117h?:boolean;mobileList?:boolean}={}):Promise<void>{
  page.on('requestfailed',r=>{if(r.url().includes('cftr-contract.invalid'))console.error('Contract API request failed:',r.url(),r.failure()?.errorText);});
  const methods:string[]=[];
  const catalog:Record<string,Record<string,unknown>>=opts.r117h?{
   ...variants,'117':{id:117,legacy_name:'R117H',cftr_class:'IV',class_subtype:null,
    eti_prediction:'unknown',alyftrek_prediction:'unknown'}
+ }:opts.mobileList?{
+  ...variants,
+  '47':{id:47,legacy_name:'G551D',cftr_class:'III',class_subtype:null,eti_prediction:'unknown',alyftrek_prediction:'unknown'},
+  '48':{id:48,legacy_name:'F508del',cftr_class:'II',class_subtype:null,eti_prediction:'unknown',alyftrek_prediction:'unknown'},
+  '49':{id:49,legacy_name:'N1303K',cftr_class:'II',class_subtype:null,eti_prediction:'unknown',alyftrek_prediction:'unknown'}
  }:variants;
  return page.route('https://cftr-contract.invalid/rest/v1/**',async route=>{
   const request=route.request(),url=new URL(request.url()),table=url.pathname.split('/').pop();
@@ -946,5 +951,34 @@ test('14H140 reconciliation follows the original Midnight surface without filled
  await expect(worklist).toContainText('DOI · not recorded in every entry');
  await expect.poll(()=>worklist.locator('.nfq-reconciliation-actions button').first()
   .evaluate(el=>getComputedStyle(el).backgroundColor)).toMatch(/^rgba\(/);
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
+
+
+test('14H142 phone list previews four records, expands all six without inner scroll and preserves dossier navigation',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await setup(page,{mobileList:true});
+ await page.goto('/#/variants');
+ const list=page.locator('.variant-page .record-rail > .record-list');
+ await expect(list.locator('button')).toHaveCount(6);
+ await expect(list.locator('button').nth(0)).toBeVisible();
+ await expect(list.locator('button').nth(3)).toBeVisible();
+ await expect(list.locator('button').nth(4)).toBeHidden();
+ await expect(list.locator('button').nth(5)).toBeHidden();
+ const fold=page.getByRole('button',{name:'Show all 6 results on this page'});
+ await expect(fold).toBeVisible();
+ await expect(fold).toHaveAttribute('aria-expanded','false');
+ const scrolling=await list.evaluate(el=>({overflowY:getComputedStyle(el).overflowY,
+  height:el.getBoundingClientRect().height,scrollHeight:el.scrollHeight}));
+ expect(scrolling.overflowY).not.toBe('auto');
+ expect(scrolling.overflowY).not.toBe('scroll');
+ expect(scrolling.scrollHeight-scrolling.height).toBeLessThan(4);
+ await fold.click();
+ await expect(page.getByRole('button',{name:'Show fewer results'})).toHaveAttribute('aria-expanded','true');
+ await expect(list.locator('button').nth(4)).toBeVisible();
+ await expect(list.locator('button').nth(5)).toBeVisible();
+ await list.locator('button').nth(4).click();
+ await expect(page).toHaveURL(/#\/variants\/48/);
+ await expect(page.getByTestId('five-therapy-workspace')).toBeVisible();
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });

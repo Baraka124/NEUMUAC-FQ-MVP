@@ -12,6 +12,7 @@ import './clinical-mineral.css';
 import './user-profile-shell.css';
 import './original-signature.css';
 import './midnight-workspace.css';
+import './phone-native.css';
 import {authController} from './services/authSession';
 import {refreshResearcherRole} from './services/researchRole';
 import {refreshGuestDesignation} from './services/guestDesignation';
