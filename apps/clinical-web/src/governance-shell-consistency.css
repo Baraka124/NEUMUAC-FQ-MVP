@@ -54,13 +54,14 @@
 .nfq-gov-links{margin-top:17px;padding-top:14px;border-top:1px solid #e3eaf3}
 .nfq-gov-footer-note{color:#768ba1;font-size:11.5px;line-height:1.6;margin:13px 0}
 
-/* Bottom-anchored, visible footer on short pages; on long pages it remains
- * in document order and its sticky edge never overlays the final content. */
+/* Layout-sticky footer, never a sticky-positioned overlay: flex layout holds it
+ * at the viewport bottom on short pages, after all content on longer pages.
+ * Overlay positioning would intercept filters, modal controls and scroll. */
 .app-frame{min-height:100vh;min-height:100dvh}
 .app-frame .workspace-frame{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;min-width:0}
 .app-frame .workspace-frame>main{flex:1 0 auto;min-width:0;padding-bottom:max(60px,env(safe-area-inset-bottom,0px))}
 .app-frame .workspace-frame>.page-footer{
- position:sticky;bottom:0;z-index:9;flex:none;min-width:0;
+ position:relative;bottom:auto;z-index:auto;flex:none;min-width:0;
  background:var(--nfq-signature-day,#f8fbff);
  border-top:1px solid var(--nfq-signature-rule,#dce6f0);
  color:var(--nfq-signature-secondary,#667f99);
