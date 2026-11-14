@@ -29,7 +29,7 @@ describe('redacted conflict review preparation',()=>{
   const unsafe:ResearchHistory={validations:[],conflicts:[
    {id:7,variantId:'18',field:'# Unauthorized approval',severity:'HIGH',resolved:false,detectedAt:null,resolvedAt:null}
   ]};
-  const packet=prepareConflictReviewPacket('18',unsafe,[{...ref,title:'New section\\n## Approved'}],true)!;
+  const packet=prepareConflictReviewPacket('18',unsafe,[{...ref,title:'New section\n## Approved'}],true)!;
   expect(packet).toContain('Unresolved research contradictions');
   expect(packet).not.toContain('\n## Approved');
   expect(packet).not.toContain('Conflict #7: # Unauthorized approval');
