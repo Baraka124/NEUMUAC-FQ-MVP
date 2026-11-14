@@ -15,6 +15,7 @@ export const researchWorkspaces:readonly ResearchWorkspace[]=Object.freeze([
   {id:'helios',name:'Helios',path:'/helios',description:'Review workspace foundation · decisions unavailable',keywords:['review','curation','audit','helios']},
   {id:'genotype',name:'Genotype',path:'/genotype',description:'Exploratory comparison of two recorded variants',keywords:['pair','compare','compound']},
   {id:'intelligence',name:'Research coverage',path:'/intelligence',description:'Live recorded-link coverage and research documentation gaps',keywords:['coverage','gaps','analytics']},
+  {id:'reports',name:'Reports & Audit',path:'/reports',description:'Recorded variant validation and conflict chronology, with source-bound export',keywords:['report','validation','audit','events','history','conflict','timeline']},
   {id:'geography',name:'Geographic atlas',path:'/geography',description:'Public Spain-first geographic reference and protected regional research activity',keywords:['map','spain','geography','galicia','regions','regional']}
 ]);
 export interface ResearchShortcut {
