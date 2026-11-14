@@ -7,7 +7,12 @@ test('14H145 Reports & Audit is a real reachable workspace, not a planned placeh
  await expect(page.getByRole('searchbox',{name:'Recorded name or variant ID'})).toBeVisible();
  await expect(page.getByText('Start with a recorded variant.')).toBeVisible();
  await expect(page.getByText('Implementation pending')).toHaveCount(0);
- await expect(page.getByRole('navigation',{name:'Workspaces'}).getByRole('link',{name:'Reports & Audit'})).toBeVisible();
+ if((page.viewportSize()?.width??1366)<=760){
+  await page.getByRole('button',{name:'Workspaces',exact:true}).click();
+  await expect(page.getByRole('navigation',{name:'Mobile workspaces'}).getByRole('link',{name:'Reports & Audit'})).toBeVisible();
+ }else{
+  await expect(page.getByRole('navigation',{name:'Workspaces'}).getByRole('link',{name:'Reports & Audit'})).toBeVisible();
+ }
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
 
