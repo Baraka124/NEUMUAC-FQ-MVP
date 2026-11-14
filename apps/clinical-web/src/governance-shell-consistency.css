@@ -1,0 +1,153 @@
+/*
+ * 14H146 · Research Governance / stable shell/footer / theme parity
+ * New styling is scoped: original owner signature, therapeutic semantics and
+ * staff authorization logic are intentionally left unchanged.
+ */
+.nfq-governance-page{width:100%;max-width:1040px;min-width:0;padding-top:12px}
+.nfq-governance-page :is(h1,h2,h3,p){overflow-wrap:anywhere}
+.nfq-gov-header{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;margin:0 0 22px}
+.nfq-gov-kicker,.nfq-gov-label{display:block;color:#5b7392;font-size:10.5px;letter-spacing:.105em;font-weight:710}
+.nfq-gov-header h1{color:#162d4c;font-size:clamp(30px,3vw,43px);line-height:1.12;letter-spacing:-.052em;margin:7px 0 9px}
+.nfq-gov-header p{color:#61778e;font-size:13px;line-height:1.6;max-width:650px;margin:0}
+.nfq-gov-identity,.nfq-gov-access,.nfq-gov-review{
+ background:#fff;border:1px solid #dce6f0;border-radius:9px;padding:20px 22px;box-shadow:none;min-width:0
+}
+.nfq-gov-identity{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px}
+.nfq-governance-page h2{margin:5px 0 7px!important;color:#1a3655;font-size:clamp(17px,2vw,21px);letter-spacing:-.028em}
+.nfq-gov-identity p{font-size:12px;color:#5e7993;margin:0;line-height:1.55}
+.nfq-gov-identity-actions,.nfq-gov-links{display:flex;flex-wrap:wrap;gap:9px 19px;align-items:center}
+.nfq-governance-page a{font-size:12px;color:#265caa;text-decoration:none;font-weight:605;text-underline-offset:3px;white-space:normal}
+.nfq-governance-page a:hover{text-decoration:underline}
+.nfq-governance-page button{
+ display:inline-flex;justify-content:center;align-items:center;
+ min-height:38px;border-radius:6px;border:1px solid #c2d1e7;
+ background:transparent;color:#275eac;padding:7px 12px;
+ box-shadow:none;font-size:12px;font-weight:610;line-height:1.25;cursor:pointer;
+ font-family:inherit;white-space:nowrap
+}
+.nfq-governance-page button:hover:not(:disabled){background:rgba(41,121,255,.06);border-color:#91b2e0}
+.nfq-governance-page button:disabled{opacity:.45;cursor:not-allowed}
+.nfq-governance-page :is(button,a):focus-visible{outline:2px solid #2979ff;outline-offset:3px}
+.nfq-gov-access{margin-bottom:16px}
+.nfq-gov-section-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:11px}
+.nfq-gov-section-heading>p{font-size:11.5px;color:#6b809a;margin:0}
+.nfq-gov-capability-list{border-top:1px solid #e3eaf3}
+.nfq-gov-capability{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 0;border-bottom:1px solid #e3eaf3}
+.nfq-gov-capability-copy{min-width:0}
+.nfq-gov-capability-copy strong{font-size:12.5px;color:#223d5b;font-weight:680}
+.nfq-gov-capability-copy p{color:#6c8199;font-size:11.5px;line-height:1.45;margin:4px 0 0}
+.nfq-gov-capability-status{display:flex;align-items:center;justify-content:flex-end;gap:13px;flex-wrap:wrap;min-width:190px}
+.nfq-gov-capability-status>span{
+ font-size:10.5px;border:1px solid #d8e2ec;border-radius:5px;
+ background:transparent;padding:4px 7px;white-space:nowrap
+}
+.nfq-gov-eligible{color:#255e9a}
+.nfq-gov-locked{color:#75869a}
+.nfq-gov-quiet-note{color:#72869e;font-size:11.5px;line-height:1.6;margin:13px 0 0}
+.nfq-gov-empty{color:#657b96;font-size:12px;line-height:1.6;margin:14px 0;border:1px solid #e1e9f2;background:#f9fbfe;padding:14px;border-radius:6px}
+.nfq-gov-summary{font-size:11.5px;color:#57718e;margin:9px 0}
+.nfq-gov-proposals{border-top:1px solid #e3eaf3}
+.nfq-gov-proposal{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid #e8edf3}
+.nfq-gov-proposal-ref{font-size:10px;letter-spacing:.08em;color:#7287a0}
+.nfq-gov-proposal h3{margin:5px 0 3px;font-size:12.5px;color:#244162}
+.nfq-gov-proposal p{font-size:11px;color:#71849b;margin:0}
+.nfq-gov-links{margin-top:17px;padding-top:14px;border-top:1px solid #e3eaf3}
+.nfq-gov-footer-note{color:#768ba1;font-size:11.5px;line-height:1.6;margin:13px 0}
+
+/* Layout-sticky footer, never a sticky-positioned overlay: flex layout holds it
+ * at the viewport bottom on short pages, after all content on longer pages.
+ * Overlay positioning would intercept filters, modal controls and scroll. */
+.app-frame{min-height:100vh;min-height:100dvh}
+.app-frame .workspace-frame{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;min-width:0}
+.app-frame .workspace-frame>main{flex:1 0 auto;min-width:0;padding-bottom:max(60px,env(safe-area-inset-bottom,0px))}
+.app-frame .workspace-frame>.page-footer{
+ position:static!important;bottom:auto;z-index:auto;flex:none;min-width:0;
+ pointer-events:none; /* Informational footer cannot intercept floating research controls. */
+ background:var(--nfq-signature-day,#f8fbff);
+ border-top:1px solid var(--nfq-signature-rule,#dce6f0);
+ color:var(--nfq-signature-secondary,#667f99);
+ padding-top:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));
+ font-size:10.5px;line-height:1.5;
+ box-shadow:0 -1px 0 rgba(21,45,80,.025)
+}
+.app-frame[data-nfq-theme="midnight"] .workspace-frame>.page-footer{
+ background:var(--nfq-night-header)!important;color:var(--nfq-night-muted)!important;
+ border-color:var(--nfq-night-line)!important;box-shadow:none!important;
+}
+.app-frame[data-nfq-theme="light"] .workspace-frame>.page-footer{
+ background:var(--nfq-signature-day,#f8fbff)!important;
+ color:var(--nfq-signature-secondary,#667f99)!important;
+ border-color:var(--nfq-signature-rule,#dce6f0)!important
+}
+
+/* A theme applies to EVERY shared navigation, help popover and documentation
+ * layer, not just the body behind them. Preserve protected class/status colors. */
+.app-frame[data-nfq-theme="midnight"] .nfq-context-help summary{
+ background:var(--nfq-night-soft)!important;border-color:var(--nfq-night-line)!important;color:var(--nfq-night-link)!important
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-context-help summary:hover{
+ background:var(--nfq-night-hover)!important
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-context-help-panel{
+ background:var(--nfq-night-paper)!important;color:var(--nfq-night-ink)!important;
+ border-color:var(--nfq-night-line)!important;
+ box-shadow:0 12px 26px rgba(0,0,0,.23)!important
+}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .nfq-context-help-title,.nfq-context-help-panel strong,.nfq-context-help-body dt
+){color:var(--nfq-night-ink)!important}
+.app-frame[data-nfq-theme="midnight"] :is(
+ .nfq-context-help-body,.nfq-context-help-body p,.nfq-context-help-body dd
+){color:var(--nfq-night-muted)!important}
+.app-frame[data-nfq-theme="midnight"] .launcher-backdrop{
+ background:rgba(1,5,15,.68)!important
+}
+.app-frame[data-nfq-theme="midnight"] .mobile-nav-backdrop{
+ background:rgba(1,5,15,.55)!important
+}
+.app-frame[data-nfq-theme="midnight"] .workspace-frame>main :is(.nfq-governance-page,.nfq-governance-page h1,.nfq-governance-page h2,.nfq-governance-page h3){color:var(--nfq-night-ink)!important}
+.app-frame[data-nfq-theme="midnight"] .nfq-governance-page :is(
+ .nfq-gov-identity,.nfq-gov-access,.nfq-gov-review,.nfq-gov-empty
+){background:var(--nfq-night-paper)!important;border-color:var(--nfq-night-line)!important;color:var(--nfq-night-ink)!important}
+.app-frame[data-nfq-theme="midnight"] .nfq-governance-page :is(
+ .nfq-gov-identity p,.nfq-gov-header p,.nfq-gov-section-heading p,
+ .nfq-gov-capability-copy p,.nfq-gov-quiet-note,.nfq-gov-summary,.nfq-gov-footer-note,
+ .nfq-gov-proposal p,.nfq-gov-kicker,.nfq-gov-label,.nfq-gov-proposal-ref
+){color:var(--nfq-night-muted)!important}
+.app-frame[data-nfq-theme="midnight"] .nfq-governance-page :is(
+ .nfq-gov-capability-list,.nfq-gov-capability,.nfq-gov-proposals,
+ .nfq-gov-proposal,.nfq-gov-links
+){border-color:var(--nfq-night-line)!important}
+.app-frame[data-nfq-theme="midnight"] .nfq-governance-page :is(.nfq-gov-capability-copy strong,.nfq-gov-proposal h3){color:var(--nfq-night-ink)!important}
+.app-frame[data-nfq-theme="midnight"] .nfq-governance-page a{color:var(--nfq-night-link)!important}
+.app-frame[data-nfq-theme="midnight"] .nfq-governance-page button{
+ background:transparent!important;color:var(--nfq-night-link)!important;border-color:var(--nfq-night-line)!important
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-governance-page button:hover:not(:disabled){background:var(--nfq-night-hover)!important}
+.app-frame[data-nfq-theme="midnight"] .nfq-governance-page .nfq-gov-capability-status>span{
+ background:transparent!important;border-color:var(--nfq-night-line)!important;color:var(--nfq-night-muted)!important
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-governance-page .nfq-gov-capability-status>.nfq-gov-eligible{color:var(--nfq-night-link)!important}
+
+/* Existing neutral placeholders and identity help should never remain
+ * white-on-white when the user has explicitly selected Midnight. */
+.app-frame[data-nfq-theme="midnight"] .page>.surface{
+ background:var(--nfq-night-paper)!important;border-color:var(--nfq-night-line)!important;color:var(--nfq-night-ink)!important
+}
+.app-frame[data-nfq-theme="midnight"] .page>.surface :is(p,dd,dt){color:var(--nfq-night-muted)!important}
+.app-frame[data-nfq-theme="midnight"] .nfq-mobile-theme-row{border-color:var(--nfq-night-line)!important}
+@media(max-width:760px){
+ .app-frame .workspace-frame{min-height:100vh;min-height:100dvh}
+ .app-frame .workspace-frame>.page-footer{padding:9px 12px calc(9px + env(safe-area-inset-bottom,0px));gap:3px 13px}
+ .nfq-governance-page{padding-top:10px}
+ .nfq-gov-identity,.nfq-gov-access,.nfq-gov-review{padding:17px 15px}
+ .nfq-gov-identity{align-items:flex-start;flex-direction:column}
+ .nfq-gov-capability{align-items:flex-start;flex-direction:column;gap:9px}
+ .nfq-gov-capability-status{justify-content:flex-start;min-width:0}
+ .nfq-gov-header{margin-bottom:17px}
+}
+@media(max-width:380px){
+ .app-frame .workspace-frame>.page-footer{font-size:10px}
+ .nfq-gov-section-heading{align-items:flex-start}
+ .nfq-gov-links{gap:12px 18px}
+}
