@@ -79,7 +79,9 @@ watch(()=>route.query.variant,raw=>{
  variant.value=null;history.value=null;notice.value='';searchNotice.value='';exportNotice.value='';
  eventFilter.value='all';
  if(raw===undefined){phase.value='idle';searchText.value='';return;}
- if(!canonicalId(raw)){phase.value='idle';searchText.value=typeof raw==='string'?raw.slice(0,75):'';return;}
+ if(typeof raw!=='string'||!canonicalId(raw)){
+  phase.value='idle';searchText.value=typeof raw==='string'?raw.slice(0,75):'';return;
+ }
  searchText.value=raw;
  void load(raw);
 },{immediate:true});
