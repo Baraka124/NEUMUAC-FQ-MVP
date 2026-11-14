@@ -122,7 +122,11 @@ function refreshMembership():void{
      <article v-for="item in proposals" :key="item.id" class="nfq-gov-proposal">
       <div><span class="nfq-gov-proposal-ref">PROPOSAL {{item.id}}</span><h3>Source field · {{item.field}}</h3>
        <p>Variant {{item.variantId}} · Reference {{item.referenceId}}</p></div>
-      <RouterLink :to="'/variants/'+item.variantId">Open variant <span aria-hidden="true">→</span></RouterLink>
+      <div class="nfq-gov-proposal-links">
+       <RouterLink :to="{path:'/reports',query:{variant:item.variantId}}">Recorded history <span aria-hidden="true">→</span></RouterLink>
+       <RouterLink :to="{path:'/evidence',query:{variant:item.variantId}}">Linked references <span aria-hidden="true">→</span></RouterLink>
+       <RouterLink :to="'/variants/'+item.variantId">Variant dossier <span aria-hidden="true">→</span></RouterLink>
+      </div>
      </article>
     </div>
     <p class="nfq-gov-quiet-note">This lists at most 20 accessible submitted proposals, not necessarily the entire institutional queue. Reviewer identities, notes and proposed free text are not reproduced here.</p>
