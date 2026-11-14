@@ -728,6 +728,7 @@ function select(id:string):void{
         <p>Multiple recorded validation events do not establish that two different clinicians independently validated the record. Historical classification snapshots may differ after legitimate changes.</p>
        </ContextHelp>
       </div>
+      <RouterLink v-if="selected" class="variant-evidence-browse nfq-journey-secondary" :to="{path:'/reports',query:{variant:selected.id}}">Open recorded audit →</RouterLink>
       <button class="disclosure-button" type="button" :aria-expanded="historyOpen" aria-controls="variant-research-history" data-testid="variant-history-toggle" @click="toggleResearchHistory">
        <span>Recorded chronology</span><span aria-hidden="true">{{historyOpen?'−':'+'}}</span>
       </button>
