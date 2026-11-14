@@ -8,6 +8,7 @@ import {createReadOnlyRepository,readConfigFromEnvironment,variantDisplayName,fo
 import {createLiveResearchHistorySource,type ResearchHistory} from '../services/liveResearchHistory';
 import {recordedResearchChronology} from '../domain/recordedResearchChronology';
 import {recordedAuditCsv} from '../domain/recordedAuditExport';
+import ConflictReviewPreparation from '../components/ConflictReviewPreparation.vue';
 
 const route=useRoute(),router=useRouter();
 const config=readConfigFromEnvironment();
@@ -191,6 +192,7 @@ function exportCsv():void{
     <div><strong>{{unresolvedCount}}</strong><span>Marked unresolved</span></div>
     <div><strong>{{chronology.undated.length}}</strong><span>Undated events</span></div>
    </section>
+   <ConflictReviewPreparation v-if="history&&unresolvedCount>0" :key="variant.id" :variant-id="variant.id" :history="history" />
    <section class="nfq-audit-chronology" aria-labelledby="nfq-audit-chronology-heading">
     <div class="nfq-audit-chronology-head">
      <div><span class="nfq-audit-label">REGISTERED ACTIVITY</span><h2 id="nfq-audit-chronology-heading">Recorded chronology</h2></div>

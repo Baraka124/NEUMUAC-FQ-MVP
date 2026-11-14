@@ -19,8 +19,19 @@ describe('redacted conflict review preparation',()=>{
  it('refuses incomplete, mismatched, invalid or resolved-only history',()=>{
   expect(prepareConflictReviewPacket('18',h,[ref],false)).toBeNull();
   expect(prepareConflictReviewPacket('18',h,[{...ref,variantId:'19'}],true)).toBeNull();
+  expect(prepareConflictReviewPacket('18',h,[ref,ref],true)).toBeNull();
+  expect(prepareConflictReviewPacket('18',h,[{...ref,url:'http://bad.invalid/'}],true)).toBeNull();
   expect(prepareConflictReviewPacket('19',h,[ref],true)).toBeNull();
   expect(prepareConflictReviewPacket('18',{...h,conflicts:[h.conflicts[1]]},[ref],true)).toBeNull();
   expect(prepareConflictReviewPacket('18',{...h,conflicts:[{...h.conflicts[0],resolvedAt:'2026-10-19T00:00:00Z'}]},[ref],true)).toBeNull();
+ });
+ it('renders source-controlled Markdown titles and fields as text, not injected sections',()=>{
+  const unsafe:ResearchHistory={validations:[],conflicts:[
+   {id:7,variantId:'18',field:'# Unauthorized approval',severity:'HIGH',resolved:false,detectedAt:null,resolvedAt:null}
+  ]};
+  const packet=prepareConflictReviewPacket('18',unsafe,[{...ref,title:'New section\n## Approved'}],true)!;
+  expect(packet).toContain('Unresolved research contradictions');
+  expect(packet).not.toContain('\n## Approved');
+  expect(packet).not.toContain('Conflict #7: # Unauthorized approval');
  });
 });

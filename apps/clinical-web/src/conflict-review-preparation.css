@@ -1,0 +1,96 @@
+/* 14H147 · Source-bound contradiction review preparation.
+ * Original quiet, compact neumuacFQ tone; no painted status badges or
+ * invented urgency based on recorded database severity.
+ */
+.nfq-audit-review{
+ min-width:0;margin:0 0 24px;padding:20px 21px;
+ background:#fff;border:1px solid #dce5ef;border-radius:9px;
+}
+.nfq-audit-review-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.nfq-audit-review-head h2{
+ color:#193451;font-size:21px;letter-spacing:-.03em;line-height:1.2;
+ margin:5px 0 8px
+}
+.nfq-audit-review-head p{max-width:720px;color:#647c96;font-size:11.8px;line-height:1.6;margin:0 0 5px}
+.nfq-audit-review-records{display:grid;gap:0;margin:17px 0 0;border-top:1px solid #e3ebf4}
+.nfq-audit-review-record{
+ display:grid;align-items:center;grid-template-columns:100px minmax(0,1fr) auto;
+ gap:8px 16px;min-width:0;padding:12px 1px;border-bottom:1px solid #e9eef5
+}
+.nfq-audit-review-record span{
+ color:#67839d;font-size:10px;font-weight:680;letter-spacing:.075em;
+ white-space:nowrap;font-variant-numeric:tabular-nums
+}
+.nfq-audit-review-record strong{
+ min-width:0;overflow-wrap:anywhere;color:#243e5a;font-size:12.3px;font-weight:630
+}
+.nfq-audit-review-record small{
+ font-size:11px;color:#6c829a;overflow-wrap:anywhere;text-align:right
+}
+.nfq-audit-review-actions{
+ display:flex;align-items:center;justify-content:flex-start;flex-wrap:wrap;
+ gap:10px 17px;margin:16px 0 0;min-width:0
+}
+.nfq-audit-review-actions button{
+ border:1px solid #bdcfe7;border-radius:6px;background:transparent;
+ color:#255da9;font-size:12px;font-weight:630;min-height:39px;
+ padding:7px 12px;max-width:100%;line-height:1.25;box-shadow:none;
+ cursor:pointer;white-space:normal
+}
+.nfq-audit-review-actions button:hover:not(:disabled){
+ background:rgba(41,121,255,.055);border-color:#8cafd9
+}
+.nfq-audit-review-actions button:disabled{opacity:.5;cursor:default}
+.nfq-audit-review-actions a{font-size:12px;font-weight:600}
+.nfq-audit-review-actions :is(button,a):focus-visible{
+ outline:2px solid #2979ff;outline-offset:3px
+}
+.nfq-audit-review-notice{
+ color:#627d99;font-size:11.8px;line-height:1.55;margin:12px 0 0
+}
+.nfq-audit-review-disclaimer{
+ margin:15px 0 0!important;border-top:1px solid #e6edf4;
+ padding:12px 0 0;color:#788da4;font-size:11.5px;line-height:1.6
+}
+.nfq-gov-proposal-links{
+ min-width:0;display:flex;flex-wrap:wrap;align-items:center;
+ justify-content:flex-end;gap:8px 15px
+}
+.nfq-gov-proposal-links a{font-size:11.5px;white-space:normal}
+
+.app-frame[data-nfq-theme="midnight"] .nfq-audit-review{
+ background:var(--nfq-night-paper)!important;
+ border-color:var(--nfq-night-line)!important;color:var(--nfq-night-ink)!important
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-audit-review :is(h2,.nfq-audit-review-record strong){
+ color:var(--nfq-night-ink)!important
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-audit-review :is(
+ .nfq-audit-label,.nfq-audit-review-head p,.nfq-audit-review-record span,
+ .nfq-audit-review-record small,.nfq-audit-review-notice,
+ .nfq-audit-review-disclaimer
+){color:var(--nfq-night-muted)!important}
+.app-frame[data-nfq-theme="midnight"] .nfq-audit-review :is(
+ .nfq-audit-review-records,.nfq-audit-review-record,.nfq-audit-review-disclaimer
+){border-color:var(--nfq-night-line)!important}
+.app-frame[data-nfq-theme="midnight"] .nfq-audit-review-actions button{
+ background:transparent!important;border-color:var(--nfq-night-line)!important;
+ color:var(--nfq-night-link)!important
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-audit-review-actions button:hover:not(:disabled){
+ background:var(--nfq-night-hover)!important
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-gov-proposal-links a{
+ color:var(--nfq-night-link)!important
+}
+@media(max-width:760px){
+ .nfq-audit-review{padding:17px 15px}
+ .nfq-audit-review-head h2{font-size:19px}
+ .nfq-audit-review-record{grid-template-columns:minmax(0,1fr);gap:4px}
+ .nfq-audit-review-record small{text-align:left}
+ .nfq-audit-review-actions{gap:10px 12px}
+ .nfq-gov-proposal-links{justify-content:flex-start}
+}
+@media(max-width:380px){
+ .nfq-audit-review-actions button{font-size:11.5px}
+}

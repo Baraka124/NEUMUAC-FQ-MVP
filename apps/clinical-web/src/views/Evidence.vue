@@ -164,7 +164,7 @@ watch([query,page,focusId,invalidVariantScope],()=>{exportNotice.value='';});
    <RouterLink :to="returnToResearch" data-testid="evidence-context-return">← {{returnLabel}}</RouterLink>
    <span class="nfq-research-trail-current" aria-current="page">Evidence &amp; provenance</span>
   </nav>
-  <div v-if="focusId" class="nfq-variant-scope"><span>References for variant record #{{focusId}}</span><RouterLink to="/evidence">All records</RouterLink></div>
+  <div v-if="focusId" class="nfq-variant-scope"><span>References for variant record #{{focusId}}</span><RouterLink :to="{path:'/reports',query:{variant:focusId}}">Recorded history</RouterLink><RouterLink to="/evidence">All records</RouterLink></div>
   <div v-if="!focusId" class="evidence-search-head" role="search" aria-label="Find recorded scientific sources">
    <label for="evidence-search">Find a source or reference</label>
    <div class="nfq-science-search-line"><input id="evidence-search" v-model="query" type="search" placeholder="Title, source or PMID" @input="page=0"/><button v-if="query" type="button" class="nfq-science-clear" @click="query='';page=0">Clear search</button></div>

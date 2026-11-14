@@ -6,9 +6,20 @@ export function prepareConflictReviewPacket(
  variantId:string,history:ResearchHistory,references:readonly LiveEvidenceReference[],complete:boolean
 ):string|null{
  const focus=recordedConflictFocus(history,variantId);
- if(!complete||!focus||!focus.unresolved.length||references.length>200||
-    references.some(ref=>ref.variantId!==variantId))return null;
- const field=(value:string|null)=>String(value||'Not recorded').replace(/[\r\n]/g,' ').slice(0,300);
+ if(!complete||!focus||!focus.unresolved.length||references.length>200)return null;
+ const ids=new Set<number>();
+ for(const ref of references){
+  if(!Number.isSafeInteger(ref.id)||ref.id<=0||ids.has(ref.id)||
+     ref.variantId!==variantId||!ref.title.trim())return null;
+  ids.add(ref.id);
+  let url:URL;
+  try{url=new URL(ref.url);}catch{return null;}
+  if(url.protocol!=='https:'||url.username||url.password||url.port)return null;
+ }
+ // Recorded free text is quoted as text, never injected as Markdown structure.
+ const field=(value:string|null)=>String(value||'Not recorded')
+  .replace(/[\u0000-\u001f\u007f]/g,' ')
+  .replace(/([\\`*_{}\[\]()#+.!|>])/g,'\\$1').slice(0,300);
  const lines=[
   '# neumuacFQ — Unresolved research contradictions',
   '',
