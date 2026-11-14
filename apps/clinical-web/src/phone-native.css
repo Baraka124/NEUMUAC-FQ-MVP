@@ -4,7 +4,7 @@
  * MOBILE ONLY. Preserve the already accepted desktop composition, typography,
  * color signatures, scientific meanings, privileges and navigation contracts.
  */
-.nfq-phone-wordmark,.nfq-phone-launcher-icon{display:none}
+.nfq-phone-wordmark,.nfq-phone-launcher-icon,.nfq-phone-signout-icon{display:none}
 .nfq-mobile-preview-control{display:none}
 @media(max-width:760px){
  /* App-wide chrome: a genuine branded utility header instead of a
@@ -23,7 +23,7 @@
   padding:0;border:1px solid var(--nfq-signature-rule,#dce6f0);
   border-radius:8px;background:transparent;color:#375b7d;
  }
- .app-frame .mobile-menu-button .hamburger{font-size:19px;line-height:1}
+ .app-frame .mobile-menu-button .hamburger{display:block;width:20px;height:20px;flex:none}
  .app-frame .mobile-menu-button>span:not(.hamburger){display:none}
  .app-frame .nfq-phone-wordmark{
   display:inline-flex;align-items:center;flex:1 1 auto;
@@ -70,7 +70,17 @@
  }
  .app-frame .header-environment .nfq-header-profile-link{min-width:40px;min-height:40px}
  .app-frame .nfq-header-profile-copy{display:none}
- .app-frame .nfq-header-signout{max-width:36px;overflow:hidden;white-space:nowrap}
+ .app-frame .nfq-header-signout{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:40px;min-width:40px;max-width:40px!important;
+  height:40px;min-height:40px;
+  padding:0!important;margin:0 0 0 4px;
+  border:1px solid var(--nfq-signature-rule,#dce6f0);
+  border-radius:8px;background:transparent!important;
+  color:#41698b;font:inherit;cursor:pointer;
+ }
+ .app-frame .nfq-header-signout .nfq-phone-signout-icon{display:block}
+ .app-frame .nfq-header-signout .nfq-signout-copy{display:none}
  /* The navigation remains a complete scrollable drawer, no content is dropped.
     The overlay begins *below* the now shorter header. */
  .app-frame .mobile-nav-backdrop{
@@ -222,6 +232,11 @@
   background:transparent!important;
  }
  .app-frame[data-nfq-theme="midnight"] .nfq-phone-launcher-icon{color:var(--nfq-night-link)!important}
+ .app-frame[data-nfq-theme="midnight"] .nfq-header-signout{
+  color:var(--nfq-night-link)!important;
+  border-color:var(--nfq-night-line)!important;
+  background:transparent!important;
+ }
  .app-frame[data-nfq-theme="midnight"] .nfq-mobile-preview-control{
   border-color:var(--nfq-night-line)!important;
   background:transparent!important;color:var(--nfq-night-link)!important;
