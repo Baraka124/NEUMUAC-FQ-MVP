@@ -982,3 +982,32 @@ test('14H142 phone list previews four records, expands all six without inner scr
  await expect(page.getByTestId('five-therapy-workspace')).toBeVisible();
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
+
+
+test('14H143 original Midnight coverage groups and search preserve contrast and recorded results',async({page})=>{
+ await setup(page);
+ await page.addInitScript(()=>window.localStorage.setItem('nfq-research-theme-v1','midnight'));
+ for(const width of [390,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/intelligence');
+  const query=page.getByRole('searchbox',{name:'Find a recorded variant'});
+  await expect(query).toBeVisible();
+  await expect(query).toHaveCSS('background-color','rgb(17, 31, 51)');
+  const groups=page.getByRole('navigation',{name:'Documentation coverage groups'});
+  await expect(groups.getByRole('button')).toHaveCount(5);
+  const selected=groups.getByRole('button',{pressed:true});
+  await expect(selected).toHaveCount(1);
+  await expect(selected).toHaveCSS('background-color','rgba(41, 121, 255, 0.17)');
+  if(width<=760){
+   await expect(query).toHaveCSS('font-size','16px');
+  }else{
+   expect(await page.locator('.intelligence-page .nfq-coverage-search')
+    .evaluate(el=>el.getBoundingClientRect().width)).toBeLessThanOrEqual(561);
+  }
+  await query.fill('G542X');
+  await expect(query).toHaveValue('G542X');
+  await page.getByRole('button',{name:'Clear search'}).click();
+  await expect(query).toHaveValue('');
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
