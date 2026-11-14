@@ -4,6 +4,7 @@ import EntryLanding from './views/EntryLanding.vue';
 import Variants from './views/Variants.vue';
 import Planned from './views/Planned.vue';
 import ReportsAudit from './views/ReportsAudit.vue';
+import Governance from './views/Governance.vue';
 import Evidence from './views/Evidence.vue';
 import Genotype from './views/Genotype.vue';
 import Intelligence from './views/Intelligence.vue';
@@ -14,4 +15,4 @@ import RecoverAccount from './views/RecoverAccount.vue';
 import Administration from './views/Administration.vue';
 import Helios from './views/Helios.vue';
 export const sections=[{path:'/workspace',name:'Overview'},{path:'/variants',name:'Variants'},{path:'/evidence',name:'Evidence & Curation'},{path:'/helios',name:'Helios Review'},{path:'/genotype',name:'Genotype'},{path:'/intelligence',name:'Research coverage'},{path:'/reports',name:'Reports & Audit'},{path:'/governance',name:'Governance'}];
-export function createClinicalRouter(){return createRouter({history:createWebHashHistory(),routes:[{path:'/',component:EntryLanding},{path:'/workspace',component:Overview},{path:'/sign-in',component:SignIn},{path:'/activate',component:ActivateInvitation},{path:'/recover',component:RecoverAccount},{path:'/admin',component:Administration},{path:'/variants',component:Variants},{path:'/variants/:id',component:Variants},{path:'/evidence',component:Evidence},{path:'/helios',component:Helios},{path:'/genotype',component:Genotype},{path:'/intelligence',component:Intelligence},{path:'/reports',component:ReportsAudit},{path:'/geography',component:PublicGeography},...sections.slice(3).filter(x=>!['/helios','/genotype','/intelligence','/reports'].includes(x.path)).map(x=>({path:x.path,component:Planned,props:{title:x.name}})),{path:'/:catchAll(.*)*',redirect:'/'}]});}
+export function createClinicalRouter(){return createRouter({history:createWebHashHistory(),routes:[{path:'/',component:EntryLanding},{path:'/workspace',component:Overview},{path:'/sign-in',component:SignIn},{path:'/activate',component:ActivateInvitation},{path:'/recover',component:RecoverAccount},{path:'/admin',component:Administration},{path:'/variants',component:Variants},{path:'/variants/:id',component:Variants},{path:'/evidence',component:Evidence},{path:'/helios',component:Helios},{path:'/genotype',component:Genotype},{path:'/intelligence',component:Intelligence},{path:'/reports',component:ReportsAudit},{path:'/governance',component:Governance},{path:'/geography',component:PublicGeography},...sections.slice(3).filter(x=>!['/helios','/genotype','/intelligence','/reports','/governance'].includes(x.path)).map(x=>({path:x.path,component:Planned,props:{title:x.name}})),{path:'/:catchAll(.*)*',redirect:'/'}]});}
