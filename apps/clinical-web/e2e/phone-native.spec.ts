@@ -7,7 +7,7 @@ test('phone header has recognizable navigation, brand, workspace search and them
  for(const width of [320,390,430,760]){
   await page.setViewportSize({width,height:844});
   await page.goto('/#/variants');
-  const menu=page.getByRole('button',{name:'Open workspaces'});
+  const menu=page.getByRole('button',{name:'Workspaces',exact:true});
   const brand=page.getByRole('link',{name:'neumuacFQ research overview'});
   const launcher=page.getByRole('button',{name:'Open workspace switcher'});
   await expect(menu).toBeVisible();
