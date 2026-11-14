@@ -27,9 +27,10 @@ original color signatures without altering any clinical classifications.
 
 ## Footer
 - Main shell is min-height 100dvh with flex-growing page body.
-- The unobtrusive footer is anchored at the viewport bottom for a short page
-  and retains its document order for long content; sticky bottom is local to
-  workspace-frame, with no fixed overlay covering inputs or review actions.
+- The unobtrusive footer uses the standard **flex-layout sticky-footer**
+  pattern: anchored at the viewport bottom on a short page, after all content
+  on a long page. It has **no position:sticky or fixed overlay**, because those
+  would intercept search preferences, filters and review actions.
 - Phone safe-area inset and compact type/padding are respected; auth landing
   routes are excluded.
 
