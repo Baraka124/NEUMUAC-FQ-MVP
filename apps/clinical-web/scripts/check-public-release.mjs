@@ -48,7 +48,6 @@ export function comparePublishedCommit(html,expected){
  return {ok:true,code:'MATCH',detail:`Production HTML matches ${actual}.`};
 }
 /** One GET to one fixed public origin, without auth tokens, cookies, or API reads. */
-/** One GET to one fixed public origin, without auth tokens, cookies, or API reads. */
 async function fetchPublicHtml(transport=fetch){
  let response;
  try{
