@@ -35,6 +35,7 @@ const phase=ref<'idle'|'loading'|'ready'|'no-record'|'unavailable'|'inconsistent
 const notice=ref('');
 const exportNotice=ref('');
 const eventFilter=ref<'all'|'validation'|'conflict'>('all');
+const filterOptions=[{id:'all',label:'All events'},{id:'validation',label:'Validations'},{id:'conflict',label:'Conflicts'}] as const;
 const chronology=computed(()=>history.value&&variant.value
  ?recordedResearchChronology(history.value,variant.value.id):null);
 const unresolvedCount=computed(()=>history.value?.conflicts.filter(item=>!item.resolved).length??0);
@@ -194,7 +195,7 @@ function exportCsv():void{
      <button type="button" class="nfq-audit-export" :disabled="!eventCount" data-testid="nfq-audit-export" @click="exportCsv">Export recorded events · CSV</button>
     </div>
     <div class="nfq-audit-filters" role="group" aria-label="Filter recorded events">
-     <button v-for="item in [{id:'all',label:'All events'},{id:'validation',label:'Validations'},{id:'conflict',label:'Conflicts'}] as const"
+     <button v-for="item in filterOptions"
       :key="item.id" type="button" :aria-pressed="eventFilter===item.id" @click="eventFilter=item.id">{{item.label}}</button>
     </div>
     <p v-if="exportNotice" role="status" class="nfq-audit-export-note">{{exportNotice}}</p>
