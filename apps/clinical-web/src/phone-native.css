@@ -56,6 +56,13 @@
   white-space:nowrap;text-align:right;font-size:12px;
  }
  .app-frame .header-environment .environment-dot{display:none}
+ /* Unconfigured test/preview environments may show a longer public-access
+    status instead of the sign-in link. Keep it readable but never let that
+    label squeeze the brand or push the search icon off-screen. */
+ .app-frame .header-environment>span:not(.environment-dot){
+  display:block;max-width:85px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;font-size:11px;
+ }
  .app-frame .header-environment>a:not(.nfq-header-profile-link){
   display:inline-flex;align-items:center;justify-content:center;
   min-height:40px;padding:0 6px;text-decoration:none;
