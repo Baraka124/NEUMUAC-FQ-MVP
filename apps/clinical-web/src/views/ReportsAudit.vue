@@ -22,9 +22,9 @@ try{
 }catch{
  configurationIssue='The configured research source could not be verified.';
 }
-const canonicalId=(value:unknown):value is string=>
+const canonicalId=(value:unknown):boolean=>
  typeof value==='string'&&/^[1-9][0-9]{0,17}$/.test(value);
-const requestedId=computed(()=>canonicalId(route.query.variant)?route.query.variant:null);
+const requestedId=computed(()=>typeof route.query.variant==='string'&&canonicalId(route.query.variant)?route.query.variant:null);
 const invalidScope=computed(()=>route.query.variant!==undefined&&!requestedId.value);
 const searchText=ref('');
 const searchBusy=ref(false);
