@@ -81,9 +81,16 @@ export async function checkPublicRelease(expected,transport=fetch){
  return comparePublishedCommit(observed.html,expected);
 }
 /** Compare the public root to the actual compiled artifact checked into main. */
-export async function checkPublicArtifact(checkedInHtml,transport=fetch){
- if(!extractPublicCommit(checkedInHtml)||!extractPublicAssets(checkedInHtml))
+export async function checkPublicArtifact(checkedInHtml,transport=fetch,expectedSource=null){
+ const checkedInSource=extractPublicCommit(checkedInHtml);
+ if(!checkedInSource||!extractPublicAssets(checkedInHtml))
   return {ok:false,code:'INVALID_CHECKED_IN_ROOT',detail:'Checked-in root lacks a unique release marker or JS/CSS manifest.'};
+ if(expectedSource!==null){
+  if(typeof expectedSource!=='string'||!SHA.test(expectedSource))
+   return {ok:false,code:'INVALID_EXPECTED',detail:'Latest source revision must be a full commit SHA.'};
+  if(checkedInSource!==expectedSource.toLowerCase())
+   return {ok:false,code:'SOURCE_STALE',detail:'Checked-in Vue build is not from the newest deployment-triggering source revision.'};
+ }
  const observed=await fetchPublicHtml(transport);
  if(!observed.ok)return observed;
  return comparePublishedArtifact(observed.html,checkedInHtml);
@@ -104,7 +111,7 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).hr
    }
    if(!(await stat(new URL('index.1.html',root))).isFile())
     throw Error('Frozen original HTML missing.');
-   result=await checkPublicArtifact(checkedInHtml);
+   result=await checkPublicArtifact(checkedInHtml,fetch,process.env.NFQ_EXPECTED_SOURCE_COMMIT);
   }catch{
    result={ok:false,code:'INVALID_CHECKED_IN_ROOT',detail:'Checked-in root, original or assets are missing or invalid.'};
   }
