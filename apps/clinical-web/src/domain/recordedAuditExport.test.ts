@@ -13,7 +13,7 @@ describe('14H145 recorded audit export',()=>{
   const chronology=recordedResearchChronology(history,'18')!;
   const csv=recordedAuditCsv(variant,chronology);
   expect(csv).not.toBeNull();
-  expect(csv).toContain('"18","R117H","v:2","validation","2026-11-01T12:00:00Z"');
+  expect(csv).toContain('"18","R117H","v:2","validation","2026-11-01T12:00:00.000Z"');
   expect(csv).toContain('"c:3:detected","conflict-detected"');
   expect(csv).toContain('"c:3:resolved","conflict-resolved",""');
   expect(csv).toContain('"undated"');
