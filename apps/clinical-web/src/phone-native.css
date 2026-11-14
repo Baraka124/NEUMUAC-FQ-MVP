@@ -98,7 +98,9 @@
   border-radius:6px!important;
  }
  .app-frame .mobile-nav .mobile-admin-link{margin-top:7px}
- .app-frame .nfq-mobile-theme-row{margin-top:10px}
+ /* The header theme icon is intentionally removed to keep this usable;
+    retain the full appearance switch inside the drawer at ALL phone widths. */
+ .app-frame .nfq-mobile-theme-row{display:flex!important;margin-top:10px}
  /* Research content: compact but legible without duplicating desktop pages. */
  .workspace-frame>main{
   min-width:0;padding:11px 12px 30px!important;
