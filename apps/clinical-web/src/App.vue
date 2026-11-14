@@ -163,7 +163,7 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
           <button class="mobile-menu-button" type="button" aria-controls="mobile-workspace-nav"
             aria-label="Workspaces"
             :aria-expanded="mobileMenuOpen" @click="mobileMenuOpen = !mobileMenuOpen">
-            <span class="hamburger" aria-hidden="true">☰</span>
+            <svg class="hamburger" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path v-if="mobileMenuOpen" d="m5 5 14 14M19 5 5 19"/><path v-else d="M4 7h16M4 12h16M4 17h16"/></svg>
             <span>{{ mobileMenuOpen ? 'Close menu' : 'Workspaces' }}</span>
           </button>
           <RouterLink class="header-path header-overview-link" to="/workspace" aria-label="Research overview">Research</RouterLink>
@@ -191,7 +191,7 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
             <span class="nfq-header-profile-mark" aria-hidden="true">FQ</span>
             <span class="nfq-header-profile-copy"><strong>My profile</strong><small>{{sidebarAccessSummary}}</small></span>
            </RouterLink>
-           <button type="button" class="nfq-header-signout" aria-label="Sign out" @click="authController.signOut()">Sign out</button>
+           <button type="button" class="nfq-header-signout" aria-label="Sign out" @click="authController.signOut()"><svg class="nfq-phone-signout-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4"/><path d="M13 8l4 4-4 4M8 12h9"/></svg><span class="nfq-signout-copy">Sign out</span></button>
           </template>
           <RouterLink v-else-if="authController" to="/sign-in">Sign in</RouterLink>
           <span v-else>Public research access</span>
