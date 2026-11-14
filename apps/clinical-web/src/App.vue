@@ -161,13 +161,15 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
       <header class="institution-header">
         <div class="header-location">
           <button class="mobile-menu-button" type="button" aria-controls="mobile-workspace-nav"
+            :aria-label="mobileMenuOpen ? 'Close workspaces' : 'Open workspaces'"
             :aria-expanded="mobileMenuOpen" @click="mobileMenuOpen = !mobileMenuOpen">
             <span class="hamburger" aria-hidden="true">☰</span>
             <span>{{ mobileMenuOpen ? 'Close menu' : 'Workspaces' }}</span>
           </button>
           <RouterLink class="header-path header-overview-link" to="/workspace" aria-label="Research overview">Research</RouterLink>
         </div>
-        <button type="button" class="workspace-launcher-trigger" @click="openLauncher" aria-label="Open workspace switcher"><span>Switch workspace</span><kbd>Ctrl K</kbd></button>
+        <RouterLink class="nfq-phone-wordmark" to="/workspace" aria-label="neumuacFQ research overview"><strong>neumuac<span>FQ</span></strong></RouterLink>
+        <button type="button" class="workspace-launcher-trigger" @click="openLauncher" aria-label="Open workspace switcher"><svg class="nfq-phone-launcher-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><span>Switch workspace</span><kbd>Ctrl K</kbd></button>
         <div class="nfq-header-right">
           <button type="button" class="nfq-theme-switch" data-testid="nfq-research-theme-switch"
             :aria-label="researchTheme==='light'?'Switch to midnight theme':'Switch to light theme'"
