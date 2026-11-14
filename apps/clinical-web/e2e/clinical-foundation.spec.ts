@@ -1490,7 +1490,20 @@ test('14H137C4 Helios review areas remain complete and compact in both themes',a
   await expect(buttons).toHaveCount(4);
   const heights=await buttons.evaluateAll(els=>els.map(el=>el.getBoundingClientRect().height));
   expect(heights.every(x=>x>=40)).toBe(true);
-  if(width<=900){
+  if(width<=760){
+   // 14H142: phones replace the old two-row grid with a single swipeable
+   // rail. Every review area remains available and keyboard-operable.
+   const geometry=await nav.evaluate(el=>{
+    const style=getComputedStyle(el);
+    const tops=[...el.querySelectorAll('button')].map(button=>button.getBoundingClientRect().top);
+    return {display:style.display,wrap:style.flexWrap,overflowX:style.overflowX,tops};
+   });
+   expect(geometry.display).toBe('flex');
+   expect(geometry.wrap).toBe('nowrap');
+   expect(['auto','scroll']).toContain(geometry.overflowX);
+   expect(Math.max(...geometry.tops)-Math.min(...geometry.tops)).toBeLessThan(3);
+  }else if(width<=900){
+   // 768px tablet remains the established two-column layout.
    expect(await nav.evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length)).toBe(2);
   }
   for(const area of ['queue','evidence','signals','history']){
