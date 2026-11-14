@@ -798,7 +798,7 @@ const adminStatus=computed(()=>roleAssignment.value==='administrator'?'Verified 
 .nfq-people-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:17px;align-items:start}
 .nfq-people-layout-editing{grid-template-columns:minmax(0,1fr) minmax(290px,.85fr)}
 .nfq-people-directory{min-width:0}
-.nfq-roster-search{display:flex;align-items:center;gap:8px;width:min(100%,570px);height:40px;padding:0 7px 0 12px;border:1px solid #d8e3ed;border-radius:8px;color:#7890a6;background:#fff}
+.nfq-roster-search{display:flex;align-items:center;gap:8px;width:min(100%,440px);height:40px;padding:0 7px 0 12px;border:1px solid #d8e3ed;border-radius:8px;color:#7890a6;background:#fff}
 .nfq-roster-search:focus-within{border-color:#6396bd;outline:2px solid #e8f1fa}
 .nfq-roster-search input{border:0;outline:0!important;box-shadow:none!important;padding:0;min-width:0;flex:1;font:inherit;font-size:12px;height:100%;background:transparent;color:#233e57}
 .nfq-roster-search input::-webkit-search-cancel-button{display:none}

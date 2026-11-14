@@ -552,3 +552,29 @@ test('14H137C6 role recheck follows verified server assignment rather than trust
  await expect(page.getByTestId('profile-role-label')).toHaveText('Awaiting assignment');
  await expect(page.getByTestId('source-review-workspace')).toHaveCount(0);
 });
+
+
+test('14H139 verified administrator keeps original Midnight panels and bounded account search',async({page})=>{
+ await mockFqAccount(page,'administrator');
+ await page.addInitScript(()=>window.localStorage.setItem('nfq-research-theme-v1','midnight'));
+ await page.goto('/#/admin');
+ await expect(page.locator('.app-frame')).toHaveAttribute('data-nfq-theme','midnight');
+ const readiness=page.locator('.admin-readiness').first();
+ await expect(readiness).toBeVisible();
+ await expect.poll(()=>readiness.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(15, 29, 48)');
+ const people=page.getByTestId('admin-people-access');
+ await expect(people).toBeVisible();
+ const accountSearch=people.locator('.nfq-roster-search');
+ await expect(accountSearch).toBeVisible();
+ const searchBounds=await accountSearch.boundingBox();
+ expect(searchBounds).not.toBeNull();
+ expect(searchBounds!.width).toBeLessThanOrEqual(442);
+ await expect.poll(()=>accountSearch.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(17, 31, 51)');
+ await people.getByRole('button',{name:'Manage research permissions for guest@example.org'}).click();
+ const form=people.getByTestId('admin-role-management').locator('.nfq-role-management-form');
+ await expect(form).toBeVisible();
+ await expect.poll(()=>form.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(17, 31, 51)');
+ // No role or identity mutation is necessary to verify presentation.
+ await expect(people.getByRole('button',{name:'Save permission'})).toBeDisabled();
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});

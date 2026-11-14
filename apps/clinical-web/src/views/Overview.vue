@@ -81,7 +81,7 @@ function openVariantSearch():void{
 }
 .nfq-home-search-controls{
  display:grid;grid-template-columns:minmax(0,1fr) auto;
- align-items:center;gap:8px;width:100%;max-width:640px;min-width:0;
+ align-items:center;gap:8px;width:100%;max-width:540px;min-width:0;
 }
 .nfq-home-search-controls input{
  display:block;min-width:0;width:100%;max-width:100%;

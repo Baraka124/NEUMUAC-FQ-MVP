@@ -178,13 +178,22 @@
   gap:9px;
  }
  .app-frame .sidebar .wordmark-icon{
+  position:relative;
+  overflow:hidden;
   flex:0 0 36px;
   width:36px;
   height:40px;
  }
+ /* The supplied icon is a square PNG with generous transparent margins.
+    Scale its painted mark inside the existing 36px brand slot, without
+    distorting or replacing the original artwork. */
  .app-frame .sidebar .wordmark-icon img{
-  width:36px;
-  height:36px;
+  position:absolute;
+  inset:auto;
+  top:50%;left:50%;
+  width:52px;height:52px;max-width:none;
+  object-fit:contain;
+  transform:translate(-50%,-50%);
  }
  .app-frame .sidebar-caption{
   margin:0 0 8px;
