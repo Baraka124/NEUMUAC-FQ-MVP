@@ -11,7 +11,7 @@ permissions:
   contents: read
 jobs:
   release:
-    name: Compare public build to selected main commit
+    name: Compare public build to checked-in Pages root artifact
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -26,11 +26,14 @@ jobs:
       - name: Validate offline release probe
         working-directory: apps/clinical-web
         run: node --test tests/public-release-audit.test.mjs
-      - name: Verify deployed revision without credentials
+      - name: Verify deployed source and JS/CSS match committed Pages artifact
         working-directory: apps/clinical-web
         env:
-          NFQ_EXPECTED_COMMIT: ${{ github.sha }}
-        run: node scripts/check-public-release.mjs
+          NFQ_COMPARE_DEPLOYED_ROOT: '1'
+        run: |
+          test -s ../../index.html
+          test -s ../../index.1.html
+          node scripts/check-public-release.mjs
 
   browser:
     name: Optional public research workflow acceptance
