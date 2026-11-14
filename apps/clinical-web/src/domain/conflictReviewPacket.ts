@@ -19,7 +19,7 @@ export function prepareConflictReviewPacket(
  // Recorded free text is quoted as text, never injected as Markdown structure.
  const field=(value:string|null)=>String(value||'Not recorded')
   .replace(/[\u0000-\u001f\u007f]/g,' ')
-  .replace(/([\\`*_{}\[\]()#+.!|>])/g,'\$1').slice(0,300);
+  .replace(/([\\`*_{}\[\]()#+.!|>])/g,'\\$1').slice(0,300);
  const lines=[
   '# neumuacFQ — Unresolved research contradictions',
   '',
