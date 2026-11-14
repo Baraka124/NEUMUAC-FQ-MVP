@@ -34,8 +34,8 @@ describe('14H145 recorded audit export',()=>{
    {id:9,variantId:'18',action:'=HYPERLINK("evil")',at:null,confidence:'@SUM(1,1)',recordedClass:'II'}
   ],conflicts:[]};
   const csv=recordedAuditCsv({...variant,legacyName:'+CMD'},recordedResearchChronology(altered,'18')!);
-  expect(csv).toContain('"\' +CMD"'.replace(' ',''));
-  expect(csv).toContain('"\'=HYPERLINK(""evil"")"');
+  expect(csv).toContain('"\'+CMD"');
+  expect(csv).toContain('"Validation · =HYPERLINK(""evil"")"');
   expect(csv).not.toContain('\r\n=HYPERLINK');
  });
  it('rejects duplicate event keys, cross-variant references and invalid chronology counts',()=>{
