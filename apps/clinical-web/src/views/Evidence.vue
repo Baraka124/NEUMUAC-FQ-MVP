@@ -7,6 +7,7 @@ import {createLiveEvidenceSource, EVIDENCE_PAGE_SIZE, type LiveEvidenceReference
 import {readConfigFromEnvironment} from '../services/liveVariants';
 import {referenceMetadata,referenceLinkConsistency} from '../domain/referencePresentation';
 import {evidenceCurationPageFindings} from '../domain/evidenceCurationPage';
+import {evidenceReconciliationPage} from '../domain/evidenceReconciliationPage';
 import {retrievePubMedMetadata,supportedPubMedId,type PubMedPublicationMetadata} from '../services/livePubMed';
 import {evidencePageCsv} from '../domain/evidencePageExport';
 import ContextHelp from '../components/ContextHelp.vue';
@@ -52,6 +53,7 @@ const loading=ref(false);
 const error=ref('');
 const shareStatus=ref('');
 const curationFindings=computed(()=>loading.value||error.value?[]:evidenceCurationPageFindings(rows.value));
+const reconciliationGroups=computed(()=>loading.value||error.value?[]:evidenceReconciliationPage(rows.value));
 const curationReferences=computed(()=>rows.value
  .map(reference=>({
   referenceId:reference.id,
@@ -63,7 +65,7 @@ const curationReferences=computed(()=>rows.value
 function curationFor(referenceId:number){
  return curationFindings.value.filter(f=>f.referenceId===referenceId);
 }
-async function openCurationReference(id:number):Promise<void>{
+async function openVisibleReference(id:number):Promise<void>{
  if(loading.value||error.value||!rows.value.some(reference=>reference.id===id))return;
  if(!expandedRows.value.includes(id))expandedRows.value=[...expandedRows.value,id];
  await nextTick();
@@ -184,10 +186,41 @@ watch([query,page,focusId,invalidVariantScope],()=>{exportNotice.value='';});
    <p class="nfq-evidence-curation-note">Current page only · Recorded metadata and identifier consistency. These are research review prompts, not evidence-quality grades, scientific contradictions or completed clinical validations.</p>
    <div class="nfq-evidence-curation-items">
     <div v-for="group in curationReferences" :key="group.referenceId" class="nfq-evidence-curation-item">
-     <button type="button" @click="openCurationReference(group.referenceId)">Inspect reference #{{group.referenceId}}</button>
+     <button type="button" @click="openVisibleReference(group.referenceId)">Inspect reference #{{group.referenceId}}</button>
      <span>{{group.findings.map(f=>f.label).join(' · ')}}</span>
     </div>
    </div>
+  </details>
+
+  <details v-if="!loading&&!error&&reconciliationGroups.length" class="nfq-evidence-reconciliation"
+   data-testid="evidence-reconciliation-worklist">
+   <summary>Cross-reference reconciliation · {{reconciliationGroups.length}} {{reconciliationGroups.length===1?'linked group':'linked groups'}}</summary>
+   <p class="nfq-reconciliation-note">Current page only. These references share a recorded DOI or PMID for the same variant, but some recorded metadata differ or are incomplete. This does not establish a duplicate publication, scientific contradiction, clinical outcome or completed review.</p>
+   <div class="nfq-reconciliation-groups">
+    <article v-for="group in reconciliationGroups" :key="group.id" class="nfq-reconciliation-group">
+     <div class="nfq-reconciliation-head">
+      <strong>Variant #{{group.variantId}} · {{group.references.length}} related source records</strong>
+      <span>{{group.observations.length}} {{group.observations.length===1?'comparison point':'comparison points'}}</span>
+     </div>
+     <p class="nfq-reconciliation-identifiers"><strong>Shared identifier(s)</strong> · {{group.matchingIdentifiers.join(' · ')}}</p>
+     <div class="nfq-reconciliation-observations">
+      <div v-for="observation in group.observations" :key="observation.field" class="nfq-reconciliation-observation">
+       <strong>{{observation.label}} · {{observation.kind==='different-values'?'different recorded values':'not recorded in every entry'}}</strong>
+       <dl>
+        <div v-for="entry in observation.values" :key="entry.referenceId">
+         <dt>Reference #{{entry.referenceId}}</dt>
+         <dd>{{entry.value??'Not recorded'}}</dd>
+        </div>
+       </dl>
+      </div>
+     </div>
+     <div class="nfq-reconciliation-actions">
+      <button v-for="reference in group.references" :key="reference.id" type="button"
+       @click="openVisibleReference(reference.id)">Inspect reference #{{reference.id}}</button>
+     </div>
+    </article>
+   </div>
+   <p class="nfq-reconciliation-note">Inspect original publications and recorded source links before proposing any correction. Proposals remain separate from publication and require independent authorized review.</p>
   </details>
   <section v-if="rows.length" class="evidence-register" aria-label="Recorded citations">
    <article v-for="item in rows" :key="item.id" class="evidence-row" :aria-labelledby="'nfq-evidence-title-'+item.id">
@@ -276,6 +309,31 @@ watch([query,page,focusId,invalidVariantScope],()=>{exportNotice.value='';});
 </template>
 <style scoped>
 /* 14H136 — calm, page-scoped research curation signals; no extra server calls. */
+
+/* 14H140 · Cross-reference candidate comparison: collapsed by default, never
+   an evidence score, red warning or independent scientific decision. */
+.nfq-evidence-reconciliation{min-width:0;margin:0 0 13px;border:1px solid var(--border,#dce1de);border-radius:6px;padding:9px 13px;background:var(--surface,#fff);color:inherit}
+.nfq-evidence-reconciliation summary{cursor:pointer;font-size:12px;font-weight:620;line-height:1.45;max-width:max-content}
+.nfq-evidence-reconciliation :is(summary,button):focus-visible{outline:2px solid currentColor;outline-offset:3px}
+.nfq-reconciliation-note{font-size:11px;line-height:1.55;color:var(--text-muted,#687381);margin:9px 0}
+.nfq-reconciliation-groups{display:grid;gap:12px;margin:11px 0}
+.nfq-reconciliation-group{border-top:1px solid var(--border,#dce1de);padding:12px 0 2px;min-width:0}
+.nfq-reconciliation-head{display:flex;align-items:baseline;justify-content:space-between;gap:6px 16px;flex-wrap:wrap;font-size:12px}
+.nfq-reconciliation-head span{font-size:11px;color:var(--text-muted,#687381)}
+.nfq-reconciliation-identifiers{font-size:11px;color:var(--text-muted,#687381);overflow-wrap:anywhere;line-height:1.5;margin:5px 0 11px}
+.nfq-reconciliation-identifiers strong{font-weight:650}
+.nfq-reconciliation-observations{display:grid;gap:9px}
+.nfq-reconciliation-observation{min-width:0;font-size:11px;line-height:1.45}
+.nfq-reconciliation-observation>strong{display:block;font-weight:650;margin-bottom:3px}
+.nfq-reconciliation-observation dl{display:grid;gap:3px;margin:0}
+.nfq-reconciliation-observation dl>div{display:grid;grid-template-columns:minmax(95px,140px) minmax(0,1fr);gap:8px;padding:2px 0;border-bottom:1px solid var(--border,#dce1de)}
+.nfq-reconciliation-observation dt{color:var(--text-muted,#687381)}
+.nfq-reconciliation-observation dd{min-width:0;margin:0;overflow-wrap:anywhere}
+.nfq-reconciliation-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:10px}
+.nfq-reconciliation-actions button{display:inline-flex;align-items:center;min-height:40px;max-width:100%;border:1px solid var(--border,#dce1de);border-radius:6px;background:transparent;color:inherit;padding:7px 10px;font:inherit;font-size:11px;font-weight:600;cursor:pointer}
+.nfq-reconciliation-actions button:hover{background:rgba(41,121,255,.06)}
+@media(max-width:420px){.nfq-reconciliation-observation dl>div{grid-template-columns:minmax(0,1fr);gap:1px}.nfq-reconciliation-head{display:grid}}
+
 .nfq-evidence-curation{margin:0 0 13px;border:1px solid var(--border,#dce1de);border-radius:6px;padding:9px 13px;color:inherit;background:var(--surface,#fff)}
 .nfq-evidence-curation summary{cursor:pointer;font-size:12px;font-weight:620;line-height:1.45;max-width:max-content}
 .nfq-evidence-curation summary:focus-visible,.nfq-evidence-curation button:focus-visible{outline:2px solid currentColor;outline-offset:3px}

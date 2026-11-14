@@ -761,3 +761,33 @@
  background:transparent!important;
  color:var(--nfq-night-ink)!important;
 }
+
+
+/* 14H140 · Source reconciliation is read-only and uses the same original
+   scientific surface as the existing per-reference curation worklist. */
+.app-frame[data-nfq-theme="midnight"] .nfq-evidence-reconciliation{
+ background:var(--nfq-night-paper)!important;
+ border-color:var(--nfq-night-line)!important;
+ color:var(--nfq-night-ink)!important;
+ box-shadow:none!important;
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-evidence-reconciliation :is(
+ .nfq-reconciliation-note,.nfq-reconciliation-head span,
+ .nfq-reconciliation-identifiers,.nfq-reconciliation-observation dt
+){color:var(--nfq-night-muted)!important}
+.app-frame[data-nfq-theme="midnight"] .nfq-evidence-reconciliation :is(
+ .nfq-reconciliation-head strong,.nfq-reconciliation-observation>strong,
+ .nfq-reconciliation-observation dd
+){color:var(--nfq-night-ink)!important}
+.app-frame[data-nfq-theme="midnight"] .nfq-evidence-reconciliation :is(
+ .nfq-reconciliation-group,.nfq-reconciliation-observation dl>div
+){border-color:var(--nfq-night-line)!important}
+.app-frame[data-nfq-theme="midnight"] .nfq-reconciliation-actions button{
+ background:transparent!important;
+ border-color:var(--nfq-night-line)!important;
+ color:var(--nfq-night-link)!important;
+ box-shadow:none!important;
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-reconciliation-actions button:hover{
+ background:var(--nfq-night-hover)!important;
+}

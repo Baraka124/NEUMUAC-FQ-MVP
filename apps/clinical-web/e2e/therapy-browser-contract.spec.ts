@@ -877,3 +877,74 @@ test('14H137C4 evidence reference links use intrinsic mobile widths and retain f
  await expect(page).toHaveURL(/#\/variants\/35/);
  await expectFiveRows(page.getByTestId('five-therapy-workspace'));
 });
+
+
+test('14H140 linked references expose source differences and open the existing review path without writes',async({page})=>{
+ await page.setViewportSize({width:390,height:780});
+ await setup(page);
+ const methods:string[]=[];
+ await page.route('https://cftr-contract.invalid/rest/v1/evidence_links*',async route=>{
+  methods.push(route.request().method());
+  const url=new URL(route.request().url());
+  const scoped=url.searchParams.get('variant_id');
+  const offset=Number(url.searchParams.get('offset')||'0');
+  const rows=scoped==='eq.35'&&offset===0?[
+   {id:901,variant_id:35,title:'Recorded source A',url:'https://doi.org/10.1000/same',
+    source:'Journal index',type:'Journal article',category:'CFTR research',
+    journal:'Research Journal',year:2024,pmid:'101',doi:'10.1000/same',
+    quality_score:null,source_weight:null,citation_count:null},
+   {id:902,variant_id:35,title:'Recorded source B',url:'https://doi.org/10.1000/same',
+    source:'Journal index',type:'Journal article',category:'CFTR research',
+    journal:'Research Journal',year:2025,pmid:'202',doi:'https://doi.org/10.1000/SAME',
+    quality_score:null,source_weight:null,citation_count:null}
+  ]:[];
+  await route.fulfill({status:200,contentType:'application/json',
+   headers:{'access-control-allow-origin':'*'},body:JSON.stringify(rows)});
+ });
+ await page.goto('/#/evidence?variant=35');
+ const worklist=page.getByTestId('evidence-reconciliation-worklist');
+ await expect(worklist).toBeVisible();
+ await expect(worklist.locator('summary')).toContainText('1 linked group');
+ await worklist.locator('summary').click();
+ await expect(worklist).toContainText('Current page only');
+ await expect(worklist).toContainText('DOI 10.1000/same');
+ await expect(worklist).toContainText('PMID · different recorded values');
+ await expect(worklist).toContainText('Publication year · different recorded values');
+ await expect(worklist).not.toContainText('DOI · different recorded values');
+ await worklist.getByRole('button',{name:'Inspect reference #902'}).click();
+ const row=page.getByRole('region',{name:'Recorded citations'}).locator('.evidence-row').filter({hasText:'Recorded source B'});
+ await expect(row.getByRole('button',{name:'Recorded source B'})).toBeFocused();
+ await expect(row.getByRole('region',{name:'Research contribution'})).toBeVisible();
+ await expect(row.getByRole('button',{name:'Prepare source correction'})).toBeVisible();
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ await page.goto('/#/evidence?variant=19');
+ await expect(page.getByTestId('evidence-reconciliation-worklist')).toHaveCount(0);
+ await expect(page.getByRole('region',{name:'Recorded citations'}).locator('.evidence-row')).toHaveCount(0);
+ expect(methods.length).toBeGreaterThan(0);
+ expect(methods.every(method=>method==='GET')).toBe(true);
+});
+
+test('14H140 reconciliation follows the original Midnight surface without filled review actions',async({page})=>{
+ await page.setViewportSize({width:390,height:780});
+ await setup(page);
+ await page.addInitScript(()=>window.localStorage.setItem('nfq-research-theme-v1','midnight'));
+ await page.route('https://cftr-contract.invalid/rest/v1/evidence_links*',async route=>{
+  const rows=[
+   {id:911,variant_id:35,title:'Source A',url:'https://pubmed.ncbi.nlm.nih.gov/123/',
+    source:'PubMed',type:'Journal article',category:'CFTR',journal:'Journal',year:2024,pmid:'123',doi:'10.1000/x'},
+   {id:912,variant_id:35,title:'Source B',url:'https://pubmed.ncbi.nlm.nih.gov/123/',
+    source:'PubMed',type:'Journal article',category:'CFTR',journal:'Journal',year:2024,pmid:'123',doi:null}
+  ];
+  await route.fulfill({status:200,contentType:'application/json',
+   headers:{'access-control-allow-origin':'*'},body:JSON.stringify(rows)});
+ });
+ await page.goto('/#/evidence?variant=35');
+ const worklist=page.getByTestId('evidence-reconciliation-worklist');
+ await expect(worklist).toBeVisible();
+ await expect.poll(()=>worklist.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(15, 29, 48)');
+ await worklist.locator('summary').click();
+ await expect(worklist).toContainText('DOI · not recorded in every entry');
+ await expect.poll(()=>worklist.locator('.nfq-reconciliation-actions button').first()
+  .evaluate(el=>getComputedStyle(el).backgroundColor)).toMatch(/^rgba\(/);
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
