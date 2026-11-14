@@ -63,6 +63,12 @@ describe('14H144 immutable GitHub Pages root release contract',()=>{
   const invalid=built.replace(/<script\b[^>]*>/,'');
   assert.equal((await checkPublicArtifact(invalid,async()=>{throw Error('must not GET');})).code,'INVALID_CHECKED_IN_ROOT');
  });
+ it('catches a newer source build that did not publish, before any network request',async()=>{
+  const never=async()=>{throw Error('must not contact public site');};
+  assert.equal((await checkPublicArtifact(built,never,'f'.repeat(40))).code,'SOURCE_STALE');
+  assert.equal((await checkPublicArtifact(built,never,'main')).code,'INVALID_EXPECTED');
+  assert.equal((await checkPublicArtifact(built,transport,SHA)).code,'MATCH');
+ });
  it('uses only the original unauthenticated fixed-origin GET',async()=>{
   const calls=[];
   const result=await checkPublicArtifact(built,async(url,init)=>{
