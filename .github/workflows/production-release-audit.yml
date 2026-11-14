@@ -33,6 +33,7 @@ jobs:
         run: |
           test -s ../../index.html
           test -s ../../index.1.html
+          test "$(git hash-object ../../index.1.html)" = 'c18221fb6baf47782318ca3685b94b088c359a66'
           node scripts/check-public-release.mjs
 
   browser:
