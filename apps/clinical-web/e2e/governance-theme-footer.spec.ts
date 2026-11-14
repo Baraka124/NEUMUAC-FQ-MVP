@@ -13,6 +13,9 @@ test('14H146 governance is a real read-only oversight workspace and fails closed
 });
 
 test('14H146 footer is anchored to viewport bottom on a short research page in both themes',async({page})=>{
+ // A fresh page navigation restores the preference from local storage; start
+ // each viewport in Daylight to avoid falsely interpreting a saved toggle.
+ await page.addInitScript(()=>window.localStorage.setItem('nfq-research-theme-v1','light'));
  for(const width of [320,390,768,1366]){
   await page.setViewportSize({width,height:900});
   await page.goto('/#/workspace');
