@@ -19,6 +19,9 @@ test('14H146 footer is anchored to viewport bottom on a short research page in b
  for(const width of [320,390,768,1366]){
   await page.setViewportSize({width,height:900});
   await page.goto('/#/workspace');
+  // A same-URL fragment navigation may reuse the document without running
+  // init scripts. Force a reload to reset the persisted starting theme.
+  await page.reload();
   for(const theme of ['light','midnight'] as const){
    if(theme==='midnight'){
     if(width<=760){
