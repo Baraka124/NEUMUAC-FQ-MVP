@@ -301,7 +301,10 @@ const showReferences=ref(false);
 // A selected dossier takes visual priority over the long result list on phones.
 // Desktop worklists remain fully visible, and users can expand results at any time.
 const mobileResultsExpanded=ref(false);
-watch(()=>selected.value?.id,id=>{showReferences.value=false;scientificDetailsOpen.value=false;mobileResultsExpanded.value=false;if(id)showSearchInfo.value=false;});
+// A phone initially shows four sample matches; the entire recorded page is
+// always available on request and desktop keeps its full worklist.
+const mobilePreviewExpanded=ref(false);
+watch(()=>selected.value?.id,id=>{showReferences.value=false;scientificDetailsOpen.value=false;mobileResultsExpanded.value=false;mobilePreviewExpanded.value=false;if(id)showSearchInfo.value=false;});
 const page=ref(typeof route.query.page==='string'&&/^\d{1,4}$/.test(route.query.page)?Number(route.query.page):0);
 const displayedRows=computed(()=>scientificInputAssessment.value.blocked?[]:
  (sort.value==='name-asc'&&page.value===0?rankVisibleSearchPage(rows.value,search.value):rows.value));
@@ -327,7 +330,13 @@ function matchExplanation(record:RealVariant):string{
  const terms=parseDiscoveryTerms(search.value);
  return explainMultiTermMatch(record,terms)||'Recorded variant';
 }
-function focusResult(index:number):void{const items=document.querySelectorAll<HTMLButtonElement>('.record-list button');if(!items.length)return;const next=(index+items.length)%items.length;activeResultIndex.value=next;items[next]?.focus();}
+function focusResult(index:number):void{
+ const items=[...document.querySelectorAll<HTMLButtonElement>('.record-list button')]
+  .filter(item=>item.getClientRects().length>0);
+ if(!items.length)return;
+ const next=(index+items.length)%items.length;
+ activeResultIndex.value=next;items[next]?.focus();
+}
 const hasMore=ref(false);
 const busy=ref(false);
 const detailBusy=ref(false);
@@ -405,7 +414,7 @@ watch(()=>authController?.state.phase,()=>{
  const id=route.params.id;
  if(typeof id==='string'&&/^[1-9]\d{0,17}$/.test(id))void loadDetail(id);
 });
-watch([search,page,classFilter,subtypeFilter,responseFilter,sort,searchMode],()=>{clearTimeout(timer);current?.abort();exactRequest?.abort();++listSequence;++exactSequence;rows.value=[];hasMore.value=false;busy.value=false;completed.value=false;pending.value=!scientificInputAssessment.value.blocked;timer=setTimeout(()=>{void load();void resolveSearch();},search.value?250:0)},{immediate:true});
+watch([search,page,classFilter,subtypeFilter,responseFilter,sort,searchMode],()=>{mobilePreviewExpanded.value=false;clearTimeout(timer);current?.abort();exactRequest?.abort();++listSequence;++exactSequence;rows.value=[];hasMore.value=false;busy.value=false;completed.value=false;pending.value=!scientificInputAssessment.value.blocked;timer=setTimeout(()=>{void load();void resolveSearch();},search.value?250:0)},{immediate:true});
 watch([search,classFilter,subtypeFilter,responseFilter,sort,searchMode],()=>{page.value=0;});
 watch(()=>route.params.id,id=>{void loadDetail(id);},{immediate:true});
 onUnmounted(()=>{current?.abort();detailRequest?.abort();exactRequest?.abort();evidenceAbort?.abort();dossierAbort?.abort();legacyEtiAbort?.abort();clinVarAbort?.abort();briefAbort?.abort();historyAbort?.abort();clearTimeout(timer);});
@@ -528,7 +537,13 @@ function select(id:string):void{
       <span>{{mobileResultsExpanded?'Hide other results':'View other results'}} <small>({{displayedRows.length}} on page)</small></span>
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
     </button>
-    <div v-if="!pending&&!busy&&!error&&rows.length&&!scientificInputAssessment.blocked" id="variant-results" class="record-list" :class="{'nfq-mobile-results-hidden':selected&&!mobileResultsExpanded}" aria-label="Search results"><button v-for="(record,index) in displayedRows" :key="record.id" type="button" @keydown="onResultKeydown($event,index)" @focus="activeResultIndex=index" @mouseenter="activeResultIndex=index" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span v-if="record.proteinName && !/^p\.\?$/.test(record.proteinName.trim())" class="record-subline">{{record.proteinName}}</span><span v-else-if="record.cdnaName" class="record-subline">{{record.cdnaName}}</span><span class="nfq-record-meta"><span v-if="search.trim()" class="record-match-reason">{{matchExplanation(record)}}</span><span v-if="record.recordedClass" class="record-class">Class {{record.recordedClass}}</span><span v-if="record.classSubtype==='exceptional'" class="nfq-exceptional-tag" data-testid="variant-exceptional-list-tag">Exceptional</span><span v-if="selected?.id===record.id" class="record-current-label">Selected</span></span></button></div>
+    <div v-if="!pending&&!busy&&!error&&rows.length&&!scientificInputAssessment.blocked" id="variant-results" class="record-list" :class="{'nfq-mobile-results-hidden':selected&&!mobileResultsExpanded,'nfq-mobile-results-preview':!selected&&displayedRows.length>4,'nfq-mobile-preview-expanded':mobilePreviewExpanded}" aria-label="Search results"><button v-for="(record,index) in displayedRows" :key="record.id" type="button" @keydown="onResultKeydown($event,index)" @focus="activeResultIndex=index" @mouseenter="activeResultIndex=index" :aria-current="selected?.id===record.id?'true':undefined" :class="{'record-selected':selected?.id===record.id}" @click="select(record.id)"><span class="record-first"><strong>{{ variantDisplayName(record) }}</strong></span><span v-if="record.proteinName && !/^p\.\?$/.test(record.proteinName.trim())" class="record-subline">{{record.proteinName}}</span><span v-else-if="record.cdnaName" class="record-subline">{{record.cdnaName}}</span><span class="nfq-record-meta"><span v-if="search.trim()" class="record-match-reason">{{matchExplanation(record)}}</span><span v-if="record.recordedClass" class="record-class">Class {{record.recordedClass}}</span><span v-if="record.classSubtype==='exceptional'" class="nfq-exceptional-tag" data-testid="variant-exceptional-list-tag">Exceptional</span><span v-if="selected?.id===record.id" class="record-current-label">Selected</span></span></button></div>
+    <button v-if="!pending&&!busy&&!error&&!selected&&displayedRows.length>4" type="button"
+      class="nfq-mobile-preview-control" :aria-expanded="mobilePreviewExpanded" aria-controls="variant-results"
+      @click="mobilePreviewExpanded=!mobilePreviewExpanded">
+      <span>{{mobilePreviewExpanded?'Show fewer results':'Show all '+displayedRows.length+' results on this page'}}</span>
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
     <nav v-if="!pending&&!busy&&!error&&(rows.length||page>0||hasMore)" class="pagination-controls discovery-pagination" :class="{'nfq-mobile-results-hidden':selected&&!mobileResultsExpanded}" aria-label="Variant result pages">
       <button type="button" :disabled="busy||page===0" aria-label="Previous variant page" @click="page--"><span aria-hidden="true">←</span> Previous</button>
       <span class="discovery-page-current" aria-current="page">Page {{page+1}}</span>
