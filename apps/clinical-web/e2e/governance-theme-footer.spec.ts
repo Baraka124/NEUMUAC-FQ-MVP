@@ -100,3 +100,16 @@ test('14H146 phone Governance keeps live theme surfaces consistent in drawer and
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+test('14H146 footer never intercepts the variant preference Done action on any viewport',async({page})=>{
+ for(const width of [320,390,768,1366]){
+  await page.setViewportSize({width,height:850});
+  await page.goto('/#/variants');
+  await page.getByRole('button',{name:/Filters/}).click();
+  const panel=page.getByRole('region',{name:'Search preferences'});
+  await expect(panel).toBeVisible();
+  await panel.getByRole('button',{name:'Done'}).click();
+  await expect(panel).toHaveCount(0);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
