@@ -19,6 +19,12 @@ describe('14H145 recorded audit export',()=>{
   expect(csv).toContain('"undated"');
   expect(csv).not.toMatch(/clinician|session_id|free.text/i);
  });
+ it('normalizes timezone-bearing recorded dates to UTC without inferring missing dates',()=>{
+  const updated:ResearchHistory={...history,validations:[{...history.validations[0],at:'2026-11-01T13:00:00+01:00'}]};
+  const csv=recordedAuditCsv(variant,recordedResearchChronology(updated,'18')!);
+  expect(csv).toContain('"2026-11-01T12:00:00.000Z"');
+  expect(csv).not.toContain('2026-11-01T13:00:00+01:00');
+ });
  it('preserves zero versus missing data: no events means no export',()=>{
   const chronology=recordedResearchChronology({validations:[],conflicts:[]},'18')!;
   expect(recordedAuditCsv(variant,chronology)).toBeNull();
