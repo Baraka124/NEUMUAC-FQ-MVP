@@ -161,7 +161,7 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
       <header class="institution-header">
         <div class="header-location">
           <button class="mobile-menu-button" type="button" aria-controls="mobile-workspace-nav"
-            :aria-label="mobileMenuOpen ? 'Close workspaces' : 'Open workspaces'"
+            :aria-label="mobileMenuOpen ? 'Close menu' : 'Workspaces'"
             :aria-expanded="mobileMenuOpen" @click="mobileMenuOpen = !mobileMenuOpen">
             <span class="hamburger" aria-hidden="true">☰</span>
             <span>{{ mobileMenuOpen ? 'Close menu' : 'Workspaces' }}</span>
