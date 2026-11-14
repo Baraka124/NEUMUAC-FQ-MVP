@@ -15,7 +15,7 @@ function rowsValid(events:readonly RecordedChronologyItem[]):boolean{
  for(const event of events){
   if(!/^[vc]:[1-9][0-9]{0,17}(?::(?:detected|resolved))?$/.test(event.key)||
    keys.has(event.key)||!event.heading.trim()||!event.details.trim()||
-   (event.recordedAt!==null&&!Number.isFinite(Date.parse(event.recordedAt))))return false;
+   (event.recordedAt!==null&&(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/.test(event.recordedAt)||!Number.isFinite(Date.parse(event.recordedAt)))))return false;
   keys.add(event.key);
  }
  return true;
@@ -35,7 +35,7 @@ export function recordedAuditCsv(variant:RealVariant,chronology:ResearchChronolo
  const header=['variant_id','recorded_variant_name','event_reference','event_kind','recorded_at_utc','recorded_event','recorded_metadata','date_scope'];
  const records=[...chronology.dated.map(x=>({item:x,scope:'dated'})),...chronology.undated.map(x=>({item:x,scope:'undated'}))];
  const lines=records.map(({item,scope})=>[
-  variant.id,name,item.key,item.kind,item.recordedAt||'',item.heading,item.details,scope
+  variant.id,name,item.key,item.kind,item.recordedAt?new Date(item.recordedAt).toISOString():'',item.heading,item.details,scope
  ].map(v=>csvCell(String(v))).join(','));
  return '\uFEFF'+header.join(',')+'\r\n'+lines.join('\r\n')+'\r\n';
 }
