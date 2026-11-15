@@ -570,6 +570,34 @@ test('14H125 G542X stays exceptional but recorded ETI nonresponsive',async({page
  await expect(facts).toContainText('Alyftrek Unknown');
  await expect(page.getByTestId('five-therapy-workspace').getByTestId('eti-recorded-category')).toHaveText('Non-responsive');
 });
+test('14H150 source-coded response labels stay readable and exact-match remains a subtle tag',async({page})=>{
+ await setup(page);
+ await page.addInitScript(()=>window.localStorage.setItem('nfq-research-theme-v1','midnight'));
+ await page.goto('/#/variants/1');
+ const facts=page.getByTestId('variant-response-summary');
+ const responsive=facts.locator('.nfq-recorded-fact[data-response="responsive"]>strong');
+ const unknown=facts.locator('.nfq-recorded-fact[data-response="unknown"]>strong');
+ await expect(responsive).toHaveText('Responsive');
+ await expect(unknown).toHaveText('Unknown');
+ await expect(responsive).toHaveCSS('color','rgb(175, 240, 202)');
+ await expect(unknown).toHaveCSS('color','rgb(193, 211, 235)');
+ await expect(facts).toContainText('Subtype exceptional');
+ await page.goto('/#/variants/19');
+ const nonResponsive=page.getByTestId('variant-response-summary')
+  .locator('.nfq-recorded-fact[data-response="non_responsive"]>strong');
+ await expect(nonResponsive).toHaveText('Non-responsive');
+ await expect(nonResponsive).toHaveCSS('color','rgb(241, 197, 189)');
+ await page.goto('/#/variants?q=E831X');
+ const exact=page.locator('.variant-page .discovery-exact-chip');
+ await expect(exact).toHaveText('Exact match',{timeout:12000});
+ await expect(exact).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
+ const chip=await exact.evaluate(el=>{const r=el.getBoundingClientRect();const cs=getComputedStyle(el);return {height:r.height,width:r.width,font:parseFloat(cs.fontSize)}});
+ expect(chip.height).toBeLessThanOrEqual(23);
+ expect(chip.width).toBeLessThan(100);
+ expect(chip.font).toBeLessThanOrEqual(10.5);
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
+
 test('14H125 subtype and therapy-specific searches survive deep links and use server filters',async({page})=>{
  const queries:string[]=[];
  page.on('request',request=>{if(request.url().includes('/rest/v1/variants?')&&request.url().includes('class_subtype='))
