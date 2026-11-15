@@ -79,6 +79,10 @@
  border-radius:5px;line-height:1.35;white-space:normal;
 }
 
+/* Saved dossier controls retain the original 40px accessible target even
+   when their visual padding and fill are restrained. */
+.app-frame .variant-page .nfq-save-record{min-height:40px!important}
+
 /* Recorded five-regimen source actions: compact, identical hierarchy in
    every row; keep all buttons, their disclosure controls and labels. */
 .app-frame .nfq-therapy .nfq-therapy-inspect{
