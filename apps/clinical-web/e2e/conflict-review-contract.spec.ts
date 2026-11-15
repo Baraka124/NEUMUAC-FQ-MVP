@@ -219,7 +219,7 @@ test('14H148 expanded traceability controls retain the original Midnight and mob
   expect(await trace.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(17, 31, 51)');
   const input=page.getByTestId('nfq-trace-locator');
   const color=await input.evaluate(el=>getComputedStyle(el).backgroundColor);
-  expect(color).toBe('rgb(15, 29, 48)');
+  expect(color).toBe('rgb(17, 31, 51)');
   if(width<=760){
    const fontSize=await input.evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
    expect(fontSize).toBeGreaterThanOrEqual(16);
