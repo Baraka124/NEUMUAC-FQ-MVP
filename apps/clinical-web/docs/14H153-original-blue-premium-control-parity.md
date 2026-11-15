@@ -32,8 +32,9 @@ uniform blue fill, random green labels or generic filled CTA rectangles.
   Keyboard opens the panel heading and Escape closes it.
 - **Geography:** Coverage (Spain/international) is distinct from the single
   selected Region. Map, native region picker and optional name index all read
-  and write the same selection. Selecting from the index closes it and focuses
-  its regional detail. Preserve all Spain regions, geographic boundaries,
+  and write the same selection. Selecting from the index updates the
+  regional detail while leaving the optional index open for repeated selection;
+  its disclosure closes only on explicit request. Preserve all Spain regions, geographic boundaries,
   caveats and no personal-location claims. Recolor both static map and chrome
   using original navy/slate/cobalt blue vocabulary and legible paper/ink
   contrasts (no arbitrary green text).
