@@ -4,7 +4,12 @@ import {test,expect,type Page} from '@playwright/test';
  * production data. The search UI renders even without a catalog connection.
  */
 async function setTheme(page:Page,mode:'light'|'midnight'):Promise<void>{
- await page.addInitScript(value=>localStorage.setItem('nfq-research-theme-v1',value),mode);
+ // Exercise the actual theme control. Repeated addInitScript registrations
+ // have unspecified evaluation order and can make a two-theme test flaky.
+ await page.goto('/#/workspace');
+ const current=await page.locator('.app-frame').getAttribute('data-nfq-theme');
+ if(current!==mode)await page.getByTestId('nfq-research-theme-switch').click();
+ await expect(page.locator('.app-frame')).toHaveAttribute('data-nfq-theme',mode);
 }
 async function noHorizontalOverflow(page:Page):Promise<void>{
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
