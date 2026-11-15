@@ -9,6 +9,7 @@ const variant=(id:number,name:string,protein:string,cftrClass:string)=>({
  cftr_class:cftrClass,class_subtype:'standard',eti_prediction:'unknown',
  alyftrek_prediction:'unknown',validation_count:2
 });
+const ONE=variant(1,'E831X','p.Glu831Ter','I');
 const A=variant(18,'R117H','p.Arg117His','IV');
 const B=variant(19,'G551D','p.Gly551Asp','III');
 async function setup(page:Page,signedIn=false){
@@ -41,7 +42,8 @@ async function setup(page:Page,signedIn=false){
   if(table==='variants'){
    const id=url.searchParams.get('id')?.replace(/^eq\./,'');
    const or=url.searchParams.get('or')||'';
-   if(id==='18')rows=[A];
+   if(id==='1')rows=[ONE];
+   else if(id==='18')rows=[A];
    else if(id==='19')rows=[B];
    else if(or.includes('R117H'))rows=[A];
    else if(or.includes('G551D'))rows=[B];
@@ -53,6 +55,37 @@ async function setup(page:Page,signedIn=false){
  });
  return methods;
 }
+
+test('14H151 canonical one-digit IDs and all-result CSV survive quiet progressive disclosure',async({page})=>{
+ const methods=await setup(page);
+ await page.setViewportSize({width:390,height:844});
+ await page.goto('/#/variants');
+ await page.getByTestId('nfq-batch-toggle').click();
+ await page.getByTestId('nfq-batch-input').fill(Array.from({length:13},(_,i)=>String(i+1)).join('\n'));
+ await page.getByTestId('nfq-batch-run').click();
+ await expect(page.getByTestId('nfq-batch-summary')).toContainText('1 exact');
+ const rows=page.getByTestId('nfq-batch-row');
+ await expect(rows).toHaveCount(12);
+ await expect(rows.first()).toContainText('E831X');
+ await expect(page.getByTestId('nfq-batch-visible-count')).toHaveText('Showing 12 of 13 recorded lookup outcomes');
+ const list=page.locator('.nfq-batch-results');
+ expect(await list.evaluate(el=>getComputedStyle(el).overflowY)).not.toMatch(/auto|scroll/);
+ await page.getByTestId('nfq-batch-more').click();
+ await expect(rows).toHaveCount(13);
+ await expect(page.getByTestId('nfq-batch-more')).toHaveCount(0);
+ await expect(page.getByTestId('nfq-batch-visible-count')).toHaveText('Showing 13 of 13 recorded lookup outcomes');
+ const pending=page.waitForEvent('download');
+ await page.getByTestId('nfq-batch-export').click();
+ const csv=await readFile(await (await pending).path(),'utf8');
+ expect(csv).toContain('"1","exact"');
+ expect(csv).toContain('"13","not-found"');
+ expect(csv).not.toContain('"01"');
+ expect(methods.every(x=>x==='GET')).toBe(true);
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ await rows.first().getByRole('button',{name:'Open confirmed variant 1'}).click();
+ await expect(page).toHaveURL(/#\/variants\/1/);
+ await expect(page.getByRole('heading',{name:'E831X'})).toBeVisible();
+});
 
 test('14H149 batch resolves many variants together and never claims an ambiguous result is exact',async({page})=>{
  const methods=await setup(page);
