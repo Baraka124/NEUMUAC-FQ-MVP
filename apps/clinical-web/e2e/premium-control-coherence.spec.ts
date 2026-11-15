@@ -4,11 +4,12 @@ import {test,expect,type Page} from '@playwright/test';
  * production data. The search UI renders even without a catalog connection.
  */
 async function setTheme(page:Page,mode:'light'|'midnight'):Promise<void>{
- // Exercise the actual theme control. Repeated addInitScript registrations
- // have unspecified evaluation order and can make a two-theme test flaky.
+ // The desktop theme button is intentionally hidden on phones. Exercise the
+ // same persisted research preference that both responsive controls manage,
+ // without accumulating multiple unordered addInitScript handlers.
  await page.goto('/#/workspace');
- const current=await page.locator('.app-frame').getAttribute('data-nfq-theme');
- if(current!==mode)await page.getByTestId('nfq-research-theme-switch').click();
+ await page.evaluate(value=>localStorage.setItem('nfq-research-theme-v1',value),mode);
+ await page.reload();
  await expect(page.locator('.app-frame')).toHaveAttribute('data-nfq-theme',mode);
 }
 async function noHorizontalOverflow(page:Page):Promise<void>{
@@ -49,7 +50,7 @@ test('14H153 single search shell, visible therapy labels and compact guided live
   await expect(panel.getByTestId('nfq-filter-count')).toHaveText('1 preferences changed');
   await panel.getByRole('button',{name:'Reset preferences'}).click();
   await expect(panel.locator('#class-filter')).toHaveValue('all');
-  await panel.getByRole('button',{name:'View results'}).click();
+  await panel.getByRole('button',{name:'Done'}).click();
   await expect(panel).toHaveCount(0);
   await noHorizontalOverflow(page);
  }
@@ -61,18 +62,18 @@ test('14H153 atlas shares one selected region across map, picker and index; Midn
   await page.goto('/#/geography');
   const atlas=page.locator('.geo-observatory');
   await expect(atlas).toBeVisible();
-  await expect(atlas.getByLabel('Coverage')).toHaveValue('spain');
+  await expect(atlas.getByLabel('Scope')).toHaveValue('spain');
   await expect(atlas.getByLabel('Region', {exact:true})).toHaveValue('');
-  const index=atlas.getByRole('button',{name:/Show region index/});
+  const index=atlas.getByRole('button',{name:/Browse all regions/});
   await index.click();
   await expect(atlas.locator('#geo-region-list')).toBeVisible();
   await atlas.locator('#geo-region-list').getByRole('button',{name:/Galicia/}).click();
-  await expect(atlas.getByLabel('Region',{exact:true})).toHaveValue('12');
+  await expect(atlas.getByLabel('Choose a region')).toHaveValue('12');
   await expect(atlas.locator('.geo-region-insight h3')).toHaveText('Galicia');
   await expect(atlas.locator('#geo-region-list')).toHaveCount(0);
   await atlas.getByRole('button',{name:'Clear selection'}).click();
-  await expect(atlas.getByLabel('Region',{exact:true})).toHaveValue('');
-  await atlas.getByLabel('Region',{exact:true}).selectOption({label:'Andalucía'});
+  await expect(atlas.getByLabel('Choose a region')).toHaveValue('');
+  await atlas.getByLabel('Choose a region').selectOption({label:'Andalucía'});
   await expect(atlas.locator('.geo-region-insight h3')).toHaveText('Andalucía');
   const colors=await atlas.locator('.geo-region-insight h3').evaluate(el=>{
    const x=getComputedStyle(el),p=getComputedStyle(el.closest('.geo-region-insight')!);
