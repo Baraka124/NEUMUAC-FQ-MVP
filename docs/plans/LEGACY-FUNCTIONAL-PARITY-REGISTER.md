@@ -213,3 +213,20 @@ legacy parity. See
 `apps/clinical-web/docs/14H151-batch-identity-result-continuity.md`.
 No patient data, scientific logic, original frozen HTML, Supabase privileges,
 backend, other systems or production records change.
+
+## Phase 14H152 — saved-worklist current recorded-metadata export
+
+**NFQ-007 and NFQ-038 remain Partial; V04 remains Partial.** Following
+4F-12R/12S saved-ID portability, an optional, explicit GET-only action now
+re-reads up to 40 saved variant identities from the current authorized catalog
+and generates a local CSV of **recorded** names, protein/cDNA notation,
+class/subtype, separate ETI/Alyftrek fields, validation-entry counts, direct
+record references and export time. Any stale, unavailable, malformed or
+mismatched source blocks the *entire* current-record CSV. The simpler portable
+links export remains available independently, even without catalog access.
+This restores part of the archived richer bookmarks export without persisting
+stale scientific facts or claiming validation, source completeness, clinical
+response, research audit, production acceptance, or full migration parity.
+See `apps/clinical-web/docs/14H152-current-saved-research-export.md`.
+No role/permission, backend, Supabase, scientific classification, historical
+original, neumDESK, clinical patient data, or production release change.
