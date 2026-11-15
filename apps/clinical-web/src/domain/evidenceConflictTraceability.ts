@@ -83,7 +83,8 @@ function markdown(value:string):string{
  // Render author-entered/source text as inert Markdown, not new headings,
  // task marks, links, table cells or declaration blocks.
  return value.replace(/[\u0000-\u001f\u007f\u2028\u2029]/g,' ')
-  .replace(/([\\`*_{}\[\]()#+.!|>~])/g,'\\$1');
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+  .replace(/([\\`*_{}\[\]()#+.!|~])/g,'\\$1');
 }
 /** Export only complete, still-valid, locally entered mappings. Never infer them. */
 export function prepareEvidenceConflictTraceability(
