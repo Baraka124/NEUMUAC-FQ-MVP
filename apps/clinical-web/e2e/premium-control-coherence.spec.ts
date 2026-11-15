@@ -63,7 +63,7 @@ test('14H153 atlas shares one selected region across map, picker and index; Midn
   const atlas=page.locator('.geo-observatory');
   await expect(atlas).toBeVisible();
   await expect(atlas.getByLabel('Scope')).toHaveValue('spain');
-  await expect(atlas.getByLabel('Region', {exact:true})).toHaveValue('');
+  await expect(atlas.getByLabel('Choose a region')).toHaveValue('');
   const index=atlas.getByRole('button',{name:/Browse all regions/});
   await index.click();
   await expect(atlas.locator('#geo-region-list')).toBeVisible();
