@@ -2,6 +2,9 @@
 import { computed, nextTick, ref, watch, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import VariantFilterPanel from '../components/VariantFilterPanel.vue';
+import BatchVariantLookup from '../components/BatchVariantLookup.vue';
+import ResearchSessionPanel from '../components/ResearchSessionPanel.vue';
+import {researchVisitSession} from '../domain/researchVisitSession';
 import {cftr2LinkedReferences} from '../domain/externalReferenceTypes';
 import {referenceMetadata,dossierReferencePreview} from '../domain/referencePresentation';
 import {safeResearchReturnPath,variantJourneyPath,variantWorklistJourneyPath} from '../domain/researchJourney';
@@ -96,6 +99,24 @@ let evidenceAbort:AbortController|null=null;
 let configError='';
 try { if(config) source=createReadOnlyRepository(config,fetch,authSessionProvider); } catch(e){configError=formatReadStatus(e);}
 const rows=ref<readonly RealVariant[]>([]);
+const batchOpen=ref(false);
+const sessionPanelOpen=ref(false);
+function revealParityPanel(selector:string):void{
+ void nextTick(()=>{
+  const el=document.querySelector<HTMLElement>(selector);
+  if(!el)return;
+  el.scrollIntoView({block:'start',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
+  if(selector==='.nfq-batch')document.getElementById('nfq-batch-input')?.focus({preventScroll:true});
+ });
+}
+function toggleBatch():void{
+ batchOpen.value=!batchOpen.value;
+ if(batchOpen.value){sessionPanelOpen.value=false;revealParityPanel('.nfq-batch');}
+}
+function toggleSessionPanel():void{
+ sessionPanelOpen.value=!sessionPanelOpen.value;
+ if(sessionPanelOpen.value){batchOpen.value=false;revealParityPanel('.nfq-visit-session');}
+}
 
 const selected=ref<RealVariant|null>(null);
 const detailNotice=ref('');
@@ -395,12 +416,17 @@ async function loadDetail(id:unknown):Promise<void>{
   selected.value=null;selectedFromSearch.value=false;detailNotice.value='';
   if(typeof id!=='string'||!source)return;
   const abort=new AbortController();detailRequest=abort;detailBusy.value=true;
+  const requestSubject=authController?.state.phase==='signed-in'?authController.state.userId:null;
   try {const record=await source.get(id,abort.signal);if(run===detailSequence&&!abort.signal.aborted){
     // A list suggestion is not a verified dossier. Only the independently
     // retrieved, identity-matching record may enter the scientific canvas.
     selected.value=confirmedDossierRecord(id,record);
     if(!selected.value)detailNotice.value='This variant record could not be verified. No scientific dossier is shown.';
-    else void revealSelectedRecord(id);
+    else {
+     if(requestSubject&&authController?.state.phase==='signed-in'&&authController.state.userId===requestSubject)
+      researchVisitSession.visit(requestSubject,selected.value,!document.hidden);
+     void revealSelectedRecord(id);
+    }
   }}
   catch(e){if(!abort.signal.aborted&&run===detailSequence){
     selected.value=null;
@@ -463,6 +489,8 @@ function select(id:string):void{
 <template>
  <div class="page variant-page">
   <div class="variant-heading"><h1>Variants</h1><span class="nfq-access-note">{{variantAccessLabel}}</span></div>
+  <BatchVariantLookup v-if="batchOpen" :source="source" @close="batchOpen=false" @open="(id)=>{batchOpen=false;select(id);}" />
+  <ResearchSessionPanel v-if="sessionPanelOpen" @close="sessionPanelOpen=false" @open="(id)=>{sessionPanelOpen=false;select(id);}" />
   <div class="record-layout">
    <section class="record-rail" aria-labelledby="record-list-title">
     <div class="rail-topline">
@@ -489,6 +517,8 @@ function select(id:string):void{
        <VariantFilterPanel v-if="showAdvanced" v-model:class-filter="classFilter" v-model:subtype-filter="subtypeFilter" v-model:response-filter="responseFilter" v-model:sort="sort" v-model:search-mode="searchMode" @close="showAdvanced=false" @reset="resetAdvancedFilters"/>
       </div>
       <button type="button" class="nfq-saved-trigger" data-testid="saved-variants-toggle" :aria-expanded="savedOpen" aria-controls="saved-variants-panel" @click="savedOpen=!savedOpen">Saved<span v-if="savedIds.length"> · {{savedIds.length}}</span></button>
+      <button type="button" class="nfq-saved-trigger nfq-batch-toggle" data-testid="nfq-batch-toggle" :aria-expanded="batchOpen" @click="toggleBatch">Batch lookup</button>
+      <button v-if="authController?.state.phase==='signed-in'" type="button" class="nfq-saved-trigger nfq-session-toggle" data-testid="nfq-session-toggle" :aria-expanded="sessionPanelOpen" @click="toggleSessionPanel">My session<span v-if="researchVisitSession.state.visits.length"> · {{researchVisitSession.state.visits.length}}</span></button>
        <span v-if="!busy&&!error&&displayedRows.length" class="record-total" aria-live="polite" aria-label="Visible results on this page">{{displayedRows.length}} on page</span>
     </div>
     <section v-if="savedOpen" id="saved-variants-panel" class="nfq-saved-panel" aria-label="Saved variants" data-testid="saved-variants-panel">

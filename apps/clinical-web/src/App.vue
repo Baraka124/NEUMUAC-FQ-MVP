@@ -4,11 +4,21 @@ import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router';
 import { researchWorkspaces, researchShortcuts } from './domain/researchWorkspaces';
 import {connectedResearchDestination} from './domain/connectedResearchNavigation';
 import {authController} from './services/authSession';
+import {researchVisitSession} from './domain/researchVisitSession';
 import {researcherRole} from './services/researchRole';
 import {guestDesignation} from './services/guestDesignation';
 import {resolveWorkspacePersona,workspaceTitle} from './domain/workspacePersona';
 import {readConfigFromEnvironment} from './services/liveVariants';
 import {nextResearchTheme,parseResearchTheme,RESEARCH_THEME_STORAGE_KEY,type ResearchTheme} from './domain/researchTheme';
+
+// The visit ledger is owned by this browser tab and the current authenticated identity.
+// No usage events are sent to the server. Inactivity only gates future recording.
+const sessionActivity=()=>{if(authController?.state.phase==='signed-in')researchVisitSession.activity(!document.hidden);};
+const sessionVisibility=()=>{if(document.hidden)researchVisitSession.check(false);};
+let sessionIdleInterval:ReturnType<typeof setInterval>|null=null;
+watch(()=>[authController?.state.phase,authController?.state.userId] as const,([phase,id])=>{
+ researchVisitSession.reconcile(phase??'signed-out',id??null);
+},{immediate:true});
 
 const route = useRoute();
 const router=useRouter();
@@ -67,9 +77,20 @@ onMounted(() => {
   syncSidebarToViewport();
   compactQuery.addEventListener('change', syncSidebarToViewport);
   window.addEventListener('keydown',keyboardShortcut);
+  for(const event of ['pointerdown','keydown','wheel','touchstart'] as const)
+    window.addEventListener(event,sessionActivity,{passive:true});
+  document.addEventListener('visibilitychange',sessionVisibility);
+  sessionIdleInterval=setInterval(()=>researchVisitSession.check(!document.hidden),15000);
 });
 
-onUnmounted(() => {compactQuery?.removeEventListener('change', syncSidebarToViewport);window.removeEventListener('keydown',keyboardShortcut);});
+onUnmounted(() => {
+ compactQuery?.removeEventListener('change', syncSidebarToViewport);
+ window.removeEventListener('keydown',keyboardShortcut);
+ for(const event of ['pointerdown','keydown','wheel','touchstart'] as const)
+  window.removeEventListener(event,sessionActivity);
+ document.removeEventListener('visibilitychange',sessionVisibility);
+ if(sessionIdleInterval!==null)clearInterval(sessionIdleInterval);
+});
 
 function toggleSidebar(): void {
   sidebarCollapsed.value = !sidebarCollapsed.value;
