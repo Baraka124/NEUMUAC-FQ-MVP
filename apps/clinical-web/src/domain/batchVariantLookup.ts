@@ -27,8 +27,12 @@ export function parseBatchVariantText(text:string):ParsedBatchInput{
  const items=tokens.map(token=>{
   const norm=token.toLowerCase();
   const duplicate=seen.has(norm);seen.add(norm);
-  const valid=token.length>=2&&token.length<=75&&!controls.test(token)&&
-   (validId(token)||!assessScientificDiscovery(token).blocked);
+  // Numeric record IDs are canonical positive decimals, including one-digit IDs.
+  // Reject numeric-looking alternatives (0, 01, overlong IDs) rather than
+  // treating them as unverified nomenclature or fuzzy search terms.
+  const valid=token.length<=75&&!controls.test(token)&&(
+   validId(token)||(token.length>=2&&!/^\d+$/.test(token)&&!assessScientificDiscovery(token).blocked)
+  );
   return Object.freeze({input:token,valid,duplicate});
  });
  return {items,error:null};

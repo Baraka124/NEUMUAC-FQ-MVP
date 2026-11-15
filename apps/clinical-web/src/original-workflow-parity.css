@@ -86,10 +86,21 @@
 }
 .nfq-batch-summary strong{font-weight:670;color:#225783}
 .nfq-batch-results{
- display:grid;gap:0;max-height:430px;overflow:auto;
+ display:grid;gap:0;max-height:none;overflow:visible;
  border-top:1px solid #e0e8f2;border-bottom:1px solid #e0e8f2;
  padding:0 3px
 }
+.nfq-batch-pagination{
+ display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
+ gap:8px 12px;margin:10px 0 0;
+ color:#657e99;font-size:11px;line-height:1.45
+}
+.nfq-batch-pagination button{
+ min-height:36px;padding:6px 11px;
+ border:1px solid #c2d5e9;background:transparent;color:#285fa8;
+ border-radius:5px;font-family:inherit;font-size:11.5px;font-weight:600;line-height:1.3;box-shadow:none;cursor:pointer
+}
+.nfq-batch-pagination button:hover{background:rgba(41,121,255,.055);border-color:#90b1de}
 .nfq-batch-result{padding:12px 2px;border-bottom:1px solid #e8eef6;min-width:0}
 .nfq-batch-result:last-child{border:0}
 .nfq-batch-result-top{display:flex;align-items:baseline;justify-content:space-between;gap:6px 16px;flex-wrap:wrap}
@@ -179,7 +190,7 @@
  .nfq-batch-head h2,.nfq-session-head h2{font-size:19px}
  .nfq-batch-form textarea{font-size:16px}
  .nfq-session-entry{flex-wrap:wrap}
- .nfq-batch-results,.nfq-session-ledger{max-height:360px}
+ .nfq-session-ledger{max-height:360px}
 }
 @media(max-width:390px){
  .nfq-batch-head-actions,.nfq-session-head-actions{margin-left:auto}
