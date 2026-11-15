@@ -3,7 +3,8 @@ import {computed,onUnmounted,ref,watch} from 'vue';
 import {RouterLink} from 'vue-router';
 import type {ResearchHistory} from '../services/liveResearchHistory';
 import {readConfigFromEnvironment} from '../services/liveVariants';
-import {createLiveEvidenceSource} from '../services/liveEvidence';
+import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
+import EvidenceConflictTraceability from './EvidenceConflictTraceability.vue';
 import {recordedConflictFocus} from '../domain/recordedConflictFocus';
 import {prepareConflictReviewPacket} from '../domain/conflictReviewPacket';
 import ContextHelp from './ContextHelp.vue';
@@ -17,12 +18,13 @@ const phase=ref<'idle'|'loading'|'ready'|'unavailable'>('idle');
 const message=ref('');
 const packet=ref<string|null>(null);
 const sourceCount=ref<number|null>(null);
+const references=ref<readonly LiveEvidenceReference[]>([]);
 let controller:AbortController|null=null;
 let generation=0;
 function invalidate():void{
  ++generation;
  controller?.abort();controller=null;
- packet.value=null;sourceCount.value=null;phase.value='idle';message.value='';
+ packet.value=null;sourceCount.value=null;references.value=[];phase.value='idle';message.value='';
 }
 watch(()=>[props.variantId,props.history],invalidate);
 onUnmounted(invalidate);
@@ -38,15 +40,15 @@ async function prepare():Promise<void>{
  try{
   // A single, bounded complete-variant read (201st row rejects truncation).
   // No inferred association between any reference and any contradiction.
-  const references=await source.forVariant(id,pending.signal);
+  const linkedSources=await source.forVariant(id,pending.signal);
   if(pending.signal.aborted||run!==generation||id!==props.variantId||history!==props.history)return;
-  const result=prepareConflictReviewPacket(id,history,references,true);
+  const result=prepareConflictReviewPacket(id,history,linkedSources,true);
   if(!result){
    phase.value='unavailable';
    message.value='The retrieved research records did not pass packet integrity checks.';
    return;
   }
-  packet.value=result;sourceCount.value=references.length;phase.value='ready';
+  packet.value=result;references.value=linkedSources;sourceCount.value=linkedSources.length;phase.value='ready';
  }catch{
   if(pending.signal.aborted||run!==generation)return;
   packet.value=null;sourceCount.value=null;phase.value='unavailable';
@@ -106,6 +108,8 @@ function download():void{
    {{message||'Reference retrieval is not configured. No packet can be prepared.'}}
   </p>
   <p v-if="message&&phase==='ready'" class="nfq-audit-review-notice" role="status">{{message}}</p>
+  <EvidenceConflictTraceability v-if="phase==='ready'&&packet&&references.length"
+   :variant-id="variantId" :history="history" :references="references" />
   <p class="nfq-audit-review-disclaimer">Read only · No clinical recommendations, decisions, role assignments, evidence-quality grading or modifications to the source records.</p>
  </section>
 </template>
