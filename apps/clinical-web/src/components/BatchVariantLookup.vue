@@ -5,12 +5,19 @@ import {variantDisplayName} from '../services/liveVariants';
 import {MAX_BATCH_LOOKUP,parseBatchVariantText,resolveBatchVariants,batchLookupCsv,type BatchLookupRow} from '../domain/batchVariantLookup';
 import ContextHelp from './ContextHelp.vue';
 
+// Keep long recorded batches navigable without nesting a second scroll area.
+const BATCH_VISIBLE_STEP=12;
+
 const props=defineProps<{source:RealVariantSource|null}>();
 const emit=defineEmits<{close:[];open:[id:string]}>();
 const raw=ref('');
 const state=ref<'idle'|'running'|'ready'|'unavailable'>('idle');
 const message=ref('');
 const results=ref<readonly BatchLookupRow[]>([]);
+const visibleCount=ref(BATCH_VISIBLE_STEP);
+const visibleResults=computed(()=>results.value.slice(0,visibleCount.value));
+const remainingResults=computed(()=>Math.max(0,results.value.length-visibleCount.value));
+function showNext():void{visibleCount.value=Math.min(results.value.length,visibleCount.value+BATCH_VISIBLE_STEP);}
 const count=ref(0);
 const total=ref(0);
 const parsed=computed(()=>parseBatchVariantText(raw.value));
@@ -24,7 +31,7 @@ let request:AbortController|null=null;
 let epoch=0;
 function reset():void{
  ++epoch;request?.abort();request=null;
- state.value='idle';results.value=[];count.value=0;total.value=0;message.value='';
+ state.value='idle';results.value=[];visibleCount.value=BATCH_VISIBLE_STEP;count.value=0;total.value=0;message.value='';
 }
 function onInput():void{reset();}
 onUnmounted(reset);
@@ -102,7 +109,7 @@ function download():void{
     <span>{{summary.missing}} not found</span><span v-if="summary.other">{{summary.other}} unclear/unavailable</span>
    </div>
    <div class="nfq-batch-results" aria-label="Batch lookup results">
-    <article v-for="(row,index) in results" :key="index" class="nfq-batch-result" data-testid="nfq-batch-row">
+    <article v-for="(row,index) in visibleResults" :key="index" class="nfq-batch-result" data-testid="nfq-batch-row">
      <div class="nfq-batch-result-top">
       <strong>{{row.input}}</strong>
       <span :class="'nfq-batch-kind-'+row.kind">{{row.kind==='exact'?'Exact recorded identity':row.kind==='candidates'?'Candidate records':row.kind==='not-found'?'No catalog match':row.kind==='invalid'?'Unclear input':'Source unavailable'}}</span>
@@ -128,6 +135,13 @@ function download():void{
      </template>
      <p v-else>{{row.message}}</p>
     </article>
+   </div>
+   <div v-if="results.length>BATCH_VISIBLE_STEP" class="nfq-batch-pagination" aria-label="Batch result navigation">
+    <span data-testid="nfq-batch-visible-count">Showing {{visibleResults.length}} of {{results.length}} recorded lookup outcomes</span>
+    <button v-if="remainingResults>0" type="button" data-testid="nfq-batch-more"
+      :aria-label="'Show next '+Math.min(BATCH_VISIBLE_STEP,remainingResults)+' batch outcomes'" @click="showNext">
+      Show next {{Math.min(BATCH_VISIBLE_STEP,remainingResults)}}
+    </button>
    </div>
    <p class="nfq-batch-footnote">Results were retrieved from the current catalog. Unverified candidates and missing records are not evidence of variant absence, therapy response, or treatment eligibility.</p>
   </template>
