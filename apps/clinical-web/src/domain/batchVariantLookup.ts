@@ -84,3 +84,25 @@ export async function resolveBatchVariants(
  if(signal.aborted||results.some(x=>!x))throw new Error('Batch lookup incomplete');
  return results as readonly BatchLookupRow[];
 }
+
+/** Download explicit per-item batch results without claiming candidate resolution. */
+export function batchLookupCsv(rows:readonly BatchLookupRow[]):string|null{
+ if(!rows.length||rows.length>MAX_BATCH_LOOKUP)return null;
+ const safe=(value:string|null|undefined)=>{
+  const text=String(value??'').replace(/[\r\n\t]/g,' ').slice(0,200);
+  const neutral=/^\s*[=+\-@]/.test(text)?"'"+text:text;
+  return '"'+neutral.replace(/"/g,'""')+'"';
+ };
+ const data=['query,status,confirmed_variant_id,recorded_name,recorded_class,recorded_eti,recorded_alyftrek,unverified_candidate_ids,note'];
+ for(const row of rows){
+  if(!['exact','candidates','not-found','invalid','unavailable'].includes(row.kind))return null;
+  const x=row.match;
+  data.push([
+   row.input,row.kind,x?.id??'',x?.legacyName||x?.proteinName||x?.cdnaName||'',
+   x?.recordedClass??'',x?.etiPrediction??'',x?.alyftrekPrediction??'',
+   row.candidates.map(v=>v.id).join(';'),
+   row.kind==='candidates'?'Unverified search suggestions; no unique confirmed identity':row.message
+  ].map(safe).join(','));
+ }
+ return '\uFEFF'+data.join('\r\n')+'\r\n';
+}
