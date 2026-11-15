@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed,ref} from 'vue';
+import {computed,nextTick,ref} from 'vue';
 import {SPAIN_REGIONS} from '../domain/spainRegionalBoundaries';
 
 type Scope='spain'|'international';
@@ -12,6 +12,9 @@ const alphabeticalRegions=[...SPAIN_REGIONS].sort((a,b)=>a.name.localeCompare(b.
 function choose(code:string){selected.value=code;}
 function chooseFromPicker(code:string){selected.value=code||null;}
 function clearSelection(){selected.value=null;}
+// The index is an alternate entry into the same selected-region state.
+// Selecting there collapses the list and reveals the existing region detail.
+function chooseFromIndex(code:string){choose(code);listMode.value=false;void nextTick(openSelectedDetail);}
 function changeScope(value:Scope){scope.value=value;selected.value=null;listMode.value=false;}
 function openSelectedDetail(){
  const panel=detailPanel.value;
@@ -25,7 +28,7 @@ function openSelectedDetail(){
 <template>
  <section class="geo-observatory" aria-label="Geographic atlas">
   <div class="geo-toolbar" aria-label="Geographic research controls">
-   <label class="geo-select-label" for="geo-scope">Scope
+   <label class="geo-select-label" for="geo-scope">Coverage
     <select id="geo-scope" :value="scope" @change="changeScope(($event.target as HTMLSelectElement).value as Scope)">
      <option value="spain">Spain</option><option value="international">International</option>
     </select>
@@ -36,7 +39,7 @@ function openSelectedDetail(){
    <section class="geo-map-surface" aria-label="Regional atlas">
     <div class="geo-map-heading">
      <div><strong>{{scope==='spain'?'Spain':'International overview'}}</strong><span>{{scope==='spain'?'17 communities · 2 autonomous cities':'Country-level data pending'}}</span></div>
-     <label v-if="scope==='spain'" for="geo-region-picker" class="geo-region-picker">Choose a region
+     <label v-if="scope==='spain'" for="geo-region-picker" class="geo-region-picker">Region
       <select id="geo-region-picker" :value="selected||''" @change="chooseFromPicker(($event.target as HTMLSelectElement).value)">
        <option value="">All Spain</option>
        <option v-for="region in alphabeticalRegions" :key="region.code" :value="region.code">{{region.name}}</option>
@@ -96,11 +99,11 @@ function openSelectedDetail(){
   </details>
   <section v-if="scope==='spain'" class="geo-regions-section" aria-label="Spain regions">
    <div class="geo-regions-heading">
-    <div><h3>Region index</h3><p>Find a community without navigating the map.</p></div>
-    <button type="button" :aria-expanded="listMode" aria-controls="geo-region-list" @click="listMode=!listMode">{{listMode?'Hide region list':'Browse all regions'}} <span aria-hidden="true">{{listMode?'−':'+'}}</span></button>
+    <div><h3>Browse by name</h3><p>An alternative to the map, using the same selected region.</p></div>
+    <button type="button" :aria-expanded="listMode" aria-controls="geo-region-list" @click="listMode=!listMode">{{listMode?'Hide region index':'Show region index'}} <span aria-hidden="true">{{listMode?'−':'+'}}</span></button>
    </div>
    <div v-if="listMode" id="geo-region-list" class="geo-region-grid">
-    <button v-for="region in alphabeticalRegions" :key="region.code" type="button" :aria-pressed="selected===region.code" aria-controls="geo-region-detail" @click="choose(region.code)">
+    <button v-for="region in alphabeticalRegions" :key="region.code" type="button" :aria-pressed="selected===region.code" aria-controls="geo-region-detail" @click="chooseFromIndex(region.code)">
      <span>{{region.name}}</span><span aria-hidden="true">{{selected===region.code?'✓':'↗'}}</span>
     </button>
    </div>
