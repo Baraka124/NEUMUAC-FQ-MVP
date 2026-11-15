@@ -230,3 +230,23 @@ response, research audit, production acceptance, or full migration parity.
 See `apps/clinical-web/docs/14H152-current-saved-research-export.md`.
 No role/permission, backend, Supabase, scientific classification, historical
 original, neumDESK, clinical patient data, or production release change.
+
+## Phase 14H153 — original premium blue control coherence
+
+**NFQ-002/003/004/015/038 remain Partial; NFQ-030 remains Not migrated.**
+The screenshot-driven 14H153 visual and interaction pass restores the original
+navy/slate/electric blue and restrained cyan hierarchy documented in
+`apps/clinical-web/src/original-signature.css`, not a flat blue wash or
+accidental green text in navigation/Geography. Search uses one actual focus
+shell; five-therapy source controls and ETI/Alyftrek response chips regain
+balanced compact hierarchy; existing recorded outcomes and genotype rules are
+untouched. Five research filter fields retain their live source semantics in
+an accessible guided horizontal panel. Geography's map, region picker and
+collapsible alphabetical index now share one selected region; coverage is a
+different setting, never an implied search-activity data source. Workspace
+launcher search, option text and controls are legible across Daylight/Midnight.
+Screenshots and contracts: `apps/clinical-web/docs/14H153-original-blue-premium-control-parity.md`.
+**No clinical/real-source visual acceptance is claimed solely from CI**;
+independent browser inspection and clinician sign-off remain outstanding.
+No role/permission, scientific logic, patient data, database, backend,
+`index.1.html` or neumDESK change.

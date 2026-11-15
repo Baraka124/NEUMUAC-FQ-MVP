@@ -1403,7 +1403,9 @@ test('14H137C3 variant rail uses restrained controls and complete compact filter
   await expect(panel).toBeVisible();
   await expect(panel.locator('select')).toHaveCount(5);
   const panelWidth=await panel.evaluate(el=>el.getBoundingClientRect().width);
-  expect(panelWidth,String(width)).toBeLessThanOrEqual(318);
+  // 14H153 widens the compact filter into a guided horizontal disclosure;
+  // it must remain contained at 320px, phone, tablet and desktop widths.
+  expect(panelWidth,String(width)).toBeLessThanOrEqual(Math.min(width<=610?350:540,width-30));
   await expect(panel.getByRole('button',{name:'Done'})).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
   await panel.getByRole('button',{name:'Done'}).click();
   await expect(filter).toHaveAttribute('aria-expanded','false');

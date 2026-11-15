@@ -96,7 +96,7 @@ function openSelectedDetail(){
   </details>
   <section v-if="scope==='spain'" class="geo-regions-section" aria-label="Spain regions">
    <div class="geo-regions-heading">
-    <div><h3>Region index</h3><p>Find a community without navigating the map.</p></div>
+    <div><h3>Region index</h3><p>An alternative to the map; uses the same selected region.</p></div>
     <button type="button" :aria-expanded="listMode" aria-controls="geo-region-list" @click="listMode=!listMode">{{listMode?'Hide region list':'Browse all regions'}} <span aria-hidden="true">{{listMode?'−':'+'}}</span></button>
    </div>
    <div v-if="listMode" id="geo-region-list" class="geo-region-grid">
