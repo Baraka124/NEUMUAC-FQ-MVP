@@ -56,6 +56,57 @@ async function setup(page:Page,signedIn=false){
  return methods;
 }
 
+test('14H152 saved worklist independently exports current source metadata and preserves link export',async({page})=>{
+ const methods=await setup(page);
+ await page.setViewportSize({width:390,height:844});
+ await page.addInitScript(()=>window.localStorage.setItem('nfq-research-theme-v1','midnight'));
+ await page.goto('/#/variants/18');
+ await expect(page.getByRole('heading',{name:'R117H'})).toBeVisible();
+ const save=page.getByTestId('save-current-variant');
+ await expect(save).toBeVisible();
+ await save.click();
+ await expect(save).toHaveAttribute('aria-pressed','true');
+ await page.goto('/#/variants/19');
+ await expect(page.getByRole('heading',{name:'G551D'})).toBeVisible();
+ await page.getByTestId('save-current-variant').click();
+ await page.reload();
+ await page.getByTestId('saved-variants-toggle').click();
+ const saved=page.getByTestId('saved-variants-panel');
+ await expect(saved.getByRole('button',{name:/Open saved variant/})).toHaveCount(2);
+ const button=saved.getByTestId('saved-snapshot-export');
+ await expect(button).toBeEnabled();
+ const pending=page.waitForEvent('download');
+ await button.click();
+ const download=await pending;
+ expect(download.suggestedFilename()).toBe('neumuacFQ-saved-records-current.csv');
+ const csv=await readFile(await download.path(),'utf8');
+ expect(csv).toContain('"18"');
+ expect(csv).toContain('"19"');
+ expect(csv).toContain('"R117H"');
+ expect(csv).toContain('"G551D"');
+ expect(csv).toContain('recorded_subtype');
+ expect(csv).toContain('recorded_alyftrek');
+ expect(csv).toContain('https://127.0.0.1:4175/#/variants/18');
+ expect(csv).not.toContain('patient');
+ await expect(saved.getByTestId('saved-snapshot-status')).toContainText('2 current catalog records exported');
+ await expect(saved.getByRole('button',{name:'Export links · CSV'})).toBeVisible();
+ expect(methods.length).toBeGreaterThan(0);
+ expect(methods.every(x=>x==='GET')).toBe(true);
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
+
+test('14H152 refuses an inaccessible saved record without exporting partial current metadata',async({page})=>{
+ await setup(page);
+ await page.addInitScript(()=>window.localStorage.setItem(
+  'neumuacfq_saved_variant_ids_v1',JSON.stringify(['18','999'])));
+ await page.goto('/#/variants');
+ await page.getByTestId('saved-variants-toggle').click();
+ const panel=page.getByTestId('saved-variants-panel');
+ await expect(panel.getByRole('button',{name:/Open saved variant/})).toHaveCount(2);
+ await panel.getByTestId('saved-snapshot-export').click();
+ await expect(panel.getByTestId('saved-snapshot-status')).toContainText('No partial scientific export was created');
+ await expect(panel.getByRole('button',{name:'Export links · CSV'})).toBeEnabled();
+});
 test('14H151 canonical one-digit IDs and all-result CSV survive quiet progressive disclosure',async({page})=>{
  const methods=await setup(page);
  await page.setViewportSize({width:390,height:844});
