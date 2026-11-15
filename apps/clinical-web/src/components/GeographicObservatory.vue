@@ -5,14 +5,13 @@ import {SPAIN_REGIONS} from '../domain/spainRegionalBoundaries';
 type Scope='spain'|'international';
 const scope=ref<Scope>('spain');
 const selected=ref<string|null>(null);
-const listMode=ref(false);
 const detailPanel=ref<HTMLElement|null>(null);
 const selectedRegion=computed(()=>SPAIN_REGIONS.find(region=>region.code===selected.value)||null);
 const alphabeticalRegions=[...SPAIN_REGIONS].sort((a,b)=>a.name.localeCompare(b.name,'es'));
 function choose(code:string){selected.value=code;}
 function chooseFromPicker(code:string){selected.value=code||null;}
 function clearSelection(){selected.value=null;}
-function changeScope(value:Scope){scope.value=value;selected.value=null;listMode.value=false;}
+function changeScope(value:Scope){scope.value=value;selected.value=null;}
 function openSelectedDetail(){
  const panel=detailPanel.value;
  if(!panel||!selectedRegion.value)return;
@@ -94,17 +93,6 @@ function openSelectedDetail(){
    <p>Geographic boundaries are a public reference. Professional affiliation, search activity and patient location are distinct concepts and are not inferred here.</p>
    <p>Historical records include tests. Regional search statistics are not published. The map does not represent patient locations, institution locations or clinical demand.</p>
   </details>
-  <section v-if="scope==='spain'" class="geo-regions-section" aria-label="Spain regions">
-   <div class="geo-regions-heading">
-    <div><h3>Region index</h3><p>An alternative to the map; uses the same selected region.</p></div>
-    <button type="button" :aria-expanded="listMode" aria-controls="geo-region-list" @click="listMode=!listMode">{{listMode?'Hide region list':'Browse all regions'}} <span aria-hidden="true">{{listMode?'−':'+'}}</span></button>
-   </div>
-   <div v-if="listMode" id="geo-region-list" class="geo-region-grid">
-    <button v-for="region in alphabeticalRegions" :key="region.code" type="button" :aria-pressed="selected===region.code" aria-controls="geo-region-detail" @click="choose(region.code)">
-     <span>{{region.name}}</span><span aria-hidden="true">{{selected===region.code?'✓':'↗'}}</span>
-    </button>
-   </div>
-  </section>
  </section>
 </template>
 
