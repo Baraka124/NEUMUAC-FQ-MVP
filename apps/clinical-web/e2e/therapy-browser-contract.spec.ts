@@ -587,7 +587,10 @@ test('14H150 source-coded response labels stay readable and exact-match remains 
   .locator('.nfq-recorded-fact[data-response="non_responsive"]>strong');
  await expect(nonResponsive).toHaveText('Non-responsive');
  await expect(nonResponsive).toHaveCSS('color','rgb(241, 197, 189)');
- await page.goto('/#/variants?q=E831X');
+ await page.goto('/#/variants');
+ const exactSearch=page.getByRole('searchbox',{name:'Variant name, HGVS or recorded alias'});
+ await exactSearch.fill('E831X');
+ await exactSearch.press('Enter');
  const exact=page.locator('.variant-page .discovery-exact-chip');
  await expect(exact).toHaveText('Exact match',{timeout:12000});
  await expect(exact).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
