@@ -1,0 +1,73 @@
+/*
+ * 14H150 · Final precision: original V7 scientific identity and status labels.
+ * Pure appearance. Responsive/non-responsive/unknown remain DATABASE-RECORDED
+ * statuses, never inferred clinical outcomes or eligibility decisions.
+ * Deliberately limited to the variant-dossier header, not therapy verdicts.
+ */
+.app-frame .variant-page .discovery-exact-chip{
+ display:inline-flex;align-items:center;justify-content:center;flex:none;
+ min-height:20px;max-width:100%;padding:2px 7px;
+ border:1px solid #b8d6c4;border-radius:5px;
+ background:transparent;color:#346d50;
+ box-shadow:none;font-size:10px;font-weight:630;
+ line-height:1.3;letter-spacing:.01em;white-space:nowrap;
+}
+.app-frame .variant-page .nfq-dossier-classification-strip{
+ gap:8px 16px;padding:8px 0 10px;
+ font-size:11.5px;color:#566e86;line-height:1.45;
+}
+.app-frame .variant-page .nfq-dossier-classification-strip .nfq-recorded-fact{
+ display:inline-flex;align-items:center;gap:6px;min-width:0;flex-wrap:wrap;
+}
+.app-frame .variant-page .nfq-dossier-classification-strip .nfq-recorded-fact>span{
+ color:#556e89;font-size:11.5px;font-weight:550;
+}
+.app-frame .variant-page .nfq-dossier-classification-strip .nfq-recorded-fact>strong{
+ display:inline-flex;align-items:center;
+ padding:2px 7px;border:1px solid #dae3ee;border-radius:5px;
+ background:#f3f6fb;color:#324c6d;
+ font-size:11px;font-weight:640;line-height:1.45;
+ letter-spacing:0;box-shadow:none;overflow-wrap:normal;
+}
+.app-frame .variant-page .nfq-dossier-classification-strip .nfq-recorded-fact[data-response="responsive"]>strong{
+ background:#f0f8f3;color:#236b4d;border-color:#c8dfd0;
+}
+.app-frame .variant-page .nfq-dossier-classification-strip .nfq-recorded-fact[data-response="non_responsive"]>strong{
+ background:#fff5f3;color:#9c5148;border-color:#edcfcb;
+}
+.app-frame .variant-page .nfq-dossier-classification-strip .nfq-recorded-fact[data-response="unknown"]>strong{
+ background:#f3f6fb;color:#516a85;border-color:#d9e2ed;
+}
+/* Original Midnight hues. Important status text stays legible but calm,
+ * with at most a translucent hint of fill — no solid button styling. */
+.app-frame[data-nfq-theme="midnight"] .variant-page .discovery-exact-chip{
+ background:transparent!important;color:#9fd4b6!important;
+ border-color:rgba(117,191,148,.42)!important;box-shadow:none!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .nfq-dossier-classification-strip .nfq-recorded-fact>span{
+ color:#afc2df!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .nfq-dossier-classification-strip .nfq-recorded-fact>strong{
+ background:rgba(123,158,213,.11)!important;
+ border-color:rgba(134,166,213,.28)!important;
+ color:#d6e6fc!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .nfq-dossier-classification-strip .nfq-recorded-fact[data-response="responsive"]>strong{
+ background:rgba(63,160,111,.16)!important;
+ border-color:rgba(117,203,154,.32)!important;
+ color:#aff0ca!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .nfq-dossier-classification-strip .nfq-recorded-fact[data-response="non_responsive"]>strong{
+ background:rgba(175,93,87,.13)!important;
+ border-color:rgba(226,151,141,.31)!important;
+ color:#f1c5bd!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .nfq-dossier-classification-strip .nfq-recorded-fact[data-response="unknown"]>strong{
+ background:rgba(117,151,204,.12)!important;
+ border-color:rgba(135,170,216,.28)!important;
+ color:#c1d3eb!important;
+}
+@media(max-width:420px){
+ .app-frame .variant-page .nfq-dossier-classification-strip{gap:8px 13px}
+ .app-frame .variant-page .discovery-exact-chip{padding:2px 6px}
+}
