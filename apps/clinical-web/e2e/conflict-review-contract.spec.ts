@@ -136,3 +136,94 @@ test('14H147 Midnight source-preparation surface and scoped links remain compact
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
 });
+
+
+test('14H148 creates only explicitly authored, source-located, unverified working links with no API mutations',async({page})=>{
+ const methods=await setup(page);
+ await page.goto('/#/reports?variant=18');
+ await expect(page.getByTestId('nfq-traceability')).toHaveCount(0);
+ await page.getByTestId('nfq-prepare-review').click();
+ const trace=page.getByTestId('nfq-traceability');
+ await expect(trace).toBeVisible();
+ await trace.locator('summary').click();
+ await expect(page.getByTestId('nfq-trace-progress')).toContainText('0 local links');
+ await expect(page.getByTestId('nfq-trace-download')).toBeDisabled();
+ await page.getByTestId('nfq-trace-conflict').selectOption('9');
+ await page.getByTestId('nfq-trace-reference').selectOption('3');
+ await expect(trace.getByRole('link',{name:/Inspect original source/})).toHaveAttribute('href','https://pubmed.ncbi.nlm.nih.gov/1234/');
+ await page.getByTestId('nfq-trace-relation').selectOption('possible-disagreement');
+ await page.getByTestId('nfq-trace-question').fill('Does the referenced functional finding contradict the recorded research class?');
+ await page.getByTestId('nfq-trace-locator').fill('Results · Table 2');
+ await page.getByTestId('nfq-trace-interpretation').fill('Check the exact functional dataset before interpreting the apparent classification discrepancy.');
+ await page.getByTestId('nfq-trace-add').click();
+ await expect(page.getByTestId('nfq-trace-progress')).toContainText('1 local link');
+ await expect(page.getByTestId('nfq-trace-download')).toBeEnabled();
+ const download=page.waitForEvent('download');
+ await page.getByTestId('nfq-trace-download').click();
+ const file=await download;
+ expect(file.suggestedFilename()).toBe('neumuacFQ-evidence-traceability-18.md');
+ const content=await readFile(await file.path(),'utf8');
+ expect(content).toContain('conflict #9 / reference #3');
+ expect(content).toContain('Possible disagreement');
+ expect(content).toContain('Results · Table 2');
+ expect(content).toContain('UNSUBMITTED PROVISIONAL RESEARCH NOTES');
+ expect(content).toContain('No database-stored conflict-to-reference relationship is established');
+ expect(content).not.toContain('conflict #10 /');
+ expect(methods.every(method=>method==='GET')).toBe(true);
+ await trace.getByRole('button',{name:'Remove working link for conflict 9 and reference 3'}).click();
+ await expect(page.getByTestId('nfq-trace-download')).toBeDisabled();
+});
+
+test('14H148 fails closed for incomplete sources and clears manual associations when scope changes',async({page})=>{
+ await setup(page,'complete');
+ await page.goto('/#/reports?variant=18');
+ await page.getByTestId('nfq-prepare-review').click();
+ await page.getByTestId('nfq-traceability').locator('summary').click();
+ await page.getByTestId('nfq-trace-conflict').selectOption('9');
+ await page.getByTestId('nfq-trace-reference').selectOption('3');
+ await page.getByTestId('nfq-trace-question').fill('Does this original reference address the recorded class precisely?');
+ await page.getByTestId('nfq-trace-locator').fill('Abstract');
+ await page.getByTestId('nfq-trace-interpretation').fill('Read the source and independently verify the described functional method.');
+ await page.getByTestId('nfq-trace-add').click();
+ await expect(page.getByTestId('nfq-trace-progress')).toContainText('1 local link');
+ await page.goto('/#/reports?variant=19');
+ await expect(page.getByTestId('nfq-traceability')).toHaveCount(0);
+ await page.goto('/#/reports?variant=18');
+ await page.getByTestId('nfq-prepare-review').click();
+ await page.getByTestId('nfq-traceability').locator('summary').click();
+ await expect(page.getByTestId('nfq-trace-progress')).toContainText('0 local links');
+ for(const mode of ['denied','wrong-variant','over-limit','missing'] as const){
+  await page.unrouteAll();
+  await setup(page,mode);
+  await page.goto('/#/reports?variant=18');
+  await page.getByTestId('nfq-prepare-review').click();
+  if(mode==='missing'){
+   await expect(page.getByTestId('nfq-unresolved-review').getByRole('status')).toContainText('0 linked references');
+  }else{
+   await expect(page.getByTestId('nfq-unresolved-review').getByRole('alert')).toContainText('complete variant-linked reference register was unavailable');
+  }
+  await expect(page.getByTestId('nfq-traceability')).toHaveCount(0);
+ }
+});
+
+test('14H148 expanded traceability controls retain the original Midnight and mobile containment',async({page})=>{
+ await setup(page);
+ await page.addInitScript(()=>window.localStorage.setItem('nfq-research-theme-v1','midnight'));
+ for(const width of [320,390,760,1366]){
+  await page.setViewportSize({width,height:844});
+  await page.goto('/#/reports?variant=18');
+  await page.getByTestId('nfq-prepare-review').click();
+  const trace=page.getByTestId('nfq-traceability');
+  await expect(trace).toBeVisible();
+  await trace.locator('summary').click();
+  expect(await trace.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(19, 36, 57)');
+  const input=page.getByTestId('nfq-trace-locator');
+  const color=await input.evaluate(el=>getComputedStyle(el).backgroundColor);
+  expect(color).toBe('rgb(15, 29, 48)');
+  if(width<=760){
+   const fontSize=await input.evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
+   expect(fontSize).toBeGreaterThanOrEqual(16);
+  }
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+});
