@@ -62,7 +62,7 @@ test('14H153 atlas shares one selected region across map, picker and index; Midn
   await index.click();
   await expect(atlas.locator('#geo-region-list')).toBeVisible();
   await atlas.locator('#geo-region-list').getByRole('button',{name:/Galicia/}).click();
-  await expect(atlas.getByLabel('Region',{exact:true})).toHaveValue('ga');
+  await expect(atlas.getByLabel('Region',{exact:true})).toHaveValue('12');
   await expect(atlas.locator('.geo-region-insight h3')).toHaveText('Galicia');
   await expect(atlas.locator('#geo-region-list')).toHaveCount(0);
   await atlas.getByRole('button',{name:'Clear selection'}).click();
