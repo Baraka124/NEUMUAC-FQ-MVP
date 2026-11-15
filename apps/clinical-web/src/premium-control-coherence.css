@@ -1,0 +1,296 @@
+/* 14H153 — Precision controls. All changes are presentational.
+ * Preserve source data, treatment classifications and authorization semantics.
+ * Loaded after the established Daylight, Midnight and 14H150 layers.
+ */
+
+/* One search shell, one focus indication. No border/outline around the input
+   inside its existing decorated wrapper (including UA search focus). */
+.app-frame .variant-page .discovery-input{
+ box-sizing:border-box;display:flex;align-items:center;
+ width:100%;max-width:100%;min-height:43px;height:43px;
+ padding:0 10px;gap:8px;border:1px solid #c3d4e8!important;
+ border-radius:7px;background:#fff;color:#3c699f;
+ box-shadow:none!important;
+}
+.app-frame .variant-page .discovery-input:focus-within{
+ border-color:#4885d5!important;
+ box-shadow:0 0 0 2px rgba(76,139,214,.15)!important;
+}
+.app-frame .variant-page .discovery-input input#search,
+.app-frame .variant-page .discovery-input input#search:focus,
+.app-frame .variant-page .discovery-input input#search:focus-visible{
+ display:block;min-width:0;flex:1 1 auto;max-width:100%;
+ height:40px!important;min-height:40px!important;
+ border:0!important;border-radius:0!important;outline:0!important;
+ outline-offset:0!important;box-shadow:none!important;
+ background:transparent!important;color:#1d3654;
+ padding:6px 0!important;-webkit-appearance:none;appearance:none;
+}
+.app-frame .variant-page .discovery-input input#search::placeholder{color:#697d97;opacity:1}
+.app-frame[data-nfq-theme="midnight"] .variant-page .discovery-input{
+ background:var(--nfq-night-soft)!important;
+ border-color:var(--nfq-night-line)!important;color:#8ebaf1!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .discovery-input:focus-within{
+ border-color:#8ebaff!important;box-shadow:0 0 0 2px rgba(117,177,251,.2)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .discovery-input input#search{
+ color:var(--nfq-night-ink)!important
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .discovery-input input#search::placeholder{
+ color:#a9bdd9!important
+}
+
+/* Quiet secondary actions: the information, not button surface, has priority. */
+.app-frame .variant-page :is(
+ .variant-filter-trigger,.nfq-saved-trigger,.nfq-batch-toggle,.nfq-session-toggle,
+ .nfq-save-record,.discovery-info-button
+){
+ min-height:36px!important;height:auto;max-width:100%;
+ padding:6px 9px!important;border-radius:6px!important;
+ background:transparent!important;box-shadow:none!important;
+ color:#2e609b!important;font-size:11.5px!important;font-weight:590!important;
+}
+.app-frame .variant-page .discovery-info-button{
+ flex:0 0 32px;min-width:32px!important;width:32px;height:32px!important;
+ padding:0!important;font-size:12px!important;
+}
+.app-frame .variant-page .discovery-utility-row{gap:5px 7px}
+.app-frame .variant-page .discovery-utility-row .variant-filter-trigger[aria-expanded="true"]{
+ background:rgba(65,126,206,.065)!important;border-color:#91b4e0!important;
+}
+.app-frame .variant-page .discovery-utility-row .discovery-filter-label{color:inherit!important}
+.app-frame .variant-page .discovery-active-count{
+ padding:1px 4px;border:0;background:transparent;font-size:10px;
+}
+.app-frame .variant-page .nfq-dossier-classification-strip{
+ gap:9px 17px;font-size:12px;line-height:1.45;
+}
+.app-frame .variant-page .nfq-dossier-classification-strip .nfq-recorded-fact{
+ display:inline-flex;align-items:center;gap:7px;flex-wrap:nowrap;min-width:0;
+}
+.app-frame .variant-page .nfq-dossier-classification-strip .nfq-recorded-fact>span{
+ font-size:12.5px!important;font-weight:680!important;letter-spacing:0;
+ color:#365b85!important;
+}
+.app-frame .variant-page .nfq-dossier-classification-strip .nfq-recorded-fact>strong{
+ display:inline-flex;align-items:center;min-height:23px;
+ padding:2px 6px!important;font-size:11px!important;font-weight:620!important;
+ border-radius:5px;line-height:1.35;white-space:normal;
+}
+
+/* Recorded five-regimen source actions: compact, identical hierarchy in
+   every row; keep all buttons, their disclosure controls and labels. */
+.app-frame .nfq-therapy .nfq-therapy-inspect{
+ min-width:0!important;min-height:35px!important;height:auto!important;
+ padding:6px 10px!important;border-radius:6px!important;
+ background:transparent!important;box-shadow:none!important;
+ font-size:11.5px!important;font-weight:610!important;line-height:1.3;
+}
+.app-frame .nfq-therapy .nfq-therapy-inspect[aria-expanded="true"]{
+ background:rgba(66,125,192,.06)!important;
+}
+.app-frame .nfq-therapy .nfq-therapy-column-head{
+ color:#415c7c!important;font-size:10.5px;font-weight:720!important;
+ letter-spacing:.035em;line-height:1.4;
+}
+.app-frame .nfq-therapy .nfq-therapy-group .nfq-therapy-section-label h4{
+ color:#294c71!important
+}
+
+/* The compact, guided filter panel is genuinely one surface. Correct older
+   global Midnight select and panel overrides without altering filter values. */
+.app-frame[data-nfq-theme="midnight"] .variant-page .variant-filter-panel{
+ background:var(--nfq-night-paper)!important;
+ border-color:var(--nfq-night-line)!important;color:var(--nfq-night-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .variant-filter-panel :is(
+ h3,h4,.variant-filter-panel-kicker,.nfq-filter-guidance,.nfq-filter-count,
+ .nfq-filter-field label
+){color:var(--nfq-night-ink)!important}
+.app-frame[data-nfq-theme="midnight"] .variant-page .variant-filter-panel :is(
+ .nfq-filter-guidance,.nfq-filter-count
+){color:var(--nfq-night-muted)!important}
+.app-frame[data-nfq-theme="midnight"] .variant-page .variant-filter-panel :is(
+ .variant-filter-panel-head,.variant-filter-panel-foot,.nfq-filter-group
+){border-color:var(--nfq-night-line)!important}
+.app-frame[data-nfq-theme="midnight"] .variant-page .variant-filter-panel .variant-filter-panel-foot{
+ background:var(--nfq-night-paper)!important
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .variant-filter-panel select{
+ background:var(--nfq-night-soft)!important;
+ color:var(--nfq-night-ink)!important;border-color:var(--nfq-night-line)!important;
+ color-scheme:dark;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .variant-filter-panel button{
+ background:transparent!important;color:var(--nfq-night-link)!important;
+ border-color:var(--nfq-night-line)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page .nfq-dossier-classification-strip .nfq-recorded-fact>span{
+ color:#d1e0f4!important;
+}
+.app-frame[data-nfq-theme="midnight"] .variant-page :is(
+ .variant-filter-trigger,.nfq-saved-trigger,.nfq-batch-toggle,.nfq-session-toggle,
+ .nfq-save-record,.discovery-info-button
+){background:transparent!important;color:var(--nfq-night-link)!important}
+
+/* Workspace switcher: text hierarchy must remain readable on both themes.
+   No big white close square or heavy stacked action rectangles. */
+.app-frame .workspace-launcher{
+ width:min(610px,100%);border:1px solid #d4dfed;
+ border-radius:11px;box-shadow:0 22px 70px rgba(8,29,61,.18);
+}
+.app-frame .launcher-search{
+ gap:9px;padding:10px 13px;min-height:54px;
+ border-bottom:1px solid #e4eaf2;
+}
+.app-frame .launcher-search input[type="search"]{
+ min-width:0;flex:1;height:38px;min-height:38px;
+ padding:5px 2px!important;border:0!important;border-radius:0!important;
+ outline:0!important;box-shadow:none!important;background:transparent!important;
+ color:#233e61!important;font-size:13px;
+}
+.app-frame .launcher-search:focus-within{box-shadow:inset 0 -2px #6599dd}
+.app-frame .launcher-search input[type="search"]::placeholder{color:#607993;opacity:1}
+.app-frame .launcher-search button{
+ width:32px;min-width:32px;height:32px;min-height:32px;
+ padding:0;border:1px solid #d3dfeb;border-radius:6px;
+ background:transparent;color:#4b6686;font-size:18px;line-height:1;
+ box-shadow:none;
+}
+.app-frame .launcher-heading{margin:11px 15px 7px;color:#536f90!important}
+.app-frame .launcher-options{padding:0 8px 8px;scrollbar-width:thin}
+.app-frame .launcher-options button{
+ padding:9px 10px;gap:2px;background:transparent!important;border:0;border-radius:6px;
+}
+.app-frame .launcher-options button strong{color:#233f61!important;font-size:12.5px;font-weight:650}
+.app-frame .launcher-options button span{color:#5d738b!important;font-size:11.5px}
+.app-frame .launcher-options button:hover,.app-frame .launcher-options button:focus-visible{
+ background:rgba(77,138,213,.07)!important
+}
+.app-frame .launcher-footnote{
+ padding:10px 15px;color:#627893;font-size:11px;
+}
+.app-frame[data-nfq-theme="midnight"] .launcher-search{
+ border-color:var(--nfq-night-line)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .launcher-search input[type="search"]{
+ color:var(--nfq-night-ink)!important
+}
+.app-frame[data-nfq-theme="midnight"] .launcher-search input[type="search"]::placeholder{
+ color:#b2c4dd!important
+}
+.app-frame[data-nfq-theme="midnight"] .launcher-search button{
+ background:transparent!important;border-color:var(--nfq-night-line)!important;
+ color:var(--nfq-night-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .launcher-options button strong{
+ color:#e6f0ff!important
+}
+.app-frame[data-nfq-theme="midnight"] .launcher-options button span,
+.app-frame[data-nfq-theme="midnight"] :is(.launcher-heading,.launcher-footnote){
+ color:#b3c6df!important
+}
+
+/* Geography. "Coverage" and "Region" are distinct settings, while map,
+   selector and optional alphabetical index share one selected region. Keep
+   original public boundaries but make the atlas part of the theme system. */
+.app-frame .public-geography-page .geo-page-title span{color:#54739a!important}
+.app-frame .geo-observatory{
+ color:#263e5b;--nfq-geo-ink:#263e5b;--nfq-geo-muted:#566e87;
+ --nfq-geo-line:#dce5ef;--nfq-geo-paper:#fff;
+}
+.app-frame .geo-observatory :is(.geo-kicker,.geo-map-heading div span,.geo-map-hint,
+ .geo-map-foot,.geo-insight-intro,.geo-insight-note p,.geo-regions-heading p,
+ .geo-about,.geo-regions-heading button,.geo-region-grid button){
+ color:var(--nfq-geo-muted)!important
+}
+.app-frame .geo-observatory :is(.geo-map-surface,.geo-region-insight){
+ background:var(--nfq-geo-paper)!important;border-color:var(--nfq-geo-line)!important;
+ color:var(--nfq-geo-ink)!important;
+}
+.app-frame .geo-observatory :is(.geo-map-heading strong,.geo-region-insight h3,
+ .geo-insight-note strong,.geo-regions-heading h3){
+ color:var(--nfq-geo-ink)!important
+}
+.app-frame .geo-observatory :is(.geo-select-label,.geo-region-picker){color:var(--nfq-geo-muted)!important}
+.app-frame .geo-observatory :is(.geo-select-label select,.geo-region-picker select){
+ min-height:37px!important;height:37px;padding:5px 30px 5px 9px;
+ color:var(--nfq-geo-ink)!important;border:1px solid var(--nfq-geo-line)!important;
+ border-radius:6px;background:var(--nfq-geo-paper)!important;font-size:12px;
+}
+.app-frame .geo-observatory :is(.geo-regions-heading button,.geo-region-grid button,
+ .geo-clear-selection,.geo-international button){
+ min-height:35px;padding:6px 10px;border:1px solid var(--nfq-geo-line)!important;
+ border-radius:6px;background:transparent!important;
+ color:var(--nfq-geo-ink)!important;box-shadow:none!important;
+ font-size:11.5px;font-weight:600;
+}
+.app-frame .geo-observatory .geo-region-grid{gap:6px}
+.app-frame .geo-observatory .geo-region-grid button{min-height:38px!important}
+.app-frame .geo-observatory .geo-region-grid button[aria-pressed="true"]{
+ background:rgba(89,146,212,.08)!important;border-color:#84a8d4!important;
+}
+.app-frame .geo-observatory .geo-about summary{color:#355f90!important}
+.app-frame .geo-observatory .geo-insight-heading h3{color:#243d5c!important}
+.app-frame .geo-observatory .geo-insight-note{border-color:var(--nfq-geo-line)!important}
+.app-frame .geo-observatory .geo-map-foot{border-color:var(--nfq-geo-line)!important}
+.app-frame .geo-observatory .geo-regions-section{border-color:var(--nfq-geo-line)!important}
+.app-frame[data-nfq-theme="midnight"] .geo-observatory{
+ --nfq-geo-ink:#e2edfc;--nfq-geo-muted:#b5c8e2;
+ --nfq-geo-line:#354c68;--nfq-geo-paper:#132339;
+}
+.app-frame[data-nfq-theme="midnight"] .public-geography-page .geo-page-title span{
+ color:#b5c8df!important
+}
+.app-frame[data-nfq-theme="midnight"] .geo-observatory .geo-insight-heading h3{
+ color:var(--nfq-geo-ink)!important
+}
+.app-frame[data-nfq-theme="midnight"] .geo-observatory :is(
+ .geo-select-label select,.geo-region-picker select){color-scheme:dark}
+.app-frame[data-nfq-theme="midnight"] .geo-observatory .geo-map-inner svg>rect:first-of-type{
+ fill:#132339!important
+}
+.app-frame[data-nfq-theme="midnight"] .geo-observatory .geo-region{
+ fill:#243b55!important;stroke:#7691af!important;stroke-width:1.1
+}
+.app-frame[data-nfq-theme="midnight"] .geo-observatory .geo-region:hover,
+.app-frame[data-nfq-theme="midnight"] .geo-observatory .geo-region:focus-visible{
+ fill:#365b84!important;stroke:#d3e6ff!important;stroke-width:1.8
+}
+.app-frame[data-nfq-theme="midnight"] .geo-observatory .geo-region.geo-region-selected{
+ fill:#3c6591!important;stroke:#c3e0ff!important;stroke-width:2
+}
+.app-frame[data-nfq-theme="midnight"] .geo-observatory .geo-map-label{
+ fill:#c0d6eb!important
+}
+.app-frame[data-nfq-theme="midnight"] .geo-observatory .geo-inset-outline{
+ stroke:#819bb5!important
+}
+.app-frame[data-nfq-theme="midnight"] .geo-observatory .geo-about{
+ border-color:var(--nfq-geo-line)!important
+}
+.app-frame[data-nfq-theme="midnight"] .geo-observatory .geo-about summary{
+ color:#bdd8ff!important
+}
+.app-frame[data-nfq-theme="midnight"] .geo-observatory :is(.geo-regions-heading button,.geo-region-grid button){
+ color:var(--nfq-geo-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .geo-observatory .geo-map-foot :is(span,.geo-legend){
+ color:var(--nfq-geo-muted)!important
+}
+.app-frame[data-nfq-theme="midnight"] .geo-observatory .geo-region-grid button:hover{
+ background:rgba(105,161,223,.1)!important
+}
+.app-frame .geo-observatory :is(
+ .geo-select-label select,.geo-region-picker select,.geo-regions-heading button,
+ .geo-region-grid button,.geo-clear-selection
+):focus-visible{outline:2px solid #77a8e6!important;outline-offset:2px}
+@media(max-width:760px){
+ .app-frame .variant-page .discovery-input input#search{font-size:16px}
+ .app-frame .nfq-therapy .nfq-therapy-inspect{min-height:38px!important}
+ .app-frame .geo-observatory .geo-region-grid button{min-height:40px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .app-frame .variant-page .discovery-input{transition:none}
+}
