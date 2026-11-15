@@ -367,13 +367,17 @@ test('public Spain map works without account and is accessible at mobile and des
   await expect(page.locator('.geo-about')).toContainText('Regional search statistics are not published');
   await expect(page.locator('.geo-layout')).toBeVisible();
   await expect(page.locator('path.geo-region')).toHaveCount(19);
-  await page.getByRole('button',{name:'Browse all regions'}).click();
-  await page.locator('.geo-region-grid').getByRole('button',{name:/Andalucía/}).click();
+  // 14H154: the index no longer duplicates the real map and picker.
+  await expect(page.locator('.geo-regions-section, #geo-region-list')).toHaveCount(0);
+  const picker=page.getByLabel('Choose a region');
+  await picker.selectOption({label:'Andalucía'});
   await expect(page.getByRole('heading',{name:'Andalucía'})).toBeVisible();
-  await page.locator('.geo-region-grid').getByRole('button',{name:/Andalucía/}).click();
+  const mapRegion=page.locator('path.geo-region[aria-label^="Andalucía"]');
+  await expect(mapRegion).toHaveAttribute('aria-pressed','true');
+  await mapRegion.focus();
+  await mapRegion.press('Enter');
+  await expect(picker).toHaveValue('01');
   await expect(page.getByRole('heading',{name:'Andalucía'})).toBeVisible();
-  await page.getByRole('button',{name:/Hide region list/}).click();
-  await expect(page.getByRole('button',{name:/Browse all regions/})).toBeVisible();
   await expect.poll(()=>page.locator('html').evaluate(e=>e.scrollWidth-e.clientWidth)).toBe(0);
  }
 });
@@ -394,12 +398,13 @@ test('regional map offers a direct accessible region selector on small screens',
 
 test('explicit clearing and repeated region selection do not lose selection',async({page})=>{
  await page.goto('/#/geography');
- await page.getByRole('button',{name:'Browse all regions'}).click();
- const galicia=page.locator('.geo-region-grid').getByRole('button',{name:/Galicia/});
- await galicia.click();
- await galicia.click();
+ const galicia=page.locator('path.geo-region[aria-label^="Galicia"]');
+ await galicia.focus();
+ await galicia.press('Enter');
+ await galicia.press('Enter');
  await expect(page.getByRole('heading',{name:'Galicia'})).toBeVisible();
  await expect(galicia).toHaveAttribute('aria-pressed','true');
+ await expect(page.getByLabel('Choose a region')).toHaveValue('12');
  await page.getByRole('button',{name:'Clear selection'}).click();
  await expect(page.getByRole('heading',{name:'Choose a region'})).toBeVisible();
  await expect(galicia).toHaveAttribute('aria-pressed','false');
@@ -702,8 +707,8 @@ test('4F-7H functional compact search and preserved map capabilities',async({pag
   await page.getByLabel('Choose a region').selectOption('12');
   await expect(page.getByRole('heading',{name:'Galicia'})).toBeVisible();
   await page.getByRole('button',{name:'Clear selection'}).click();
-  await page.getByRole('button',{name:'Browse all regions'}).click();
-  await expect(page.locator('#geo-region-list')).toBeVisible();
+  // The map and dropdown preserve coverage across scope changes without an index.
+  await expect(page.locator('.geo-regions-section, #geo-region-list')).toHaveCount(0);
   await page.getByLabel('Scope').selectOption('international');
   await expect(page.getByRole('button',{name:'Return to Spain'})).toBeVisible();
   await page.getByRole('button',{name:'Return to Spain'}).click();
