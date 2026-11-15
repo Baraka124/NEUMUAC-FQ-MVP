@@ -61,7 +61,7 @@ const changed=computed(()=>Number(classFilter.value!=='all')+
      </ContextHelp>
     </div>
     <div class="nfq-filter-field">
-     <label for="response-filter">Therapy and recorded outcome</label>
+     <label for="response-filter">Recorded variant response</label>
      <select id="response-filter" v-model="responseFilter">
       <option value="all">All recorded results</option>
       <optgroup label="ETI · Kaftrio / Trikafta">
