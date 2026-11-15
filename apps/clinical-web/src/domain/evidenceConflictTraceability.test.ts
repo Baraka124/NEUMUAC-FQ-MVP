@@ -90,7 +90,7 @@ describe('14H148 explicit provisional evidence-to-conflict traceability',()=>{
   expect(text).toContain('\\# Invented approval');
   expect(text).toContain('\\# Published source title');
   expect(text).not.toContain('[approved](https://example.invalid)');
-  expect(text).toContain('not independently verified');
+  expect(text).toContain('never a verified scientific determination');
  });
  it('rejects stale edits to previously sanitized notes before exporting',()=>{
   const entry=create()!;
