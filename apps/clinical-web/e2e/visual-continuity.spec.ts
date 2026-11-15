@@ -71,7 +71,10 @@ test('14H139 original PNG assets fill their intended brand slots without replace
   renderedWidth:el.getBoundingClientRect().width,
   objectFit:getComputedStyle(el).objectFit
  }));
- expect(publicSize.renderedWidth).toBeGreaterThan(200);
+ // The original square PNG now scales down to keep its painted wordmark
+ // completely inside the masthead; 14H150 premium-entry checks actual ink bounds.
+ expect(publicSize.renderedWidth).toBeGreaterThan(150);
+ expect(publicSize.renderedWidth).toBeLessThan(180);
  expect(publicSize.objectFit).toBe('contain');
  await page.setViewportSize({width:1366,height:900});
  await page.goto('/#/workspace');
