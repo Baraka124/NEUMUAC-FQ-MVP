@@ -16,7 +16,7 @@ describe('original batch lookup parity · source-backed, bounded, explicit ident
   expect(parseBatchVariantText('LongLine'.repeat(15)).items[0].valid).toBe(false);
  });
  it('retains one-digit canonical IDs without accepting malformed decimal identifiers',async()=>{
-  const parsed=parseBatchVariantText('1\\n0\\n01\\n18\\nx\\n1234567890123456789'.replace(/\\n/g,'\\n'));
+  const parsed=parseBatchVariantText('1\n0\n01\n18\nx\n1234567890123456789');
   expect(parsed.items.map(item=>item.valid)).toEqual([true,false,false,true,false,false]);
   const first:RealVariant={...a,id:'1',legacyName:'E831X'};
   const requests:string[]=[];
@@ -25,7 +25,7 @@ describe('original batch lookup parity · source-backed, bounded, explicit ident
    resolveExact:async query=>{requests.push('exact:'+query);return null;},
    list:async opts=>{requests.push('list:'+opts.query);return {records:[],hasMore:false};}
   };
-  const rows=await resolveBatchVariants(repo,'1\\n0\\n01\\n18'.replace(/\\n/g,'\\n'),new AbortController().signal);
+  const rows=await resolveBatchVariants(repo,'1\n0\n01\n18',new AbortController().signal);
   expect(rows.map(row=>row.kind)).toEqual(['exact','invalid','invalid','not-found']);
   expect(rows[0].match?.id).toBe('1');
   expect(requests).toEqual(['get:1','get:18','list:18']);
