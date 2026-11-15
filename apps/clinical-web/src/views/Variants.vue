@@ -305,6 +305,10 @@ const responseFilter=ref(typeof route.query.response==='string'&&['eti-responsiv
 const sort=ref(typeof route.query.sort==='string'&&['name-desc','recent-record','fewest-validations','most-validations'].includes(route.query.sort)?route.query.sort:'name-asc');
 const searchMode=ref(typeof route.query.mode==='string'&&route.query.mode==='exact-name'?'exact-name':'contains');
 const showAdvanced=ref(false);
+function toggleAdvanced():void{
+ showAdvanced.value=!showAdvanced.value;
+ if(showAdvanced.value)void nextTick(()=>document.getElementById('variant-filter-title')?.focus({preventScroll:true}));
+}
 const activeFilterCount=computed(()=>Number(classFilter.value!=='all')+Number(subtypeFilter.value!=='all')+Number(responseFilter.value!=='all')+Number(sort.value!=='name-asc')+Number(searchMode.value!=='contains'));
 function resetAdvancedFilters():void{classFilter.value='all';subtypeFilter.value='all';responseFilter.value='all';sort.value='name-asc';searchMode.value='contains';}
 watch(search,()=>{
@@ -509,7 +513,7 @@ function select(id:string):void{
     <button v-if="scientificInputAssessment.blocked" type="button" class="nfq-guidance-link nfq-blocked-guidance" :aria-expanded="showSearchInfo" aria-controls="discovery-search-help" @click="showSearchInfo=!showSearchInfo">{{showSearchInfo?'Hide search guidance':'Search guidance'}}</button>
     <div class="discovery-utility-row">
       <div class="variant-filter-anchor">
-       <button type="button" class="variant-filter-trigger" :aria-expanded="showAdvanced" aria-controls="variant-filter-panel" @click="showAdvanced=!showAdvanced">
+       <button type="button" class="variant-filter-trigger" :aria-expanded="showAdvanced" aria-controls="variant-filter-panel" @click="toggleAdvanced">
         <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M7 12h10M10 17h4"/></svg>
         <span class="discovery-filter-label">Filters</span>
         <svg class="discovery-chevron" aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
