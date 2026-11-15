@@ -162,6 +162,10 @@ const changed=computed(()=>Number(classFilter.value!=='all')+
  outline:2px solid #377bd0;outline-offset:2px
 }
 #variant-filter-title:focus{outline:none}
+@media(min-width:611px) and (max-width:1024px){
+ /* The worklist sits next to the main research area on narrow desktops. */
+ .variant-filter-panel{width:min(520px,calc(100vw - 340px))}
+}
 @media(max-width:610px){
  .variant-filter-panel{width:min(350px,calc(100vw - 38px));max-height:min(590px,calc(100dvh - 110px))}
  .variant-filter-panel-head{padding:13px 13px 10px}
