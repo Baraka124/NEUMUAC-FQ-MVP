@@ -101,7 +101,7 @@ const changed=computed(()=>Number(classFilter.value!=='all')+
   <footer class="variant-filter-panel-foot">
    <span class="nfq-filter-count" role="status" data-testid="nfq-filter-count">{{changed?changed+' preferences changed':'All default preferences'}}</span>
    <div class="nfq-filter-foot-actions">
-    <button type="button" class="variant-filter-reset" @click="emit('reset')">Reset</button>
+    <button type="button" class="variant-filter-reset" aria-label="Reset preferences" @click="emit('reset')">Reset</button>
     <button type="button" class="variant-filter-done" @click="emit('close')">View results</button>
    </div>
   </footer>
