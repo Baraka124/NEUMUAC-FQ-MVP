@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import VariantFilterPanel from '../components/VariantFilterPanel.vue';
 import BatchVariantLookup from '../components/BatchVariantLookup.vue';
 import ResearchSessionPanel from '../components/ResearchSessionPanel.vue';
+import SavedRecordSnapshotExport from '../components/SavedRecordSnapshotExport.vue';
 import {researchVisitSession} from '../domain/researchVisitSession';
 import {cftr2LinkedReferences} from '../domain/externalReferenceTypes';
 import {referenceMetadata,dossierReferencePreview} from '../domain/referencePresentation';
@@ -531,6 +532,7 @@ function select(id:string):void{
        </li>
       </ul>
       <button v-if="savedIds.length" type="button" class="nfq-saved-export" @click="downloadSavedWorklist">Export links · CSV</button>
+      <SavedRecordSnapshotExport v-if="savedIds.length" :ids="savedIds" :source="source" />
       <p class="nfq-saved-muted">Local to this browser. Saved links are not verified scientific dossiers or geographic activity.</p>
      </section>
      <p v-if="savedNotice" role="status" class="nfq-saved-feedback">{{savedNotice}}</p>
