@@ -79,17 +79,21 @@ describe('14H148 explicit provisional evidence-to-conflict traceability',()=>{
  });
  it('quotes fake citations and headings as inert Markdown, never a signed finding',()=>{
   const inputWithClaims:EvidenceConflictTraceInput={
-   ...input,question:'## Invented approval of a field',
+   ...input,question:'## Invented approval of a field <script>alert(1)</script>',
    locator:'Table 2 | https://example.invalid',
    interpretation:'*Verified* [approved](https://example.invalid) — this is only an author note.'
   };
-  const entry=create(inputWithClaims,[{...source,title:'# Published source title'}])!;
+  const entry=create(inputWithClaims,[{...source,title:'# Published source title <img src=x onerror=alert(1)>'}])!;
   const text=prepareEvidenceConflictTraceability('18',history,
-   [{...source,title:'# Published source title'}],[entry],true)!;
+   [{...source,title:'# Published source title <img src=x onerror=alert(1)>'}],[entry],true)!;
   expect(text).not.toContain('\n## Invented approval');
   expect(text).toContain('\\# Invented approval');
   expect(text).toContain('\\# Published source title');
   expect(text).not.toContain('[approved](https://example.invalid)');
+  expect(text).not.toContain('<script>');
+  expect(text).not.toContain('<img');
+  expect(text).toContain('&lt;script&gt;');
+  expect(text).toContain('&lt;img');
   expect(text).toContain('never a verified scientific determination');
  });
  it('rejects stale edits to previously sanitized notes before exporting',()=>{
