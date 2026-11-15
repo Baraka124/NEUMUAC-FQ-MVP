@@ -623,8 +623,8 @@ function select(id:string):void{
        <p v-if="shareNotice" role="status" class="nfq-saved-feedback">{{shareNotice}}</p>
        <div v-if="selected.classSubtype||selected.etiPrediction||selected.alyftrekPrediction" class="nfq-dossier-classification-strip" aria-label="Recorded class subtype and modulator results" data-testid="variant-response-summary">
          <span v-if="selected.classSubtype" class="nfq-recorded-fact"><span>Subtype</span> <strong>{{selected.classSubtype}}</strong></span>
-         <span v-if="selected.etiPrediction" class="nfq-recorded-fact"><span>ETI</span> <strong>{{selected.etiPrediction==='non_responsive'?'Non-responsive':selected.etiPrediction==='responsive'?'Responsive':'Unknown'}}</strong></span>
-         <span v-if="selected.alyftrekPrediction" class="nfq-recorded-fact"><span>Alyftrek</span> <strong>{{selected.alyftrekPrediction==='non_responsive'?'Non-responsive':selected.alyftrekPrediction==='responsive'?'Responsive':'Unknown'}}</strong></span>
+         <span v-if="selected.etiPrediction" class="nfq-recorded-fact" :data-response="selected.etiPrediction"><span>ETI</span> <strong>{{selected.etiPrediction==='non_responsive'?'Non-responsive':selected.etiPrediction==='responsive'?'Responsive':'Unknown'}}</strong></span>
+         <span v-if="selected.alyftrekPrediction" class="nfq-recorded-fact" :data-response="selected.alyftrekPrediction"><span>Alyftrek</span> <strong>{{selected.alyftrekPrediction==='non_responsive'?'Non-responsive':selected.alyftrekPrediction==='responsive'?'Responsive':'Unknown'}}</strong></span>
          <ContextHelp label="About recorded class and treatment response" title="Independent scientific fields">
           <p>Class subtype is recorded independently of ETI and Alyftrek predictions. Exceptional does not by itself prove responsiveness, efficacy or prescribing eligibility.</p>
           <p>Kalydeco, Symkevi and Orkambi have separate genotype-level research rules but no individual variant-response category in the archived register. Inspect all five regimens and their source references below.</p>
