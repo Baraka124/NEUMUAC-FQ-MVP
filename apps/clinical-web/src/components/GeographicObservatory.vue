@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed,nextTick,ref} from 'vue';
+import {computed,ref} from 'vue';
 import {SPAIN_REGIONS} from '../domain/spainRegionalBoundaries';
 
 type Scope='spain'|'international';
@@ -12,9 +12,6 @@ const alphabeticalRegions=[...SPAIN_REGIONS].sort((a,b)=>a.name.localeCompare(b.
 function choose(code:string){selected.value=code;}
 function chooseFromPicker(code:string){selected.value=code||null;}
 function clearSelection(){selected.value=null;}
-// The index is an alternate entry into the same selected-region state.
-// Selecting there collapses the list and reveals the existing region detail.
-function chooseFromIndex(code:string){choose(code);listMode.value=false;void nextTick(openSelectedDetail);}
 function changeScope(value:Scope){scope.value=value;selected.value=null;listMode.value=false;}
 function openSelectedDetail(){
  const panel=detailPanel.value;
@@ -103,7 +100,7 @@ function openSelectedDetail(){
     <button type="button" :aria-expanded="listMode" aria-controls="geo-region-list" @click="listMode=!listMode">{{listMode?'Hide region list':'Browse all regions'}} <span aria-hidden="true">{{listMode?'−':'+'}}</span></button>
    </div>
    <div v-if="listMode" id="geo-region-list" class="geo-region-grid">
-    <button v-for="region in alphabeticalRegions" :key="region.code" type="button" :aria-pressed="selected===region.code" aria-controls="geo-region-detail" @click="chooseFromIndex(region.code)">
+    <button v-for="region in alphabeticalRegions" :key="region.code" type="button" :aria-pressed="selected===region.code" aria-controls="geo-region-detail" @click="choose(region.code)">
      <span>{{region.name}}</span><span aria-hidden="true">{{selected===region.code?'✓':'↗'}}</span>
     </button>
    </div>
