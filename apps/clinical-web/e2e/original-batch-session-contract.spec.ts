@@ -70,16 +70,18 @@ test('14H151 canonical one-digit IDs and all-result CSV survive quiet progressiv
  await expect(page.getByTestId('nfq-batch-visible-count')).toHaveText('Showing 12 of 13 recorded lookup outcomes');
  const list=page.locator('.nfq-batch-results');
  expect(await list.evaluate(el=>getComputedStyle(el).overflowY)).not.toMatch(/auto|scroll/);
- await page.getByTestId('nfq-batch-more').click();
- await expect(rows).toHaveCount(13);
- await expect(page.getByTestId('nfq-batch-more')).toHaveCount(0);
- await expect(page.getByTestId('nfq-batch-visible-count')).toHaveText('Showing 13 of 13 recorded lookup outcomes');
+ // Full 13-record export must work while the final result is still hidden.
  const pending=page.waitForEvent('download');
  await page.getByTestId('nfq-batch-export').click();
  const csv=await readFile(await (await pending).path(),'utf8');
  expect(csv).toContain('"1","exact"');
  expect(csv).toContain('"13","not-found"');
  expect(csv).not.toContain('"01"');
+ await expect(rows).toHaveCount(12);
+ await page.getByTestId('nfq-batch-more').click();
+ await expect(rows).toHaveCount(13);
+ await expect(page.getByTestId('nfq-batch-more')).toHaveCount(0);
+ await expect(page.getByTestId('nfq-batch-visible-count')).toHaveText('Showing 13 of 13 recorded lookup outcomes');
  expect(methods.every(x=>x==='GET')).toBe(true);
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  await rows.first().getByRole('button',{name:'Open confirmed variant 1'}).click();
