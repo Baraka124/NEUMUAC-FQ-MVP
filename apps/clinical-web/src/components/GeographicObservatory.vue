@@ -28,7 +28,7 @@ function openSelectedDetail(){
 <template>
  <section class="geo-observatory" aria-label="Geographic atlas">
   <div class="geo-toolbar" aria-label="Geographic research controls">
-   <label class="geo-select-label" for="geo-scope">Coverage
+   <label class="geo-select-label" for="geo-scope">Scope
     <select id="geo-scope" :value="scope" @change="changeScope(($event.target as HTMLSelectElement).value as Scope)">
      <option value="spain">Spain</option><option value="international">International</option>
     </select>
@@ -39,7 +39,7 @@ function openSelectedDetail(){
    <section class="geo-map-surface" aria-label="Regional atlas">
     <div class="geo-map-heading">
      <div><strong>{{scope==='spain'?'Spain':'International overview'}}</strong><span>{{scope==='spain'?'17 communities · 2 autonomous cities':'Country-level data pending'}}</span></div>
-     <label v-if="scope==='spain'" for="geo-region-picker" class="geo-region-picker">Region
+     <label v-if="scope==='spain'" for="geo-region-picker" class="geo-region-picker">Choose a region
       <select id="geo-region-picker" :value="selected||''" @change="chooseFromPicker(($event.target as HTMLSelectElement).value)">
        <option value="">All Spain</option>
        <option v-for="region in alphabeticalRegions" :key="region.code" :value="region.code">{{region.name}}</option>
@@ -99,8 +99,8 @@ function openSelectedDetail(){
   </details>
   <section v-if="scope==='spain'" class="geo-regions-section" aria-label="Spain regions">
    <div class="geo-regions-heading">
-    <div><h3>Browse by name</h3><p>An alternative to the map, using the same selected region.</p></div>
-    <button type="button" :aria-expanded="listMode" aria-controls="geo-region-list" @click="listMode=!listMode">{{listMode?'Hide region index':'Show region index'}} <span aria-hidden="true">{{listMode?'−':'+'}}</span></button>
+    <div><h3>Region index</h3><p>An alternative to the map; uses the same selected region.</p></div>
+    <button type="button" :aria-expanded="listMode" aria-controls="geo-region-list" @click="listMode=!listMode">{{listMode?'Hide region list':'Browse all regions'}} <span aria-hidden="true">{{listMode?'−':'+'}}</span></button>
    </div>
    <div v-if="listMode" id="geo-region-list" class="geo-region-grid">
     <button v-for="region in alphabeticalRegions" :key="region.code" type="button" :aria-pressed="selected===region.code" aria-controls="geo-region-detail" @click="chooseFromIndex(region.code)">
