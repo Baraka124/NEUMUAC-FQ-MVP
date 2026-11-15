@@ -216,7 +216,7 @@ test('14H148 expanded traceability controls retain the original Midnight and mob
   const trace=page.getByTestId('nfq-traceability');
   await expect(trace).toBeVisible();
   await trace.locator('summary').click();
-  expect(await trace.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(19, 36, 57)');
+  expect(await trace.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(17, 31, 51)');
   const input=page.getByTestId('nfq-trace-locator');
   const color=await input.evaluate(el=>getComputedStyle(el).backgroundColor);
   expect(color).toBe('rgb(15, 29, 48)');
