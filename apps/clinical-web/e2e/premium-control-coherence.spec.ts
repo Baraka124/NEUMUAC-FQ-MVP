@@ -56,29 +56,33 @@ test('14H153 single search shell, visible therapy labels and compact guided live
  }
 });
 
-test('14H153 atlas shares one selected region across map, picker and index; Midnight text remains visible',async({page})=>{
+test('14H154 atlas has no redundant index; map and picker share the same selected region across themes',async({page})=>{
  for(const mode of ['light','midnight'] as const){
   await setTheme(page,mode);
   await page.goto('/#/geography');
   const atlas=page.locator('.geo-observatory');
   await expect(atlas).toBeVisible();
   await expect(atlas.getByLabel('Scope')).toHaveValue('spain');
-  await expect(atlas.getByLabel('Choose a region')).toHaveValue('');
-  const index=atlas.getByRole('button',{name:/Browse all regions/});
-  await index.click();
-  await expect(atlas.locator('#geo-region-list')).toBeVisible();
-  await atlas.locator('#geo-region-list').getByRole('button',{name:/Galicia/}).click();
-  await expect(atlas.getByLabel('Choose a region')).toHaveValue('12');
+  const picker=atlas.getByLabel('Choose a region');
+  await expect(picker).toHaveValue('');
+  // The original index contributed no independent capability or data.
+  await expect(atlas.locator('.geo-regions-section, #geo-region-list')).toHaveCount(0);
+  await expect(atlas.getByRole('button',{name:/Browse all regions|Hide region list/})).toHaveCount(0);
+  // The map is keyboard-operable and uses the same selected state as the picker.
+  const galicia=atlas.locator('path.geo-region[aria-label^="Galicia"]');
+  await galicia.focus();
+  await galicia.press('Enter');
+  await expect(picker).toHaveValue('12');
+  await expect(galicia).toHaveAttribute('aria-pressed','true');
   await expect(atlas.locator('.geo-region-insight h3')).toHaveText('Galicia');
-  // The alphabetical index remains open so another region can be selected;
-  // it is a second control over the same single selected-region state.
-  await expect(atlas.locator('#geo-region-list')).toBeVisible();
-  await atlas.getByRole('button',{name:/Hide region list/}).click();
-  await expect(atlas.locator('#geo-region-list')).toHaveCount(0);
   await atlas.getByRole('button',{name:'Clear selection'}).click();
-  await expect(atlas.getByLabel('Choose a region')).toHaveValue('');
-  await atlas.getByLabel('Choose a region').selectOption({label:'Andalucía'});
+  await expect(picker).toHaveValue('');
+  await expect(galicia).toHaveAttribute('aria-pressed','false');
+  await picker.selectOption({label:'Andalucía'});
   await expect(atlas.locator('.geo-region-insight h3')).toHaveText('Andalucía');
+  await expect(atlas.locator('path.geo-region[aria-label^="Andalucía"]')).toHaveAttribute('aria-pressed','true');
+  // Keep the critical data-scope disclaimer, without restoring the obsolete cards.
+  await expect(atlas.locator('.geo-about')).toContainText('Regional search statistics are not published');
   const colors=await atlas.locator('.geo-region-insight h3').evaluate(el=>{
    const x=getComputedStyle(el),p=getComputedStyle(el.closest('.geo-region-insight')!);
    return {ink:x.color,paper:p.backgroundColor};
