@@ -86,7 +86,7 @@ test('14H152 saved worklist independently exports current source metadata and pr
  expect(csv).toContain('"G551D"');
  expect(csv).toContain('recorded_subtype');
  expect(csv).toContain('recorded_alyftrek');
- expect(csv).toContain('https://127.0.0.1:4175/#/variants/18');
+ expect(csv).toContain('http://127.0.0.1:4175/#/variants/18');
  expect(csv).not.toContain('patient');
  await expect(saved.getByTestId('saved-snapshot-status')).toContainText('2 current catalog records exported');
  await expect(saved.getByRole('button',{name:'Export links · CSV'})).toBeVisible();
