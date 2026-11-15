@@ -55,10 +55,15 @@ jobs:
           fi
 
   browser-smoke:
-    name: Clinical browser / smoke
-    # Playwright 1.56 Chromium is not installable on the ubuntu-26.04 runner.
+    name: Clinical browser / smoke (shard ${{ matrix.shard }}/3)
+    # The full 354-test suite previously hit the 15-minute job ceiling.
+    # Collect every shard independently; never treat a cancelled job as success.
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     defaults:
       run:
         working-directory: apps/clinical-web
@@ -71,13 +76,16 @@ jobs:
           node-version: '22'
       - run: npm install --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e:curation
-      - run: npm run test:e2e
-      - name: Upload failure artifacts
+      - name: Verify research curation regressions
+        if: matrix.shard == 1
+        run: npm run test:e2e:curation
+      - name: Verify complete browser regression shard
+        run: npm run test:e2e -- --shard=${{ matrix.shard }}/3
+      - name: Upload shard failure artifacts
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: clinical-browser-traces
+          name: clinical-browser-traces-${{ matrix.shard }}
           path: apps/clinical-web/test-results/
           retention-days: 7
 
