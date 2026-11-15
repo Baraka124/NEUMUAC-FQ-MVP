@@ -1,0 +1,146 @@
+/* 14H148 · Manually authored provisional scientific traceability.
+ * Quiet outlined controls, no apparent automatic match/validation, and
+ * explicit source context. All selectors scoped to this research surface.
+ */
+.nfq-traceability{
+ margin:18px 0 3px;background:#f9fbfe;border:1px solid #dde7f2;
+ border-radius:7px;min-width:0;overflow:hidden
+}
+.nfq-traceability>summary{
+ display:flex;align-items:center;justify-content:space-between;gap:8px 16px;
+ min-height:48px;padding:11px 14px;
+ color:#223f61;font-size:12.5px;font-weight:680;
+ cursor:pointer;list-style:none;outline-offset:-3px
+}
+.nfq-traceability>summary::-webkit-details-marker{display:none}
+.nfq-traceability>summary small{
+ color:#71869d;font-size:11px;line-height:1.4;font-weight:500;text-align:right
+}
+.nfq-traceability>summary:focus-visible{outline:2px solid #2979ff}
+.nfq-traceability[open]>summary{border-bottom:1px solid #e2ebf5}
+.nfq-trace-inner{padding:15px 15px 18px;min-width:0}
+.nfq-trace-intro{
+ margin:0 0 12px;color:#5d7690;line-height:1.62;font-size:11.8px;
+ max-width:750px;overflow-wrap:anywhere
+}
+.nfq-trace-intro strong{color:#315779;font-weight:660}
+.nfq-trace-progress{
+ color:#647e98;font-size:11px;margin:0 0 15px;font-variant-numeric:tabular-nums;
+ line-height:1.55
+}
+.nfq-trace-form{display:grid;gap:11px;max-width:750px}
+.nfq-trace-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.nfq-trace-form label{
+ display:flex;flex-direction:column;gap:5px;min-width:0;
+ color:#4b6680;font-size:11.5px;line-height:1.35;font-weight:610;
+}
+.nfq-trace-form :is(input,textarea,select){
+ display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;
+ border:1px solid #ccdceb;border-radius:5px;background:#fff;color:#203c59;
+ padding:8px 10px;box-shadow:none;font-family:inherit;font-size:12.3px;
+ font-weight:450;line-height:1.4;outline-offset:2px
+}
+.nfq-trace-form :is(input,select){min-height:40px}
+.nfq-trace-form textarea{resize:vertical;min-height:68px;max-height:210px}
+.nfq-trace-form :is(input,textarea)::placeholder{color:#8195aa;opacity:1}
+.nfq-trace-form :is(input,textarea,select):focus-visible{outline:2px solid #2979ff}
+.nfq-trace-source{
+ display:flex;align-items:baseline;flex-wrap:wrap;gap:3px 8px;
+ color:#697f96;font-size:11px;line-height:1.5;overflow-wrap:anywhere;
+ margin:0
+}
+.nfq-trace-source a{font-size:11px;font-weight:630}
+.nfq-trace-form-actions,.nfq-trace-actions{
+ display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px
+}
+.nfq-trace-form-actions button,.nfq-trace-actions button,.nfq-trace-entry-head button{
+ border:1px solid #bed0e8;border-radius:5px;
+ background:transparent;color:#275fae;
+ padding:7px 11px;min-height:38px;max-width:100%;
+ font-family:inherit;font-size:11.8px;font-weight:625;
+ box-shadow:none;cursor:pointer;white-space:normal;
+}
+.nfq-trace-form-actions button:hover:not(:disabled),
+.nfq-trace-actions button:hover:not(:disabled),
+.nfq-trace-entry-head button:hover:not(:disabled){
+ background:rgba(41,121,255,.055);border-color:#96b5de
+}
+.nfq-trace-form-actions button:disabled,.nfq-trace-actions button:disabled{
+ opacity:.45;cursor:default
+}
+.nfq-trace-form-actions span{font-size:10.8px;color:#788ba1}
+.nfq-trace-notice{margin:12px 0 0;font-size:11.5px;color:#566f8d;line-height:1.55}
+.nfq-trace-entries{
+ display:grid;gap:0;border-top:1px solid #dde7f1;margin:20px 0 0
+}
+.nfq-trace-entry{padding:14px 0;border-bottom:1px solid #e5edf5;min-width:0}
+.nfq-trace-entry-head{
+ display:flex;align-items:flex-start;justify-content:space-between;gap:9px 17px
+}
+.nfq-trace-entry-id{
+ display:block;color:#68839d;font-size:10px;letter-spacing:.055em;
+ font-weight:670;font-variant-numeric:tabular-nums
+}
+.nfq-trace-entry h3{
+ color:#294664;font-size:12.5px;line-height:1.4;
+ margin:4px 0;font-weight:690;overflow-wrap:anywhere
+}
+.nfq-trace-entry p{
+ margin:4px 0 0;color:#607a93;font-size:11.3px;line-height:1.6;
+ overflow-wrap:anywhere
+}
+.nfq-trace-entry p strong{color:#375674;font-weight:660}
+.nfq-trace-entry .nfq-trace-entry-relation{
+ font-weight:650;color:#315d93;font-size:11px;margin:10px 0 5px
+}
+.nfq-trace-entry-head button{
+ flex:none;min-height:32px;font-size:11px;padding:5px 8px
+}
+.nfq-trace-actions{margin:16px 0 0}
+.nfq-trace-actions p{margin:0;font-size:10.8px;line-height:1.5;color:#72879d}
+.nfq-traceability :is(button,a):focus-visible{outline:2px solid #2979ff;outline-offset:3px}
+
+.app-frame[data-nfq-theme="midnight"] .nfq-traceability{
+ background:var(--nfq-night-soft)!important;border-color:var(--nfq-night-line)!important
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-traceability :is(
+ .nfq-trace-inner,.nfq-trace-form
+){color:var(--nfq-night-ink)!important}
+.app-frame[data-nfq-theme="midnight"] .nfq-traceability :is(
+ summary,.nfq-trace-entry h3,.nfq-trace-form label,.nfq-trace-intro strong,
+ .nfq-trace-entry p strong
+){color:var(--nfq-night-ink)!important}
+.app-frame[data-nfq-theme="midnight"] .nfq-traceability :is(
+ summary small,.nfq-trace-intro,.nfq-trace-progress,.nfq-trace-source,
+ .nfq-trace-form-actions span,.nfq-trace-notice,.nfq-trace-entry-id,
+ .nfq-trace-entry p,.nfq-trace-actions p
+){color:var(--nfq-night-muted)!important}
+.app-frame[data-nfq-theme="midnight"] .nfq-traceability :is(
+ summary,.nfq-trace-entries,.nfq-trace-entry
+){border-color:var(--nfq-night-line)!important}
+.app-frame[data-nfq-theme="midnight"] .nfq-trace-form :is(input,textarea,select){
+ color:var(--nfq-night-ink)!important;background:var(--nfq-night-paper)!important;
+ border-color:var(--nfq-night-line)!important
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-trace-form :is(input,textarea)::placeholder{
+ color:var(--nfq-night-subtle)!important
+}
+.app-frame[data-nfq-theme="midnight"] .nfq-traceability :is(
+ .nfq-trace-form-actions button,.nfq-trace-actions button,.nfq-trace-entry-head button
+){background:transparent!important;color:var(--nfq-night-link)!important;border-color:var(--nfq-night-line)!important}
+.app-frame[data-nfq-theme="midnight"] .nfq-traceability :is(
+ .nfq-trace-form-actions button,.nfq-trace-actions button,.nfq-trace-entry-head button
+):hover:not(:disabled){background:var(--nfq-night-hover)!important}
+.app-frame[data-nfq-theme="midnight"] .nfq-traceability :is(
+ .nfq-trace-source a,.nfq-trace-entry .nfq-trace-entry-relation
+){color:var(--nfq-night-link)!important}
+
+@media(max-width:760px){
+ .nfq-traceability>summary{align-items:flex-start;flex-direction:column;gap:4px}
+ .nfq-traceability>summary small{text-align:left}
+ .nfq-trace-inner{padding:14px 12px 16px}
+ .nfq-trace-pair{grid-template-columns:minmax(0,1fr)}
+ .nfq-trace-form :is(input,select,textarea){font-size:16px}
+ .nfq-trace-entry-head{flex-wrap:wrap}
+}
+@media(prefers-reduced-motion:reduce){.nfq-traceability *{scroll-behavior:auto}}
