@@ -119,7 +119,7 @@
  summary,.nfq-trace-entries,.nfq-trace-entry
 ){border-color:var(--nfq-night-line)!important}
 .app-frame[data-nfq-theme="midnight"] .nfq-trace-form :is(input,textarea,select){
- color:var(--nfq-night-ink)!important;background:var(--nfq-night-paper)!important;
+ color:var(--nfq-night-ink)!important;background:var(--nfq-night-soft)!important;
  border-color:var(--nfq-night-line)!important
 }
 .app-frame[data-nfq-theme="midnight"] .nfq-trace-form :is(input,textarea)::placeholder{
