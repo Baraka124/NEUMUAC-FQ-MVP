@@ -101,8 +101,22 @@ try { if(config) source=createReadOnlyRepository(config,fetch,authSessionProvide
 const rows=ref<readonly RealVariant[]>([]);
 const batchOpen=ref(false);
 const sessionPanelOpen=ref(false);
-function toggleBatch():void{batchOpen.value=!batchOpen.value;if(batchOpen.value)sessionPanelOpen.value=false;}
-function toggleSessionPanel():void{sessionPanelOpen.value=!sessionPanelOpen.value;if(sessionPanelOpen.value)batchOpen.value=false;}
+function revealParityPanel(selector:string):void{
+ void nextTick(()=>{
+  const el=document.querySelector<HTMLElement>(selector);
+  if(!el)return;
+  el.scrollIntoView({block:'start',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
+  if(selector==='.nfq-batch')document.getElementById('nfq-batch-input')?.focus({preventScroll:true});
+ });
+}
+function toggleBatch():void{
+ batchOpen.value=!batchOpen.value;
+ if(batchOpen.value){sessionPanelOpen.value=false;revealParityPanel('.nfq-batch');}
+}
+function toggleSessionPanel():void{
+ sessionPanelOpen.value=!sessionPanelOpen.value;
+ if(sessionPanelOpen.value){batchOpen.value=false;revealParityPanel('.nfq-visit-session');}
+}
 
 const selected=ref<RealVariant|null>(null);
 const detailNotice=ref('');
