@@ -19,6 +19,7 @@ import './governance-shell-consistency.css';
 import './conflict-review-preparation.css';
 import './evidence-conflict-traceability.css';
 import './original-workflow-parity.css';
+import './premium-visual-finish.css';
 import {authController} from './services/authSession';
 import {refreshResearcherRole} from './services/researchRole';
 import {refreshGuestDesignation} from './services/guestDesignation';
