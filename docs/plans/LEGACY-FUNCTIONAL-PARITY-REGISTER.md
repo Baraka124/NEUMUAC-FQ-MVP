@@ -196,3 +196,20 @@ NFQ-010, 018–023, 028–029, 031–038 are **not declared complete**. The sour
 **NFQ-015 cannot be marked Complete** while record-level scientific citation provenance, independent review, real production/browser acceptance, and legacy parity across all original therapy functions remain incomplete. Historical EU rule rows are not current SmPC/regulator evidence. The original contains Orkambi genotype logic without a matching drug-jurisdiction row.
 
 **NFQ-038 cannot be marked Complete** until desktop/mobile visual acceptance at fq.neumact.org, real-data error/retry/reveal workflows, and clinician sign-off have been demonstrated.
+
+## Phase 14H151 — numeric batch identity and bounded result disclosure
+
+**NFQ-003 and NFQ-004 remain Partial; NFQ-038 remains Partial.** Following
+14H149, the batch-identifier parser now accepts canonical one-digit positive
+record IDs such as `1` (which the existing GET-only source already supports),
+without treating zero, leading-zero or overlong numeric text as a verified
+record identity. Multiple lookup outcomes are progressively disclosed in
+12-result increments, without a nested batch scrollbar; all successfully
+resolved rows remain available in the export. This improves original batch
+lookup parity and 320px+ usability, but **does not** confer clinical validation,
+comprehensive nomenclature/alias equivalence, scientific truth of recorded
+fields, live-source acceptance, authenticated write permission or complete
+legacy parity. See
+`apps/clinical-web/docs/14H151-batch-identity-result-continuity.md`.
+No patient data, scientific logic, original frozen HTML, Supabase privileges,
+backend, other systems or production records change.
