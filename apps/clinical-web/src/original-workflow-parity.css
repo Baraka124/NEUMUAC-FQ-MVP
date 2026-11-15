@@ -65,7 +65,7 @@
 .nfq-batch-actions button,.nfq-session-actions button,.nfq-session-entry button,.nfq-batch-confirmed button,.nfq-batch-candidates button{
  border:1px solid #c2d5e9;background:transparent;color:#285fa8;
  box-shadow:none;border-radius:5px;min-height:38px;
- padding:6px 11px;font:600 11.5px/1.35 inherit;
+ padding:6px 11px;font-size:11.5px;font-weight:600;line-height:1.35;
  font-family:inherit;cursor:pointer;white-space:normal
 }
 .nfq-batch-actions button:hover:not(:disabled),
