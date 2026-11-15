@@ -89,10 +89,11 @@ const loginOpen=ref(false);
 .nfq-portal-masthead,.nfq-portal-content,.nfq-portal-footer{width:min(1190px,100%);margin-inline:auto;padding-inline:clamp(24px,4vw,62px)}
 .nfq-portal-masthead{min-height:112px;display:flex;align-items:center;justify-content:space-between;gap:24px;border-bottom:1px solid #dfe8e1}
 .nfq-portal-brand{position:relative;display:block;width:172px;height:112px;overflow:hidden;flex:0 0 auto;align-self:center}
-/* The original square brand PNG includes transparent margins. Reframe its
-   full painted wordmark INSIDE the masthead; do not let the tagline hang
-   across the separator. Never recreate, stretch or replace the asset. */
-.nfq-portal-brand img{position:absolute;display:block;width:168px;height:168px;max-width:none;object-fit:contain;left:0;top:-38px}
+/* The original 1254px square brand PNG includes transparent margins.
+   14H150 browser-verified painted ink bounds: x=45..1212, y=288..969.
+   Place the PAINTED wordmark centrally INSIDE the masthead, never clipped
+   at the separator. Never recreate, stretch or replace the original asset. */
+.nfq-portal-brand img{position:absolute;display:block;width:168px;height:168px;max-width:none;object-fit:contain;left:0;top:-28px}
 .nfq-portal-masthead-right{display:flex;align-items:center;gap:22px}
 .nfq-portal-header-context{font-size:10px;letter-spacing:.14em;font-weight:700;color:#668274;white-space:nowrap}
 .nfq-portal-header-link{display:inline-flex;align-items:center;gap:15px;min-height:40px;padding:8px 13px;border:1px solid #ccdcd2;border-radius:6px;background:transparent;color:#234b3b;text-decoration:none;font-size:12px;font-weight:640;white-space:nowrap}
@@ -130,8 +131,8 @@ const loginOpen=ref(false);
 .nfq-portal-footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid #e4ebe6;padding-block:16px;font-size:10px;letter-spacing:.015em;color:#798e80}
 .nfq-portal-header-link:focus-visible,.nfq-portal-brand:focus-visible,.nfq-portal-enter:focus-visible,.nfq-portal-index-link:focus-visible,.nfq-portal-back:focus-visible{outline:3px solid #17836a;outline-offset:3px}
 @media(max-width:960px){.nfq-portal-layout{grid-template-columns:minmax(0,1fr) minmax(275px,.9fr);gap:36px}.nfq-portal-header-context{display:none}.nfq-portal-intro h1{font-size:clamp(41px,5vw,54px)}}
-@media(max-width:760px){.nfq-portal-masthead{min-height:98px}.nfq-portal-brand{width:153px;height:98px}.nfq-portal-brand img{width:149px;height:149px;left:0;top:-33px}.nfq-portal-content{justify-content:flex-start;padding-block:28px}.nfq-portal-layout{grid-template-columns:minmax(0,1fr);gap:34px}.nfq-portal-intro{padding-block:10px 0}.nfq-portal-intro h1{font-size:clamp(39px,8vw,54px);margin:16px 0}.nfq-portal-description{max-width:530px}.nfq-portal-actions{margin-top:23px}.nfq-portal-index{border-left:0;padding:22px 0 0;border-top:1px solid #dce6df}.nfq-portal-account{border-left:0;padding:20px 0 0;border-top:1px solid #dce6df}.nfq-portal-research-notice{margin-top:34px}}
-@media(max-width:420px){.nfq-portal-masthead{min-height:82px}.nfq-portal-brand{width:123px;height:82px}.nfq-portal-brand img{width:119px;height:119px;left:0;top:-27px}.nfq-portal-header-link{padding:8px 11px;min-height:39px}.nfq-portal-intro h1{font-size:39px}.nfq-portal-index-link{grid-template-columns:23px minmax(0,1fr) 18px;min-height:68px}.nfq-portal-footer{display:grid}}
+@media(max-width:760px){.nfq-portal-masthead{min-height:98px}.nfq-portal-brand{width:153px;height:98px}.nfq-portal-brand img{width:149px;height:149px;left:0;top:-27px}.nfq-portal-content{justify-content:flex-start;padding-block:28px}.nfq-portal-layout{grid-template-columns:minmax(0,1fr);gap:34px}.nfq-portal-intro{padding-block:10px 0}.nfq-portal-intro h1{font-size:clamp(39px,8vw,54px);margin:16px 0}.nfq-portal-description{max-width:530px}.nfq-portal-actions{margin-top:23px}.nfq-portal-index{border-left:0;padding:22px 0 0;border-top:1px solid #dce6df}.nfq-portal-account{border-left:0;padding:20px 0 0;border-top:1px solid #dce6df}.nfq-portal-research-notice{margin-top:34px}}
+@media(max-width:420px){.nfq-portal-masthead{min-height:82px}.nfq-portal-brand{width:123px;height:82px}.nfq-portal-brand img{width:119px;height:119px;left:0;top:-21px}.nfq-portal-header-link{padding:8px 11px;min-height:39px}.nfq-portal-intro h1{font-size:39px}.nfq-portal-index-link{grid-template-columns:23px minmax(0,1fr) 18px;min-height:68px}.nfq-portal-footer{display:grid}}
 @media(prefers-reduced-motion:reduce){.nfq-portal-index-arrow{transition:none}.nfq-portal-index-link:hover .nfq-portal-index-arrow{transform:none}}
 
 /* Phase 4F-6F · entry reading scale and restrained directory affordances. */
