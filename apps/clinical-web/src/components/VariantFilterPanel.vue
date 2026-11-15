@@ -57,7 +57,7 @@ const changed=computed(()=>Number(classFilter.value!=='all')+
      <h4>Recorded response</h4>
      <ContextHelp label="Why the response filter lists two therapies" title="Separate variant and genotype evidence">
       <p>ETI and Alyftrek have independent recorded variant response fields. They are not inferred from functional class or from one another.</p>
-      <p>Kalydeco, Symkevi and Orkambi are compared through genotype research rules; they do not have individual variant-response fields here. All five treatments remain available in therapy comparison.</p>
+      <p>The other three modulator regimens are compared using genotype research rules rather than individual variant-response fields. All five treatments remain available in therapy comparison.</p>
      </ContextHelp>
     </div>
     <div class="nfq-filter-field">
