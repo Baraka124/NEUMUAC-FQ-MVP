@@ -74,6 +74,7 @@ const changed=computed(()=>Number(classFilter.value!=='all')+
       </optgroup>
      </select>
     </div>
+    <p class="nfq-response-filter-note">Kalydeco, Symkevi and Orkambi use genotype rules, not individual variant-response fields. All five therapies remain in the comparison.</p>
    </section>
    <section class="nfq-filter-group" aria-label="Find and organize recorded records">
     <h4>Find &amp; organize</h4>
@@ -102,7 +103,7 @@ const changed=computed(()=>Number(classFilter.value!=='all')+
    <span class="nfq-filter-count" role="status" data-testid="nfq-filter-count">{{changed?changed+' preferences changed':'All default preferences'}}</span>
    <div class="nfq-filter-foot-actions">
     <button type="button" class="variant-filter-reset" aria-label="Reset preferences" @click="emit('reset')">Reset</button>
-    <button type="button" class="variant-filter-done" @click="emit('close')">View results</button>
+    <button type="button" class="variant-filter-done" @click="emit('close')">Done</button>
    </div>
   </footer>
  </section>
@@ -142,6 +143,7 @@ const changed=computed(()=>Number(classFilter.value!=='all')+
 .nfq-filter-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .nfq-filter-field{min-width:0;display:grid;gap:6px}
 .nfq-filter-field label{font-size:11.3px;line-height:1.4;color:#3c5575;font-weight:620}
+.nfq-response-filter-note{margin:0;max-width:55ch;font-size:10.5px;line-height:1.5;color:#61768f}
 .nfq-filter-field select{
  width:100%;min-width:0;min-height:39px;height:39px;
  border:1px solid #cbd8e9;border-radius:6px;background:#fff;
