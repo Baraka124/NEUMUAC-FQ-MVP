@@ -42,7 +42,7 @@ test('14H153 single search shell, visible therapy labels and compact guided live
   await expect(panel.getByTestId('nfq-filter-count')).toHaveText('All default preferences');
   await panel.locator('#class-filter').selectOption('I');
   await expect(panel.getByTestId('nfq-filter-count')).toHaveText('1 preferences changed');
-  await panel.getByRole('button',{name:'Reset',exact:true}).click();
+  await panel.getByRole('button',{name:'Reset preferences'}).click();
   await expect(panel.locator('#class-filter')).toHaveValue('all');
   await panel.getByRole('button',{name:'View results'}).click();
   await expect(panel).toHaveCount(0);
