@@ -70,6 +70,10 @@ test('14H153 atlas shares one selected region across map, picker and index; Midn
   await atlas.locator('#geo-region-list').getByRole('button',{name:/Galicia/}).click();
   await expect(atlas.getByLabel('Choose a region')).toHaveValue('12');
   await expect(atlas.locator('.geo-region-insight h3')).toHaveText('Galicia');
+  // The alphabetical index remains open so another region can be selected;
+  // it is a second control over the same single selected-region state.
+  await expect(atlas.locator('#geo-region-list')).toBeVisible();
+  await atlas.getByRole('button',{name:/Hide region list/}).click();
   await expect(atlas.locator('#geo-region-list')).toHaveCount(0);
   await atlas.getByRole('button',{name:'Clear selection'}).click();
   await expect(atlas.getByLabel('Choose a region')).toHaveValue('');
