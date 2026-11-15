@@ -250,3 +250,18 @@ Screenshots and contracts: `apps/clinical-web/docs/14H153-original-blue-premium-
 independent browser inspection and clinician sign-off remain outstanding.
 No role/permission, scientific logic, patient data, database, backend,
 `index.1.html` or neumDESK change.
+
+## Phase 14H154 — geographic atlas removes redundant index
+
+**NFQ-030 remains Not migrated.** The previous Region index (19 separate buttons,
+expanded below the map) was removed as redundant with the same 19 boundaries
+on the keyboard-accessible map and native alphabetical region picker. Both
+remaining controls update one `selected` state and the original detail panel,
+including clear/reset and Spain/International scope behavior. Region data,
+research disclaimers, individual-location privacy boundaries, Daylight/Midnight
+visual styling and the archived original are unchanged. The index is
+**absent**, not merely collapsed, and must not be reintroduced as a third
+parallel navigation method. See
+`apps/clinical-web/docs/14H154-geography-remove-region-index.md`.
+No aggregate regional activity data is fabricated or claimed. Production
+acceptance requires verifying the independently hosted public domain.
