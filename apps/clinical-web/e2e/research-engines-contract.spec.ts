@@ -332,3 +332,23 @@ for(const persona of ['unassigned','public'] as const){
   await expect(root.getByTestId('nfq-dataset-export-json')).toHaveCount(0);
  });
 }
+
+test('14H170 empty approved-data analysis protocol cannot invent a cohort or model accuracy',async({page})=>{
+ const record=await setup(page,'verified');
+ await page.goto('/#/evidence');
+ const data=page.getByTestId('nfq-approved-dataset');
+ await data.getByTestId('nfq-dataset-toggle').click();
+ await expect(data.getByTestId('nfq-dataset-empty')).toBeVisible();
+ const protocol=data.getByTestId('nfq-analysis-protocol');
+ await expect(protocol.getByTestId('nfq-analysis-toggle')).toHaveAttribute('aria-expanded','false');
+ await protocol.getByTestId('nfq-analysis-toggle').click();
+ await expect(protocol.getByTestId('nfq-analysis-gate')).toContainText('No approved observations');
+ await expect(protocol).toContainText('0 context-eligible values');
+ await expect(protocol).toContainText('0 exact-context cohorts');
+ await expect(protocol.getByTestId('nfq-analysis-export')).toBeEnabled();
+ await protocol.getByTestId('nfq-analysis-therapy').selectOption('ETI');
+ await protocol.getByTestId('nfq-analysis-endpoint').selectOption('sweat-chloride');
+ await expect(protocol.getByTestId('nfq-analysis-gate')).toContainText('No approved observations');
+ await expect(protocol.getByTestId('nfq-analysis-cohorts')).toHaveCount(0);
+ expect(record.datasetCalls).toBe(1); // Filters are local; no new network access.
+});
