@@ -1,6 +1,6 @@
 import {describe,it,expect,vi} from 'vitest';
 import {
- decodeSourceAcquisitionWorklist,sourceMetadataFlags,
+ decodeSourceAcquisitionWorklist,sourceMetadataFlags,sourcePubMedId,
  summarizeSourceAcquisition,sourceAcquisitionCsv,validTriageChange,
  createSourceAcquisitionService,type SourceAcquisitionRecord
 } from './sourceAcquisitionWorklist';
@@ -56,6 +56,12 @@ describe('14H168 source acquisition and evidence triage',()=>{
   expect(()=>decodeSourceAcquisitionWorklist(envelope([{...a,state:'source-located'}]))).toThrow();
   expect(()=>decodeSourceAcquisitionWorklist(envelope([{...a,claimApproved:-1}]))).toThrow();
   expect(()=>decodeSourceAcquisitionWorklist(envelope([{...a,updatedAt:'2026-11-16T00:00:00Z'}]))).toThrow();
+ });
+ it('uses the recorded official PubMed URL only as a candidate metadata identifier',()=>{
+  expect(sourcePubMedId(a)).toBe('12345678');
+  expect(sourcePubMedId({...a,pmid:'other'})).toBe('12345678');
+  expect(sourcePubMedId({...a,url:'https://doi.org/10.1016/test'})).toBeNull();
+  expect(sourcePubMedId({...a,url:'https://pubmed.ncbi.nlm.nih.gov/12345678/more'})).toBeNull();
  });
  it('enforces an actual changed status with rationale before mutation',()=>{
   expect(validTriageChange(71,0,'metadata-needs-check','Identifier incomplete in the local catalogue.')).toBe(true);
