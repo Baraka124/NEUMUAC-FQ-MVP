@@ -68,6 +68,8 @@ describe('14H160 original-source gnomAD scientific boundary',()=>{
    {...source,reference_genome:'GRCh37'},
    {...source,genome:{ac:10,an:5,af:0.5}},
    {...source,genome:{ac:2,an:1000,af:0.9}},
+   {...source,genome:{ac:1,an:10,af:0.12}},
+   {...source,genome:{ac:0,an:0,af:0.1}},
    {...source,genome:{ac:2,an:1000,populations:[{id:'nfe',ac:4,an:3}]}},
    {...source,genome:{ac:2,an:1000,populations:[{id:'nfe',ac:1,an:300},{id:'nfe',ac:1,an:300}]}},
    {...source,genome:{ac:2,an:1000,populations:[{id:'bad script',ac:1,an:300}]}}
