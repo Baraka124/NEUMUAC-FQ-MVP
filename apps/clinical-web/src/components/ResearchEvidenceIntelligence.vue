@@ -3,6 +3,7 @@ import {computed,ref,watch,onUnmounted} from 'vue';
 import {RouterLink} from 'vue-router';
 import {THERAPIES,type CoreModulatorId,type RecordedResponse} from '../domain/therapyRegistry';
 import {buildMultiTherapyResearchReport,type MultiTherapyResearchReport,type ResearchAssessmentState} from '../domain/multiTherapyResearch';
+import {researchEngineWorksheet} from '../domain/researchEngineExport';
 import {createResearchSourceSnapshotReader} from '../services/researchSourceSnapshot';
 import {createVariantTherapySource} from '../services/variantTherapySource';
 import {createLiveEvidenceSource} from '../services/liveEvidence';
@@ -15,6 +16,7 @@ const open=ref(false);
 const report=ref<MultiTherapyResearchReport|null>(null);
 const state=ref<'closed'|'checking'|'restricted'|'loading'|'ready'|'unavailable'>('closed');
 const focusTherapy=ref<CoreModulatorId|null>(null);
+const exportNotice=ref('');
 const config=readConfigFromEnvironment();
 const signedIn=computed(()=>authController?.state.phase==='signed-in');
 const verified=computed(()=>signedIn.value&&researcherRole.phase==='verified'&&
@@ -34,12 +36,25 @@ const stateLabel=(s:ResearchAssessmentState):string=>({
  'insufficient-evidence':'No verified evidence'
 })[s];
 function close():void{open.value=false;focusTherapy.value=null;}
+function exportResearchWorksheet():void{
+ if(state.value!=='ready'||!report.value)return;
+ try{
+  const markdown=researchEngineWorksheet(report.value,props.variantName);
+  const url=URL.createObjectURL(new Blob([markdown],{type:'text/markdown;charset=utf-8'}));
+  try{
+   const a=document.createElement('a');a.href=url;
+   a.download='neumuacFQ-research-evidence-'+report.value.variantId+'.md';
+   document.body.appendChild(a);a.click();a.remove();
+   exportNotice.value='Research worksheet requested. Source observations remain unverified unless independently reviewed.';
+  }finally{window.setTimeout(()=>URL.revokeObjectURL(url),5000);}
+ }catch{exportNotice.value='The research worksheet could not be prepared.';}
+}
 let request:AbortController|null=null;
 watch([
  open,()=>props.variantId,()=>authController?.state.phase,
  ()=>authController?.state.userId,()=>researcherRole.phase
 ],()=>{
- request?.abort();request=null;report.value=null;focusTherapy.value=null;
+ request?.abort();request=null;report.value=null;focusTherapy.value=null;exportNotice.value='';
  if(!open.value){state.value='closed';return;}
  if(loadingRole.value){state.value='checking';return;}
  if(!verified.value){state.value='restricted';return;}
@@ -102,6 +117,8 @@ onUnmounted(()=>request?.abort());
      <span><strong>{{count(report.independentlyReviewedClaims)}}</strong> independently reviewed study families</span>
      <span v-if="report.unresolvedStudyConflicts"><strong>{{report.unresolvedStudyConflicts}}</strong> source review flags</span>
     </div>
+    <div class="nfq-research-engines-export"><button type="button" data-testid="nfq-research-export"
+      @click="exportResearchWorksheet">Export research worksheet</button><span v-if="exportNotice" role="status">{{exportNotice}}</span></div>
     <p class="nfq-research-engines-guide">
      Recorded response is separate from a reviewed experimental finding. A linked reference alone is not a verified therapeutic claim.
     </p>
@@ -206,4 +223,9 @@ onUnmounted(()=>request?.abort());
  .nfq-research-engines-detail dl>div{display:grid;gap:1px}
  .nfq-research-engines-detail dd{text-align:left}
 }
+.nfq-research-engines-export{display:flex;gap:6px 12px;flex-wrap:wrap;align-items:center;margin:2px 0 9px}
+.nfq-research-engines-export button{border:0;border-bottom:1px solid currentColor;background:transparent;color:#2867a5;padding:2px 0;cursor:pointer;font:inherit;font-size:11px;font-weight:600}
+.nfq-research-engines-export button:focus-visible{outline:2px solid #2877dc;outline-offset:2px}
+.nfq-research-engines-export span{font-size:10.7px;color:var(--text-muted,#647991)}
+:global(.app-frame[data-nfq-theme="midnight"]) .nfq-research-engines-export button{color:#b3d5ff}
 </style>
