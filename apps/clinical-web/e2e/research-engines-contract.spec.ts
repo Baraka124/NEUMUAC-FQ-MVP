@@ -179,6 +179,7 @@ test('14H166 source submission UI requires exact bibliographic citation and rati
  await form.getByPlaceholder('State the measured endpoint, experimental conditions, and why this finding is applicable.')
   .fill('Experimental endpoint measured under the documented conditions; separate independent reviewers must verify the claim.');
  await expect(form.getByTestId('nfq-source-claim-submit')).toBeEnabled();
+ await form.getByTestId('nfq-endpoint-intake').getByText('Experimental endpoint').click();
  await form.getByTestId('nfq-endpoint-code').selectOption('sweat-chloride');
  await form.getByTestId('nfq-endpoint-value').fill('-22.4');
  await form.getByTestId('nfq-endpoint-unit').selectOption('mmol/L');
