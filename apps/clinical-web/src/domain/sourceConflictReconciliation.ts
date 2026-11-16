@@ -1,4 +1,7 @@
 import type {CoreModulatorId} from './therapyRegistry';
+import {
+ validResearchEndpoint,endpointComparisonKey,type ResearchEndpoint
+} from './researchEndpointNormalization';
 
 /** Source-reviewed observations are NOT constructed from historical variant flags,
  * bibliographic links, generic source quality numbers or class-wide associations.
@@ -20,6 +23,7 @@ export interface DoubleReviewedSourceClaim{
  readonly locator:string;
  readonly reviewedBy:readonly [string,string];
  readonly reviewedAt:string;
+ readonly endpoint?:ResearchEndpoint|null;
 }
 export type ResearchConflictKind=
  'opposing-reviewed-studies'|'within-study-disagreement'|
@@ -43,6 +47,18 @@ export interface ReconciledResearchEvidence{
  readonly conflicts:readonly ResearchEvidenceConflict[];
  readonly citedReferenceIds:readonly number[];
  readonly excludedClaimIds:readonly string[];
+ readonly numericEndpointRows:number;
+ readonly endpointGroups:readonly {
+  readonly contextKey:string;
+  readonly observationCount:number;
+  readonly independentStudyFamilies:number;
+  readonly values:readonly number[];
+  readonly code:string;
+  readonly unit:string;
+  readonly statistic:string;
+  readonly model:string;
+ }[];
+ readonly incomparableEndpointRows:number;
 }
 
 const ID=/^[1-9]\d{0,17}$/;
@@ -60,7 +76,8 @@ function safeClaim(claim:DoubleReviewedSourceClaim,variantId:string,allowedRefer
   !claim.id||claim.id.length>120||!claim.studyFamilyId||claim.studyFamilyId.length>120||
   !claim.locator.trim()||claim.locator.length>240||!Array.isArray(claim.reviewedBy)||
   claim.reviewedBy.length!==2||!claim.reviewedBy[0]?.trim()||!claim.reviewedBy[1]?.trim()||
-  claim.reviewedBy[0]===claim.reviewedBy[1]||!Number.isFinite(Date.parse(claim.reviewedAt)))return false;
+  claim.reviewedBy[0]===claim.reviewedBy[1]||!Number.isFinite(Date.parse(claim.reviewedAt))||
+  (claim.endpoint!==undefined&&claim.endpoint!==null&&!validResearchEndpoint(claim.endpoint)))return false;
  if(claim.scope==='genotype-specific'){
   return Array.isArray(claim.genotypePair)&&claim.genotypePair.length===2&&
    claim.genotypePair.every(x=>ID.test(x))&&claim.genotypePair.includes(variantId);
@@ -132,7 +149,31 @@ export function reconcileReviewedSourceClaims(
  }
  const directionState:ResearchClaimDirection=flags.some(f=>f.kind==='opposing-reviewed-studies'||f.kind==='within-study-disagreement')?
   'mixed':positive&&negative?'mixed':positive?'response':negative?'no-response':'unavailable';
+ // An endpoint is a source-reported observation, not an effect estimate.
+ // Comparability is deliberately strict: never average or convert different
+ // study models, comparators, outcomes, timepoints or reporting statistics.
+ const numeric=verified.filter(c=>c.endpoint&&validResearchEndpoint(c.endpoint)&&c.endpoint.value!==null);
+ const groups=new Map<string,DoubleReviewedSourceClaim[]>();
+ let incomparable=0;
+ for(const claim of numeric){
+  const key=endpointComparisonKey(claim.endpoint!,claim.scope,claim.genotypePair,claim.method);
+  if(!key){incomparable++;continue;}
+  groups.set(key,[...(groups.get(key)??[]),claim]);
+ }
+ const endpointGroups=[...groups].map(([contextKey,records])=>Object.freeze({
+  contextKey,
+  observationCount:records.length,
+  independentStudyFamilies:new Set(records.map(r=>r.studyFamilyId)).size,
+  values:Object.freeze(records.map(r=>r.endpoint!.value!)),
+  code:records[0]!.endpoint!.code,
+  unit:records[0]!.endpoint!.unit,
+  statistic:records[0]!.endpoint!.statistic,
+  model:records[0]!.endpoint!.model
+ }));
  return Object.freeze({
+  numericEndpointRows:numeric.length,
+  endpointGroups:Object.freeze(endpointGroups),
+  incomparableEndpointRows:incomparable,
   direction:directionState,verifiedStudyFamilies:families.size,
   positiveFamilies:positive,negativeFamilies:negative,
   pendingObservations:excluded.length,
