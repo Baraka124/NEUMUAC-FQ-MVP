@@ -65,7 +65,7 @@ export interface StudyFamilyAnalysisProtocol{
  readonly labelledStudyFamilies:number;
  readonly cohorts:readonly AnalysisCohort[];
  readonly internalSplitCandidateCohorts:number;
- readonly gate:'no-approved-source-data'|'no-eligible-numeric-outcomes'|
+ readonly gate:'no-approved-source-data'|'no-selected-records'|'no-eligible-numeric-outcomes'|
   'descriptive-research-only'|'internal-split-plan-only';
  readonly caveats:readonly string[];
 }
@@ -184,8 +184,9 @@ export function buildStudyFamilyAnalysisProtocol(
  const eligible=[...planned].reduce((n,c)=>n+c.observationCount,0);
  if(eligible+excluded.length!==selected.length)
   throw new Error('The research protocol has dropped source observations');
- const gate:StudyFamilyAnalysisProtocol['gate']=selected.length===0?
-  'no-approved-source-data':eligible===0?'no-eligible-numeric-outcomes':
+ const gate:StudyFamilyAnalysisProtocol['gate']=snapshot.total===0?
+  'no-approved-source-data':selected.length===0?'no-selected-records':
+  eligible===0?'no-eligible-numeric-outcomes':
   splitCandidate>0?'internal-split-plan-only':'descriptive-research-only';
  return Object.freeze({
   protocol:ANALYSIS_PROTOCOL_ID,protocolVersion:1,
