@@ -56,6 +56,40 @@ async function setup(page:Page,signedIn=false){
  return methods;
 }
 
+test('14H157 globe opens source-specific, no-data geography context without leaving dossier',async({page})=>{
+ const methods=await setup(page);
+ for(const width of [320,390,1366]){
+  await page.setViewportSize({width,height:844});
+  await page.goto('/#/variants/18');
+  await expect(page.getByRole('heading',{name:'R117H'})).toBeVisible();
+  const globe=page.getByTestId('variant-geography-trigger');
+  await expect(globe).toBeVisible();
+  await expect(globe).toHaveAttribute('aria-label','Geographic context for R117H');
+  await globe.click();
+  const context=page.getByTestId('variant-geography-popover');
+  await expect(context).toBeVisible();
+  await expect(context.getByTestId('variant-geography-identity')).toHaveText('R117H');
+  await expect(context.getByTestId('variant-geography-empty')).toContainText('No verified geographic information');
+  await expect(context).toContainText('administrative boundaries');
+  await expect(page).toHaveURL(/#\/variants\/18/);
+  const geometry=await context.evaluate(el=>({left:el.getBoundingClientRect().left,right:el.getBoundingClientRect().right,width:el.getBoundingClientRect().width}));
+  expect(geometry.left).toBeGreaterThanOrEqual(0);
+  expect(geometry.right).toBeLessThanOrEqual(width);
+  await globe.press('Escape');
+  await expect(context).toHaveCount(0);
+  await expect(globe).toBeFocused();
+  await globe.click();
+  const atlas=context.getByTestId('variant-geography-open-atlas');
+  await expect(atlas).toHaveAttribute('href',/#\/geography\?variant=18$/);
+  await atlas.click();
+  await expect(page).toHaveURL(/#\/geography\?variant=18$/);
+  await expect(page.getByRole('heading',{name:'Geographic atlas'})).toBeVisible();
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+ expect(methods.length).toBeGreaterThan(0);
+ expect(methods.every(method=>method==='GET')).toBe(true);
+});
+
 test('14H152 saved worklist independently exports current source metadata and preserves link export',async({page})=>{
  const methods=await setup(page);
  await page.setViewportSize({width:390,height:844});
