@@ -105,7 +105,7 @@ test('14H161 filters never cover variant search, batch controls or the first res
   await expect(panel).toHaveCount(0);
   const result=await search.boundingBox();
   expect(result).not.toBeNull();
-  expect(Math.abs(result!.top-initial!.top)).toBeLessThanOrEqual(2);
+  expect(Math.abs(result!.y-initial!.y)).toBeLessThanOrEqual(2);
   await noHorizontalOverflow(page);
  }
 });
