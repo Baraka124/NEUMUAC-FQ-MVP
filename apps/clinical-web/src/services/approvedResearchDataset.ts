@@ -240,8 +240,12 @@ export function assessApprovedDataset(snapshot:ApprovedDatasetSnapshot):Approved
  });
 }
 function csvCell(value:string|number|null):string{
- const text=value===null?'':String(value);
- const safe=/^[=+@\-\t\r\n]/.test(text)?"'"+text:text;
+ if(value===null)return '';
+ if(typeof value==='number'){
+  if(!Number.isFinite(value))throw new Error('Cannot export a nonfinite numerical observation');
+  return String(value); // Negative measured values must remain numeric, not spreadsheet text.
+ }
+ const safe=/^[=+@\-\t\r\n]/.test(value)?"'"+value:value;
  return '"'+safe.replace(/"/g,'""')+'"';
 }
 /** CSV contains source-approved rows only. Missing measurements stay blank;
