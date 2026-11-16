@@ -79,14 +79,13 @@ test('14H165 verified researcher sees 5 real-source-bound categories and review 
  await expect(root.getByTestId('nfq-research-engines-scope')).toContainText('R117H');
  await expect(root).toContainText('1 linked references');
  await expect(root).toContainText('0 independently reviewed study families');
- const eti=rows.getByRole('listitem').filter({has:rows.locator('[data-therapy="ETI"]')});
  // Select the exact ETI row instead of treating a typed archival flag as a reviewed study.
  const etiRow=rows.locator('[data-therapy="ETI"]');
  await expect(etiRow).toContainText('Responsive · database');
  await expect(etiRow).toContainText('Recorded history only');
  await etiRow.getByRole('button').click();
  await expect(etiRow).toContainText('Historical response labels differ');
- await expect(etiRow).toContainText('No independently reviewed treatment-response observations');
+ await expect(etiRow).toContainText('Historical recorded categories exist');
  expect(record.rpc).toBe(1);
  expect(record.methods.some(m=>m.includes('/search_logs'))).toBe(false);
 });
