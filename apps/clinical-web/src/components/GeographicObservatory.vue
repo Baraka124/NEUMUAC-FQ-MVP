@@ -43,17 +43,17 @@ const shortDate=(value:string)=>new Intl.DateTimeFormat('en-GB',{day:'numeric',m
 
 
 const selected=ref<string|null>(null);
+const selectedActivity=computed(()=>recordedActivity.value.find(item=>item.regionCode===selected.value)||null);
+const detailPanel=ref<HTMLElement|null>(null);
+const mapSvg=ref<SVGSVGElement|null>(null);
+const previewCode=ref<string|null>(null);
+const keyboardRegion=ref(SPAIN_REGIONS[0]?.code??'');
 watch(()=>props.initialRegionCode,code=>{
  const region=canonicalGeographicRegionCode(code);
  selected.value=region;
  if(region)keyboardRegion.value=region;
  previewCode.value=null;
 },{immediate:true});
-const selectedActivity=computed(()=>recordedActivity.value.find(item=>item.regionCode===selected.value)||null);
-const detailPanel=ref<HTMLElement|null>(null);
-const mapSvg=ref<SVGSVGElement|null>(null);
-const previewCode=ref<string|null>(null);
-const keyboardRegion=ref(SPAIN_REGIONS[0]?.code??'');
 const selectedRegion=computed(()=>SPAIN_REGIONS.find(region=>region.code===selected.value)||null);
 const alphabeticalRegions=[...SPAIN_REGIONS].sort((a,b)=>a.name.localeCompare(b.name,'es'));
 const previewRegion=computed(()=>SPAIN_REGIONS.find(region=>region.code===previewCode.value)||null);
