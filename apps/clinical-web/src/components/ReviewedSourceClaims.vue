@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import {computed,ref,watch} from 'vue';
+import {
+ ENDPOINTS,ENDPOINT_STATISTICS,ENDPOINT_MODELS,ENDPOINT_COMPARATORS,
+ UNEXTRACTED_ENDPOINT,endpointDisplayValue,endpointReadiness,type ResearchEndpoint,
+ type EndpointCode,type EndpointStatistic,type EndpointUnit,type EndpointModel,type EndpointComparator
+} from '../domain/researchEndpointNormalization';
 import {THERAPIES,type CoreModulatorId} from '../domain/therapyRegistry';
 import {researcherRole} from '../services/researchRole';
 import {authSessionProvider} from '../services/authSession';
@@ -32,6 +37,30 @@ const formFinding=ref<ResearchObservationFinding>('inconclusive');
 const formFamily=ref('');
 const formLocator=ref('');
 const formRationale=ref('');
+const endpointCode=ref<EndpointCode>('not-reported');
+const endpointStatistic=ref<EndpointStatistic>('not-reported');
+const endpointUnit=ref<EndpointUnit>('not-reported');
+const endpointValue=ref('');
+const endpointModel=ref<EndpointModel>('not-reported');
+const endpointComparator=ref<EndpointComparator>('not-reported');
+const endpointTimepoint=ref('not-reported');
+const endpointNumber=computed(()=>endpointValue.value.trim()===''?null:Number(endpointValue.value));
+const endpoint=computed<ResearchEndpoint>(()=>({
+ code:endpointCode.value,
+ statistic:endpointStatistic.value,
+ unit:endpointUnit.value,
+ value:endpointNumber.value,
+ model:endpointModel.value,
+ comparator:endpointComparator.value,
+ timepoint:endpointTimepoint.value
+}));
+const endpointUnits:readonly EndpointUnit[]=['mmol/L','pp','%','uA/cm2','ratio','study-specific','not-reported'];
+function resetEndpoint():void{
+ endpointCode.value='not-reported';endpointStatistic.value='not-reported';
+ endpointUnit.value='not-reported';endpointValue.value='';
+ endpointModel.value='not-reported';endpointComparator.value='not-reported';
+ endpointTimepoint.value='not-reported';
+}
 const revisionOf=ref<CuratedSourceClaim|null>(null);
 const confirmedReview=ref<string|null>(null);
 const reviewNotes=ref<Record<string,string>>({});
@@ -58,7 +87,8 @@ const formData=computed<CuratedClaimPayload>(()=>({
  genotypePair:formScope.value==='genotype-specific'?
  [props.variantId,genotypeOther.value] as const:null,
  method:formMethod.value,finding:formFinding.value,
- studyFamilyId:formFamily.value,locator:formLocator.value,rationale:formRationale.value
+ studyFamilyId:formFamily.value,locator:formLocator.value,rationale:formRationale.value,
+ endpoint:endpoint.value
 }));
 const canSubmit=computed(()=>!busy.value&&canContribute.value&&Boolean(service)&&
  validSourceClaimPayload(props.variantId,formData.value,referenceIds.value));
@@ -67,7 +97,7 @@ function resetForm():void{
  revisionOf.value=null;formTherapy.value='ETI';formReference.value='';
  formScope.value='single-variant';genotypeOther.value='';
  formMethod.value='in-vitro-study';formFinding.value='inconclusive';
- formFamily.value='';formLocator.value='';formRationale.value='';
+ formFamily.value='';formLocator.value='';formRationale.value='';resetEndpoint();
 }
 function startRevision(entry:CuratedSourceClaim):void{
  resetForm();revisionOf.value=entry;
@@ -76,7 +106,13 @@ function startRevision(entry:CuratedSourceClaim):void{
  (entry.genotypePair[0]===props.variantId?entry.genotypePair[1]:entry.genotypePair[0]):'';
  formMethod.value=entry.method;formFinding.value=entry.finding;
  formFamily.value=entry.studyFamilyId;formLocator.value=entry.locator;
- formRationale.value=entry.rationale;formOpen.value=true;notice.value='';
+ formRationale.value=entry.rationale;
+ const observation=entry.endpoint??UNEXTRACTED_ENDPOINT;
+ endpointCode.value=observation.code;endpointStatistic.value=observation.statistic;
+ endpointUnit.value=observation.unit;endpointValue.value=observation.value===null?'':String(observation.value);
+ endpointModel.value=observation.model;endpointComparator.value=observation.comparator;
+ endpointTimepoint.value=observation.timepoint;
+ formOpen.value=true;notice.value='';
 }
 async function submit():Promise<void>{
  if(!service||!canSubmit.value)return;
@@ -125,6 +161,11 @@ watch(()=>props.variantId,()=>{
  resetForm();formOpen.value=false;confirmedReview.value=null;
  reviewNotes.value={};notice.value='';busy.value=false;
 });
+function resetEndpointSelection():void{
+ endpointStatistic.value='not-reported';endpointUnit.value='not-reported';
+ endpointValue.value='';endpointModel.value='not-reported';
+ endpointComparator.value='not-reported';endpointTimepoint.value='not-reported';
+}
 const shortId=(value:string)=>value.slice(0,8);
 </script>
 
@@ -197,6 +238,49 @@ const shortId=(value:string)=>value.slice(0,8);
     <a :href="selectedReference.url" target="_blank" rel="noopener noreferrer">
      Inspect original: {{selectedReference.title}}</a>
    </p>
+   <details class="nfq-endpoint-intake" data-testid="nfq-endpoint-intake">
+    <summary>Experimental endpoint <span>{{endpointCode==='not-reported'?'Not extracted':endpointCode}}</span></summary>
+    <p>Enter only source-reported measurements. An unextracted endpoint is valid and does not create an assumed value.</p>
+    <div class="nfq-reviewed-grid">
+     <label>Measured outcome
+      <select v-model="endpointCode" :disabled="busy" data-testid="nfq-endpoint-code"
+       @change="resetEndpointSelection">
+       <option v-for="e in ENDPOINTS" :key="e.code" :value="e.code">{{e.label}}</option>
+      </select>
+     </label>
+     <template v-if="endpointCode!=='not-reported'">
+      <label>Reporting statistic
+       <select v-model="endpointStatistic" :disabled="busy">
+        <option v-for="e in ENDPOINT_STATISTICS" :key="e.code" :value="e.code">{{e.label}}</option>
+       </select>
+      </label>
+      <label>Source-reported value (optional)
+       <input v-model.trim="endpointValue" inputmode="decimal" type="number" step="any"
+        placeholder="Leave empty when not reported" :disabled="busy" data-testid="nfq-endpoint-value"/>
+      </label>
+      <label>Reported unit
+       <select v-model="endpointUnit" :disabled="busy" data-testid="nfq-endpoint-unit">
+        <option v-for="unit in endpointUnits" :key="unit" :value="unit">{{unit}}</option>
+       </select>
+      </label>
+      <label>Biological or clinical model
+       <select v-model="endpointModel" :disabled="busy">
+        <option v-for="model in ENDPOINT_MODELS" :key="model.code" :value="model.code">{{model.label}}</option>
+       </select>
+      </label>
+      <label>Source comparator
+       <select v-model="endpointComparator" :disabled="busy">
+        <option v-for="item in ENDPOINT_COMPARATORS" :key="item.code" :value="item.code">{{item.label}}</option>
+       </select>
+      </label>
+      <label>Source timepoint
+       <input v-model.trim="endpointTimepoint" maxlength="80" :disabled="busy"
+        placeholder="e.g. Day 28, 24 h, not-reported" data-testid="nfq-endpoint-timepoint"/>
+      </label>
+     </template>
+    </div>
+    <p class="nfq-review-reference">No statistical pooling or conversion between assays is performed.</p>
+   </details>
    <label>Scientific rationale and endpoint context
     <textarea v-model.trim="formRationale" maxlength="900" minlength="20" rows="3"
      placeholder="State the measured endpoint, experimental conditions, and why this finding is applicable."
@@ -225,6 +309,13 @@ const shortId=(value:string)=>value.slice(0,8);
       entry.status==='pending'?'Pending · '+entry.reviewCount+'/2':entry.status}}</span>
     </div>
     <p class="nfq-reviewed-attribution">Study family {{entry.studyFamilyId}} · {{entry.locator}} · revision {{entry.revision}}</p>
+    <p class="nfq-reviewed-attribution" data-testid="nfq-claim-endpoint">
+     Endpoint: {{entry.endpoint?ENDPOINTS.find(x=>x.code===entry.endpoint!.code)?.label:'Legacy claim · not recorded'}}
+     · {{entry.endpoint?endpointDisplayValue(entry.endpoint):'No measurement attached'}}
+     <template v-if="entry.endpoint&&endpointReadiness(entry.endpoint)==='numeric'">
+      · {{entry.endpoint.model}} · {{entry.endpoint.comparator}} · {{entry.endpoint.timepoint}}
+     </template>
+    </p>
     <p class="nfq-reviewed-rationale">{{entry.rationale}}</p>
     <details class="nfq-review-audit">
      <summary>Recorded review history · {{entry.audit.length}} events</summary>
@@ -291,4 +382,9 @@ const shortId=(value:string)=>value.slice(0,8);
 :global(.app-frame[data-nfq-theme="midnight"]) .nfq-reviewed-intake select,
 :global(.app-frame[data-nfq-theme="midnight"]) .nfq-reviewed-intake textarea{background:#12243a;color:#e1edff;border-color:#415c7d}
 @media(max-width:650px){.nfq-reviewed-grid{grid-template-columns:minmax(0,1fr)}.nfq-reviewed-intake-head{flex-wrap:wrap}.nfq-reviewed-record-head{flex-wrap:wrap}}
+.nfq-endpoint-intake{margin:0;border:0;padding:2px 0 0;min-width:0}
+.nfq-endpoint-intake summary{display:flex;justify-content:space-between;align-items:center;gap:12px;cursor:pointer;
+ font-weight:650;font-size:12px;padding:8px 0;border-top:1px solid var(--border,#e1e8f0)}
+.nfq-endpoint-intake summary span{font-weight:450;color:var(--text-muted,#657d95);font-size:11px}
+.nfq-endpoint-intake>p{font-size:11px;line-height:1.5;color:var(--text-muted,#657d95);margin:7px 0 10px}
 </style>
