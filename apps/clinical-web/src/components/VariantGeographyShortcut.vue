@@ -68,7 +68,7 @@ onUnmounted(()=>{
 <template>
  <div ref="root" class="nfq-geo-shortcut" data-testid="variant-geography-shortcut" @keydown.esc.stop.prevent="close(true)">
   <button ref="trigger" type="button" class="nfq-geo-shortcut-trigger" :aria-expanded="open"
-   :aria-controls="panelId" :aria-label="'Geographic research context for '+variantName"
+   :aria-controls="panelId" :aria-label="'Geographic context for '+variantName"
    :disabled="!canonicalId" data-testid="variant-geography-trigger"
    title="Geographic research context" @click="toggle">
    <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -76,7 +76,7 @@ onUnmounted(()=>{
    </svg>
   </button>
   <section v-if="open&&canonicalId" :id="panelId" class="nfq-geo-shortcut-panel"
-   :aria-label="'Geographic research context for '+variantName" data-testid="variant-geography-popover">
+   :aria-label="'Geographic context for '+variantName" data-testid="variant-geography-popover">
    <header class="nfq-geo-shortcut-head">
     <div class="nfq-geo-shortcut-identity">
      <strong>Geographic research</strong>
@@ -107,6 +107,7 @@ onUnmounted(()=>{
      </ul>
     </template>
     <p class="nfq-geo-shortcut-boundary" data-testid="variant-geography-empty">{{emptyState}}</p>
+    <p class="nfq-geo-shortcut-help">The atlas shows boundaries and, for verified researchers, historical aggregated search activity. It does not show patients or variant prevalence.</p>
     <details class="nfq-geo-shortcut-provenance">
      <summary>Source and limits</summary>
      <p>Historical matched research searches estimated from coarse IP regions; may include tests. Regions are shown only with at least 20 events and 10 distinct sessions. They are not patient locations, carrier prevalence, clinical demand or institutional activity.</p>
