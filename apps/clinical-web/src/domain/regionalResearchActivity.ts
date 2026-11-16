@@ -1,5 +1,5 @@
 import {
- validateReadOnlyConfig,VariantConnectionError,
+ validateReadOnlyConfig,
  type ReadOnlyConfig,type ReadSessionProvider
 } from '../services/liveVariants';
 import {canonicalGeographyVariantId} from './variantGeographyContext';
