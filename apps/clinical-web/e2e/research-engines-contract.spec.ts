@@ -22,7 +22,8 @@ const bib=[{id:71,variant_id:18,title:'Documented research source',
  type:null,category:null,journal:null,year:2024,pmid:'12345678',
  doi:null,quality_score:9,source_weight:1,citation_count:10}];
 
-async function setup(page:Page,role:'verified'|'unassigned'|'public'='verified',invalidSnapshot=false){
+async function setup(page:Page,role:'verified'|'unassigned'|'public'='verified',
+ invalidSnapshot=false,claimRecords:readonly unknown[]=[]){
  let rpc=0;const methods:string[]=[];
  if(role!=='public'){
   const user={id:ID,email:'reviewer@example.org',aud:'authenticated',role:'authenticated',
@@ -57,7 +58,7 @@ async function setup(page:Page,role:'verified'|'unassigned'|'public'='verified',
      body:JSON.stringify({message:'Research role required'})});
    }else{
     await route.fulfill({status:200,headers:cors,contentType:'application/json',
-     body:JSON.stringify({variantId:'18',source:'nfq-double-independent-review-v1',claims:[]})});
+     body:JSON.stringify({variantId:'18',source:'nfq-double-independent-review-v1',claims:claimRecords})});
    }
    return;
   }
@@ -127,4 +128,51 @@ test('14H165 mismatched source response fails closed, not as an empty verified s
  );
  await expect(page.getByTestId('nfq-research-engines-therapies')).toHaveCount(0);
  expect(record.rpc).toBe(1);
+});
+
+test('14H166 verified double-review source enters actual five-therapy conflict assessment',async({page})=>{
+ const claims=[{
+  id:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+  seriesId:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+  revision:1,parentClaimId:null,variantId:'18',referenceId:71,therapy:'ETI',
+  scope:'single-variant',genotypePair:null,method:'in-vitro-study',
+  finding:'reported-no-response',studyFamilyId:'PMID-12345678',
+  locator:'Results · Table 2',rationale:'The recorded in-vitro study endpoint is explicitly documented.',
+  status:'approved',submittedAt:'2026-09-01T10:00:00Z',submittedByMe:false,
+  reviewCount:2,canReview:false,reviewedAt:'2026-09-03T10:00:00Z',
+  reviewSeals:[
+   'attestation:cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+   'attestation:dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+  ],audit:[{action:'approved',at:'2026-09-03T10:00:00Z'}]
+ }];
+ const record=await setup(page,'verified',false,claims);
+ await page.goto('/#/variants/18');
+ await expect(page.locator('#selected-title')).toHaveText('R117H');
+ await page.getByTestId('nfq-research-engines-toggle').click();
+ const root=page.getByTestId('nfq-research-engines');
+ await expect(root).toContainText('1 independently reviewed study families');
+ await expect(root.locator('[data-therapy="ETI"]')).toContainText('Source disagreement');
+ await expect(root.getByTestId('nfq-reviewed-claims')).toContainText('1 active approved');
+ await root.locator('[data-therapy="ETI"]').getByRole('button').click();
+ await expect(root.locator('[data-therapy="ETI"]')).toContainText('Recorded legacy response category and independently reviewed reports differ');
+ expect(record.rpc).toBe(1);
+});
+
+test('14H166 source submission UI requires exact bibliographic citation and rationale',async({page})=>{
+ const record=await setup(page);
+ await page.goto('/#/variants/18');
+ await expect(page.locator('#selected-title')).toHaveText('R117H');
+ await page.getByTestId('nfq-research-engines-toggle').click();
+ const root=page.getByTestId('nfq-reviewed-claims');
+ await expect(root).toContainText('No source claims have been submitted');
+ await root.getByTestId('nfq-source-claim-new').click();
+ const form=root.getByTestId('nfq-source-claim-form');
+ await expect(form.getByTestId('nfq-source-claim-submit')).toBeDisabled();
+ await form.getByTestId('nfq-source-claim-reference').selectOption('71');
+ await form.getByPlaceholder('PMID-12345678 or trial accession').fill('PMID-12345678');
+ await form.getByPlaceholder('Original paper · Table 2 · outcome').fill('Results · Table 2');
+ await form.getByPlaceholder('State the measured endpoint, experimental conditions, and why this finding is applicable.')
+  .fill('Experimental endpoint measured under the documented conditions; separate independent reviewers must verify the claim.');
+ await expect(form.getByTestId('nfq-source-claim-submit')).toBeEnabled();
+ expect(record.methods.filter(x=>x.includes('/rpc/nfq_reviewed_source_claims')).length).toBe(1);
 });
