@@ -1,12 +1,23 @@
 <script setup lang="ts">
 import {computed,onUnmounted,ref,watch} from 'vue';
-import {useRoute} from 'vue-router';
+import {useRoute,useRouter} from 'vue-router';
 import GeographicObservatory from '../components/GeographicObservatory.vue';
 import {canonicalGeographyVariantId,geographyVariantEmptyState} from '../domain/variantGeographyContext';
+import {canonicalGeographicRegionCode} from '../domain/geographicResearchProvenance';
 import {authSessionProvider} from '../services/authSession';
 import {createReadOnlyRepository,readConfigFromEnvironment,variantDisplayName,type RealVariantSource} from '../services/liveVariants';
 
 const route=useRoute();
+const router=useRouter();
+const regionCode=computed(()=>canonicalGeographicRegionCode(route.query.region));
+function onRegionSelected(code:string|null):void{
+ const selected=canonicalGeographicRegionCode(code);
+ if(selected===regionCode.value)return;
+ const query={...route.query};
+ if(selected)query.region=selected;
+ else delete query.region;
+ void router.replace({path:route.path,query});
+}
 const variantId=computed(()=>canonicalGeographyVariantId(route.query.variant));
 const variantName=ref('');
 const emptyState=computed(()=>geographyVariantEmptyState(variantId.value));
@@ -47,7 +58,7 @@ onUnmounted(()=>pending?.abort());
     <RouterLink :to="'/variants/'+variantId" data-testid="geo-variant-return">Return to variant</RouterLink>
    </div>
   </header>
-  <GeographicObservatory :variant-id="variantId"/>
+  <GeographicObservatory :variant-id="variantId" :initial-region-code="regionCode" @region-selected="onRegionSelected"/>
  </div>
 </template>
 <style scoped>

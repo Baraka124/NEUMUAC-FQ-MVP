@@ -2,6 +2,7 @@
 import {ref,computed,onMounted,onUnmounted,watch,useId} from 'vue';
 import {canonicalGeographyVariantId,geographyVariantEmptyState} from '../domain/variantGeographyContext';
 import {variantActivityGate} from '../domain/variantGeographicPanel';
+import {GEOGRAPHIC_RESEARCH_PROVENANCE,displayedGeographicObservationWindow,observedWindowLabel,linkedRegionalAtlasQuery} from '../domain/geographicResearchProvenance';
 import {getRegionalResearchActivity,type RegionalResearchActivity} from '../domain/regionalResearchActivity';
 import {SPAIN_REGIONS} from '../domain/spainRegionalBoundaries';
 import {authController,authSessionProvider} from '../services/authSession';
@@ -16,6 +17,8 @@ const panelId=useId();
 const canonicalId=computed(()=>canonicalGeographyVariantId(props.variantId));
 const emptyState=computed(()=>geographyVariantEmptyState(props.variantId));
 const activityRows=ref<readonly RegionalResearchActivity[]>([]);
+const provenance=GEOGRAPHIC_RESEARCH_PROVENANCE;
+const observedRange=computed(()=>observedWindowLabel(displayedGeographicObservationWindow(activityRows.value)));
 const activityState=ref<'closed'|'checking'|'restricted'|'available'|'empty'|'unavailable'>('closed');
 let currentRequest:AbortController|null=null;
 
@@ -98,9 +101,13 @@ onUnmounted(()=>{
     </p>
     <template v-else-if="activityState==='available'">
      <p class="nfq-geo-shortcut-summary" role="status">{{activityRows.length}} {{activityRows.length===1?'region':'regions'}} with publishable aggregates</p>
+     <p v-if="observedRange" class="nfq-geo-shortcut-observed" data-testid="variant-geography-observed-range">Observed across displayed regions · {{observedRange}}</p>
      <ul class="nfq-geo-shortcut-rows" data-testid="variant-geographic-research-rows">
       <li v-for="region in activityRows" :key="region.regionCode">
-       <strong>{{regionName(region.regionCode)}}</strong>
+       <RouterLink :to="{path:'/geography',query:linkedRegionalAtlasQuery(canonicalId,region.regionCode)!}"
+        class="nfq-geo-shortcut-region-link" data-testid="variant-geography-region-link" :data-region-code="region.regionCode"
+        :aria-label="'Inspect '+regionName(region.regionCode)+' on the map for '+variantName"
+        @click="close()">{{regionName(region.regionCode)}} <span aria-hidden="true">↗</span></RouterLink>
        <span class="nfq-geo-shortcut-count">{{number(region.searchEvents)}} searches · {{number(region.distinctSessions)}} sessions</span>
        <small>{{shortDate(region.firstObservedAt)}} – {{shortDate(region.lastObservedAt)}}</small>
       </li>
@@ -108,9 +115,17 @@ onUnmounted(()=>{
     </template>
     <p class="nfq-geo-shortcut-boundary" data-testid="variant-geography-empty">{{emptyState}}</p>
     <p class="nfq-geo-shortcut-help">The atlas shows boundaries and, for verified researchers, historical aggregated search activity. It does not show patients or variant prevalence.</p>
-    <details class="nfq-geo-shortcut-provenance">
+    <details class="nfq-geo-shortcut-provenance" data-testid="variant-geography-source-details">
      <summary>Source and limits</summary>
-     <p>Historical matched research searches estimated from coarse IP regions; may include tests. Regions are shown only with at least 20 events and 10 distinct sessions. They are not patient locations, carrier prevalence, clinical demand or institutional activity.</p>
+     <dl class="nfq-geo-provenance-facts">
+      <div><dt>Record source</dt><dd>{{provenance.dataset}}</dd></div>
+      <div><dt>Scope</dt><dd>{{provenance.method}}</dd></div>
+      <div><dt>Region attribution</dt><dd>{{provenance.attribution}}</dd></div>
+      <div v-if="observedRange"><dt>Displayed period</dt><dd>{{observedRange}}</dd></div>
+      <div><dt>Publication floor</dt><dd>{{provenance.suppression}}</dd></div>
+      <div><dt>Exclusions</dt><dd>{{provenance.exclusions}}</dd></div>
+     </dl>
+     <p>{{provenance.statement}} These are not patient locations, carrier prevalence, clinical demand or institutional activity.</p>
     </details>
    </div>
    <RouterLink class="nfq-geo-shortcut-link" :to="{path:'/geography',query:{variant:canonicalId}}"
@@ -205,4 +220,19 @@ onUnmounted(()=>{
  .nfq-geo-shortcut-rows{max-height:30dvh}
 }
 @media(max-width:360px){.nfq-geo-shortcut-count{white-space:normal;text-align:right}}
+
+/* 14H164: subdued, auditable provenance and direct map context. */
+.nfq-geo-shortcut-observed{margin:2px 0 8px;color:#7087a2;font-size:10.2px;line-height:1.35}
+.nfq-geo-shortcut-region-link{min-width:0;color:#285f9b;font-size:12px;font-weight:670;text-decoration:none;overflow-wrap:anywhere}
+.nfq-geo-shortcut-region-link:hover{text-decoration:underline;text-underline-offset:3px}
+.nfq-geo-shortcut-region-link:focus-visible,.nfq-geo-shortcut-provenance summary:focus-visible{outline:2px solid #2979ff;outline-offset:2px;border-radius:2px}
+.nfq-geo-provenance-facts{display:grid;gap:5px;margin:8px 0 6px}
+.nfq-geo-provenance-facts>div{display:grid;grid-template-columns:minmax(85px,.47fr) minmax(0,1fr);gap:5px 10px}
+.nfq-geo-provenance-facts dt,.nfq-geo-provenance-facts dd{margin:0;font-size:10.5px;line-height:1.45}
+.nfq-geo-provenance-facts dt{color:#7890a8}
+.nfq-geo-provenance-facts dd{color:#3f648e;overflow-wrap:anywhere}
+:global(.app-frame[data-nfq-theme="midnight"]) .nfq-geo-shortcut-region-link,
+:global(.app-frame[data-nfq-theme="midnight"]) .nfq-geo-provenance-facts dd{color:#b5d6ff}
+:global(.app-frame[data-nfq-theme="midnight"]) .nfq-geo-shortcut-observed,
+:global(.app-frame[data-nfq-theme="midnight"]) .nfq-geo-provenance-facts dt{color:#a9c3e1}
 </style>

@@ -5,7 +5,7 @@ import {defineConfig,devices} from '@playwright/test';
 // or writes patient/scientific data.
 export default defineConfig({
  testDir:'./e2e',
- testMatch:['therapy-browser-contract.spec.ts','audit-workspace-contract.spec.ts','conflict-review-contract.spec.ts','original-batch-session-contract.spec.ts'],
+ testMatch:['therapy-browser-contract.spec.ts','audit-workspace-contract.spec.ts','conflict-review-contract.spec.ts','original-batch-session-contract.spec.ts','geographic-provenance-contract.spec.ts'],
  retries:process.env.CI?1:0,
  reporter:process.env.CI?'github':'list',
  use:{baseURL:'http://127.0.0.1:4175',trace:'retain-on-failure',screenshot:'only-on-failure'},
