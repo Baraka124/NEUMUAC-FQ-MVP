@@ -93,6 +93,53 @@ test('14H154 atlas has no redundant index; map and picker share the same selecte
  }
 });
 
+test('14H155 inline map preview and single-stop arrow navigation work without extra UI',async({page})=>{
+ for(const [mode,width] of [['light',390],['midnight',1366]] as const){
+  await page.setViewportSize({width,height:844});
+  await setTheme(page,mode);
+  await page.goto('/#/geography');
+  const atlas=page.locator('.geo-observatory');
+  const map=atlas.locator('svg[aria-label^="Selectable map of Spain"]');
+  const regions=map.locator('path.geo-region');
+  const context=atlas.getByTestId('geo-map-context');
+  const picker=atlas.getByLabel('Choose a region');
+  await expect(regions).toHaveCount(19);
+  await expect(context).toHaveText('17 communities · 2 autonomous cities');
+  await expect(regions.filter({has:page.locator('[tabindex="0"]')})).toHaveCount(0);
+  await expect.poll(()=>regions.evaluateAll(nodes=>nodes.filter(node=>node.getAttribute('tabindex')==='0').length)).toBe(1);
+  const initialHeight=await atlas.locator('.geo-map-heading').evaluate(el=>el.getBoundingClientRect().height);
+  const first=regions.first();
+  const second=regions.nth(1);
+  await first.focus();
+  await expect(first).toBeFocused();
+  await expect(context).toContainText('Andalucía · Administrative boundary');
+  await expect(atlas.locator('.geo-map-heading')).toBeVisible();
+  const previewHeight=await atlas.locator('.geo-map-heading').evaluate(el=>el.getBoundingClientRect().height);
+  expect(Math.abs(previewHeight-initialHeight)).toBeLessThanOrEqual(1);
+  await first.press('ArrowRight');
+  await expect(second).toBeFocused();
+  await expect(first).toHaveAttribute('tabindex','-1');
+  await expect(second).toHaveAttribute('tabindex','0');
+  await expect(context).toContainText('Aragón · Administrative boundary');
+  await second.press('Space');
+  await expect(picker).toHaveValue('02');
+  await expect(atlas.locator('.geo-region-insight h3')).toHaveText('Aragón');
+  await second.press('Escape');
+  await expect(picker).toHaveValue('');
+  await second.press('End');
+  await expect(regions.last()).toBeFocused();
+  await regions.last().press('Home');
+  await expect(first).toBeFocused();
+  await picker.focus();
+  await first.dispatchEvent('pointerenter');
+  await expect(context).toContainText('Andalucía · Administrative boundary');
+  await first.dispatchEvent('pointerleave');
+  await expect(context).toHaveText('17 communities · 2 autonomous cities');
+  await expect(atlas.locator('.geo-regions-section, #geo-region-list')).toHaveCount(0);
+  await noHorizontalOverflow(page);
+ }
+});
+
 test('14H153 workspace launcher stays compact with legible original blue hierarchy',async({page})=>{
  for(const mode of ['light','midnight'] as const){
   await setTheme(page,mode);
