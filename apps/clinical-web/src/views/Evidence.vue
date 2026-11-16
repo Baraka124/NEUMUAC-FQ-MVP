@@ -13,6 +13,7 @@ import {evidencePageCsv} from '../domain/evidencePageExport';
 import ContextHelp from '../components/ContextHelp.vue';
 import EvidenceProposalDraft from '../components/EvidenceProposalDraft.vue';
 import SourceAcquisitionWorklist from '../components/SourceAcquisitionWorklist.vue';
+import ApprovedResearchDataset from '../components/ApprovedResearchDataset.vue';
 import {portableEvidenceLink} from '../domain/portableEvidenceLink';
 const route=useRoute();
 const focusId=computed(()=>typeof route.query.variant==='string'&&/^[1-9]\d{0,17}$/.test(route.query.variant)?route.query.variant:null);
@@ -166,6 +167,7 @@ watch([query,page,focusId,invalidVariantScope],()=>{exportNotice.value='';});
    <span class="nfq-research-trail-current" aria-current="page">Evidence &amp; provenance</span>
   </nav>
   <SourceAcquisitionWorklist v-if="!invalidVariantScope&&!focusId" />
+   <ApprovedResearchDataset v-if="!invalidVariantScope&&!focusId" />
    <div v-if="focusId" class="nfq-variant-scope"><span>References for variant record #{{focusId}}</span><RouterLink :to="{path:'/reports',query:{variant:focusId}}">Recorded history</RouterLink><RouterLink to="/evidence">All records</RouterLink></div>
   <div v-if="!focusId" class="evidence-search-head" role="search" aria-label="Find recorded scientific sources">
    <label for="evidence-search">Find a source or reference</label>

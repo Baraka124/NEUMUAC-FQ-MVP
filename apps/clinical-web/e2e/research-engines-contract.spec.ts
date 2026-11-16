@@ -25,7 +25,7 @@ const bib=[{id:71,variant_id:18,title:'Documented research source',
 async function setup(page:Page,role:'verified'|'unassigned'|'public'='verified',
  invalidSnapshot=false,claimRecords:readonly unknown[]=[]){
  let rpc=0;const methods:string[]=[];
- let worklistCalls=0;
+ let worklistCalls=0;let datasetCalls=0;
  let triage={
   id:71,variantId:'18',title:'PubMed article 12345678',
   url:'https://pubmed.ncbi.nlm.nih.gov/12345678/',
@@ -57,6 +57,26 @@ async function setup(page:Page,role:'verified'|'unassigned'|'public'='verified',
   if(u.pathname.endsWith('/nfq_research_memberships')){
    await route.fulfill({status:200,headers:cors,contentType:'application/json',
     body:JSON.stringify(role==='verified'?[{user_id:ID,role:'reviewer',revoked_at:null}]:[])});
+   return;
+  }
+  if(u.pathname.endsWith('/rpc/nfq_approved_research_dataset')){
+   datasetCalls++;
+   if(role!=='verified'){
+    await route.fulfill({status:403,headers:cors,contentType:'application/json',
+     body:JSON.stringify({message:'Active membership required'})});
+    return;
+   }
+   await route.fulfill({status:200,headers:cors,contentType:'application/json',
+    body:JSON.stringify({
+     source:'nfq-approved-research-dataset-v1',schemaVersion:1,
+     snapshotSha256:'a'.repeat(64),
+     generatedAt:'2026-11-17T10:00:00Z',total:0,records:[],
+     limitations:[
+      'Research-only source-level metadata',
+      'No patient genotypes, individual outcomes or source sample size verified',
+      'No automatic effect estimation, cross-study pooling or response prediction'
+     ]
+    })});
    return;
   }
   if(u.pathname.endsWith('/rpc/nfq_source_acquisition_worklist')){
@@ -106,7 +126,7 @@ async function setup(page:Page,role:'verified'|'unassigned'|'public'='verified',
   if(u.pathname.endsWith('/evidence_links'))rows=bib;
   await route.fulfill({status:200,headers:cors,contentType:'application/json',body:JSON.stringify(rows)});
  });
- return {methods,get rpc(){return rpc;},get worklistCalls(){return worklistCalls;}};
+ return {methods,get rpc(){return rpc;},get worklistCalls(){return worklistCalls;},get datasetCalls(){return datasetCalls;}};
 }
 
 test('14H165 verified researcher sees 5 real-source-bound categories and review mismatch',async({page})=>{
@@ -285,3 +305,30 @@ test('14H168 official PubMed metadata is inspected on demand without rewriting s
  expect(pubmedRequests).toBe(1);
  expect(record.worklistCalls).toBe(1);
 });
+
+test('14H169 approved-source dataset loads only after explicit researcher action and reports empty real state',async({page})=>{
+ const record=await setup(page,'verified');
+ await page.goto('/#/evidence');
+ const root=page.getByTestId('nfq-approved-dataset');
+ const toggle=root.getByTestId('nfq-dataset-toggle');
+ await expect(toggle).toHaveAttribute('aria-expanded','false');
+ expect(record.datasetCalls).toBe(0);
+ await toggle.click();
+ await expect(root.getByTestId('nfq-dataset-empty')).toContainText('No independently approved source observations yet');
+ await expect(root.getByTestId('nfq-dataset-hash')).toHaveText('a'.repeat(64));
+ await expect(root).toContainText('0 approved observations');
+ await expect(root.getByTestId('nfq-dataset-export-json')).toBeEnabled();
+ expect(record.datasetCalls).toBe(1);
+});
+
+for(const persona of ['unassigned','public'] as const){
+ test('14H169 '+persona+' cannot request protected approved-source dataset',async({page})=>{
+  const record=await setup(page,persona);
+  await page.goto('/#/evidence');
+  const root=page.getByTestId('nfq-approved-dataset');
+  await root.getByTestId('nfq-dataset-toggle').click();
+  await expect(root).toContainText('An active research membership is required');
+  expect(record.datasetCalls).toBe(0);
+  await expect(root.getByTestId('nfq-dataset-export-json')).toHaveCount(0);
+ });
+}
