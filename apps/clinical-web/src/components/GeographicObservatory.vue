@@ -87,7 +87,8 @@ function openSelectedDetail(){
     </div>
     <div v-if="selectedRegion" class="geo-current-selection"><span role="status">{{selectedRegion.name}} selected</span><button class="geo-selected-detail-link" type="button" @click="openSelectedDetail">View region details <span aria-hidden="true">→</span></button></div>
     <div v-if="scope==='spain'" class="geo-map-inner">
-     <svg ref="mapSvg" viewBox="0 0 690 525" role="group" aria-label="Selectable map of Spain, its autonomous communities and cities. Administrative boundaries only, without individual searches or activity statistics." preserveAspectRatio="xMidYMid meet">
+     <span id="geo-map-keyboard-hint" class="geo-screen-reader-only">Use arrow keys to explore regions, Home or End to jump, Enter or Space to select, and Escape to clear the selected region.</span>
+     <svg ref="mapSvg" viewBox="0 0 690 525" role="group" aria-describedby="geo-map-keyboard-hint" aria-label="Selectable map of Spain, its autonomous communities and cities. Administrative boundaries only, without individual searches or activity statistics." preserveAspectRatio="xMidYMid meet">
       <title>Spain · autonomous communities and cities</title>
       <rect x="0" y="0" width="690" height="525" fill="#f9fbf9"/>
       <g fill="#e7eee8" stroke="#abc0ae" stroke-width="1.05" stroke-linejoin="round">
@@ -141,6 +142,7 @@ function openSelectedDetail(){
 </template>
 
 <style scoped>
+.geo-screen-reader-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .geo-observatory{color:#233d32;min-width:0;container-type:inline-size}
 .geo-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:18px}
 .geo-head-copy{min-width:0;max-width:640px}
