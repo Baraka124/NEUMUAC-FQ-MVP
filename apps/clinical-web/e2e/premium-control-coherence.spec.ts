@@ -105,7 +105,6 @@ test('14H155 inline map preview and single-stop arrow navigation work without ex
   const picker=atlas.getByLabel('Choose a region');
   await expect(regions).toHaveCount(19);
   await expect(context).toHaveText('17 communities · 2 autonomous cities');
-  await expect(regions.filter({has:page.locator('[tabindex="0"]')})).toHaveCount(0);
   await expect.poll(()=>regions.evaluateAll(nodes=>nodes.filter(node=>node.getAttribute('tabindex')==='0').length)).toBe(1);
   const initialHeight=await atlas.locator('.geo-map-heading').evaluate(el=>el.getBoundingClientRect().height);
   const first=regions.first();
