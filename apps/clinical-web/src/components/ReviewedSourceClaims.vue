@@ -44,7 +44,10 @@ const endpointValue=ref('');
 const endpointModel=ref<EndpointModel>('not-reported');
 const endpointComparator=ref<EndpointComparator>('not-reported');
 const endpointTimepoint=ref('not-reported');
-const endpointNumber=computed(()=>endpointValue.value.trim()===''?null:Number(endpointValue.value));
+const endpointNumber=computed(()=>{
+ const source=String(endpointValue.value).trim();
+ return source===''?null:Number(source);
+});
 const endpoint=computed<ResearchEndpoint>(()=>({
  code:endpointCode.value,
  statistic:endpointStatistic.value,
