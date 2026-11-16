@@ -594,10 +594,12 @@ test('14H150 source-coded response labels stay readable and exact-match remains 
  const exact=page.locator('.variant-page .discovery-exact-chip');
  await expect(exact).toHaveText('Exact match',{timeout:12000});
  await expect(exact).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
- const chip=await exact.evaluate(el=>{const r=el.getBoundingClientRect();const cs=getComputedStyle(el);return {height:r.height,width:r.width,font:parseFloat(cs.fontSize)}});
+ // Vue may replace the exact-match chip while the dossier resolves.
+ // Retry the stylesheet assertion instead of reading detached computed style.
+ await expect(exact).toHaveCSS('font-size','10px');
+ const chip=await exact.evaluate(el=>{const r=el.getBoundingClientRect();return {height:r.height,width:r.width}});
  expect(chip.height).toBeLessThanOrEqual(23);
  expect(chip.width).toBeLessThan(100);
- expect(chip.font).toBeLessThanOrEqual(10.5);
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
 

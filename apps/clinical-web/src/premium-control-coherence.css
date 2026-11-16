@@ -414,3 +414,51 @@
 @media(prefers-reduced-motion:reduce){
  .app-frame .geo-observatory .geo-map-inner .geo-region{transition:none}
 }
+
+
+/* 14H158 · Atlas first: no wasted title/heading air, no extra cards.
+   Keep one native region selector and the original Spanish boundary SVG. */
+.app-frame .public-geography-page .geo-observatory .geo-layout{gap:12px}
+.app-frame .public-geography-page .geo-observatory .geo-map-heading{
+ min-height:50px!important;padding:6px 12px!important;gap:9px 12px;
+}
+.app-frame .public-geography-page .geo-observatory .geo-map-heading>div{gap:2px}
+.app-frame .public-geography-page .geo-observatory .geo-map-heading strong{
+ font-size:13px!important;line-height:1.25
+}
+.app-frame .public-geography-page .geo-observatory .geo-region-picker{
+ margin:0;gap:7px;font-size:11px
+}
+.app-frame .public-geography-page .geo-observatory .geo-region-picker select{
+ height:40px!important;min-height:40px!important;width:clamp(150px,16vw,200px);
+}
+.app-frame .public-geography-page .geo-observatory .geo-current-selection{
+ margin:0 12px 3px;font-size:10.5px;line-height:1.45;
+}
+.app-frame .public-geography-page .geo-observatory .geo-map-inner{
+ padding:0 5px;
+}
+.app-frame .public-geography-page .geo-observatory .geo-about{
+ margin-top:9px;padding-top:5px;
+}
+.app-frame .public-geography-page .geo-observatory .geo-about summary{
+ min-height:36px
+}
+@media(max-width:760px){
+ .app-frame .public-geography-page .geo-observatory .geo-map-heading{
+  min-height:0;gap:6px;padding:9px 11px 6px!important;
+ }
+ .app-frame .public-geography-page .geo-observatory .geo-region-picker{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:8px;flex-wrap:wrap;
+ }
+ .app-frame .public-geography-page .geo-observatory .geo-region-picker select{
+  width:min(100%,230px);min-width:150px;min-height:44px!important;height:44px!important;
+ }
+}
+@media(max-width:370px){
+ .app-frame .public-geography-page .geo-observatory .geo-region-picker{
+  display:grid;grid-template-columns:minmax(0,1fr);
+ }
+ .app-frame .public-geography-page .geo-observatory .geo-region-picker select{width:100%;min-width:0}
+}

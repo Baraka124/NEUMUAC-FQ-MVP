@@ -90,6 +90,48 @@ test('14H157 globe opens source-specific, no-data geography context without leav
  expect(methods.every(method=>method==='GET')).toBe(true);
 });
 
+test('14H158 atlas resolves only independently verified variant label, keeps geographic absence explicit',async({page})=>{
+ const methods=await setup(page);
+ for(const width of [390,1366]){
+  await page.setViewportSize({width,height:844});
+  await page.goto('/#/geography?variant=18');
+  const context=page.getByTestId('geo-variant-context');
+  await expect(context).toBeVisible();
+  await expect(context.getByTestId('geo-variant-name')).toHaveText('R117H');
+  await expect(context.getByTestId('geo-variant-empty')).toHaveText('No verified geographic information is currently published for this variant.');
+  await expect(page.getByRole('heading',{name:'Geographic atlas'})).toBeVisible();
+  const atlas=page.locator('.geo-observatory');
+  await expect(atlas.locator('path.geo-region')).toHaveCount(19);
+  await expect(atlas.getByLabel('Choose a region')).toHaveValue('');
+  const distance=await page.evaluate(()=>{
+   const header=document.querySelector('.public-geography-page .geo-page-title')!.getBoundingClientRect();
+   const map=document.querySelector('.geo-map-surface')!.getBoundingClientRect();
+   return {gap:map.top-header.bottom,top:map.top};
+  });
+  expect(distance.gap).toBeLessThanOrEqual(14);
+  expect(distance.gap).toBeGreaterThanOrEqual(0);
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+  await context.getByTestId('geo-variant-return').click();
+  await expect(page).toHaveURL(/#\/variants\/18$/);
+  await expect(page.getByRole('heading',{name:'R117H'})).toBeVisible();
+ }
+ expect(methods.length).toBeGreaterThan(0);
+ expect(methods.every(method=>method==='GET')).toBe(true);
+});
+
+test('14H158 invalid, unrelated atlas query cannot create a variant attribution',async({page})=>{
+ const methods=await setup(page);
+ for(const bad of ['01','0','F508del','1234567890123456789']){
+  await page.goto('/#/geography?variant='+encodeURIComponent(bad));
+  await expect(page.getByTestId('geo-variant-context')).toHaveCount(0);
+  await expect(page.locator('path.geo-region')).toHaveCount(19);
+ }
+ await page.goto('/#/geography');
+ await expect(page.getByTestId('geo-variant-context')).toHaveCount(0);
+ await expect(page.getByRole('heading',{name:'Geographic atlas'})).toBeVisible();
+ expect(methods.every(method=>method==='GET')).toBe(true);
+});
+
 test('14H152 saved worklist independently exports current source metadata and preserves link export',async({page})=>{
  const methods=await setup(page);
  await page.setViewportSize({width:390,height:844});

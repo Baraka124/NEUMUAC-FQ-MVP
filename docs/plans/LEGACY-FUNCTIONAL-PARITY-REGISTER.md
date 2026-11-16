@@ -308,3 +308,20 @@ optional atlas shortcut forwards only a canonical recorded ID via the hash
 router; no source write, implied patient aggregate or role change is made.
 See `apps/clinical-web/docs/14H157-variant-geography-shortcut.md`.
 Phase 14H158 handles linked-context presentation in the atlas.
+
+## Phase 14H158 — compact atlas with verified variant context
+
+**NFQ-030 remains Not migrated; NFQ-038 remains Partial.** An optional
+canonical `variant` ID from the 14H157 dossier globe is displayed as
+source-identity context in a compact Geography heading. A record name appears
+only after a fresh, identity-matching authorized read; if unavailable,
+`Variant #ID` is used without inferring any clinical, regional, patient,
+search, geographic frequency or affiliation data. The note explicitly states
+that no variant-specific geographic data are published, and offers a return
+link to the precise dossier. Default atlas visits remain neutral. The
+Geography-only top margins and map-heading controls are compacted so the
+actual Spain boundary map appears earlier, without changing any of the 19
+regions, the keyboard navigation or the existing administrative privacy
+explanations. See `apps/clinical-web/docs/14H158-atlas-header-context.md`.
+No new scientific dataset, therapy response computation, database write,
+authorization or frozen original change. CI is not live-domain acceptance.
