@@ -25,6 +25,14 @@ const bib=[{id:71,variant_id:18,title:'Documented research source',
 async function setup(page:Page,role:'verified'|'unassigned'|'public'='verified',
  invalidSnapshot=false,claimRecords:readonly unknown[]=[]){
  let rpc=0;const methods:string[]=[];
+ let worklistCalls=0;
+ let triage={
+  id:71,variantId:'18',title:'PubMed article 12345678',
+  url:'https://pubmed.ncbi.nlm.nih.gov/12345678/',
+  source:'PubMed',year:2024,pmid:null,doi:null,
+  state:'untriaged',note:null,version:0,updatedAt:null,updatedByMe:false,
+  auditCount:0,claimPending:0,claimApproved:0,numericApproved:0
+ };
  if(role!=='public'){
   const user={id:ID,email:'reviewer@example.org',aud:'authenticated',role:'authenticated',
    app_metadata:{provider:'email',providers:['email']},
@@ -51,6 +59,30 @@ async function setup(page:Page,role:'verified'|'unassigned'|'public'='verified',
     body:JSON.stringify(role==='verified'?[{user_id:ID,role:'reviewer',revoked_at:null}]:[])});
    return;
   }
+  if(u.pathname.endsWith('/rpc/nfq_source_acquisition_worklist')){
+   worklistCalls++;
+   const data=JSON.parse(req.postData()||'{}');
+   if(role!=='verified'){
+    await route.fulfill({status:403,headers:cors,contentType:'application/json',
+     body:JSON.stringify({message:'Active research membership required'})});
+    return;
+   }
+   if(data.p_action==='triage'){
+    if(data.p_reference_id!==71||data.p_expected_version!==triage.version){
+     await route.fulfill({status:409,headers:cors,contentType:'application/json',
+      body:JSON.stringify({message:'Stale source version'})});return;
+    }
+    triage={...triage,state:data.p_state,note:data.p_note,version:triage.version+1,
+     updatedAt:'2026-11-16T23:00:00Z',updatedByMe:true,auditCount:triage.auditCount+1};
+    await route.fulfill({status:200,headers:cors,contentType:'application/json',
+     body:JSON.stringify({source:'nfq-acquisition-worklist-v1',
+      referenceId:71,variantId:'18',state:triage.state,version:triage.version})});
+    return;
+   }
+   await route.fulfill({status:200,headers:cors,contentType:'application/json',
+    body:JSON.stringify({source:'nfq-acquisition-worklist-v1',total:1,records:[triage]})});
+   return;
+  }
   if(u.pathname.endsWith('/rpc/nfq_reviewed_source_claims')){
    const request=JSON.parse(req.postData()||'{}');
    if(role!=='verified'){
@@ -74,7 +106,7 @@ async function setup(page:Page,role:'verified'|'unassigned'|'public'='verified',
   if(u.pathname.endsWith('/evidence_links'))rows=bib;
   await route.fulfill({status:200,headers:cors,contentType:'application/json',body:JSON.stringify(rows)});
  });
- return {methods,get rpc(){return rpc;}};
+ return {methods,get rpc(){return rpc;},get worklistCalls(){return worklistCalls;}};
 }
 
 test('14H165 verified researcher sees 5 real-source-bound categories and review mismatch',async({page})=>{
@@ -190,4 +222,66 @@ test('14H166 source submission UI requires exact bibliographic citation and rati
  await form.getByTestId('nfq-endpoint-timepoint').fill('Day 28');
  await expect(form.getByTestId('nfq-source-claim-submit')).toBeEnabled();
  expect(record.methods.filter(x=>x.includes('/rpc/nfq_reviewed_source_claims')).length).toBe(1);
+});
+
+test('14H168 verified source acquisition worklist loads real records only after explicit opening',async({page})=>{
+ const record=await setup(page);
+ await page.goto('/#/evidence');
+ const worklist=page.getByTestId('nfq-source-acquisition');
+ await expect(worklist.getByTestId('nfq-acquisition-toggle')).toHaveAttribute('aria-expanded','false');
+ expect(record.worklistCalls).toBe(0);
+ await worklist.getByTestId('nfq-acquisition-toggle').click();
+ await expect(worklist.getByTestId('nfq-acquisition-list').getByRole('listitem')).toHaveCount(1);
+ await expect(worklist).toContainText('PubMed article 12345678');
+ expect(record.worklistCalls).toBe(1);
+ await worklist.getByTestId('nfq-acquisition-list').getByRole('button').first().click();
+ await expect(worklist).toContainText('PMID missing from catalogue');
+ await expect(worklist.getByTestId('nfq-acquisition-save')).toBeDisabled();
+ await worklist.getByTestId('nfq-acquisition-state').selectOption('metadata-needs-check');
+ await worklist.getByTestId('nfq-acquisition-note').fill(
+  'The original PubMed reference URL contains an identifier missing from the local catalogue.'
+ );
+ await expect(worklist.getByTestId('nfq-acquisition-save')).toBeEnabled();
+ await worklist.getByTestId('nfq-acquisition-save').click();
+ await expect(worklist).toContainText('Metadata needs checking');
+ expect(record.worklistCalls).toBeGreaterThanOrEqual(3);
+});
+
+for(const persona of ['unassigned','public'] as const){
+ test('14H168 '+persona+' cannot request protected acquisition worklist',async({page})=>{
+  const record=await setup(page,persona);
+  await page.goto('/#/evidence');
+  const worklist=page.getByTestId('nfq-source-acquisition');
+  await worklist.getByTestId('nfq-acquisition-toggle').click();
+  await expect(worklist).toContainText('Active research membership is required');
+  expect(record.worklistCalls).toBe(0);
+  await expect(worklist.getByTestId('nfq-acquisition-list')).toHaveCount(0);
+ });
+}
+
+test('14H168 official PubMed metadata is inspected on demand without rewriting source records',async({page})=>{
+ const record=await setup(page);
+ let pubmedRequests=0;
+ await page.route('https://eutils.ncbi.nlm.nih.gov/**',async route=>{
+  pubmedRequests++;
+  const url=new URL(route.request().url());
+  expect(url.searchParams.get('id')).toBe('12345678');
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   result:{uids:['12345678'],'12345678':{
+    uid:'12345678',title:'Officially indexed publication title',
+    pubtype:['Clinical Trial']
+   }}
+  })});
+ });
+ await page.goto('/#/evidence');
+ const root=page.getByTestId('nfq-source-acquisition');
+ await root.getByTestId('nfq-acquisition-toggle').click();
+ await expect(root.getByTestId('nfq-acquisition-list').getByRole('listitem')).toHaveCount(1);
+ expect(pubmedRequests).toBe(0);
+ await root.getByTestId('nfq-acquisition-list').getByRole('button').first().click();
+ await root.getByTestId('nfq-acquisition-pubmed').click();
+ await expect(root.getByTestId('nfq-acquisition-pubmed-result')).toContainText('Officially indexed publication title');
+ await expect(root).toContainText('Indexed title differs');
+ expect(pubmedRequests).toBe(1);
+ expect(record.worklistCalls).toBe(1);
 });
