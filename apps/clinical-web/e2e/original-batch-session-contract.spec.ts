@@ -69,8 +69,8 @@ test('14H157 globe opens source-specific, no-data geography context without leav
   const context=page.getByTestId('variant-geography-popover');
   await expect(context).toBeVisible();
   await expect(context.getByTestId('variant-geography-identity')).toHaveText('R117H');
-  await expect(context.getByTestId('variant-geography-empty')).toContainText('No verified geographic information');
-  await expect(context).toContainText('administrative boundaries');
+  await expect(context.getByTestId('variant-geography-empty')).toContainText('No patient distribution is published');
+  await expect(context).toContainText('historical aggregated search activity');
   await expect(page).toHaveURL(/#\/variants\/18/);
   const geometry=await context.evaluate(el=>({left:el.getBoundingClientRect().left,right:el.getBoundingClientRect().right,width:el.getBoundingClientRect().width}));
   expect(geometry.left).toBeGreaterThanOrEqual(0);
@@ -98,7 +98,7 @@ test('14H158 atlas resolves only independently verified variant label, keeps geo
   const context=page.getByTestId('geo-variant-context');
   await expect(context).toBeVisible();
   await expect(context.getByTestId('geo-variant-name')).toHaveText('R117H');
-  await expect(context.getByTestId('geo-variant-empty')).toHaveText('No verified geographic information is currently published for this variant.');
+  await expect(context.getByTestId('geo-variant-empty')).toHaveText('No patient distribution is published. Verified researchers may see historical, privacy-thresholded search activity.');
   await expect(page.getByRole('heading',{name:'Geographic atlas'})).toBeVisible();
   const atlas=page.locator('.geo-observatory');
   await expect(atlas.locator('path.geo-region')).toHaveCount(19);
