@@ -325,3 +325,21 @@ regions, the keyboard navigation or the existing administrative privacy
 explanations. See `apps/clinical-web/docs/14H158-atlas-header-context.md`.
 No new scientific dataset, therapy response computation, database write,
 authorization or frozen original change. CI is not live-domain acceptance.
+
+## Phase 14H159 — original source provenance and dual-reference guard
+
+The user's 16 November 2026 upload `index (86).html` is explicitly the
+**user-designated original source reference** (40,175 lines, SHA-256
+`5c7dce0258cf2ba4191c9eff0781ee3d02886b9e026b078e1fb51601f42fe9c5`).
+It differs from this repository's archived `index.1.html` (40,934 lines,
+Git blob `c18221fb6baf47782318ca3685b94b088c359a66`).
+Source/dossier parity must now be assessed against the user-designated upload,
+with the archived snapshot retained as a distinct additional revision.
+Neither HTML file is the current Vue application, and neither is a clinically
+validated replacement. **All NFQ statuses remain unchanged** at this source-
+provenance checkpoint. In particular, the uploaded original has variant-aware
+geographic search, gnomAD population frequency, geographical atlas and
+Helios-demand routines that exceed the current Vue boundary-only atlas;
+these require separate actual-data and privacy acceptance rather than
+speculative re-enablement. See
+`docs/architecture/USER-ORIGINAL-SOURCE-PROVENANCE-2026-11-16.md`.
