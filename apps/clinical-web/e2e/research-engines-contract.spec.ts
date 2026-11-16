@@ -153,12 +153,12 @@ test('14H166 verified double-review source enters actual five-therapy conflict a
  await page.getByTestId('nfq-research-engines-toggle').click();
  const root=page.getByTestId('nfq-research-engines');
  await expect(root).toContainText('1 independently reviewed study families');
- await expect(root).toContainText('sweat-chloride');
- await expect(root).toContainText('-22.4');
  await expect(root.getByTestId('nfq-claim-endpoint')).toContainText('Sweat chloride');
  await expect(root.locator('[data-therapy="ETI"]')).toContainText('Source disagreement');
  await expect(root.getByTestId('nfq-reviewed-claims')).toContainText('1 active approved');
  await root.locator('[data-therapy="ETI"]').getByRole('button').click();
+ await expect(root).toContainText('sweat-chloride');
+ await expect(root).toContainText('-22.4');
  await expect(root.locator('[data-therapy="ETI"]')).toContainText('Recorded legacy response category and independently reviewed reports differ');
  expect(record.rpc).toBe(1);
 });
