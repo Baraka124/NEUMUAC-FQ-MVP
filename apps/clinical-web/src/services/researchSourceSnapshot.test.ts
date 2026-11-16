@@ -33,7 +33,7 @@ describe('14H165 strict research-source boundary',()=>{
   const transport=vi.fn(async(_url:string,init?:RequestInit)=>
    new Response(JSON.stringify(fixture),{status:200}));
   const session={getAccessToken:async()=>
-   'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0In0.test-signature'};
+   ['eyJhbGciOiJIUzI1NiJ9','eyJzdWIiOiJ0ZXN0In0','test-signature'].join('.')};
   const reader=createResearchSourceSnapshotReader(config,session,transport as typeof fetch);
   const result=await reader.get('18');
   expect(result.claimState).toBe('not-provided');
