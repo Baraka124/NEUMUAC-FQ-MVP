@@ -2,10 +2,11 @@
 import {ref,computed,watch,onUnmounted} from 'vue';
 import {RouterLink} from 'vue-router';
 import {authController,authSessionProvider} from '../services/authSession';
+import {retrievePubMedMetadata,type PubMedPublicationMetadata} from '../services/livePubMed';
 import {researcherRole} from '../services/researchRole';
 import {readConfigFromEnvironment} from '../services/liveVariants';
 import {
- createSourceAcquisitionService,sourceMetadataFlags,summarizeSourceAcquisition,
+ createSourceAcquisitionService,sourceMetadataFlags,sourcePubMedId,summarizeSourceAcquisition,
  sourceAcquisitionCsv,SOURCE_STATES,SOURCE_LABELS,validTriageChange,
  type SourceAcquisitionRecord,type SourceTriageState
 } from '../services/sourceAcquisitionWorklist';
@@ -23,6 +24,27 @@ const draftState=ref<SourceTriageState>('source-located');
 const rationale=ref('');
 const busy=ref(false);
 const notice=ref('');
+const pubmed=ref<{
+ readonly referenceId:number;
+ readonly phase:'loading'|'ready'|'failed';
+ readonly publication?:PubMedPublicationMetadata;
+}|null>(null);
+let pubmedAbort:AbortController|null=null;
+async function inspectPubMed(item:SourceAcquisitionRecord):Promise<void>{
+ const candidate=sourcePubMedId(item);
+ if(!candidate||!access.value)return;
+ pubmedAbort?.abort();
+ const controller=new AbortController();pubmedAbort=controller;
+ pubmed.value={referenceId:item.id,phase:'loading'};
+ try{
+  const publication=await retrievePubMedMetadata(candidate,fetch,controller.signal);
+  if(!controller.signal.aborted&&focus.value===item.id&&access.value)
+   pubmed.value={referenceId:item.id,phase:'ready',publication};
+ }catch{
+  if(!controller.signal.aborted&&focus.value===item.id)
+   pubmed.value={referenceId:item.id,phase:'failed'};
+ }finally{if(pubmedAbort===controller)pubmedAbort=null;}
+}
 const access=computed(()=>authController?.state.phase==='signed-in'&&
  researcherRole.phase==='verified'&&
  ['contributor','reviewer','administrator'].includes(researcherRole.role??''));
@@ -47,6 +69,7 @@ const canSave=computed(()=>!!current.value&&access.value&&!busy.value&&
  validTriageChange(current.value.id,current.value.version,draftState.value,rationale.value));
 let active:AbortController|null=null;
 function choose(item:SourceAcquisitionRecord):void{
+ pubmedAbort?.abort();pubmedAbort=null;pubmed.value=null;
  if(focus.value===item.id){focus.value=null;return;}
  focus.value=item.id;
  draftState.value=item.state==='untriaged'?'metadata-needs-check':item.state;
@@ -55,6 +78,7 @@ function choose(item:SourceAcquisitionRecord):void{
 }
 async function refresh():Promise<void>{
  active?.abort();active=null;
+ pubmedAbort?.abort();pubmedAbort=null;pubmed.value=null;
  records.value=[];focus.value=null;
  if(!open.value){phase.value='closed';return;}
  if(!access.value||!service){phase.value='restricted';return;}
@@ -69,7 +93,10 @@ async function refresh():Promise<void>{
 }
 function toggle():void{
  open.value=!open.value;
- if(!open.value){active?.abort();active=null;records.value=[];focus.value=null;phase.value='closed';return;}
+ if(!open.value){
+  active?.abort();active=null;pubmedAbort?.abort();pubmedAbort=null;pubmed.value=null;
+  records.value=[];focus.value=null;phase.value='closed';return;
+ }
  void refresh();
 }
 async function save():Promise<void>{
@@ -102,7 +129,7 @@ watch([
 ],()=>{
  if(open.value)void refresh();
 });
-onUnmounted(()=>active?.abort());
+onUnmounted(()=>{active?.abort();pubmedAbort?.abort();});
 </script>
 
 <template>
@@ -187,6 +214,25 @@ onUnmounted(()=>active?.abort());
         No catalogue-format discrepancy detected. This is not confirmation that the publication was verified.
        </p>
        <p v-if="item.note" class="nfq-acquisition-muted">Recorded triage note: {{item.note}}</p>
+       <div v-if="sourcePubMedId(item)" class="nfq-acquisition-pubmed">
+        <button type="button" data-testid="nfq-acquisition-pubmed"
+         :disabled="pubmed?.phase==='loading'"
+         @click="inspectPubMed(item)">
+         {{pubmed?.referenceId===item.id&&pubmed.phase==='loading'?'Checking PubMed…':'Inspect official PubMed metadata'}}
+        </button>
+        <p v-if="pubmed?.referenceId===item.id&&pubmed.phase==='failed'" role="status">
+         PubMed metadata could not be retrieved; the original catalogue entry remains unchanged.
+        </p>
+        <div v-if="pubmed?.referenceId===item.id&&pubmed.phase==='ready'&&pubmed.publication"
+         class="nfq-acquisition-pubmed-summary" data-testid="nfq-acquisition-pubmed-result">
+         <strong>{{pubmed.publication.title??'No indexed title returned'}}</strong>
+         <span>PubMed #{{pubmed.publication.pmid}} · {{pubmed.publication.publicationTypes.join(' · ')||'No publication type returned'}}</span>
+         <span>External indexing only · compared on request · not a reviewed treatment-response claim</span>
+         <span v-if="pubmed.publication.title&&pubmed.publication.title!==item.title">
+          Indexed title differs from the locally recorded catalogue title.
+         </span>
+        </div>
+       </div>
        <div class="nfq-acquisition-links">
         <a :href="item.url" target="_blank" rel="noopener noreferrer">Open original reference</a>
         <RouterLink :to="{path:'/evidence',query:{variant:item.variantId}}">View variant references</RouterLink>
@@ -266,4 +312,11 @@ onUnmounted(()=>active?.abort());
 :global(.app-frame[data-nfq-theme="midnight"]) .nfq-acquisition-editor select,
 :global(.app-frame[data-nfq-theme="midnight"]) .nfq-acquisition-editor textarea{background:#12243a;color:#e6f0ff;border-color:#4b6382}
 @media(max-width:760px){.nfq-acquisition-head{flex-wrap:wrap}.nfq-acquisition-editor{grid-template-columns:1fr}.nfq-acquisition-row{grid-template-columns:minmax(0,1fr) 14px;gap:4px}.nfq-acquisition-record-state{grid-column:1;grid-row:2}.nfq-acquisition-expander{grid-column:2;grid-row:1/3}.nfq-acquisition-filters>button{width:100%}}
+.nfq-acquisition-pubmed{margin:9px 0 10px;font-size:11px}
+.nfq-acquisition-pubmed button{border:0;border-bottom:1px solid currentColor;background:transparent;
+ color:#286aaa;padding:2px 0;font:inherit;font-size:11px;cursor:pointer}
+.nfq-acquisition-pubmed button:disabled{opacity:.6;cursor:not-allowed}
+.nfq-acquisition-pubmed p{font-size:11px;color:var(--text-muted,#637e99)}
+.nfq-acquisition-pubmed-summary{display:grid;gap:4px;margin:8px 0;color:var(--text-muted,#638099);line-height:1.5}
+.nfq-acquisition-pubmed-summary strong{font-weight:610;color:var(--text,#294660)}
 </style>
