@@ -1,0 +1,209 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "designation": "user-designated original, not repository index.1.html",
+    "filename": "index (86).html",
+    "uploaded": "2026-11-16",
+    "sha256": "5c7dce0258cf2ba4191c9eff0781ee3d02886b9e026b078e1fb51601f42fe9c5",
+    "lines": 40175,
+    "privateHtmlNotInGitHub": true,
+    "secondaryArchivedBlob": "c18221fb6baf47782318ca3685b94b088c359a66"
+  },
+  "modules": [
+    {
+      "key": "variant-catalog",
+      "nfq": [
+        "NFQ-003",
+        "NFQ-004",
+        "NFQ-007"
+      ],
+      "originalFunctions": [
+        {
+          "name": "loadVariants",
+          "line": 10818
+        },
+        {
+          "name": "searchVariants",
+          "line": 12286
+        },
+        {
+          "name": "renderVariantDetail",
+          "line": 18694
+        }
+      ],
+      "vueState": "partial",
+      "nextGate": "live source identity, nomenclature and dossier parity"
+    },
+    {
+      "key": "therapy-response",
+      "nfq": [
+        "NFQ-014",
+        "NFQ-015"
+      ],
+      "originalFunctions": [
+        {
+          "name": "resolveETIPrediction",
+          "line": 9593
+        }
+      ],
+      "vueState": "partial",
+      "nextGate": "independent five-treatment provenance, exceptional variants, clinical validation"
+    },
+    {
+      "key": "external-gnomad-reference",
+      "nfq": [
+        "NFQ-013"
+      ],
+      "originalFunctions": [
+        {
+          "name": "_buildGnomADId",
+          "line": 8188
+        },
+        {
+          "name": "fetchGnomADFrequency",
+          "line": 8201
+        },
+        {
+          "name": "enrichWithGnomAD",
+          "line": 8234
+        },
+        {
+          "name": "fetchGnomADPopulationFrequencies",
+          "line": 8311
+        },
+        {
+          "name": "renderPopulationFrequencyPanel",
+          "line": 8388
+        },
+        {
+          "name": "loadAndRenderPopulationFrequencies",
+          "line": 8448
+        }
+      ],
+      "vueState": "pure-domain-and-read-only-adapter-not-wired",
+      "nextGate": "verified per-record GRCh38 genomic allele; current live callset and identity-matched fetch; never automatically write DB or infer ACMG"
+    },
+    {
+      "key": "geo-institutional-search",
+      "nfq": [
+        "NFQ-028",
+        "NFQ-030"
+      ],
+      "originalFunctions": [
+        {
+          "name": "renderGeoTab",
+          "line": 14522
+        },
+        {
+          "name": "cfsmFetchData",
+          "line": 14573
+        },
+        {
+          "name": "cfsmBuildPoints",
+          "line": 14613
+        },
+        {
+          "name": "cfsmHighlightVariant",
+          "line": 15363
+        },
+        {
+          "name": "cfsmClearVariantHighlight",
+          "line": 15405
+        }
+      ],
+      "vueState": "not-migrated",
+      "nextGate": "consented RLS-backed aggregate data; no per-search IP/device/residence or unverified institutions; minimum-safe cell size"
+    },
+    {
+      "key": "geo-reach-visual",
+      "nfq": [
+        "NFQ-030"
+      ],
+      "originalFunctions": [
+        {
+          "name": "cfsmBuildAtlas",
+          "line": 14762
+        },
+        {
+          "name": "_buildAtlasArcs",
+          "line": 14933
+        },
+        {
+          "name": "_inferVariantPopulation",
+          "line": 14980
+        }
+      ],
+      "vueState": "not-migrated",
+      "nextGate": "do not equate gnomAD ancestry with geographic coordinates or infer patient flows; source audit required"
+    },
+    {
+      "key": "helios-geosignals",
+      "nfq": [
+        "NFQ-022",
+        "NFQ-029",
+        "NFQ-030",
+        "NFQ-037"
+      ],
+      "originalFunctions": [
+        {
+          "name": "heliosRunGeoSignal",
+          "line": 33691
+        },
+        {
+          "name": "heliosCreatePendingItem",
+          "line": 33170
+        }
+      ],
+      "vueState": "not-migrated",
+      "nextGate": "no auto flags or data writes without approved institutional source and authorized reviewer workflow"
+    },
+    {
+      "key": "curation-review",
+      "nfq": [
+        "NFQ-018",
+        "NFQ-019",
+        "NFQ-022",
+        "NFQ-023"
+      ],
+      "originalFunctions": [
+        {
+          "name": "heliosLoadCalibration",
+          "line": 30597
+        },
+        {
+          "name": "heliosMarkExceptional",
+          "line": 31776
+        }
+      ],
+      "vueState": "staged-only",
+      "nextGate": "server-side reviewer authority, immutable chronology and conflict-safe mutation"
+    },
+    {
+      "key": "browser-write-mode",
+      "nfq": [
+        "NFQ-035",
+        "NFQ-036"
+      ],
+      "originalFunctions": [
+        {
+          "name": "dbWrite",
+          "line": 10127
+        },
+        {
+          "name": "isWriteMode",
+          "line": 10577
+        }
+      ],
+      "vueState": "prohibited-direct-port",
+      "nextGate": "never transfer browser PIN logic, stored secrets or direct approval/write permissions"
+    }
+  ],
+  "nonRegression": [
+    "Do not overwrite user-uploaded source or the historical index.1.html snapshot.",
+    "Do not publish HTML with embedded keys/session configuration to a public repository.",
+    "No inferred geography from genetic ancestry, no patient search locations or unverified hospital activity.",
+    "No automatic ACMG BA1, BS1, PM2 assignment from a single allele-frequency cutoff.",
+    "No automatic Supabase PATCH, local mutation of recorded scientific fields, or Helios review auto-flagging.",
+    "Every claim of functional parity requires live-source tests, role verification and production acceptance."
+  ]
+}

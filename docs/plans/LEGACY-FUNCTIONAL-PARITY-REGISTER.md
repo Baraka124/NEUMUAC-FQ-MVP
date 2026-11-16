@@ -1,7 +1,7 @@
 # NeumuacFQ — Legacy-to-modern functional parity register
 
-**Owner requirement:** the Vue migration MUST preserve or explicitly retire every functional capability of frozen `index.1.html`; a modern module existing is not evidence of parity.
-**Baseline:** Legacy application frozen at SHA `c18221fb6baf47782318ca3685b94b088c359a66`, with the source/function cross-reference in `docs/architecture/PHASE-0A-FUNCTIONAL-DATA-INVENTORY.md`.
+**Owner requirement:** the Vue migration MUST preserve or explicitly retire every functional capability of the **user-designated original** `index (86).html`; a modern module existing is not evidence of parity.
+**Baseline:** User original SHA-256 `5c7dce0258cf2ba4191c9eff0781ee3d02886b9e026b078e1fb51601f42fe9c5` (16 November 2026). The separately archived revision `index.1.html`, Git blob `c18221fb6baf47782318ca3685b94b088c359a66`, remains a secondary comparison. Source/function cross-references: `docs/architecture/USER-ORIGINAL-FUNCTIONAL-CROSSWALK.json` and the earlier `docs/architecture/PHASE-0A-FUNCTIONAL-DATA-INVENTORY.md` (the latter originated from the archived revision).
 **Date opened:** 2026-10-14. **State:** living backlog, not proof of functionality or clinical validation.
 
 ## Status contract
@@ -343,3 +343,27 @@ Helios-demand routines that exceed the current Vue boundary-only atlas;
 these require separate actual-data and privacy acceptance rather than
 speculative re-enablement. See
 `docs/architecture/USER-ORIGINAL-SOURCE-PROVENANCE-2026-11-16.md`.
+
+## Phase 14H160 — evidence-safe gnomAD reference foundation
+
+The uploaded original (lines 8188–8459) includes public gnomAD queries,
+a per-population frequency display and browser-side `population_frequency`
+updates. The original also mixes ancestry groups with geographic narrative,
+which is **not** an accepted geographic research data source.
+
+**NFQ-013 remains Not migrated.** A tested **pure-domain and opt-in read-only
+adapter** now validates exact GRCh38 chr7 genomic allele identifiers, uses
+parameterized official gnomAD v4 GraphQL query syntax, rejects inconsistent
+variant IDs/assembly/counts/AF and separates exomes from genomes, with
+explicit missing/error states. It is **not yet mounted into the Vue dossier**
+because the verified clinical catalog does not expose an independently
+approved variant-to-genomic-coordinate mapping. No geospatial or patient
+inference, automatic ACMG BA1/PM2 classification, background fetch,
+Supabase PATCH, application permissions, archived original or production
+record is changed.
+
+Mapping of original line anchors to NFQ domains is in
+`docs/architecture/USER-ORIGINAL-FUNCTIONAL-CROSSWALK.json` and
+`docs/architecture/14H160-GNOMAD-REFERENCE-RECOVERY.md`.
+NFQ-030 remains Not migrated; the current Spain administrative atlas
+must not be labeled variant-prevalence or hospital-search analytics.
