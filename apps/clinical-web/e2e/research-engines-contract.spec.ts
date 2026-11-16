@@ -50,6 +50,17 @@ async function setup(page:Page,role:'verified'|'unassigned'|'public'='verified',
     body:JSON.stringify(role==='verified'?[{user_id:ID,role:'reviewer',revoked_at:null}]:[])});
    return;
   }
+  if(u.pathname.endsWith('/rpc/nfq_reviewed_source_claims')){
+   const request=JSON.parse(req.postData()||'{}');
+   if(role!=='verified'){
+    await route.fulfill({status:403,headers:cors,contentType:'application/json',
+     body:JSON.stringify({message:'Research role required'})});
+   }else{
+    await route.fulfill({status:200,headers:cors,contentType:'application/json',
+     body:JSON.stringify({variantId:'18',source:'nfq-double-independent-review-v1',claims:[]})});
+   }
+   return;
+  }
   if(u.pathname.endsWith('/rpc/nfq_research_therapy_source_snapshot')){
    rpc++;
    await route.fulfill({status:role==='verified'?200:403,headers:cors,
