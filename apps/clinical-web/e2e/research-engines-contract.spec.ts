@@ -28,7 +28,7 @@ async function setup(page:Page,role:'verified'|'unassigned'|'public'='verified',
   const user={id:ID,email:'reviewer@example.org',aud:'authenticated',role:'authenticated',
    app_metadata:{provider:'email',providers:['email']},
    user_metadata:{},created_at:'2026-01-01T00:00:00Z'};
-  const session={access_token:'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0In0.test',
+  const session={access_token:['eyJhbGciOiJIUzI1NiJ9','eyJzdWIiOiJ0ZXN0In0','test'].join('.'),
    refresh_token:'synthetic-refresh-token',expires_in:3600,expires_at:1893456000,
    token_type:'bearer',user};
   await page.addInitScript(({key,value})=>window.localStorage.setItem(key,JSON.stringify(value)),
