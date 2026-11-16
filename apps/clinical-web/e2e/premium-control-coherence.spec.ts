@@ -56,6 +56,60 @@ test('14H153 single search shell, visible therapy labels and compact guided live
  }
 });
 
+test('14H161 filters never cover variant search, batch controls or the first result at any breakpoint',async({page})=>{
+ for(const [mode,width] of [['light',320],['midnight',390],['light',768],['midnight',1024],['light',1366]] as const){
+  await page.setViewportSize({width,height:844});
+  await setTheme(page,mode);
+  await page.goto('/#/variants');
+  const search=page.locator('.variant-page input#search');
+  const toggle=page.getByRole('button',{name:/Filters/});
+  const batch=page.getByTestId('nfq-batch-toggle');
+  await expect(search).toBeVisible();
+  await expect(batch).toBeVisible();
+  await expect(toggle).toBeVisible();
+  const initial=await search.boundingBox();
+  expect(initial).not.toBeNull();
+  await toggle.click();
+  const panel=page.getByTestId('nfq-guided-filters');
+  await expect(panel).toBeVisible();
+  await expect(panel.getByRole('heading',{name:'Refine results'})).toBeFocused();
+  const area=await page.evaluate(()=>{
+   const rect=(q:string)=>{const el=document.querySelector(q)!;const b=el.getBoundingClientRect();return {left:b.left,right:b.right,top:b.top,bottom:b.bottom}};
+   return {
+    search:rect('.variant-page .discovery-input'),
+    buttons:rect('.variant-page .discovery-utility-row'),
+    batch:rect('.variant-page .nfq-batch-toggle'),
+    panel:rect('.variant-page .variant-filter-panel'),
+    rail:rect('.variant-page .record-rail'),
+    sidecar:document.querySelector('.variant-filter-panel.is-sidecar')!==null
+   };
+  });
+  expect(area.batch.top).toBeGreaterThanOrEqual(area.buttons.top);
+  expect(area.batch.bottom).toBeLessThanOrEqual(area.buttons.bottom+1);
+  // The filter cannot intersect the active search field.
+  const intersects=(a:{left:number;right:number;top:number;bottom:number},b:{left:number;right:number;top:number;bottom:number})=>
+   a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;
+  expect(intersects(area.panel,area.search)).toBe(false);
+  expect(intersects(area.batch,area.search)).toBe(false);
+  if(width>=1001){
+   expect(area.sidecar).toBe(true);
+   expect(area.panel.left).toBeGreaterThanOrEqual(area.rail.right-2);
+  }else{
+   expect(area.sidecar).toBe(false);
+   expect(area.panel.top).toBeGreaterThanOrEqual(area.buttons.bottom-2);
+   expect(area.panel.right).toBeLessThanOrEqual(area.rail.right+2);
+  }
+  await panel.locator('#class-filter').selectOption('I');
+  await expect(toggle).toContainText('1 active');
+  await panel.getByRole('button',{name:'Done'}).click();
+  await expect(panel).toHaveCount(0);
+  const result=await search.boundingBox();
+  expect(result).not.toBeNull();
+  expect(Math.abs(result!.top-initial!.top)).toBeLessThanOrEqual(2);
+  await noHorizontalOverflow(page);
+ }
+});
+
 test('14H154 atlas has no redundant index; map and picker share the same selected region across themes',async({page})=>{
  for(const mode of ['light','midnight'] as const){
   await setTheme(page,mode);
