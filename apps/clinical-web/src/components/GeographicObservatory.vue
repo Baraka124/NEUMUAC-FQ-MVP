@@ -1,15 +1,19 @@
 <script setup lang="ts">
 import {computed,nextTick,ref,watch,onUnmounted} from 'vue';
 import {SPAIN_REGIONS} from '../domain/spainRegionalBoundaries';
+import {canonicalGeographicRegionCode,GEOGRAPHIC_RESEARCH_PROVENANCE,displayedGeographicObservationWindow,observedWindowLabel} from '../domain/geographicResearchProvenance';
 import {getRegionalResearchActivity,type RegionalResearchActivity} from '../domain/regionalResearchActivity';
 import {authController,authSessionProvider} from '../services/authSession';
 import {readConfigFromEnvironment} from '../services/liveVariants';
 import {researcherRole} from '../services/researchRole';
 
-const props=defineProps<{variantId?:string|null}>();
+const props=defineProps<{variantId?:string|null;initialRegionCode?:string|null}>();
+const emit=defineEmits<{regionSelected:[code:string|null]}>();
+const provenance=GEOGRAPHIC_RESEARCH_PROVENANCE;
 const recordedActivity=ref<readonly RegionalResearchActivity[]>([]);
 const activityState=ref<'restricted'|'checking'|'available'|'empty'|'unavailable'>('restricted');
 const activityCodes=computed(()=>new Set(recordedActivity.value.map(item=>item.regionCode)));
+const observedRange=computed(()=>observedWindowLabel(displayedGeographicObservationWindow(recordedActivity.value)));
 let geoAbort:AbortController|null=null;
 watch([()=>researcherRole.phase,()=>authController?.state.phase,()=>props.variantId],()=>{
  geoAbort?.abort();geoAbort=null;recordedActivity.value=[];
@@ -39,6 +43,12 @@ const shortDate=(value:string)=>new Intl.DateTimeFormat('en-GB',{day:'numeric',m
 
 
 const selected=ref<string|null>(null);
+watch(()=>props.initialRegionCode,code=>{
+ const region=canonicalGeographicRegionCode(code);
+ selected.value=region;
+ if(region)keyboardRegion.value=region;
+ previewCode.value=null;
+},{immediate:true});
 const selectedActivity=computed(()=>recordedActivity.value.find(item=>item.regionCode===selected.value)||null);
 const detailPanel=ref<HTMLElement|null>(null);
 const mapSvg=ref<SVGSVGElement|null>(null);
@@ -48,14 +58,19 @@ const selectedRegion=computed(()=>SPAIN_REGIONS.find(region=>region.code===selec
 const alphabeticalRegions=[...SPAIN_REGIONS].sort((a,b)=>a.name.localeCompare(b.name,'es'));
 const previewRegion=computed(()=>SPAIN_REGIONS.find(region=>region.code===previewCode.value)||null);
 function choose(code:string){
- selected.value=code;
- keyboardRegion.value=code;
+ const region=canonicalGeographicRegionCode(code);
+ if(!region)return;
+ selected.value=region;
+ keyboardRegion.value=region;
+ emit('regionSelected',region);
 }
 function chooseFromPicker(code:string){
- selected.value=code||null;
- if(code)keyboardRegion.value=code;
+ const region=canonicalGeographicRegionCode(code);
+ selected.value=region;
+ if(region)keyboardRegion.value=region;
+ emit('regionSelected',region);
 }
-function clearSelection(){selected.value=null;}
+function clearSelection(){selected.value=null;emit('regionSelected',null);}
 function focusRegion(code:string){
  keyboardRegion.value=code;
  previewCode.value=code;
@@ -161,6 +176,18 @@ function openSelectedDetail(){
       </div>
       <p class="geo-research-provenance">Coarse IP-based region estimate · 20+ recorded events and 10+ sessions per region. Historical records may include tests.</p>
      </template>
+     <details v-if="activityState==='available'" class="geo-source-provenance" data-testid="geo-source-provenance">
+      <summary>Source and observed period</summary>
+      <dl>
+       <div><dt>Source</dt><dd>{{provenance.dataset}}</dd></div>
+       <div><dt>Matching</dt><dd>{{provenance.method}}</dd></div>
+       <div><dt>Region method</dt><dd>{{provenance.attribution}}</dd></div>
+       <div v-if="observedRange"><dt>Displayed period</dt><dd data-testid="geo-observed-range">{{observedRange}}</dd></div>
+       <div><dt>Minimum sample</dt><dd>{{provenance.suppression}}</dd></div>
+       <div><dt>Excluded</dt><dd>{{provenance.exclusions}}</dd></div>
+      </dl>
+      <p>{{provenance.statement}}</p>
+     </details>
     </section>
     <div class="geo-insight-note" role="note">
      <strong>Evidence boundary</strong>
@@ -350,4 +377,18 @@ function openSelectedDetail(){
 :global(.app-frame[data-nfq-theme="midnight"]) .geo-research-activity{border-color:#354e71}
 :global(.app-frame[data-nfq-theme="midnight"]) .geo-research-row{border-color:#354e71}
 :global(.app-frame[data-nfq-theme="midnight"]) .geo-research-muted a{color:#a9d0ff}
+
+/* 14H164 provenance lives in the existing insight, never a new dashboard card. */
+.geo-source-provenance{margin:12px 0 0;color:#4f6b80;font-size:10.8px;line-height:1.5}
+.geo-source-provenance summary{cursor:pointer;font-size:11px;font-weight:650;color:#3e709e}
+.geo-source-provenance summary:focus-visible{outline:2px solid #2979ff;outline-offset:2px}
+.geo-source-provenance dl{display:grid;gap:5px;margin:9px 0 6px}
+.geo-source-provenance dl>div{display:grid;grid-template-columns:minmax(82px,.42fr) minmax(0,1fr);gap:6px 12px}
+.geo-source-provenance dt{color:#718ba4}
+.geo-source-provenance dd{margin:0;color:#385977;overflow-wrap:anywhere}
+.geo-source-provenance p{margin:7px 0 0;font-size:10.8px;line-height:1.5}
+:global(.app-frame[data-nfq-theme="midnight"]) .geo-source-provenance summary{color:#b4d4ff}
+:global(.app-frame[data-nfq-theme="midnight"]) .geo-source-provenance dt{color:#a0badb}
+:global(.app-frame[data-nfq-theme="midnight"]) .geo-source-provenance dd,
+:global(.app-frame[data-nfq-theme="midnight"]) .geo-source-provenance p{color:#bcd2ed}
 </style>
