@@ -1,6 +1,43 @@
 <script setup lang="ts">
-import {computed,nextTick,ref} from 'vue';
+import {computed,nextTick,ref,watch,onUnmounted} from 'vue';
 import {SPAIN_REGIONS} from '../domain/spainRegionalBoundaries';
+import {getRegionalResearchActivity,type RegionalResearchActivity} from '../domain/regionalResearchActivity';
+import {authController,authSessionProvider} from '../services/authSession';
+import {readConfigFromEnvironment} from '../services/liveVariants';
+import {researcherRole} from '../services/researchRole';
+
+const props=defineProps<{variantId?:string|null}>();
+const recordedActivity=ref<readonly RegionalResearchActivity[]>([]);
+const activityState=ref<'restricted'|'checking'|'available'|'empty'|'unavailable'>('restricted');
+const activityCodes=computed(()=>new Set(recordedActivity.value.map(item=>item.regionCode)));
+const selectedActivity=computed(()=>recordedActivity.value.find(item=>item.regionCode===selected.value)||null);
+let geoAbort:AbortController|null=null;
+watch([()=>researcherRole.phase,()=>authController?.state.phase,()=>props.variantId],()=>{
+ geoAbort?.abort();geoAbort=null;recordedActivity.value=[];
+ if(authController?.state.phase==='checking'||researcherRole.phase==='checking'){
+  activityState.value='checking';return;
+ }
+ if(authController?.state.phase!=='signed-in'||researcherRole.phase!=='verified'){
+  activityState.value='restricted';return;
+ }
+ const config=readConfigFromEnvironment();
+ if(!config){activityState.value='unavailable';return;}
+ activityState.value='checking';
+ const request=new AbortController();geoAbort=request;
+ void getRegionalResearchActivity(config,authSessionProvider,props.variantId??null,fetch,request.signal)
+  .then(result=>{
+   if(request.signal.aborted||geoAbort!==request)return;
+   recordedActivity.value=result.rows;
+   activityState.value=result.status;
+  }).catch(()=>{
+   if(!request.signal.aborted&&geoAbort===request)activityState.value='unavailable';
+  }).finally(()=>{if(geoAbort===request)geoAbort=null;});
+},{immediate:true});
+onUnmounted(()=>geoAbort?.abort());
+const activityTotal=(value:number)=>value.toLocaleString('en-GB');
+const regionByCode=(code:string)=>SPAIN_REGIONS.find(region=>region.code===code)?.name||code;
+const shortDate=(value:string)=>new Intl.DateTimeFormat('en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}).format(new Date(value));
+
 
 const selected=ref<string|null>(null);
 const detailPanel=ref<HTMLElement|null>(null);
@@ -76,9 +113,9 @@ function openSelectedDetail(){
       <rect x="0" y="0" width="690" height="525" fill="#f9fbf9"/>
       <g fill="#e7eee8" stroke="#abc0ae" stroke-width="1.05" stroke-linejoin="round">
        <path v-for="region in SPAIN_REGIONS" :key="region.code" :d="region.path" class="geo-region"
-         :class="{'geo-region-selected':selected===region.code}"
+          :class="{'geo-region-selected':selected===region.code,'geo-region-research-active':activityCodes.has(region.code)}"
          role="button" :tabindex="keyboardRegion===region.code?0:-1" :data-region-code="region.code" :aria-pressed="selected===region.code"
-         :aria-label="region.name+' · region, activity unavailable'"
+         :aria-label="region.name+(activityCodes.has(region.code)?' · historical research search aggregate available':' · administrative boundary')"
          aria-controls="geo-region-detail"
          @pointerenter="previewCode=region.code" @pointerleave="clearPreview(region.code)"
          @focus="focusRegion(region.code)" @blur="clearPreview(region.code)"
@@ -93,6 +130,7 @@ function openSelectedDetail(){
 
     <footer class="geo-map-foot">
      <span class="geo-legend"><span class="geo-legend-swatch" aria-hidden="true"></span>Regional boundaries</span>
+     <span v-if="recordedActivity.length" class="geo-activity-map-legend">Blue · historical research searches</span>
      <span>Individual search locations are never shown</span>
     </footer>
    </section>
@@ -100,10 +138,33 @@ function openSelectedDetail(){
    <aside id="geo-region-detail" ref="detailPanel" tabindex="-1" class="geo-region-insight" aria-label="Selected geographic detail">
     <p class="geo-kicker">REGION</p>
     <div class="geo-insight-heading"><h3 aria-live="polite">{{selectedRegion?.name||'Choose a region'}}</h3><button v-if="selectedRegion" class="geo-clear-selection" type="button" @click="clearSelection">Clear selection</button></div>
-    <p class="geo-insight-intro">{{selectedRegion?'Administrative boundary selected. No verified regional activity figures are available.':'Select a region on the map or by name.'}}</p>
+    <p class="geo-insight-intro">{{selectedRegion?'Administrative boundary selected.':'Select a region on the map or by name.'}}</p>
+    <section class="geo-research-activity" aria-label="Geographic research search activity" data-testid="geo-research-activity">
+     <div class="geo-research-title"><strong>Research search activity</strong><span v-if="activityState==='available'">Historical · aggregate</span></div>
+     <p v-if="activityState==='checking'" role="status" class="geo-research-muted">Checking research activity…</p>
+     <p v-else-if="activityState==='restricted'" class="geo-research-muted">Available to verified research members only. <RouterLink v-if="authController?.state.phase!=='signed-in'" to="/sign-in">Sign in</RouterLink></p>
+     <p v-else-if="activityState==='unavailable'" role="status" class="geo-research-muted">Research activity cannot be verified from the source right now.</p>
+     <p v-else-if="activityState==='empty'" class="geo-research-muted">{{props.variantId?'No publishable aggregate for this variant.':'No region currently meets the publication thresholds.'}}</p>
+     <template v-else-if="activityState==='available'">
+      <div v-if="selectedRegion&&selectedActivity" class="geo-research-selected" data-testid="geo-research-selected">
+       <strong class="geo-research-number">{{activityTotal(selectedActivity.searchEvents)}}</strong>
+       <span>recorded search events · {{activityTotal(selectedActivity.distinctSessions)}} distinct sessions</span>
+       <small>{{shortDate(selectedActivity.firstObservedAt)}} – {{shortDate(selectedActivity.lastObservedAt)}}</small>
+      </div>
+      <p v-else-if="selectedRegion" class="geo-research-muted">This region does not meet the minimum aggregate thresholds{{props.variantId?' for this variant':''}}. This does not mean no searches occurred.</p>
+      <div v-else class="geo-research-rows" data-testid="geo-research-rows">
+       <div v-for="entry in recordedActivity" :key="entry.regionCode" class="geo-research-row">
+        <span>{{regionByCode(entry.regionCode)}}</span>
+        <strong>{{activityTotal(entry.searchEvents)}} <small>events</small></strong>
+        <span class="geo-research-sessions">{{activityTotal(entry.distinctSessions)}} sessions</span>
+       </div>
+      </div>
+      <p class="geo-research-provenance">Coarse IP-based region estimate · 20+ recorded events and 10+ sessions per region. Historical records may include tests.</p>
+     </template>
+    </section>
     <div class="geo-insight-note" role="note">
-     <strong>Data not published</strong>
-     <p>Regional searches, matches and attribution are not verified. This map represents boundaries, not patients or institutions.</p>
+     <strong>Evidence boundary</strong>
+     <p>These are historical research search events, not patients, variant prevalence, clinical demand or institutional activity. Raw locations are not disclosed.</p>
     </div>
    </aside>
   </div>
@@ -111,7 +172,7 @@ function openSelectedDetail(){
   <details class="geo-about">
    <summary>About this atlas and its data</summary>
    <p>Geographic boundaries are a public reference. Professional affiliation, search activity and patient location are distinct concepts and are not inferred here.</p>
-   <p>Historical records include tests. Regional search statistics are not published. The map does not represent patient locations, institution locations or clinical demand.</p>
+   <p>Historical records may include tests. Regional search statistics are not published publicly. Verified research members can view minimum-sized, source-attributed aggregates; raw records and locations remain restricted. The map never represents patients or clinical demand.</p>
   </details>
  </section>
 </template>
@@ -259,4 +320,26 @@ function openSelectedDetail(){
 /* Keep native selection comfortably tappable without a large empty field. */
 .geo-region-picker select{width:clamp(142px,12vw,186px);min-height:42px;padding:7px 30px 7px 10px}
 @container(max-width:585px){.geo-region-picker select{width:min(100%,230px);min-height:42px}}
+
+/* 14H162 · Research activity is genuine source-backed aggregation, not
+   patients, inferred prevalence, or noisy decorative cartography. */
+.geo-region-research-active{fill:#c5def7;stroke:#5f98d2}
+.geo-region-research-active:hover,.geo-region-research-active:focus-visible{fill:#afd0f5}
+.geo-region-research-active.geo-region-selected{fill:#91bbea;stroke:#215f9e;stroke-width:2}
+.geo-activity-map-legend{color:#3a6798;font-size:10.5px}
+.geo-research-activity{margin:12px 0 9px;padding-top:10px;border-top:1px solid #e3eaf2;min-width:0}
+.geo-research-title{display:flex;align-items:baseline;justify-content:space-between;gap:5px;flex-wrap:wrap}
+.geo-research-title strong{color:#284667;font-size:11.5px;font-weight:690}
+.geo-research-title span,.geo-research-provenance{color:#657e9c;font-size:10px;line-height:1.45}
+.geo-research-muted{font-size:11.5px;line-height:1.55;color:#536c88;margin:9px 0}
+.geo-research-muted a{color:#2263ad;text-decoration:underline;text-underline-offset:3px}
+.geo-research-rows{display:grid;gap:0;margin:10px 0 7px}
+.geo-research-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:3px 8px;border-bottom:1px solid #e7eef6;padding:7px 0;font-size:11px;color:#355677}
+.geo-research-row strong{font-size:13.5px;color:#1c467b;font-variant-numeric:tabular-nums}
+.geo-research-row strong small{font-size:10px;font-weight:450}
+.geo-research-sessions{grid-column:1/-1;color:#687f99;font-size:10px}
+.geo-research-selected{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline;margin:9px 0;color:#4f6989;font-size:11px}
+.geo-research-number{color:#195999;font-size:24px;font-variant-numeric:tabular-nums;font-weight:690;line-height:1.2}
+.geo-research-selected small{flex:1 0 100%;color:#667f98;font-size:10.5px}
+.geo-research-provenance{margin:8px 0 3px}
 </style>
