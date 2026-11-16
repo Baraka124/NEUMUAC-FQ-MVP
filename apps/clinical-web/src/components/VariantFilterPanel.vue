@@ -2,6 +2,7 @@
 import {computed} from 'vue';
 import ContextHelp from './ContextHelp.vue';
 
+defineProps<{placement:'sidecar'|'inline'}>();
 const classFilter=defineModel<string>('classFilter',{required:true});
 const subtypeFilter=defineModel<string>('subtypeFilter',{required:true});
 const responseFilter=defineModel<string>('responseFilter',{required:true});
@@ -14,7 +15,7 @@ const changed=computed(()=>Number(classFilter.value!=='all')+
 </script>
 
 <template>
- <section id="variant-filter-panel" class="variant-filter-panel" data-testid="nfq-guided-filters"
+ <section id="variant-filter-panel" class="variant-filter-panel" :class="`is-${placement}`" data-testid="nfq-guided-filters"
    aria-label="Search preferences" @keydown.esc.stop="emit('close')">
   <header class="variant-filter-panel-head">
    <div>
@@ -177,4 +178,40 @@ const changed=computed(()=>Number(classFilter.value!=='all')+
  .nfq-filter-guidance{font-size:11px}
 }
 @media(prefers-reduced-motion:reduce){.variant-filter-panel{scroll-behavior:auto}}
+
+/* 14H161: A real, stable part of the layout. No absolute positioning
+   or z-index over the search/list; no overlay clipping at narrow widths. */
+.variant-filter-panel.is-sidecar,.variant-filter-panel.is-inline{
+ position:relative;inset:auto;z-index:auto;width:100%;max-width:100%;
+ max-height:none;box-shadow:0 5px 19px rgba(16,46,90,.075);
+ overflow:visible;min-width:0;margin:0;
+}
+.variant-filter-panel.is-sidecar .variant-filter-panel-fields{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ align-items:start;gap:11px 17px;overflow:visible;
+}
+.variant-filter-panel.is-sidecar .nfq-filter-group+.nfq-filter-group{
+ border-top:0;padding-top:0;
+}
+.variant-filter-panel.is-sidecar .nfq-filter-group:nth-child(3){
+ grid-column:1 / -1;padding-top:9px;border-top:1px solid #e8eef5;
+}
+.variant-filter-panel.is-sidecar .nfq-filter-group:nth-child(-n+2) .nfq-filter-grid{
+ grid-template-columns:minmax(0,1fr);
+}
+.variant-filter-panel.is-inline{margin:5px 0 12px}
+.variant-filter-panel.is-inline .variant-filter-panel-fields{overflow:visible}
+.variant-filter-panel.is-inline .nfq-filter-grid{
+ grid-template-columns:minmax(0,1fr);
+}
+@media(min-width:540px) and (max-width:1000px){
+ .variant-filter-panel.is-inline .nfq-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:1300px) and (min-width:1001px){
+ .variant-filter-panel.is-sidecar .variant-filter-panel-fields{grid-template-columns:minmax(0,1fr)}
+ .variant-filter-panel.is-sidecar .nfq-filter-group:nth-child(3){grid-column:1}
+ .variant-filter-panel.is-sidecar .nfq-filter-group+.nfq-filter-group{
+  border-top:1px solid #e8eef5;padding-top:9px
+ }
+}
 </style>

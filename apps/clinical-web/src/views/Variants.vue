@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch, onUnmounted } from 'vue';
+import { computed, nextTick, ref, watch, onUnmounted, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import VariantFilterPanel from '../components/VariantFilterPanel.vue';
 import BatchVariantLookup from '../components/BatchVariantLookup.vue';
@@ -306,6 +306,16 @@ const responseFilter=ref(typeof route.query.response==='string'&&['eti-responsiv
 const sort=ref(typeof route.query.sort==='string'&&['name-desc','recent-record','fewest-validations','most-validations'].includes(route.query.sort)?route.query.sort:'name-asc');
 const searchMode=ref(typeof route.query.mode==='string'&&route.query.mode==='exact-name'?'exact-name':'contains');
 const showAdvanced=ref(false);
+// The worklist becomes single-column at 1000px. Exactly one filter panel is
+// mounted: beside the worklist on wide screens, in normal document flow on phones.
+const filterSidecar=ref(false);
+let filterBreakpoint:MediaQueryList|null=null;
+function syncFilterPlacement():void{filterSidecar.value=Boolean(filterBreakpoint?.matches);}
+onMounted(()=>{
+ filterBreakpoint=window.matchMedia('(min-width: 1001px)');
+ syncFilterPlacement();filterBreakpoint.addEventListener('change',syncFilterPlacement);
+});
+onUnmounted(()=>filterBreakpoint?.removeEventListener('change',syncFilterPlacement));
 function toggleAdvanced():void{
  showAdvanced.value=!showAdvanced.value;
  if(showAdvanced.value)void nextTick(()=>document.getElementById('variant-filter-title')?.focus({preventScroll:true}));
@@ -497,7 +507,7 @@ function select(id:string):void{
   <div class="variant-heading"><h1>Variants</h1><span class="nfq-access-note">{{variantAccessLabel}}</span></div>
   <BatchVariantLookup v-if="batchOpen" :source="source" @close="batchOpen=false" @open="(id)=>{batchOpen=false;select(id);}" />
   <ResearchSessionPanel v-if="sessionPanelOpen" @close="sessionPanelOpen=false" @open="(id)=>{sessionPanelOpen=false;select(id);}" />
-  <div class="record-layout">
+  <div class="record-layout" :class="{'nfq-filters-sidecar-open':showAdvanced&&filterSidecar}">
    <section class="record-rail" aria-labelledby="record-list-title">
     <div class="rail-topline">
       <h2 id="record-list-title">Search variants</h2>
@@ -520,13 +530,13 @@ function select(id:string):void{
         <svg class="discovery-chevron" aria-hidden="true" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
         <span v-if="activeFilterCount" class="discovery-active-count">{{activeFilterCount}} active</span>
        </button>
-       <VariantFilterPanel v-if="showAdvanced" v-model:class-filter="classFilter" v-model:subtype-filter="subtypeFilter" v-model:response-filter="responseFilter" v-model:sort="sort" v-model:search-mode="searchMode" @close="showAdvanced=false" @reset="resetAdvancedFilters"/>
       </div>
       <button type="button" class="nfq-saved-trigger" data-testid="saved-variants-toggle" :aria-expanded="savedOpen" aria-controls="saved-variants-panel" @click="savedOpen=!savedOpen">Saved<span v-if="savedIds.length"> · {{savedIds.length}}</span></button>
       <button type="button" class="nfq-saved-trigger nfq-batch-toggle" data-testid="nfq-batch-toggle" :aria-expanded="batchOpen" @click="toggleBatch">Batch lookup</button>
       <button v-if="authController?.state.phase==='signed-in'" type="button" class="nfq-saved-trigger nfq-session-toggle" data-testid="nfq-session-toggle" :aria-expanded="sessionPanelOpen" @click="toggleSessionPanel">My session<span v-if="researchVisitSession.state.visits.length"> · {{researchVisitSession.state.visits.length}}</span></button>
        <span v-if="!busy&&!error&&displayedRows.length" class="record-total" aria-live="polite" aria-label="Visible results on this page">{{displayedRows.length}} on page</span>
     </div>
+    <VariantFilterPanel v-if="showAdvanced&&!filterSidecar" placement="inline" v-model:class-filter="classFilter" v-model:subtype-filter="subtypeFilter" v-model:response-filter="responseFilter" v-model:sort="sort" v-model:search-mode="searchMode" @close="showAdvanced=false" @reset="resetAdvancedFilters"/>
     <section v-if="savedOpen" id="saved-variants-panel" class="nfq-saved-panel" aria-label="Saved variants" data-testid="saved-variants-panel">
       <div class="nfq-saved-panel-head"><strong>Saved variants</strong><button type="button" aria-label="Close saved variants" @click="savedOpen=false">Close</button></div>
       <p v-if="!savedIds.length" class="nfq-saved-muted">No saved variants on this browser.</p>
@@ -591,6 +601,7 @@ function select(id:string):void{
       <span>Regional research activity</span><span aria-hidden="true">↗</span>
     </RouterLink>
    </section>
+   <VariantFilterPanel v-if="showAdvanced&&filterSidecar" placement="sidecar" v-model:class-filter="classFilter" v-model:subtype-filter="subtypeFilter" v-model:response-filter="responseFilter" v-model:sort="sort" v-model:search-mode="searchMode" @close="showAdvanced=false" @reset="resetAdvancedFilters"/>
    <div class="record-content">
     <div v-if="selected" class="nfq-dossier-navigation">
      <nav class="nfq-research-trail" aria-label="Research return path">
@@ -1086,4 +1097,43 @@ function select(id:string):void{
 
 
 
+
+/* 14H161: filters are a real right-column surface, NEVER a floating popup
+   over the search input or first search result. The rail retains its scroll. */
+@media(min-width:1001px){
+ .variant-page .record-layout.nfq-filters-sidecar-open>.record-rail{
+  grid-column:1;grid-row:1 / span 2;align-self:start;
+ }
+ .variant-page .record-layout.nfq-filters-sidecar-open>.record-content{
+  grid-column:2;grid-row:2;min-width:0;
+ }
+ .variant-page .record-layout.nfq-filters-sidecar-open :deep(.variant-filter-panel.is-sidecar){
+  grid-column:2;grid-row:1;min-width:0;
+ }
+}
+/* Every action receives an actual grid cell. Batch lookup never floats over
+   the first result or results count, including at 320px. */
+.variant-page .record-rail .discovery-utility-row{
+ display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+ grid-auto-flow:row;grid-auto-rows:minmax(40px,max-content);
+ height:auto!important;max-height:none!important;min-height:85px!important;
+ align-content:start;align-items:stretch;
+ gap:5px 7px;margin:8px 0 10px;padding:0!important;overflow:visible!important;
+}
+.variant-page .record-rail .variant-filter-anchor,
+.variant-page .record-rail .variant-filter-trigger,
+.variant-page .record-rail .nfq-saved-trigger{
+ width:100%;max-width:100%;min-width:0;
+}
+.variant-page .record-rail .discovery-utility-row .record-total{
+ grid-column:1 / -1;justify-self:end;margin:0;
+}
+.variant-page .record-rail .discovery-utility-row :is(.variant-filter-anchor,.nfq-saved-trigger,.record-total){
+ position:static!important;grid-row:auto;align-self:stretch;transform:none!important;margin-block:0!important;
+}
+.variant-page .record-rail .nfq-batch-toggle{white-space:normal;position:static!important;transform:none!important;align-self:stretch}
+@media(max-width:380px){
+ .variant-page .record-rail .discovery-utility-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+ .variant-page .record-rail .discovery-utility-row .nfq-batch-toggle{font-size:11px!important}
+}
 </style>
