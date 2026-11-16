@@ -79,7 +79,8 @@ function counts(input:unknown):{ac:number;an:number;af:number}|null{
  if(!Number.isSafeInteger(ac)||!Number.isSafeInteger(an)||typeof ac!=='number'||typeof an!=='number'||
    ac<0||an<0||ac>an)throw Error('Invalid gnomAD allele counts');
  if(an===0){
-  if(ac!==0)throw Error('Invalid zero-coverage allele count');
+  if(ac!==0||(row.af!==undefined&&row.af!==null&&row.af!==0))
+   throw Error('Invalid zero-coverage allele count');
   return null;
  }
  const af=ac/an;
@@ -87,7 +88,7 @@ function counts(input:unknown):{ac:number;an:number;af:number}|null{
  // upstream AF rather than inventing/rounding away a discrepancy.
  if(row.af!==null&&row.af!==undefined){
   if(typeof row.af!=='number'||!Number.isFinite(row.af)||row.af<0||row.af>1||
-     Math.abs(row.af-af)>Math.max(0.000001,2/an))
+     Math.abs(row.af-af)>0.000001)
    throw Error('Inconsistent gnomAD allele frequency');
  }
  return {ac,an,af};
