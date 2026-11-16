@@ -100,7 +100,7 @@ export function sourceMetadataFlags(r:SourceAcquisitionRecord):readonly string[]
 export function sourcePubMedId(row:SourceAcquisitionRecord):string|null{
  const url=new URL(row.url);
  if(url.hostname!=='pubmed.ncbi.nlm.nih.gov')return null;
- const id=url.pathname.match(/^\\/([1-9][0-9]{0,11})\\/?$/)?.[1]??null;
+ const id=url.pathname.match(/^\/([1-9][0-9]{0,11})\/?$/)?.[1]??null;
  return id;
 }
 export function summarizeSourceAcquisition(rows:readonly SourceAcquisitionRecord[]){
