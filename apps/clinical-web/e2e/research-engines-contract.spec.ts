@@ -138,6 +138,8 @@ test('14H166 verified double-review source enters actual five-therapy conflict a
   scope:'single-variant',genotypePair:null,method:'in-vitro-study',
   finding:'reported-no-response',studyFamilyId:'PMID-12345678',
   locator:'Results · Table 2',rationale:'The recorded in-vitro study endpoint is explicitly documented.',
+  endpoint:{code:'sweat-chloride',statistic:'change-from-baseline',unit:'mmol/L',value:-22.4,
+   model:'clinical',comparator:'baseline',timepoint:'Day 28'},
   status:'approved',submittedAt:'2026-09-01T10:00:00Z',submittedByMe:false,
   reviewCount:2,canReview:false,reviewedAt:'2026-09-03T10:00:00Z',
   reviewSeals:[
@@ -151,9 +153,12 @@ test('14H166 verified double-review source enters actual five-therapy conflict a
  await page.getByTestId('nfq-research-engines-toggle').click();
  const root=page.getByTestId('nfq-research-engines');
  await expect(root).toContainText('1 independently reviewed study families');
+ await expect(root.getByTestId('nfq-claim-endpoint')).toContainText('Sweat chloride');
  await expect(root.locator('[data-therapy="ETI"]')).toContainText('Source disagreement');
  await expect(root.getByTestId('nfq-reviewed-claims')).toContainText('1 active approved');
  await root.locator('[data-therapy="ETI"]').getByRole('button').click();
+ await expect(root).toContainText('sweat-chloride');
+ await expect(root).toContainText('-22.4');
  await expect(root.locator('[data-therapy="ETI"]')).toContainText('Recorded legacy response category and independently reviewed reports differ');
  expect(record.rpc).toBe(1);
 });
@@ -173,6 +178,16 @@ test('14H166 source submission UI requires exact bibliographic citation and rati
  await form.getByPlaceholder('Original paper · Table 2 · outcome').fill('Results · Table 2');
  await form.getByPlaceholder('State the measured endpoint, experimental conditions, and why this finding is applicable.')
   .fill('Experimental endpoint measured under the documented conditions; separate independent reviewers must verify the claim.');
+ await expect(form.getByTestId('nfq-source-claim-submit')).toBeEnabled();
+ await form.getByTestId('nfq-endpoint-intake').getByText('Experimental endpoint').click();
+ await form.getByTestId('nfq-endpoint-code').selectOption('sweat-chloride');
+ await form.getByTestId('nfq-endpoint-value').fill('-22.4');
+ await form.getByTestId('nfq-endpoint-unit').selectOption('mmol/L');
+ await expect(form.getByTestId('nfq-source-claim-submit')).toBeDisabled();
+ await form.getByLabel('Reporting statistic').selectOption('change-from-baseline');
+ await form.getByLabel('Biological or clinical model').selectOption('clinical');
+ await form.getByLabel('Source comparator').selectOption('baseline');
+ await form.getByTestId('nfq-endpoint-timepoint').fill('Day 28');
  await expect(form.getByTestId('nfq-source-claim-submit')).toBeEnabled();
  expect(record.methods.filter(x=>x.includes('/rpc/nfq_reviewed_source_claims')).length).toBe(1);
 });

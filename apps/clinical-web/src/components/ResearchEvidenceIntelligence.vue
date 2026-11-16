@@ -157,7 +157,22 @@ onUnmounted(()=>request?.abort());
          <dd>{{item.archivalResponsive}} / {{item.archivalNonresponsive}}</dd></div>
         <div><dt>Historic contradiction events</dt><dd>{{item.historicalContradictionEvents}} · metadata, not adjudicated findings</dd></div>
         <div><dt>Source observations needing review</dt><dd>{{item.sourceAssessment.pendingObservations}}</dd></div>
+        <div><dt>Reported numeric endpoint observations</dt><dd>{{item.sourceAssessment.numericEndpointRows}}</dd></div>
+        <div v-if="item.sourceAssessment.incomparableEndpointRows"><dt>Incomparable numeric records</dt>
+         <dd>{{item.sourceAssessment.incomparableEndpointRows}} · retained separately</dd></div>
        </dl>
+       <div v-if="item.sourceAssessment.endpointGroups.length" class="nfq-research-endpoint-groups"
+         aria-label="Compatible source-reported endpoint contexts">
+        <strong>Source-reported measurements · exact context only</strong>
+        <p>No weighted average, study equivalence or patient treatment prediction is calculated.</p>
+        <div v-for="group in item.sourceAssessment.endpointGroups" :key="group.contextKey"
+          class="nfq-research-endpoint-group">
+         <span>{{group.code}} · {{group.statistic}} · {{group.model}} · {{group.unit}}</span>
+         <span>{{group.observationCount}} observation{{group.observationCount===1?'':'s'}}
+          · {{group.independentStudyFamilies}} study famil{{group.independentStudyFamilies===1?'y':'ies'}}</span>
+         <span>Reported values: {{group.values.join(' · ')}}</span>
+        </div>
+       </div>
        <p v-if="item.archiveDisagreesWithRecorded" class="nfq-research-engines-warning">
         Historical response labels differ. This is a reconciliation question, not proof of clinical disagreement.
        </p>
@@ -243,4 +258,10 @@ onUnmounted(()=>request?.abort());
 .nfq-research-engines-export button:focus-visible{outline:2px solid #2877dc;outline-offset:2px}
 .nfq-research-engines-export span{font-size:10.7px;color:var(--text-muted,#647991)}
 :global(.app-frame[data-nfq-theme="midnight"]) .nfq-research-engines-export button{color:#b3d5ff}
+.nfq-research-endpoint-groups{margin:11px 0 12px;border-top:1px solid var(--border,#e1e8f0);padding-top:9px;
+ font-size:11px;line-height:1.55}
+.nfq-research-endpoint-groups>strong{font-size:11px;color:var(--text,#294662)}
+.nfq-research-endpoint-groups>p{margin:3px 0 7px;color:var(--text-muted,#64809d)}
+.nfq-research-endpoint-group{display:grid;gap:2px;margin:4px 0;padding:5px 0;border-bottom:1px solid var(--border,#e1e8f0)}
+.nfq-research-endpoint-group>span:first-child{font-weight:620}
 </style>

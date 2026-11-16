@@ -1,4 +1,5 @@
 import type {CoreModulatorId} from '../domain/therapyRegistry';
+import {validResearchEndpoint,type ResearchEndpoint} from '../domain/researchEndpointNormalization';
 import type {
  DoubleReviewedSourceClaim,ResearchObservationMethod,ResearchObservationFinding,
  ResearchClaimScope
@@ -23,6 +24,7 @@ export interface CuratedSourceClaim{
  readonly studyFamilyId:string;
  readonly locator:string;
  readonly rationale:string;
+ readonly endpoint:ResearchEndpoint|null;
  readonly status:ClaimReviewStatus;
  readonly submittedAt:string;
  readonly submittedByMe:boolean;
@@ -42,6 +44,7 @@ export interface CuratedClaimPayload{
  readonly studyFamilyId:string;
  readonly locator:string;
  readonly rationale:string;
+ readonly endpoint:ResearchEndpoint;
 }
 const canonical=/^[1-9][0-9]{0,17}$/;
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -65,6 +68,17 @@ function date(value:unknown,name:string):string{
  const text=str(value,name,64);
  if(!Number.isFinite(Date.parse(text)))throw new VariantConnectionError('schema-mismatch','Invalid '+name);
  return text;
+}
+function verifiedEndpoint(input:unknown):ResearchEndpoint|null{
+ if(input===null)return null; // Pre-14H167 immutable historical claim only
+ const object=record(input);
+ if(Object.keys(object).length!==7||
+  !['code','statistic','unit','value','model','comparator','timepoint'].every(k=>Object.prototype.hasOwnProperty.call(object,k)))
+  throw new VariantConnectionError('schema-mismatch','Unknown endpoint fields');
+ const endpoint=object as unknown as ResearchEndpoint;
+ if(!validResearchEndpoint(endpoint))
+  throw new VariantConnectionError('schema-mismatch','Incompatible experimental endpoint units or context');
+ return Object.freeze({...endpoint});
 }
 function claim(raw:unknown,variantId:string):CuratedSourceClaim{
  const row=record(raw);
@@ -124,6 +138,7 @@ function claim(raw:unknown,variantId:string):CuratedSourceClaim{
   studyFamilyId:str(row.studyFamilyId,'study family',120),
   locator:str(row.locator,'source locator',240),
   rationale:str(row.rationale,'scientific rationale',900),
+  endpoint:verifiedEndpoint(row.endpoint),
   status,submittedAt:date(row.submittedAt,'submission time'),
   submittedByMe:row.submittedByMe,reviewCount:row.reviewCount as number,
   canReview:row.canReview,
@@ -164,7 +179,8 @@ export function reviewedSourceObservations(
   method:item.method,finding:item.finding,studyFamilyId:item.studyFamilyId,
   referenceId:item.referenceId,locator:item.locator,
   reviewedBy:[item.reviewSeals[0]!,item.reviewSeals[1]!] as const,
-  reviewedAt:item.reviewedAt!
+  reviewedAt:item.reviewedAt!,
+  endpoint:item.endpoint
  })));
 }
 export function validSourceClaimPayload(
@@ -176,7 +192,8 @@ export function validSourceClaimPayload(
   !/^[A-Za-z0-9][A-Za-z0-9._:-]{2,119}$/.test(data.studyFamilyId)||
   data.locator.trim().length<8||data.locator.trim().length>240||
   data.rationale.trim().length<20||data.rationale.trim().length>900||
-  /[\u0000-\u001f\u007f]/.test(data.locator+data.rationale))return false;
+  /[\u0000-\u001f\u007f]/.test(data.locator+data.rationale)||
+  !validResearchEndpoint(data.endpoint))return false;
  if(data.scope==='single-variant')return data.genotypePair===null;
  return Array.isArray(data.genotypePair)&&data.genotypePair.length===2&&
   data.genotypePair.every(id=>canonical.test(id))&&data.genotypePair.includes(variantId);
