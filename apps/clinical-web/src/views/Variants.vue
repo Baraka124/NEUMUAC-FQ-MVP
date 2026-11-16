@@ -21,6 +21,7 @@ import {confirmedDossierRecord} from '../domain/confirmedDossier';
 import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
 import {createLegacyEtiSource,type LegacyEtiRecord} from '../services/legacyEtiResponse';
 import TherapyWorkspace from '../components/TherapyWorkspace.vue';
+import ResearchEvidenceIntelligence from '../components/ResearchEvidenceIntelligence.vue';
 import VariantCuration from '../components/VariantCuration.vue';
 import {createScientificDossierSource,type ScientificDossier} from '../services/scientificDossier';
 import {clinVarVariationUrl} from '../domain/externalAuthority';
@@ -670,6 +671,8 @@ function select(id:string):void{
         @open-validation="openVariantValidation"
        />
        </section>
+       <ResearchEvidenceIntelligence v-if="!selectedFromSearch" :key="'research-'+selected.id"
+        :variant-id="selected.id" :variant-name="variantDisplayName(selected)" />
       </div><section id="nfq-variant-science" tabindex="-1" v-if="!selectedFromSearch" class="dossier-science" aria-label="Additional scientific record details">
       <p v-if="dossierError" role="alert">{{dossierError}}</p>
       <div class="nfq-details-control">
