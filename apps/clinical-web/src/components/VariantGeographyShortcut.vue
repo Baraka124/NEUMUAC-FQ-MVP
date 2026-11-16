@@ -95,6 +95,6 @@ onUnmounted(()=>document.removeEventListener('pointerdown',outside));
 :global(.app-frame[data-nfq-theme="midnight"]) .nfq-geo-shortcut-help{color:#acc6e8}
 :global(.app-frame[data-nfq-theme="midnight"]) .nfq-geo-shortcut-link{color:#a4cbff}
 @media(max-width:760px){
- .nfq-geo-shortcut-panel{right:-4px}
+ .nfq-geo-shortcut-panel{right:auto;left:0}
 }
 </style>
