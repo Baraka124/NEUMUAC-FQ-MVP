@@ -21,6 +21,7 @@ export function researchEngineWorksheet(
   '**Source:** live CFTR variant records and historical research metadata',
   '**Linked bibliography:** '+report.bibliographicLinks+' catalogued references',
   '**Independently reviewed study families:** '+report.independentlyReviewedClaims,
+  '**Review coverage:** linked bibliography does not automatically establish reviewed source observations',
   '',
   '| Therapy | Archived variant status | Reviewed source observation | Source status |',
   '|---|---|---|---|'
