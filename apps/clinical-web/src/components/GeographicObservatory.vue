@@ -10,7 +10,6 @@ const props=defineProps<{variantId?:string|null}>();
 const recordedActivity=ref<readonly RegionalResearchActivity[]>([]);
 const activityState=ref<'restricted'|'checking'|'available'|'empty'|'unavailable'>('restricted');
 const activityCodes=computed(()=>new Set(recordedActivity.value.map(item=>item.regionCode)));
-const selectedActivity=computed(()=>recordedActivity.value.find(item=>item.regionCode===selected.value)||null);
 let geoAbort:AbortController|null=null;
 watch([()=>researcherRole.phase,()=>authController?.state.phase,()=>props.variantId],()=>{
  geoAbort?.abort();geoAbort=null;recordedActivity.value=[];
@@ -40,6 +39,7 @@ const shortDate=(value:string)=>new Intl.DateTimeFormat('en-GB',{day:'numeric',m
 
 
 const selected=ref<string|null>(null);
+const selectedActivity=computed(()=>recordedActivity.value.find(item=>item.regionCode===selected.value)||null);
 const detailPanel=ref<HTMLElement|null>(null);
 const mapSvg=ref<SVGSVGElement|null>(null);
 const previewCode=ref<string|null>(null);
@@ -342,4 +342,12 @@ function openSelectedDetail(){
 .geo-research-number{color:#195999;font-size:24px;font-variant-numeric:tabular-nums;font-weight:690;line-height:1.2}
 .geo-research-selected small{flex:1 0 100%;color:#667f98;font-size:10.5px}
 .geo-research-provenance{margin:8px 0 3px}
+
+:global(.app-frame[data-nfq-theme="midnight"]) .geo-region-research-active{fill:#254875;stroke:#6ba0e0}
+:global(.app-frame[data-nfq-theme="midnight"]) .geo-region-research-active.geo-region-selected{fill:#33679d;stroke:#b6d9ff}
+:global(.app-frame[data-nfq-theme="midnight"]) :is(.geo-research-title strong,.geo-research-row strong,.geo-research-number){color:#d4e7ff}
+:global(.app-frame[data-nfq-theme="midnight"]) :is(.geo-research-muted,.geo-research-row,.geo-research-sessions,.geo-research-selected,.geo-research-provenance,.geo-research-title span){color:#afc6e3}
+:global(.app-frame[data-nfq-theme="midnight"]) .geo-research-activity{border-color:#354e71}
+:global(.app-frame[data-nfq-theme="midnight"]) .geo-research-row{border-color:#354e71}
+:global(.app-frame[data-nfq-theme="midnight"]) .geo-research-muted a{color:#a9d0ff}
 </style>
