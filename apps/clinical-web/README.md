@@ -4,7 +4,7 @@ Vue 3, TypeScript, Vite, Pinia, Supabase (read-only research services), Vitest a
 
 ## Current deployment and migration status
 
-The Vue build is deployed through the repository root `index.html`; the frozen legacy application is preserved as `index.1.html` (SHA `c18221fb6baf47782318ca3685b94b088c359a66`). The original Phase 1A scaffold instructions previously in this file are historical and **do not** describe the current deployment.
+The Vue build is deployed through the repository root `index.html`. The repository retains a historical legacy snapshot named `index.1.html` (blob SHA `c18221fb6baf47782318ca3685b94b088c359a66`); **this is not the same file as the original re-uploaded by the user on 16 November 2026**. See [source provenance and baseline policy](../../docs/architecture/USER-ORIGINAL-SOURCE-PROVENANCE-2026-11-16.md). The uploaded original is a separate 40,175-line attachment with SHA-256 `5c7dce0258cf2ba4191c9eff0781ee3d02886b9e026b078e1fb51601f42fe9c5`; it is not automatically public or a replacement for the Vue build. The original Phase 1A scaffold instructions previously in this file are historical and **do not** describe the current deployment.
 
 The migration remains **incomplete**. A published Vue build does not establish functional equivalence, scientific validation, or safe authenticated write permissions. The authoritative inventories are:
 
