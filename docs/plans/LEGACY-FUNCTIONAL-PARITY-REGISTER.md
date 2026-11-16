@@ -280,3 +280,18 @@ patient locator, clinical provenance or assertion of international data.
 See `apps/clinical-web/docs/14H155-map-discovery-keyboard.md`.
 UI tests do not establish live production acceptance. No backend, Supabase,
 scientific therapy logic, clinician role, patient data or frozen legacy change.
+
+## Phase 14H156 — supported Spain atlas only
+
+**NFQ-030 remains Not migrated.** The International Scope selector exposed no
+published data, map coverage, verified research workflow or analytics.
+The option and its empty globe placeholder have been **removed from the UI
+and its component state**. Geography now exposes only the actual Spain
+administrative-boundary atlas with 19 boundaries, existing accessible map
+and alphabetical native picker, focused arrow-key navigation, selected-region
+details, and explicit caveats against inferring geographic searches, patient
+locations or institutional attribution. Nothing is staged or fabricated.
+The old source-function parity deficit is unchanged. See
+`apps/clinical-web/docs/14H156-supported-spain-atlas-only.md`.
+No scientific prediction, backend, authorization, Supabase, original archived
+HTML, neumDESK or production clinical data change.
