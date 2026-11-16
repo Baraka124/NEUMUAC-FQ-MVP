@@ -1410,10 +1410,20 @@ test('14H137C3 variant rail uses restrained controls and complete compact filter
   const panel=page.getByRole('region',{name:'Search preferences'});
   await expect(panel).toBeVisible();
   await expect(panel.locator('select')).toHaveCount(5);
-  const panelWidth=await panel.evaluate(el=>el.getBoundingClientRect().width);
-  // 14H153 widens the compact filter into a guided horizontal disclosure;
-  // it must remain contained at 320px, phone, tablet and desktop widths.
-  expect(panelWidth,String(width)).toBeLessThanOrEqual(Math.min(width<=610?350:540,width-30));
+  // 14H161: sidecar uses the available right column rather than an old,
+  // narrow absolute overlay; mobile stays entirely inside the search rail.
+  const positioning=await page.evaluate(()=>{
+   const p=document.querySelector('.variant-filter-panel')!.getBoundingClientRect();
+   const r=document.querySelector('.record-rail')!.getBoundingClientRect();
+   return {pLeft:p.left,pRight:p.right,pWidth:p.width,rLeft:r.left,rRight:r.right,rWidth:r.width};
+  });
+  if(width>=1001){
+   expect(positioning.pLeft).toBeGreaterThanOrEqual(positioning.rRight-2);
+   expect(positioning.pRight).toBeLessThanOrEqual(width+1);
+  }else{
+   expect(positioning.pLeft).toBeGreaterThanOrEqual(positioning.rLeft-2);
+   expect(positioning.pWidth).toBeLessThanOrEqual(positioning.rWidth+2);
+  }
   await expect(panel.getByRole('button',{name:'Done'})).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
   await panel.getByRole('button',{name:'Done'}).click();
   await expect(filter).toHaveAttribute('aria-expanded','false');
