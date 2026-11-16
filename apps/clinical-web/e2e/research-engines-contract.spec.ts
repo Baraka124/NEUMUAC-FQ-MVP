@@ -258,3 +258,30 @@ for(const persona of ['unassigned','public'] as const){
   await expect(worklist.getByTestId('nfq-acquisition-list')).toHaveCount(0);
  });
 }
+
+test('14H168 official PubMed metadata is inspected on demand without rewriting source records',async({page})=>{
+ const record=await setup(page);
+ let pubmedRequests=0;
+ await page.route('https://eutils.ncbi.nlm.nih.gov/**',async route=>{
+  pubmedRequests++;
+  const url=new URL(route.request().url());
+  expect(url.searchParams.get('id')).toBe('12345678');
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   result:{uids:['12345678'],'12345678':{
+    uid:'12345678',title:'Officially indexed publication title',
+    pubtype:['Clinical Trial']
+   }}
+  })});
+ });
+ await page.goto('/#/evidence');
+ const root=page.getByTestId('nfq-source-acquisition');
+ await root.getByTestId('nfq-acquisition-toggle').click();
+ await expect(root.getByTestId('nfq-acquisition-list').getByRole('listitem')).toHaveCount(1);
+ expect(pubmedRequests).toBe(0);
+ await root.getByTestId('nfq-acquisition-list').getByRole('button').first().click();
+ await root.getByTestId('nfq-acquisition-pubmed').click();
+ await expect(root.getByTestId('nfq-acquisition-pubmed-result')).toContainText('Officially indexed publication title');
+ await expect(root).toContainText('Indexed title differs');
+ expect(pubmedRequests).toBe(1);
+ expect(record.worklistCalls).toBe(1);
+});
