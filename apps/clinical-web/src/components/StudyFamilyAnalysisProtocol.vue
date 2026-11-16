@@ -18,6 +18,7 @@ const protocol=computed(()=>buildStudyFamilyAnalysisProtocol(props.snapshot,{
 const seen=computed(()=>protocol.value.cohorts.slice(0,12));
 const gateLabels={
  'no-approved-source-data':'No approved observations',
+ 'no-selected-records':'No approved observations match these filters',
  'no-eligible-numeric-outcomes':'No eligible numeric observations',
  'descriptive-research-only':'Descriptive research only',
  'internal-split-plan-only':'Internal holdout can be planned — not validated'
