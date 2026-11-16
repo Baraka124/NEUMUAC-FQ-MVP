@@ -90,18 +90,21 @@ test('14H165 verified researcher sees 5 real-source-bound categories and review 
  expect(record.methods.some(m=>m.includes('/search_logs'))).toBe(false);
 });
 
-test('14H165 signed-in unassigned and public sessions cannot retrieve protected source snapshots',async({page})=>{
- for(const role of ['unassigned','public'] as const){
-  const record=await setup(page,role);
+for(const persona of ['unassigned','public'] as const){
+ test('14H165 '+persona+' account cannot retrieve protected research source snapshots',async({page})=>{
+  const record=await setup(page,persona);
   await page.goto('/#/variants/18');
   await expect(page.locator('#selected-title')).toHaveText('R117H');
-  await page.getByTestId('nfq-research-engines-toggle').click();
   const root=page.getByTestId('nfq-research-engines');
+  const toggle=root.getByTestId('nfq-research-engines-toggle');
+  await expect(toggle).toHaveAttribute('aria-expanded','false');
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded','true');
   await expect(root).toContainText('Active research membership required');
   await expect(root.getByTestId('nfq-research-engines-therapies')).toHaveCount(0);
   expect(record.rpc).toBe(0);
- }
-});
+ });
+}
 
 test('14H165 mismatched source response fails closed, not as an empty verified study result',async({page})=>{
  const record=await setup(page,'verified',true);
