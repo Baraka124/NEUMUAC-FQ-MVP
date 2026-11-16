@@ -143,6 +143,7 @@ describe('14H170 source-family-safe pre-analysis protocol',()=>{
   const b=buildStudyFamilyAnalysisProtocol(s,{therapy:'ETI',endpoint:'ppfev1'});
   expect(a.reviewedRowsInScope).toBe(1);
   expect(b.reviewedRowsInScope).toBe(0);
+  expect(b.gate).toBe('no-selected-records');
   expect(s.total).toBe(2);
   expect(()=>buildStudyFamilyAnalysisProtocol(s,{therapy:'NONEXISTENT' as 'ETI',endpoint:'all'})).toThrow();
  });
