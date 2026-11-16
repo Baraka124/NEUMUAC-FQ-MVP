@@ -1,17 +1,59 @@
 <script setup lang="ts">
-import {computed,ref} from 'vue';
+import {computed,nextTick,ref} from 'vue';
 import {SPAIN_REGIONS} from '../domain/spainRegionalBoundaries';
 
 type Scope='spain'|'international';
 const scope=ref<Scope>('spain');
 const selected=ref<string|null>(null);
 const detailPanel=ref<HTMLElement|null>(null);
+const mapSvg=ref<SVGSVGElement|null>(null);
+const previewCode=ref<string|null>(null);
+const keyboardRegion=ref(SPAIN_REGIONS[0]?.code??'');
 const selectedRegion=computed(()=>SPAIN_REGIONS.find(region=>region.code===selected.value)||null);
 const alphabeticalRegions=[...SPAIN_REGIONS].sort((a,b)=>a.name.localeCompare(b.name,'es'));
-function choose(code:string){selected.value=code;}
-function chooseFromPicker(code:string){selected.value=code||null;}
+const previewRegion=computed(()=>SPAIN_REGIONS.find(region=>region.code===previewCode.value)||null);
+function choose(code:string){
+ selected.value=code;
+ keyboardRegion.value=code;
+}
+function chooseFromPicker(code:string){
+ selected.value=code||null;
+ if(code)keyboardRegion.value=code;
+}
 function clearSelection(){selected.value=null;}
-function changeScope(value:Scope){scope.value=value;selected.value=null;}
+function changeScope(value:Scope){
+ scope.value=value;
+ selected.value=null;
+ previewCode.value=null;
+ keyboardRegion.value=SPAIN_REGIONS[0]?.code??'';
+}
+function focusRegion(code:string){
+ keyboardRegion.value=code;
+ previewCode.value=code;
+}
+function clearPreview(code:string){if(previewCode.value===code)previewCode.value=null;}
+function onMapKeydown(event:KeyboardEvent,code:string){
+ if(event.key==='Escape'){
+  if(selected.value){event.preventDefault();clearSelection();}
+  return;
+ }
+ const current=SPAIN_REGIONS.findIndex(region=>region.code===code);
+ if(current<0)return;
+ const last=SPAIN_REGIONS.length-1;
+ let target=-1;
+ if(event.key==='ArrowRight'||event.key==='ArrowDown')target=current===last?0:current+1;
+ else if(event.key==='ArrowLeft'||event.key==='ArrowUp')target=current===0?last:current-1;
+ else if(event.key==='Home')target=0;
+ else if(event.key==='End')target=last;
+ if(target<0)return;
+ event.preventDefault();
+ const nextRegion=SPAIN_REGIONS[target];
+ keyboardRegion.value=nextRegion.code;
+ void nextTick(()=>{
+  const paths=mapSvg.value?.querySelectorAll<SVGPathElement>('path.geo-region');
+  [...(paths??[])].find(path=>path.dataset.regionCode===nextRegion.code)?.focus();
+ });
+}
 function openSelectedDetail(){
  const panel=detailPanel.value;
  if(!panel||!selectedRegion.value)return;
@@ -34,7 +76,7 @@ function openSelectedDetail(){
   <div class="geo-layout">
    <section class="geo-map-surface" aria-label="Regional atlas">
     <div class="geo-map-heading">
-     <div><strong>{{scope==='spain'?'Spain':'International overview'}}</strong><span>{{scope==='spain'?'17 communities · 2 autonomous cities':'Country-level data pending'}}</span></div>
+     <div><strong>{{scope==='spain'?'Spain':'International overview'}}</strong><span class="geo-map-context" :class="{'is-preview':Boolean(previewRegion)}" data-testid="geo-map-context">{{scope==='spain'?(previewRegion?previewRegion.name+' · Administrative boundary':'17 communities · 2 autonomous cities'):'Country-level data pending'}}</span></div>
      <label v-if="scope==='spain'" for="geo-region-picker" class="geo-region-picker">Choose a region
       <select id="geo-region-picker" :value="selected||''" @change="chooseFromPicker(($event.target as HTMLSelectElement).value)">
        <option value="">All Spain</option>
@@ -45,16 +87,18 @@ function openSelectedDetail(){
     </div>
     <div v-if="selectedRegion" class="geo-current-selection"><span role="status">{{selectedRegion.name}} selected</span><button class="geo-selected-detail-link" type="button" @click="openSelectedDetail">View region details <span aria-hidden="true">→</span></button></div>
     <div v-if="scope==='spain'" class="geo-map-inner">
-     <svg viewBox="0 0 690 525" role="group" aria-label="Selectable map of Spain, its autonomous communities and cities. Administrative boundaries only, without individual searches or activity statistics." preserveAspectRatio="xMidYMid meet">
+     <svg ref="mapSvg" viewBox="0 0 690 525" role="group" aria-label="Selectable map of Spain, its autonomous communities and cities. Administrative boundaries only, without individual searches or activity statistics." preserveAspectRatio="xMidYMid meet">
       <title>Spain · autonomous communities and cities</title>
       <rect x="0" y="0" width="690" height="525" fill="#f9fbf9"/>
       <g fill="#e7eee8" stroke="#abc0ae" stroke-width="1.05" stroke-linejoin="round">
        <path v-for="region in SPAIN_REGIONS" :key="region.code" :d="region.path" class="geo-region"
          :class="{'geo-region-selected':selected===region.code}"
-         role="button" tabindex="0" :aria-pressed="selected===region.code"
+         role="button" :tabindex="keyboardRegion===region.code?0:-1" :data-region-code="region.code" :aria-pressed="selected===region.code"
          :aria-label="region.name+' · region, activity unavailable'"
          aria-controls="geo-region-detail"
-         @click="choose(region.code)" @keydown.enter.prevent="choose(region.code)" @keydown.space.prevent="choose(region.code)"><title>{{region.name}}</title></path>
+         @pointerenter="previewCode=region.code" @pointerleave="clearPreview(region.code)"
+         @focus="focusRegion(region.code)" @blur="clearPreview(region.code)"
+         @click="choose(region.code)" @keydown.enter.prevent="choose(region.code)" @keydown.space.prevent="choose(region.code)" @keydown="onMapKeydown($event,region.code)"><title>{{region.name}}</title></path>
       </g>
       <rect x="460" y="386" width="204" height="126" rx="6" class="geo-inset-outline" aria-hidden="true"/>
       <text x="477" y="405" class="geo-map-label">CANARIAS · INSET</text>
