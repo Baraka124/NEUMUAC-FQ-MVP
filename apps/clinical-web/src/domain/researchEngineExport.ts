@@ -45,6 +45,23 @@ export function researchEngineWorksheet(
   }
  }
  if(!conflictRows)lines.push('No independently reviewed source conflict was detected in the available snapshot. This does not prove agreement.');
+ lines.push('','## Source-reported experimental endpoints','');
+ lines.push('Measurements below are reproduced from independently reviewed study records, grouped only by exact assay and study context. No conversion, weighted mean, effect size or patient response is inferred.');
+ let measurementCount=0;
+ for(const row of report.assessedTherapies){
+  for(const group of row.sourceAssessment.endpointGroups){
+   lines.push('- '+row.therapy+' · '+escape(group.code)+' · '+escape(group.statistic)+
+    ' · '+escape(group.unit)+' · '+escape(group.model)+
+    ' · '+group.observationCount+' reported observations / '+
+    group.independentStudyFamilies+' distinct study families · '+
+    group.values.map(n=>String(n)).join(', '));
+   measurementCount++;
+  }
+  if(row.sourceAssessment.incomparableEndpointRows)
+   lines.push('- '+row.therapy+': '+row.sourceAssessment.incomparableEndpointRows+
+    ' numeric source observations have incomplete or noncomparable measurement context.');
+ }
+ if(!measurementCount)lines.push('No independently reviewed comparable numerical endpoints have been recorded for this variant.');
  lines.push('','## Scientific interpretation limits','');
  for(const limitation of report.dataLimitations)lines.push('- '+escape(limitation));
  lines.push('','**No patient-genotype phase, medication eligibility, dosing, individual effect, statistical certainty or clinical recommendation is calculated.**','');
