@@ -138,6 +138,8 @@ test('14H166 verified double-review source enters actual five-therapy conflict a
   scope:'single-variant',genotypePair:null,method:'in-vitro-study',
   finding:'reported-no-response',studyFamilyId:'PMID-12345678',
   locator:'Results · Table 2',rationale:'The recorded in-vitro study endpoint is explicitly documented.',
+  endpoint:{code:'not-reported',statistic:'not-reported',unit:'not-reported',value:null,
+   model:'not-reported',comparator:'not-reported',timepoint:'not-reported'},
   status:'approved',submittedAt:'2026-09-01T10:00:00Z',submittedByMe:false,
   reviewCount:2,canReview:false,reviewedAt:'2026-09-03T10:00:00Z',
   reviewSeals:[
