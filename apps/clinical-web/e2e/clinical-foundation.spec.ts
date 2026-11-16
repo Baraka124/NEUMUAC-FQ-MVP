@@ -389,9 +389,12 @@ test('regional map offers a direct accessible region selector on small screens',
  await expect(selector).toBeVisible();
  await selector.selectOption('12');
  await expect(page.getByRole('heading',{name:'Galicia'})).toBeVisible();
- await page.getByLabel('Scope').selectOption('international');
- await expect(page.getByText('International overview',{exact:true}).first()).toBeVisible();
- await page.getByRole('button',{name:'Return to Spain'}).click();
+ // There is no International dataset or view: preserve the functioning Spain atlas only.
+ await expect(page.locator('#geo-scope, .geo-toolbar, .geo-international')).toHaveCount(0);
+ await expect(page.locator('path.geo-region')).toHaveCount(19);
+ await selector.selectOption({label:'Andalucía'});
+ await expect(page.getByRole('heading',{name:'Andalucía'})).toBeVisible();
+ await page.getByRole('button',{name:'Clear selection'}).click();
  await expect(page.getByRole('heading',{name:'Choose a region'})).toBeVisible();
 });
 
@@ -707,12 +710,12 @@ test('4F-7H functional compact search and preserved map capabilities',async({pag
   await page.getByLabel('Choose a region').selectOption('12');
   await expect(page.getByRole('heading',{name:'Galicia'})).toBeVisible();
   await page.getByRole('button',{name:'Clear selection'}).click();
-  // The map and dropdown preserve coverage across scope changes without an index.
-  await expect(page.locator('.geo-regions-section, #geo-region-list')).toHaveCount(0);
-  await page.getByLabel('Scope').selectOption('international');
-  await expect(page.getByRole('button',{name:'Return to Spain'})).toBeVisible();
-  await page.getByRole('button',{name:'Return to Spain'}).click();
+  // The map and picker stay in the single supported Spain scope.
+  await expect(page.locator('.geo-regions-section, #geo-region-list, #geo-scope, .geo-international')).toHaveCount(0);
   await expect(page.locator('path.geo-region')).toHaveCount(19);
+  await page.getByLabel('Choose a region').selectOption('12');
+  await expect(page.getByRole('heading',{name:'Galicia'})).toBeVisible();
+  await expect(page.locator('path.geo-region[aria-label^="Galicia"]')).toHaveAttribute('aria-pressed','true');
  }
 });
 

@@ -62,7 +62,7 @@ test('14H154 atlas has no redundant index; map and picker share the same selecte
   await page.goto('/#/geography');
   const atlas=page.locator('.geo-observatory');
   await expect(atlas).toBeVisible();
-  await expect(atlas.getByLabel('Scope')).toHaveValue('spain');
+  await expect(atlas.locator('#geo-scope, .geo-toolbar, .geo-international')).toHaveCount(0);
   const picker=atlas.getByLabel('Choose a region');
   await expect(picker).toHaveValue('');
   // The original index contributed no independent capability or data.
