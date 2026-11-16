@@ -93,6 +93,32 @@ test('14H154 atlas has no redundant index; map and picker share the same selecte
  }
 });
 
+test('14H162 public map never leaks researcher-only activity or request raw search logs',async({page})=>{
+ const requests:string[]=[];
+ page.on('request',request=>{
+  if(/search_logs|geo_search_enriched|nfq_geographic_research_activity/.test(request.url()))
+   requests.push(request.url());
+ });
+ for(const [mode,width] of [['light',390],['midnight',1366]] as const){
+  await page.setViewportSize({width,height:844});
+  await setTheme(page,mode);
+  await page.goto('/#/geography');
+  const atlas=page.locator('.geo-observatory');
+  const section=atlas.getByTestId('geo-research-activity');
+  await expect(section).toBeVisible();
+  await expect(section).toContainText('Research search activity');
+  await expect(section).toContainText('Available to verified research members only.');
+  await expect(atlas.locator('.geo-region-research-active')).toHaveCount(0);
+  await expect(atlas.getByTestId('geo-research-rows')).toHaveCount(0);
+  await expect(atlas.locator('path.geo-region')).toHaveCount(19);
+  await atlas.getByLabel('Choose a region').selectOption('12');
+  await expect(atlas.locator('.geo-region-insight h3')).toHaveText('Galicia');
+  await expect(section).toContainText('Available to verified research members only.');
+  await noHorizontalOverflow(page);
+ }
+ expect(requests).toEqual([]);
+});
+
 test('14H155 inline map preview and single-stop arrow navigation work without extra UI',async({page})=>{
  for(const [mode,width] of [['light',390],['midnight',1366]] as const){
   await page.setViewportSize({width,height:844});

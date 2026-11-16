@@ -9,6 +9,6 @@ export function canonicalGeographyVariantId(value:unknown):string|null {
 
 export function geographyVariantEmptyState(id:unknown):string|null {
  return canonicalGeographyVariantId(id)
-  ?'No verified geographic information is currently published for this variant.'
+  ?'No patient distribution is published. Verified researchers may see historical, privacy-thresholded search activity.'
   :null;
 }

@@ -47,7 +47,7 @@ onUnmounted(()=>pending?.abort());
     <RouterLink :to="'/variants/'+variantId" data-testid="geo-variant-return">Return to variant</RouterLink>
    </div>
   </header>
-  <GeographicObservatory/>
+  <GeographicObservatory :variant-id="variantId"/>
  </div>
 </template>
 <style scoped>

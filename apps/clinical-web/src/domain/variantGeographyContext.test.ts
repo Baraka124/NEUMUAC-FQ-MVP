@@ -9,7 +9,7 @@ describe('14H157 variant-linked geography contract',()=>{
    expect(canonicalGeographyVariantId(value)).toBeNull();
  });
  it('provides an explicit published-data boundary only for a supported record identity',()=>{
-  expect(geographyVariantEmptyState('1')).toBe('No verified geographic information is currently published for this variant.');
+  expect(geographyVariantEmptyState('1')).toBe('No patient distribution is published. Verified researchers may see historical, privacy-thresholded search activity.');
   expect(geographyVariantEmptyState('01')).toBeNull();
  });
 });
