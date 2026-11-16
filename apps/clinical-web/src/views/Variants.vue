@@ -1115,7 +1115,10 @@ function select(id:string):void{
    the first result or results count, including at 320px. */
 .variant-page .record-rail .discovery-utility-row{
  display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
- align-items:center;gap:5px 7px;margin:8px 0 10px;
+ grid-auto-flow:row;grid-auto-rows:minmax(40px,max-content);
+ height:auto!important;max-height:none!important;min-height:85px!important;
+ align-content:start;align-items:stretch;
+ gap:5px 7px;margin:8px 0 10px;padding:0!important;overflow:visible!important;
 }
 .variant-page .record-rail .variant-filter-anchor,
 .variant-page .record-rail .variant-filter-trigger,
@@ -1125,7 +1128,10 @@ function select(id:string):void{
 .variant-page .record-rail .discovery-utility-row .record-total{
  grid-column:1 / -1;justify-self:end;margin:0;
 }
-.variant-page .record-rail .nfq-batch-toggle{white-space:normal}
+.variant-page .record-rail .discovery-utility-row :is(.variant-filter-anchor,.nfq-saved-trigger,.record-total){
+ position:static!important;grid-row:auto;align-self:stretch;transform:none!important;margin-block:0!important;
+}
+.variant-page .record-rail .nfq-batch-toggle{white-space:normal;position:static!important;transform:none!important;align-self:stretch}
 @media(max-width:380px){
  .variant-page .record-rail .discovery-utility-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
  .variant-page .record-rail .discovery-utility-row .nfq-batch-toggle{font-size:11px!important}
