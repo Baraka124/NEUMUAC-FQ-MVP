@@ -265,3 +265,18 @@ parallel navigation method. See
 `apps/clinical-web/docs/14H154-geography-remove-region-index.md`.
 No aggregate regional activity data is fabricated or claimed. Production
 acceptance requires verifying the independently hosted public domain.
+
+## Phase 14H155 — in-map discovery and keyboard region navigation
+
+**NFQ-030 remains Not migrated.** After removing the redundant alphabetical
+Region index in 14H154, the existing map's context line temporarily shows
+the real administrative name of a hovered/focused boundary, without new cards,
+height jumps, metadata or inferred research data. Roving `tabindex` provides
+one map entry; arrow keys, Home/End, Enter/Space and Escape support navigation,
+selection and clearing. The original alphabetical picker continues to share
+the same `selected` region state, and the existing detailed administrative
+scope/privacy caveats remain. The preview is not a scientific activity metric,
+patient locator, clinical provenance or assertion of international data.
+See `apps/clinical-web/docs/14H155-map-discovery-keyboard.md`.
+UI tests do not establish live production acceptance. No backend, Supabase,
+scientific therapy logic, clinician role, patient data or frozen legacy change.
