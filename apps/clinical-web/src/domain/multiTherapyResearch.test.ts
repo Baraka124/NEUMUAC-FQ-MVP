@@ -1,6 +1,7 @@
 import {describe,it,expect} from 'vitest';
 import {projectVariantTherapies} from './therapyRegistry';
 import {buildMultiTherapyResearchReport,type ArchivedTherapyEvidence} from './multiTherapyResearch';
+import {researchEngineWorksheet} from './researchEngineExport';
 import {reconcileReviewedSourceClaims,type DoubleReviewedSourceClaim} from './sourceConflictReconciliation';
 import type {LiveEvidenceReference} from '../services/liveEvidence';
 import type {ResearchHistory} from '../services/liveResearchHistory';
@@ -98,6 +99,17 @@ describe('14H165: five-therapy research evidence engine',()=>{
   expect(result.verifiedStudyFamilies).toBe(0);
   expect(result.pendingObservations).toBe(2);
   expect(result.direction).toBe('unavailable');
+ });
+ it('exports five traceable regimens as a nonclinical source worksheet',()=>{
+  const report=buildMultiTherapyResearchReport({variantId:'18',therapyProfile:profile(),
+   references:[bibliography],archivedEvidence:[archived],history});
+  const document=researchEngineWorksheet(report,'R117H | <research>');
+  expect(document).toContain('R117H \\| &lt;research&gt;');
+  expect(document).toContain('Kalydeco');
+  expect(document).toContain('Symkevi');
+  expect(document).toContain('Alyftrek');
+  expect(document).toContain('source observations');
+  expect(document).not.toContain('response probability:');
  });
  it('rejects cross-variant source contamination',()=>{
   expect(()=>buildMultiTherapyResearchReport({variantId:'19',therapyProfile:profile(),
