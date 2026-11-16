@@ -78,7 +78,9 @@ export function validResearchEndpoint(value:ResearchEndpoint):boolean{
   !units.has(value.unit)||typeof value.timepoint!=='string'||
   value.timepoint.length<3||value.timepoint.length>80||
   value.timepoint.trim()!==value.timepoint||/[\u0000-\u001f\u007f]/.test(value.timepoint))return false;
- if(value.code==='not-reported')return JSON.stringify(value)===JSON.stringify(UNEXTRACTED_ENDPOINT);
+ if(value.code==='not-reported')return value.statistic==='not-reported'&&value.unit==='not-reported'&&
+ value.value===null&&value.model==='not-reported'&&value.comparator==='not-reported'&&
+ value.timepoint==='not-reported';
  if(value.value===null)return value.statistic==='not-reported'&&value.unit==='not-reported'&&
   value.timepoint==='not-reported';
  if(typeof value.value!=='number'||!Number.isFinite(value.value)||Math.abs(value.value)>1e6||
