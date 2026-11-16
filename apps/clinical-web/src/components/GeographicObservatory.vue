@@ -20,7 +20,7 @@ watch([()=>researcherRole.phase,()=>authController?.state.phase,()=>props.varian
   activityState.value='restricted';return;
  }
  const config=readConfigFromEnvironment();
- if(!config){activityState.value='unavailable';return;}
+ if(!config||!authSessionProvider){activityState.value='unavailable';return;}
  activityState.value='checking';
  const request=new AbortController();geoAbort=request;
  void getRegionalResearchActivity(config,authSessionProvider,props.variantId??null,fetch,request.signal)
