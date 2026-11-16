@@ -41,7 +41,7 @@ onUnmounted(()=>document.removeEventListener('pointerdown',outside));
     <button type="button" class="nfq-geo-shortcut-close" aria-label="Close geographic context" @click="close(true)">×</button>
    </div>
    <p class="nfq-geo-shortcut-empty" data-testid="variant-geography-empty">{{emptyState}}</p>
-   <p class="nfq-geo-shortcut-help">The atlas shows administrative boundaries, not variant prevalence, patients or search locations.</p>
+   <p class="nfq-geo-shortcut-help">The atlas shows boundaries and, for verified researchers, historical aggregated search activity. It does not show patients or variant prevalence.</p>
    <RouterLink class="nfq-geo-shortcut-link" :to="{path:'/geography',query:{variant:canonicalId}}"
     data-testid="variant-geography-open-atlas" @click="close()">Open atlas <span aria-hidden="true">↗</span></RouterLink>
   </div>
