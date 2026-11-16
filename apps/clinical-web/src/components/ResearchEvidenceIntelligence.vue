@@ -6,7 +6,9 @@ import {buildMultiTherapyResearchReport,type MultiTherapyResearchReport,type Res
 import {researchEngineWorksheet} from '../domain/researchEngineExport';
 import {createResearchSourceSnapshotReader} from '../services/researchSourceSnapshot';
 import {createVariantTherapySource} from '../services/variantTherapySource';
-import {createLiveEvidenceSource} from '../services/liveEvidence';
+import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
+import {createCuratedSourceClaimService,reviewedSourceObservations,type CuratedSourceClaim} from '../services/curatedSourceClaims';
+import ReviewedSourceClaims from './ReviewedSourceClaims.vue';
 import {authController,authSessionProvider} from '../services/authSession';
 import {researcherRole} from '../services/researchRole';
 import {readConfigFromEnvironment} from '../services/liveVariants';
@@ -14,6 +16,9 @@ import {readConfigFromEnvironment} from '../services/liveVariants';
 const props=defineProps<{variantId:string;variantName:string}>();
 const open=ref(false);
 const report=ref<MultiTherapyResearchReport|null>(null);
+const curatedClaims=ref<readonly CuratedSourceClaim[]>([]);
+const linkedReferences=ref<readonly LiveEvidenceReference[]>([]);
+const revision=ref(0);
 const state=ref<'closed'|'checking'|'restricted'|'loading'|'ready'|'unavailable'>('closed');
 const focusTherapy=ref<CoreModulatorId|null>(null);
 const exportNotice=ref('');
@@ -36,6 +41,7 @@ const stateLabel=(s:ResearchAssessmentState):string=>({
  'insufficient-evidence':'No verified evidence'
 })[s];
 function close():void{open.value=false;focusTherapy.value=null;}
+function refreshReviewedEvidence():void{revision.value++;}
 function exportResearchWorksheet():void{
  if(state.value!=='ready'||!report.value)return;
  try{
@@ -52,9 +58,10 @@ function exportResearchWorksheet():void{
 let request:AbortController|null=null;
 watch([
  open,()=>props.variantId,()=>authController?.state.phase,
- ()=>authController?.state.userId,()=>researcherRole.phase
+ ()=>authController?.state.userId,()=>researcherRole.phase,revision
 ],()=>{
- request?.abort();request=null;report.value=null;focusTherapy.value=null;exportNotice.value='';
+ request?.abort();request=null;report.value=null;focusTherapy.value=null;
+ curatedClaims.value=[];linkedReferences.value=[];exportNotice.value='';
  if(!open.value){state.value='closed';return;}
  if(loadingRole.value){state.value='checking';return;}
  if(!verified.value){state.value='restricted';return;}
@@ -64,16 +71,22 @@ watch([
  const archiveReader=createResearchSourceSnapshotReader(config,authSessionProvider,fetch);
  const therapyReader=createVariantTherapySource(config,fetch,authSessionProvider);
  const bibliographyReader=createLiveEvidenceSource(config,fetch);
+ const reviewedReader=createCuratedSourceClaimService(config,authSessionProvider,fetch);
  void Promise.all([
   archiveReader.get(id,controller.signal),
   therapyReader.get(id,controller.signal),
-  bibliographyReader.forVariant(id,controller.signal)
- ]).then(([archive,profile,references])=>{
+  bibliographyReader.forVariant(id,controller.signal),
+  reviewedReader.list(id,controller.signal)
+ ]).then(([archive,profile,references,approvedAndPending])=>{
   if(controller.signal.aborted||request!==controller||props.variantId!==id||!verified.value)return;
   if(!profile){state.value='unavailable';return;}
+  const sourceObservations=reviewedSourceObservations(approvedAndPending,id,references.map(x=>x.id));
+  curatedClaims.value=approvedAndPending;
+  linkedReferences.value=references;
   report.value=buildMultiTherapyResearchReport({
    variantId:id,therapyProfile:profile,references,
-   history:archive.history,archivedEvidence:archive.archivedEvidence
+   history:archive.history,archivedEvidence:archive.archivedEvidence,
+   reviewedObservations:sourceObservations
   });
   state.value='ready';
  }).catch(()=>{
@@ -158,6 +171,8 @@ onUnmounted(()=>request?.abort());
       </div>
      </article>
     </div>
+    <ReviewedSourceClaims :variant-id="report.variantId" :claims="curatedClaims"
+      :references="linkedReferences" @updated="refreshReviewedEvidence"/>
     <details class="nfq-research-engines-limits">
      <summary>Source coverage and interpretation</summary>
      <ul><li v-for="line in report.dataLimitations" :key="line">{{line}}</li></ul>
