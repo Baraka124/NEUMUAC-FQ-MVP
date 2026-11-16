@@ -2,8 +2,6 @@
 import {computed,nextTick,ref} from 'vue';
 import {SPAIN_REGIONS} from '../domain/spainRegionalBoundaries';
 
-type Scope='spain'|'international';
-const scope=ref<Scope>('spain');
 const selected=ref<string|null>(null);
 const detailPanel=ref<HTMLElement|null>(null);
 const mapSvg=ref<SVGSVGElement|null>(null);
@@ -21,12 +19,6 @@ function chooseFromPicker(code:string){
  if(code)keyboardRegion.value=code;
 }
 function clearSelection(){selected.value=null;}
-function changeScope(value:Scope){
- scope.value=value;
- selected.value=null;
- previewCode.value=null;
- keyboardRegion.value=SPAIN_REGIONS[0]?.code??'';
-}
 function focusRegion(code:string){
  keyboardRegion.value=code;
  previewCode.value=code;
@@ -65,28 +57,19 @@ function openSelectedDetail(){
 
 <template>
  <section class="geo-observatory" aria-label="Geographic atlas">
-  <div class="geo-toolbar" aria-label="Geographic research controls">
-   <label class="geo-select-label" for="geo-scope">Scope
-    <select id="geo-scope" :value="scope" @change="changeScope(($event.target as HTMLSelectElement).value as Scope)">
-     <option value="spain">Spain</option><option value="international">International</option>
-    </select>
-   </label>
-  </div>
-
   <div class="geo-layout">
    <section class="geo-map-surface" aria-label="Regional atlas">
     <div class="geo-map-heading">
-     <div><strong>{{scope==='spain'?'Spain':'International overview'}}</strong><span class="geo-map-context" :class="{'is-preview':Boolean(previewRegion)}" data-testid="geo-map-context">{{scope==='spain'?(previewRegion?previewRegion.name+' · Administrative boundary':'17 communities · 2 autonomous cities'):'Country-level data pending'}}</span></div>
-     <label v-if="scope==='spain'" for="geo-region-picker" class="geo-region-picker">Choose a region
+     <div><strong>Spain</strong><span class="geo-map-context" :class="{'is-preview':Boolean(previewRegion)}" data-testid="geo-map-context">{{previewRegion?previewRegion.name+' · Administrative boundary':'17 communities · 2 autonomous cities'}}</span></div>
+     <label for="geo-region-picker" class="geo-region-picker">Choose a region
       <select id="geo-region-picker" :value="selected||''" @change="chooseFromPicker(($event.target as HTMLSelectElement).value)">
        <option value="">All Spain</option>
        <option v-for="region in alphabeticalRegions" :key="region.code" :value="region.code">{{region.name}}</option>
       </select>
      </label>
-     <span v-else class="geo-map-hint">Country-level data unavailable</span>
     </div>
     <div v-if="selectedRegion" class="geo-current-selection"><span role="status">{{selectedRegion.name}} selected</span><button class="geo-selected-detail-link" type="button" @click="openSelectedDetail">View region details <span aria-hidden="true">→</span></button></div>
-    <div v-if="scope==='spain'" class="geo-map-inner">
+    <div class="geo-map-inner">
      <span id="geo-map-keyboard-hint" class="geo-screen-reader-only">Use arrow keys to explore regions, Home or End to jump, Enter or Space to select, and Escape to clear the selected region.</span>
      <svg ref="mapSvg" viewBox="0 0 690 525" role="group" aria-describedby="geo-map-keyboard-hint" aria-label="Selectable map of Spain, its autonomous communities and cities. Administrative boundaries only, without individual searches or activity statistics." preserveAspectRatio="xMidYMid meet">
       <title>Spain · autonomous communities and cities</title>
@@ -108,14 +91,6 @@ function openSelectedDetail(){
      </svg>
     </div>
 
-    <div v-else class="geo-international">
-     <svg viewBox="0 0 100 100" width="74" height="74" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
-      <circle cx="50" cy="50" r="38"/><ellipse cx="50" cy="50" rx="18" ry="38"/><path d="M12 50h76M22 30h56M22 70h56"/>
-     </svg>
-     <strong>International overview</strong>
-     <p>Country-level research aggregates are not available yet. This view will not infer individuals' locations.</p>
-     <button type="button" @click="changeScope('spain')">Return to Spain</button>
-    </div>
     <footer class="geo-map-foot">
      <span class="geo-legend"><span class="geo-legend-swatch" aria-hidden="true"></span>Regional boundaries</span>
      <span>Individual search locations are never shown</span>
@@ -124,8 +99,8 @@ function openSelectedDetail(){
 
    <aside id="geo-region-detail" ref="detailPanel" tabindex="-1" class="geo-region-insight" aria-label="Selected geographic detail">
     <p class="geo-kicker">REGION</p>
-    <div class="geo-insight-heading"><h3 aria-live="polite">{{selectedRegion?.name||(scope==='spain'?'Choose a region':'International overview')}}</h3><button v-if="selectedRegion" class="geo-clear-selection" type="button" @click="clearSelection">Clear selection</button></div>
-    <p class="geo-insight-intro">{{selectedRegion?'Administrative boundary selected. No verified regional activity figures are available.':scope==='spain'?'Select a region on the map or by name.':'No verified country-level research aggregates are available.'}}</p>
+    <div class="geo-insight-heading"><h3 aria-live="polite">{{selectedRegion?.name||'Choose a region'}}</h3><button v-if="selectedRegion" class="geo-clear-selection" type="button" @click="clearSelection">Clear selection</button></div>
+    <p class="geo-insight-intro">{{selectedRegion?'Administrative boundary selected. No verified regional activity figures are available.':'Select a region on the map or by name.'}}</p>
     <div class="geo-insight-note" role="note">
      <strong>Data not published</strong>
      <p>Regional searches, matches and attribution are not verified. This map represents boundaries, not patients or institutions.</p>
