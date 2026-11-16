@@ -5,6 +5,7 @@ import VariantFilterPanel from '../components/VariantFilterPanel.vue';
 import BatchVariantLookup from '../components/BatchVariantLookup.vue';
 import ResearchSessionPanel from '../components/ResearchSessionPanel.vue';
 import SavedRecordSnapshotExport from '../components/SavedRecordSnapshotExport.vue';
+import VariantGeographyShortcut from '../components/VariantGeographyShortcut.vue';
 import {researchVisitSession} from '../domain/researchVisitSession';
 import {cftr2LinkedReferences} from '../domain/externalReferenceTypes';
 import {referenceMetadata,dossierReferencePreview} from '../domain/referencePresentation';
@@ -620,6 +621,7 @@ function select(id:string):void{
          </div>
         </div>
         <span v-if="selected.id===exactMatchedId" class="discovery-exact-chip">Exact match</span>
+         <VariantGeographyShortcut v-if="!selectedFromSearch" :variant-id="selected.id" :variant-name="variantDisplayName(selected)" />
          <button v-if="!selectedFromSearch" type="button" class="nfq-save-record" data-testid="save-current-variant" :aria-pressed="selectedIsSaved" @click="changeSavedVariant(selected.id)">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4.5A1.5 1.5 0 0 1 7.5 3h9A1.5 1.5 0 0 1 18 4.5V21l-6-4-6 4z"/></svg>
           {{selectedIsSaved?'Saved':'Save'}}

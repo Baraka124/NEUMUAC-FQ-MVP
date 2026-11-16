@@ -295,3 +295,16 @@ The old source-function parity deficit is unchanged. See
 `apps/clinical-web/docs/14H156-supported-spain-atlas-only.md`.
 No scientific prediction, backend, authorization, Supabase, original archived
 HTML, neumDESK or production clinical data change.
+
+## Phase 14H157 — contextual variant geography shortcut
+
+**NFQ-030 remains Not migrated; NFQ-038 remains Partial.** Verified variant
+dossiers now offer a small globe control opening source-identity-specific
+geographic context without leaving the dossier. Because the public atlas has
+only Spain administrative boundaries and no independently verified variant-
+linked geographic dataset, the popover explicitly reports unavailable data,
+not a distribution, frequency, patient location or clinical outcome. Its
+optional atlas shortcut forwards only a canonical recorded ID via the hash
+router; no source write, implied patient aggregate or role change is made.
+See `apps/clinical-web/docs/14H157-variant-geography-shortcut.md`.
+Phase 14H158 handles linked-context presentation in the atlas.
