@@ -15,6 +15,8 @@ const valid={
  referenceId:71,therapy:'ETI',scope:'single-variant',genotypePair:null,
  method:'in-vitro-study',finding:'reported-response',studyFamilyId:'PMID-12345678',
  locator:'Original paper · Table 2',rationale:'Independent review of a measured CFTR activity endpoint.',
+ endpoint:{code:'not-reported',statistic:'not-reported',unit:'not-reported',value:null,
+  model:'not-reported',comparator:'not-reported',timepoint:'not-reported'},
  status:'approved',submittedAt:'2026-09-01T00:00:00Z',submittedByMe:false,
  reviewCount:2,canReview:false,reviewedAt:'2026-09-02T00:00:00Z',
  reviewSeals:[sealA,sealB],
@@ -27,7 +29,9 @@ const envelope=(claims:unknown[])=>({variantId:variant,source:'nfq-double-indepe
 const payload:CuratedClaimPayload={
  therapy:'ETI',referenceId:71,scope:'single-variant',genotypePair:null,
  method:'in-vitro-study',finding:'reported-response',studyFamilyId:'PMID-12345678',
- locator:'Original paper · Table 2',rationale:'The recorded assay endpoint is traceable to this source.'
+ locator:'Original paper · Table 2',rationale:'The recorded assay endpoint is traceable to this source.',
+ endpoint:{code:'not-reported',statistic:'not-reported',unit:'not-reported',value:null,
+  model:'not-reported',comparator:'not-reported',timepoint:'not-reported'}
 };
 const config:ReadOnlyConfig={endpoint:'https://cftr-contract.invalid',
  publishableKey:'sb_publishable_test_contract',enabled:true,accessMode:'anonymous',readTable:'variants'};
