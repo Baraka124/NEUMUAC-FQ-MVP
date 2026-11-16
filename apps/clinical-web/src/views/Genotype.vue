@@ -10,6 +10,7 @@ import {pairRecordId,pairSelectionQuery} from '../domain/pairSelection';
 import {safeResearchReturnPath,workspaceJourneyPath} from '../domain/researchJourney';
 import ContextHelp from '../components/ContextHelp.vue';
 import PairModulatorReview from '../components/PairModulatorReview.vue';
+import ResearchEvidenceIntelligence from '../components/ResearchEvidenceIntelligence.vue';
 import DrugReferencePanel from '../components/DrugReferencePanel.vue';
 import {portableComparisonLink} from '../domain/portableComparisonLink';
 import {pairResearchMarkdown} from '../domain/pairResearchExport';
@@ -252,6 +253,18 @@ onUnmounted(()=>{stopReads(0);stopReads(1);});
    <button type="button" aria-controls="pair-drugs-title" @click="focusTherapyResults">View therapy comparison</button>
   </div>
   <PairModulatorReview v-if="chosen[0].value&&chosen[1].value" :key="chosen[0].value.id+'-'+chosen[1].value.id" :first="chosen[0].value" :second="chosen[1].value" @phase-change="pairReadiness=$event"/>
+  <details v-if="chosen[0].value&&chosen[1].value" class="nfq-pair-evidence-intelligence"
+    data-testid="pair-research-evidence">
+    <summary>Examine source-level evidence for both selected variants</summary>
+    <p>Two variant records do not establish allelic phase or predict a patient's treatment response.</p>
+    <div class="nfq-pair-evidence-intelligence-content">
+     <ResearchEvidenceIntelligence :key="'first-'+chosen[0].value.id"
+      :variant-id="chosen[0].value.id" :variant-name="variantDisplayName(chosen[0].value)"/>
+     <ResearchEvidenceIntelligence v-if="chosen[1].value.id!==chosen[0].value.id"
+      :key="'second-'+chosen[1].value.id"
+      :variant-id="chosen[1].value.id" :variant-name="variantDisplayName(chosen[1].value)"/>
+    </div>
+   </details>
   <DrugReferencePanel v-if="chosen[0].value&&chosen[1].value"/>
  </div>
 </template>
@@ -351,4 +364,11 @@ onUnmounted(()=>{stopReads(0);stopReads(1);});
  }
 }
 
+
+.nfq-pair-evidence-intelligence{margin:12px 0 14px;font-size:12px;color:var(--text-muted,#677d95)}
+.nfq-pair-evidence-intelligence>summary{cursor:pointer;padding:8px 0;font-size:12px;font-weight:620;color:var(--text,#254769)}
+.nfq-pair-evidence-intelligence>summary:focus-visible{outline:2px solid #2877dc;outline-offset:2px}
+.nfq-pair-evidence-intelligence>p{margin:3px 0 7px;font-size:11px;line-height:1.5}
+.nfq-pair-evidence-intelligence-content{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 28px}
+@media(max-width:800px){.nfq-pair-evidence-intelligence-content{grid-template-columns:1fr}}
 </style>
