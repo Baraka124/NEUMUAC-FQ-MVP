@@ -67,8 +67,9 @@ test('14H161 filters never cover variant search, batch controls or the first res
   await expect(search).toBeVisible();
   await expect(batch).toBeVisible();
   await expect(toggle).toBeVisible();
-  const initial=await search.boundingBox();
-  expect(initial).not.toBeNull();
+  // Measure stable document geometry: clicking Done can scroll the viewport,
+  // which changes boundingBox.y without moving the input in the document.
+  const initial=await search.evaluate(el=>el.getBoundingClientRect().top+window.scrollY);
   await toggle.click();
   const panel=page.getByTestId('nfq-guided-filters');
   await expect(panel).toBeVisible();
@@ -103,9 +104,8 @@ test('14H161 filters never cover variant search, batch controls or the first res
   await expect(toggle).toContainText('1 active');
   await panel.getByRole('button',{name:'Done'}).click();
   await expect(panel).toHaveCount(0);
-  const result=await search.boundingBox();
-  expect(result).not.toBeNull();
-  expect(Math.abs(result!.y-initial!.y)).toBeLessThanOrEqual(2);
+  const result=await search.evaluate(el=>el.getBoundingClientRect().top+window.scrollY);
+  expect(Math.abs(result-initial)).toBeLessThanOrEqual(2);
   await noHorizontalOverflow(page);
  }
 });
