@@ -11,7 +11,7 @@ export const GEOGRAPHIC_RESEARCH_PROVENANCE=Object.freeze({
  method:'Matched variant searches · Spain',
  attribution:'Coarse IP-estimated region · ipapi.co',
  suppression:'20+ recorded events and 10+ distinct sessions per region',
- exclusions:'GPS, unverified and institutional-location records excluded',
+ exclusions:'GPS-origin events and institution-history rows excluded',
  statement:'Historical platform searches may include tests. No patient distribution or prevalence is inferred.'
 });
 
