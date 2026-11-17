@@ -206,6 +206,12 @@ function removeDraft(index:number):void{
      <p class="nfq-mechanism-note">{{item.interpretation}} · {{item.experimentalContext}}</p>
      <p class="nfq-mechanism-note">Source claim {{item.sourceClaimId}} · {{item.exactLocator}}</p>
      <p class="nfq-mechanism-note">Limitations: {{item.limitations}}</p>
+     <details v-if="item.reviewAudit.length">
+      <summary>Independent scientific rationales ({{item.reviewAudit.length}})</summary>
+      <ul><li v-for="(review,i) in item.reviewAudit" :key="i">
+       {{review.decision}} · {{review.at}} — {{review.note}}
+      </li></ul>
+     </details>
      <details v-if="item.events.length">
       <summary>Revision audit ({{item.events.length}})</summary>
       <ul><li v-for="(event,i) in item.events" :key="i">{{event.action}} · {{event.at}}</li></ul>
