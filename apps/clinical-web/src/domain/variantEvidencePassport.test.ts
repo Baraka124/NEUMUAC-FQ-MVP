@@ -179,7 +179,7 @@ describe('14H175–176 evidence discrepancy triage and research prioritization',
   expect(plan.tasks.some(t=>t.category==='pending-peer-review'&&
    t.claimIds.includes(claims[0]!.id))).toBe(true);
   expect(plan.tasks.some(t=>t.category==='response-record-audit'&&t.therapy==='ETI')).toBe(true);
-  expect(plan.tasks.some(t=>t.reason.includes('proof of biological non-response'))).toBe(true);
+  expect(plan.tasks.some(t=>t.nextAction.includes('absence here is not evidence of biological non-response'))).toBe(true);
  });
  it('flags official identifier disagreement separately from response evidence',()=>{
   const p=passport('non_responsive',[],{...external,variationId:'333333'});
