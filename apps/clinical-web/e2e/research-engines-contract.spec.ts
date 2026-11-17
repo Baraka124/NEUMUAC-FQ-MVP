@@ -194,6 +194,9 @@ test('14H166 verified double-review source enters actual five-therapy conflict a
    model:'clinical',comparator:'baseline',timepoint:'Day 28'},
   status:'approved',submittedAt:'2026-09-01T10:00:00Z',submittedByMe:false,
   reviewCount:2,canReview:false,reviewedAt:'2026-09-03T10:00:00Z',
+  studyStats:{analysisUnit:'not-reported',design:'not-reported',interventionN:null,comparatorN:null,
+ uncertaintyType:'not-reported',uncertaintyValue:null,ciLower:null,ciUpper:null,
+ uncertaintyTarget:'not-reported',sourceLocator:'not-reported'},
   reviewSeals:[
    'attestation:cccccccc-cccc-4ccc-8ccc-cccccccccccc',
    'attestation:dddddddd-dddd-4ddd-8ddd-dddddddddddd'
@@ -351,4 +354,47 @@ test('14H170 empty approved-data analysis protocol cannot invent a cohort or mod
  await expect(protocol.getByTestId('nfq-analysis-gate')).toContainText('No approved observations');
  await expect(protocol.getByTestId('nfq-analysis-cohorts')).toHaveCount(0);
  expect(record.datasetCalls).toBe(1); // Filters are local; no new network access.
+});
+
+test('14H171 reviewed-source form enforces explicit sampling provenance, arm counts and SD',async({page})=>{
+ const record=await setup(page);
+ await page.goto('/#/variants/18');
+ await expect(page.locator('#selected-title')).toHaveText('R117H');
+ await page.getByTestId('nfq-research-engines-toggle').click();
+ const root=page.getByTestId('nfq-reviewed-claims');
+ await root.getByTestId('nfq-source-claim-new').click();
+ const form=root.getByTestId('nfq-source-claim-form');
+ await form.getByTestId('nfq-source-claim-reference').selectOption('71');
+ await form.getByPlaceholder('PMID-12345678 or trial accession').fill('PMID-12345678');
+ await form.getByPlaceholder('Original paper · Table 2 · outcome').fill('Results · Table 2');
+ await form.getByPlaceholder('State the measured endpoint, experimental conditions, and why this finding is applicable.')
+  .fill('The experimental endpoint and sample definition are verified in the primary source.');
+ await expect(form.getByTestId('nfq-source-claim-submit')).toBeEnabled();
+ await form.getByTestId('nfq-endpoint-intake').getByText('Experimental endpoint').click();
+ await form.getByTestId('nfq-endpoint-code').selectOption('sweat-chloride');
+ await form.getByTestId('nfq-endpoint-value').fill('-22.4');
+ await form.getByTestId('nfq-endpoint-unit').selectOption('mmol/L');
+ await form.getByLabel('Reporting statistic').selectOption('change-from-baseline');
+ await form.getByLabel('Biological or clinical model').selectOption('clinical');
+ await form.getByLabel('Source comparator').selectOption('baseline');
+ await form.getByTestId('nfq-endpoint-timepoint').fill('Day 28');
+ await expect(form.getByTestId('nfq-source-claim-submit')).toBeEnabled();
+ await form.getByTestId('nfq-statistics-intake').getByText('Sampling & uncertainty').click();
+ await form.getByTestId('nfq-stats-unit').selectOption('participants');
+ await form.getByTestId('nfq-stats-design').selectOption('parallel');
+ await form.getByTestId('nfq-stats-n').fill('42');
+ await form.getByTestId('nfq-stats-comparator-n').fill('41');
+ await expect(form.getByTestId('nfq-source-claim-submit')).toBeDisabled();
+ await form.getByTestId('nfq-stats-locator').fill('Supplementary Table S2');
+ await expect(form.getByTestId('nfq-source-claim-submit')).toBeEnabled();
+ await form.getByTestId('nfq-stats-error-type').selectOption('sd');
+ await expect(form.getByTestId('nfq-source-claim-submit')).toBeDisabled();
+ await form.getByTestId('nfq-stats-error-target').selectOption('reported-outcome');
+ await form.getByTestId('nfq-stats-error-value').fill('7.2');
+ await expect(form.getByTestId('nfq-source-claim-submit')).toBeEnabled();
+ await form.getByTestId('nfq-stats-n').fill('0');
+ await expect(form.getByTestId('nfq-source-claim-submit')).toBeDisabled();
+ await form.getByTestId('nfq-stats-n').fill('42');
+ await expect(form.getByTestId('nfq-source-claim-submit')).toBeEnabled();
+ expect(record.methods.filter(m=>m.includes('/rpc/nfq_reviewed_source_claims')).length).toBe(1);
 });

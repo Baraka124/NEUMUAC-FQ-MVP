@@ -77,6 +77,8 @@ function exportPlan():void{
    <div class="nfq-analysis-stats" aria-label="Source-level analysis eligibility">
     <span><strong>{{protocol.reviewedRowsInScope}}</strong> reviewed records</span>
     <span><strong>{{protocol.eligibleNumericObservations}}</strong> context-eligible values</span>
+    <span><strong>{{protocol.reportedSampleN}}</strong> reviewed rows with source n</span>
+    <span><strong>{{protocol.reportedUncertainty}}</strong> reviewed rows with dispersion</span>
     <span><strong>{{protocol.excludedObservations}}</strong> excluded values</span>
     <span><strong>{{protocol.cohorts.length}}</strong> exact-context cohorts</span>
     <span><strong>{{protocol.internalSplitCandidateCohorts}}</strong> internal split candidates</span>
@@ -121,7 +123,7 @@ function exportPlan():void{
    <p class="nfq-analysis-note">
     Snapshot {{protocol.sourceSnapshotSha256.slice(0,16)}}… ·
     Protocol v{{protocol.protocolVersion}} ·
-    No study sample sizes, dispersion estimates, prespecified power calculations,
+    Reported counts and dispersion do not establish sampling independence, prespecified power calculations,
     external cohort metadata or clinical validation are established.
    </p>
    <p v-if="notice" role="status" class="nfq-analysis-note">{{notice}}</p>

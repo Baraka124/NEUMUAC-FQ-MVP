@@ -1,5 +1,6 @@
 import type {CoreModulatorId} from '../domain/therapyRegistry';
 import {validResearchEndpoint,type ResearchEndpoint} from '../domain/researchEndpointNormalization';
+import {validStudyStatistics,type ReportedStudyStatistics} from '../domain/reportedStudyStatistics';
 import type {
  DoubleReviewedSourceClaim,ResearchObservationMethod,ResearchObservationFinding,
  ResearchClaimScope
@@ -25,6 +26,7 @@ export interface CuratedSourceClaim{
  readonly locator:string;
  readonly rationale:string;
  readonly endpoint:ResearchEndpoint|null;
+ readonly studyStats:ReportedStudyStatistics|null;
  readonly status:ClaimReviewStatus;
  readonly submittedAt:string;
  readonly submittedByMe:boolean;
@@ -45,6 +47,7 @@ export interface CuratedClaimPayload{
  readonly locator:string;
  readonly rationale:string;
  readonly endpoint:ResearchEndpoint;
+ readonly studyStats:ReportedStudyStatistics;
 }
 const canonical=/^[1-9][0-9]{0,17}$/;
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -79,6 +82,18 @@ function verifiedEndpoint(input:unknown):ResearchEndpoint|null{
  if(!validResearchEndpoint(endpoint))
   throw new VariantConnectionError('schema-mismatch','Incompatible experimental endpoint units or context');
  return Object.freeze({...endpoint});
+}
+function verifiedStudyStats(raw:unknown,endpoint:ResearchEndpoint|null):ReportedStudyStatistics|null{
+ if(raw===null)return null; // Legacy source revisions created before 14H171
+ const value=record(raw);
+ const keys=['analysisUnit','design','interventionN','comparatorN','uncertaintyType',
+  'uncertaintyValue','ciLower','ciUpper','uncertaintyTarget','sourceLocator'];
+ if(Object.keys(value).length!==keys.length||keys.some(k=>!Object.prototype.hasOwnProperty.call(value,k)))
+  throw new VariantConnectionError('schema-mismatch','Unknown source study-statistics fields');
+ const stats=value as unknown as ReportedStudyStatistics;
+ if(!validStudyStatistics(stats,endpoint))
+  throw new VariantConnectionError('schema-mismatch','Invalid reported study-design or uncertainty context');
+ return Object.freeze({...stats});
 }
 function claim(raw:unknown,variantId:string):CuratedSourceClaim{
  const row=record(raw);
@@ -139,6 +154,7 @@ function claim(raw:unknown,variantId:string):CuratedSourceClaim{
   locator:str(row.locator,'source locator',240),
   rationale:str(row.rationale,'scientific rationale',900),
   endpoint:verifiedEndpoint(row.endpoint),
+  studyStats:verifiedStudyStats(row.studyStats,verifiedEndpoint(row.endpoint)),
   status,submittedAt:date(row.submittedAt,'submission time'),
   submittedByMe:row.submittedByMe,reviewCount:row.reviewCount as number,
   canReview:row.canReview,
@@ -193,7 +209,8 @@ export function validSourceClaimPayload(
   data.locator.trim().length<8||data.locator.trim().length>240||
   data.rationale.trim().length<20||data.rationale.trim().length>900||
   /[\u0000-\u001f\u007f]/.test(data.locator+data.rationale)||
-  !validResearchEndpoint(data.endpoint))return false;
+  !validResearchEndpoint(data.endpoint)||
+  !validStudyStatistics(data.studyStats,data.endpoint))return false;
  if(data.scope==='single-variant')return data.genotypePair===null;
  return Array.isArray(data.genotypePair)&&data.genotypePair.length===2&&
   data.genotypePair.every(id=>canonical.test(id))&&data.genotypePair.includes(variantId);

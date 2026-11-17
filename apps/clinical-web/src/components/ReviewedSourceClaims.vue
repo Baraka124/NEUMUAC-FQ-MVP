@@ -6,6 +6,12 @@ import {
  type EndpointCode,type EndpointStatistic,type EndpointUnit,type EndpointModel,type EndpointComparator
 } from '../domain/researchEndpointNormalization';
 import {THERAPIES,type CoreModulatorId} from '../domain/therapyRegistry';
+import {
+ ANALYSIS_UNITS,STUDY_DESIGNS,UNCERTAINTY_TYPES,UNCERTAINTY_TARGETS,
+ UNREPORTED_STUDY_STATISTICS,statisticsSummary,
+ type ReportedStudyStatistics,type AnalysisUnit,type DesignType,
+ type UncertaintyType,type UncertaintyTarget
+} from '../domain/reportedStudyStatistics';
 import {researcherRole} from '../services/researchRole';
 import {authSessionProvider} from '../services/authSession';
 import {readConfigFromEnvironment} from '../services/liveVariants';
@@ -57,6 +63,40 @@ const endpoint=computed<ResearchEndpoint>(()=>({
  comparator:endpointComparator.value,
  timepoint:endpointTimepoint.value
 }));
+const statsUnit=ref<AnalysisUnit>('not-reported');
+const statsDesign=ref<DesignType>('not-reported');
+const statsInterventionN=ref('');
+const statsComparatorN=ref('');
+const statsErrorType=ref<UncertaintyType>('not-reported');
+const statsErrorValue=ref('');
+const statsCiLower=ref('');
+const statsCiUpper=ref('');
+const statsErrorTarget=ref<UncertaintyTarget>('not-reported');
+const statsLocator=ref('not-reported');
+function reportedNumber(value:unknown):number|null{
+ const raw=String(value??'').trim();
+ return raw===''?null:Number(raw);
+}
+const stats=computed<ReportedStudyStatistics>(()=>({
+ analysisUnit:statsUnit.value,design:statsDesign.value,
+ interventionN:reportedNumber(statsInterventionN.value),
+ comparatorN:reportedNumber(statsComparatorN.value),
+ uncertaintyType:statsErrorType.value,
+ uncertaintyValue:reportedNumber(statsErrorValue.value),
+ ciLower:reportedNumber(statsCiLower.value),ciUpper:reportedNumber(statsCiUpper.value),
+ uncertaintyTarget:statsErrorTarget.value,sourceLocator:statsLocator.value
+}));
+function resetStats():void{
+ statsUnit.value='not-reported';statsDesign.value='not-reported';
+ statsInterventionN.value='';statsComparatorN.value='';
+ statsErrorType.value='not-reported';statsErrorValue.value='';
+ statsCiLower.value='';statsCiUpper.value='';
+ statsErrorTarget.value='not-reported';statsLocator.value='not-reported';
+}
+function resetErrorContext():void{
+ statsErrorValue.value='';statsCiLower.value='';statsCiUpper.value='';
+ statsErrorTarget.value='not-reported';
+}
 const endpointUnits:readonly EndpointUnit[]=['mmol/L','pp','%','uA/cm2','ratio','study-specific','not-reported'];
 function resetEndpoint():void{
  endpointCode.value='not-reported';endpointStatistic.value='not-reported';
@@ -91,7 +131,7 @@ const formData=computed<CuratedClaimPayload>(()=>({
  [props.variantId,genotypeOther.value] as const:null,
  method:formMethod.value,finding:formFinding.value,
  studyFamilyId:formFamily.value,locator:formLocator.value,rationale:formRationale.value,
- endpoint:endpoint.value
+ endpoint:endpoint.value,studyStats:stats.value
 }));
 const canSubmit=computed(()=>!busy.value&&canContribute.value&&Boolean(service)&&
  validSourceClaimPayload(props.variantId,formData.value,referenceIds.value));
@@ -100,7 +140,7 @@ function resetForm():void{
  revisionOf.value=null;formTherapy.value='ETI';formReference.value='';
  formScope.value='single-variant';genotypeOther.value='';
  formMethod.value='in-vitro-study';formFinding.value='inconclusive';
- formFamily.value='';formLocator.value='';formRationale.value='';resetEndpoint();
+ formFamily.value='';formLocator.value='';formRationale.value='';resetEndpoint();resetStats();
 }
 function startRevision(entry:CuratedSourceClaim):void{
  resetForm();revisionOf.value=entry;
@@ -115,6 +155,16 @@ function startRevision(entry:CuratedSourceClaim):void{
  endpointUnit.value=observation.unit;endpointValue.value=observation.value===null?'':String(observation.value);
  endpointModel.value=observation.model;endpointComparator.value=observation.comparator;
  endpointTimepoint.value=observation.timepoint;
+ const original=entry.studyStats??UNREPORTED_STUDY_STATISTICS;
+ statsUnit.value=original.analysisUnit;statsDesign.value=original.design;
+ statsInterventionN.value=original.interventionN===null?'':String(original.interventionN);
+ statsComparatorN.value=original.comparatorN===null?'':String(original.comparatorN);
+ statsErrorType.value=original.uncertaintyType;
+ statsErrorValue.value=original.uncertaintyValue===null?'':String(original.uncertaintyValue);
+ statsCiLower.value=original.ciLower===null?'':String(original.ciLower);
+ statsCiUpper.value=original.ciUpper===null?'':String(original.ciUpper);
+ statsErrorTarget.value=original.uncertaintyTarget;
+ statsLocator.value=original.sourceLocator;
  formOpen.value=true;notice.value='';
 }
 async function submit():Promise<void>{
@@ -284,7 +334,76 @@ const shortId=(value:string)=>value.slice(0,8);
     </div>
     <p class="nfq-review-reference">No statistical pooling or conversion between assays is performed.</p>
    </details>
-   <label>Scientific rationale and endpoint context
+   <details class="nfq-endpoint-intake" data-testid="nfq-statistics-intake">
+     <summary>Sampling & uncertainty
+      <span>{{statsErrorType==='not-reported'?'Not extracted':statsErrorType.toUpperCase()}}</span>
+     </summary>
+     <p>Record published sample or replicate counts and uncertainty as reported.
+      Do not infer n from other publications or convert SD, SEM or confidence intervals.</p>
+     <div class="nfq-reviewed-grid">
+      <label>Unit actually counted
+       <select v-model="statsUnit" :disabled="busy" data-testid="nfq-stats-unit">
+        <option v-for="item in ANALYSIS_UNITS" :key="item.value" :value="item.value">
+         {{item.label}}
+        </option>
+       </select>
+      </label>
+      <label>Study arm structure
+       <select v-model="statsDesign" :disabled="busy" data-testid="nfq-stats-design">
+        <option v-for="item in STUDY_DESIGNS" :key="item.value" :value="item.value">
+         {{item.label}}
+        </option>
+       </select>
+      </label>
+      <label>Intervention sample or replicate n
+       <input v-model.trim="statsInterventionN" type="number" inputmode="numeric"
+        min="1" max="1000000" step="1" placeholder="Not reported"
+        data-testid="nfq-stats-n" :disabled="busy"/>
+      </label>
+      <label>Comparator n (when reported)
+       <input v-model.trim="statsComparatorN" type="number" inputmode="numeric"
+        min="1" max="1000000" step="1" placeholder="Not reported"
+        data-testid="nfq-stats-comparator-n" :disabled="busy"/>
+      </label>
+      <label>Source uncertainty format
+       <select v-model="statsErrorType" :disabled="busy" @change="resetErrorContext"
+        data-testid="nfq-stats-error-type">
+        <option v-for="item in UNCERTAINTY_TYPES" :key="item.value" :value="item.value">
+         {{item.label}}
+        </option>
+       </select>
+      </label>
+      <label v-if="statsErrorType!=='not-reported'">Uncertainty applies to
+       <select v-model="statsErrorTarget" :disabled="busy" data-testid="nfq-stats-error-target">
+        <option v-for="item in UNCERTAINTY_TARGETS" :key="item.value" :value="item.value">
+         {{item.label}}
+        </option>
+       </select>
+      </label>
+      <label v-if="statsErrorType==='sd'||statsErrorType==='sem'">Reported SD / SEM
+       <input v-model.trim="statsErrorValue" type="number" inputmode="decimal"
+        step="any" min="0" max="1000000" placeholder="Exact source value"
+        data-testid="nfq-stats-error-value" :disabled="busy"/>
+      </label>
+      <template v-if="statsErrorType==='ci95'">
+       <label>Reported 95% CI lower bound
+        <input v-model.trim="statsCiLower" type="number" inputmode="decimal"
+         step="any" data-testid="nfq-stats-ci-lower" :disabled="busy"/>
+       </label>
+       <label>Reported 95% CI upper bound
+        <input v-model.trim="statsCiUpper" type="number" inputmode="decimal"
+         step="any" data-testid="nfq-stats-ci-upper" :disabled="busy"/>
+       </label>
+      </template>
+      <label>Exact table, figure or paragraph locator
+       <input v-model.trim="statsLocator" maxlength="240" :disabled="busy"
+        placeholder="not-reported or e.g. Table 2 · footnote"
+        data-testid="nfq-stats-locator"/>
+      </label>
+     </div>
+     <p class="nfq-review-reference">Unreported values remain null. A reported n is not automatically a patient count or an independent replicate.</p>
+    </details>
+    <label>Scientific rationale and endpoint context
     <textarea v-model.trim="formRationale" maxlength="900" minlength="20" rows="3"
      placeholder="State the measured endpoint, experimental conditions, and why this finding is applicable."
      :disabled="busy" required></textarea>
@@ -319,7 +438,13 @@ const shortId=(value:string)=>value.slice(0,8);
       · {{entry.endpoint.model}} · {{entry.endpoint.comparator}} · {{entry.endpoint.timepoint}}
      </template>
     </p>
-    <p class="nfq-reviewed-rationale">{{entry.rationale}}</p>
+    <p class="nfq-reviewed-attribution" data-testid="nfq-claim-statistics">
+      Study statistics: {{statisticsSummary(entry.studyStats)}}
+      <template v-if="entry.studyStats?.sourceLocator&&entry.studyStats.sourceLocator!=='not-reported'">
+       · {{entry.studyStats.sourceLocator}}
+      </template>
+     </p>
+     <p class="nfq-reviewed-rationale">{{entry.rationale}}</p>
     <details class="nfq-review-audit">
      <summary>Recorded review history · {{entry.audit.length}} events</summary>
      <ul><li v-for="(ev,i) in entry.audit" :key="i">{{ev.action}} · {{new Date(ev.at).toLocaleString()}}</li></ul>
@@ -337,7 +462,7 @@ const shortId=(value:string)=>value.slice(0,8);
      class="nfq-review-decision">
      <label>Independent review justification
       <textarea v-model.trim="reviewNotes[entry.id]" maxlength="900" minlength="20" rows="3"
-       placeholder="Confirm the original source, endpoint, variant, method, scope and interpretation."
+       placeholder="Verify source, endpoint, sample unit, arm counts, uncertainty, locator, method and interpretation."
        :disabled="busy"></textarea>
      </label>
      <div class="nfq-review-actions">
