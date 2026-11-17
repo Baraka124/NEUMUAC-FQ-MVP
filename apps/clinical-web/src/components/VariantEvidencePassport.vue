@@ -10,6 +10,7 @@ import type {CuratedSourceClaim} from '../services/curatedSourceClaims';
 import type {LiveEvidenceReference} from '../services/liveEvidence';
 import type {ClinVarAuthoritySummary} from '../services/liveClinVar';
 import {retrievePubMedMetadata,type PubMedPublicationMetadata} from '../services/livePubMed';
+import EvidenceResearchPlan from './EvidenceResearchPlan.vue';
 
 const props=defineProps<{
  variantId:string;
@@ -214,6 +215,8 @@ onUnmounted(clearPubmed);
      </article>
     </div>
    </section>
+
+   <EvidenceResearchPlan :passport="passport" :claims="claims" @open-review="focusReviewIntake" />
 
    <section aria-label="Linked publication verification" class="nfq-passport-area">
     <div class="nfq-passport-section-head">

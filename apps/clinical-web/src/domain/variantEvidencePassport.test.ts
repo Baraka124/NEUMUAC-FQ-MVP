@@ -1,4 +1,5 @@
 import {describe,it,expect} from 'vitest';
+import {buildEvidenceResearchPlan} from './evidenceResearchPriorities';
 import {projectVariantTherapies} from './therapyRegistry';
 import {buildMultiTherapyResearchReport} from './multiTherapyResearch';
 import {evaluateVariantEvidencePassport,assessPassportReference,
@@ -157,5 +158,39 @@ describe('14H174 source-traceable CFTR variant evidence passport',()=>{
    clinVarSummary:null,authorityAttempt:'unchecked'
   })).toThrow();
   expect(p.sources).toHaveLength(1);
+ });
+});
+
+describe('14H175–176 evidence discrepancy triage and research prioritization',()=>{
+ it('prioritizes review discrepancies without mutating the recorded therapeutic label',()=>{
+  const claims=[sourceClaim()];
+  const p=passport('responsive',claims);
+  const plan=buildEvidenceResearchPlan(p,claims);
+  expect(plan.variantId).toBe('18');
+  expect(plan.tasks[0]?.category).toBe('review-disagreement');
+  expect(plan.tasks[0]?.claimIds).toContain(claims[0]!.id);
+  expect(plan.reviewFirst).toBeGreaterThan(0);
+  expect(p.therapies[0]?.databaseLabel).toBe('responsive');
+  expect(plan.isClinicalRecommendation).toBe(false);
+ });
+ it('keeps pending observations in independent review and recorded non-response in provenance audit',()=>{
+  const claims=[sourceClaim({status:'pending',reviewCount:0,reviewedAt:null,reviewSeals:[]})];
+  const plan=buildEvidenceResearchPlan(passport('non_responsive',claims),claims);
+  expect(plan.tasks.some(t=>t.category==='pending-peer-review'&&
+   t.claimIds.includes(claims[0]!.id))).toBe(true);
+  expect(plan.tasks.some(t=>t.category==='response-record-audit'&&t.therapy==='ETI')).toBe(true);
+  expect(plan.tasks.some(t=>t.nextAction.includes('absence here is not evidence of biological non-response'))).toBe(true);
+ });
+ it('flags official identifier disagreement separately from response evidence',()=>{
+  const p=passport('non_responsive',[],{...external,variationId:'333333'});
+  const plan=buildEvidenceResearchPlan(p,[]);
+  expect(plan.tasks.some(t=>t.id==='authority:clinvar-identity'&&
+   t.band==='review-first')).toBe(true);
+  expect(plan.tasks.every(t=>t.therapy===null||t.therapy!=='ETI'||
+   t.category!=='review-disagreement')).toBe(true);
+ });
+ it('rejects mismatched variant claims and never fabricates cross-variant research priorities',()=>{
+  const p=passport();
+  expect(()=>buildEvidenceResearchPlan(p,[sourceClaim({variantId:'19'})])).toThrow();
  });
 });
