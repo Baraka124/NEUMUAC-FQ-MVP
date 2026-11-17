@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import {computed} from 'vue';
+import {computed,ref,watch} from 'vue';
 import type {EvidenceTriageTask} from '../domain/evidenceResearchPriorities';
 import type {PassportSource} from '../domain/variantEvidencePassport';
 import type {CuratedSourceClaim} from '../services/curatedSourceClaims';
 import {assembleEvidenceInvestigation} from '../domain/evidenceInvestigation';
+import {reconcileInvestigationStudies,createReconciliationBrief} from '../domain/studyReconciliationBrief';
 
 const props=defineProps<{
  task:EvidenceTriageTask;variantId:string;
@@ -13,6 +14,19 @@ const emit=defineEmits<{openReview:[]}>();
 const briefing=computed(()=>assembleEvidenceInvestigation(
  props.task,props.variantId,props.claims,props.sources
 ));
+const reconciliation=computed(()=>reconcileInvestigationStudies(briefing.value));
+const comparisonOpen=ref(false);
+const copyStatus=ref('');
+watch(()=>[props.variantId,props.task.id],()=>{comparisonOpen.value=false;copyStatus.value='';});
+async function copyBrief():Promise<void>{
+ try{
+  if(!navigator.clipboard?.writeText)throw new Error('Clipboard unavailable');
+  await navigator.clipboard.writeText(createReconciliationBrief(briefing.value,reconciliation.value,props.variantId));
+  copyStatus.value='Research brief copied. This does not create or approve a persisted decision.';
+ }catch{
+  copyStatus.value='Clipboard unavailable. No research decision was recorded.';
+ }
+}
 const finding=(v:string)=>({
  'reported-response':'Reported response','reported-no-response':'Reported no response',
  mixed:'Mixed results',inconclusive:'Inconclusive'
@@ -65,6 +79,43 @@ const finding=(v:string)=>({
    No claim may be proposed as verified without the original publication, exact study
    scope and independently reviewed source observation.
   </p>
+  <section class="nfq-reconciliation" data-testid="nfq-study-reconciliation">
+   <header class="nfq-investigation-row">
+    <div>
+     <strong>Study-by-study reconciliation</strong>
+     <p>{{reconciliation.independentFamilies}} independent study families ·
+      {{reconciliation.comparablePairs}} strict endpoint-context pairs ·
+      {{reconciliation.opposingComparablePairs}} opposing comparable pairs</p>
+    </div>
+    <button type="button" class="nfq-investigation-action"
+     :aria-expanded="comparisonOpen" @click="comparisonOpen=!comparisonOpen">
+     {{comparisonOpen?'Hide comparisons':'Examine comparisons'}}
+    </button>
+   </header>
+   <div v-if="comparisonOpen">
+    <p class="nfq-investigation-boundary">{{reconciliation.caution}}</p>
+    <p v-if="!reconciliation.comparisons.length" class="nfq-investigation-boundary">
+     Fewer than two approved source observations. Independent study comparison is not available.
+    </p>
+    <div v-else class="nfq-reconciliation-list">
+     <article v-for="pair in reconciliation.comparisons" :key="pair.firstId+':'+pair.secondId">
+      <strong>{{pair.relationship.replaceAll('-',' ')}}</strong>
+      <span v-if="pair.opposingFindings"> · Opposing reported directions</span>
+      <p>{{pair.description}}</p>
+      <p class="nfq-investigation-audit">Claims {{pair.firstId}} / {{pair.secondId}}</p>
+     </article>
+    </div>
+    <button type="button" class="nfq-investigation-action"
+     data-testid="nfq-copy-review-brief" @click="copyBrief">
+     Copy traceable research review brief
+    </button>
+    <p v-if="copyStatus" role="status" class="nfq-investigation-boundary">{{copyStatus}}</p>
+    <p class="nfq-investigation-boundary">
+     The brief is an export of the existing independently reviewed record; it is
+     not an adjudication or a newly persisted decision.
+    </p>
+   </div>
+  </section>
   <div class="nfq-investigation-bottom">
    <p><b>Next investigation:</b> {{briefing.nextAction}}</p>
    <button type="button" @click="emit('openReview')" class="nfq-investigation-action">
@@ -88,6 +139,11 @@ const finding=(v:string)=>({
 .nfq-investigation-observation .nfq-investigation-audit{font-size:10px}
 .nfq-investigation-observation a{font-size:11px;text-underline-offset:3px;color:var(--link,#2869a9)}
 .nfq-investigation-action{background:none;border:0;border-bottom:1px solid currentColor;padding:2px 0;color:var(--link,#2869a9);font:inherit;font-size:11px;cursor:pointer;text-align:left}
+.nfq-reconciliation{border-top:1px solid var(--border,#e1e9f0);padding:12px 0}
+.nfq-reconciliation strong{font-size:11px}
+.nfq-reconciliation-list article{border-top:1px solid var(--border,#e1e9f0);padding:9px 0;overflow-wrap:anywhere}
+.nfq-reconciliation-list article span{font-size:10px;color:var(--text-muted,#687f95)}
+.nfq-reconciliation-list article p{margin:3px 0}
 .nfq-investigation-bottom{border-top:1px solid var(--border,#e1e9f0);padding-top:7px}
 .nfq-investigation button:focus-visible,.nfq-investigation a:focus-visible{outline:2px solid #3876c5;outline-offset:2px}
 </style>

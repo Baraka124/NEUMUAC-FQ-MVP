@@ -1,6 +1,7 @@
 import {describe,it,expect} from 'vitest';
 import {buildEvidenceResearchPlan} from './evidenceResearchPriorities';
 import {assembleEvidenceInvestigation} from './evidenceInvestigation';
+import {reconcileInvestigationStudies,createReconciliationBrief} from './studyReconciliationBrief';
 import {projectVariantTherapies} from './therapyRegistry';
 import {buildMultiTherapyResearchReport} from './multiTherapyResearch';
 import {evaluateVariantEvidencePassport,assessPassportReference,
@@ -227,5 +228,66 @@ describe('14H177–178 in-dossier evidence investigation and adjudication handof
   expect(()=>assembleEvidenceInvestigation(task,'18',[sourceClaim({variantId:'19'})],p.sources)).toThrow();
   expect(()=>assembleEvidenceInvestigation(
    {...task,claimIds:['not-present']},'18',[],p.sources)).toThrow();
+ });
+});
+
+describe('14H179–180 strict source comparison and traceable review brief',()=>{
+ const make=(
+  claimRows:readonly CuratedSourceClaim[]
+ )=>{
+  const p=passport('responsive',claimRows);
+  const task=buildEvidenceResearchPlan(p,claimRows).tasks.find(
+   t=>t.category==='review-disagreement'||t.category==='pending-peer-review'
+  )!;
+  return assembleEvidenceInvestigation(task,'18',claimRows,p.sources);
+ };
+ it('uses approved independent study families and never manufactures a pooled effect',()=>{
+  const a=sourceClaim({finding:'reported-no-response'});
+  const b=sourceClaim({
+   id:'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+   seriesId:'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+   studyFamilyId:'study-72',finding:'reported-response'
+  });
+  const investigation=make([a,b]);
+  const study=reconcileInvestigationStudies(investigation);
+  expect(study.independentFamilies).toBe(2);
+  expect(study.comparablePairs).toBe(0);
+  expect(study.comparisons[0]?.relationship).toBe('incomparable-endpoint');
+  expect(study.comparisons[0]?.opposingFindings).toBe(true);
+  expect(study.opposingComparablePairs).toBe(0);
+  const brief=createReconciliationBrief(investigation,study,'1716G/A');
+  expect(brief).toContain('Research evidence investigation brief');
+  expect(brief).toContain(b.id);
+  expect(brief).toContain(bibliographic.url);
+  expect(brief).toContain('not a saved adjudication');
+ });
+ it('does not count pending source claims as approved comparisons',()=>{
+  const pending=sourceClaim({status:'pending',reviewCount:0,reviewedAt:null,reviewSeals:[]});
+  const investigation=make([pending]);
+  const study=reconcileInvestigationStudies(investigation);
+  expect(study.approvedObservations).toHaveLength(0);
+  expect(study.unapprovedCount).toBe(1);
+  expect(study.comparisons).toHaveLength(0);
+ });
+ it('detects same-family reuse as not independent study replication',()=>{
+  const a=sourceClaim({finding:'reported-no-response'});
+  const b=sourceClaim({
+   id:'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+   seriesId:'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+   finding:'reported-response'
+  });
+  const study=reconcileInvestigationStudies(make([a,b]));
+  expect(study.independentFamilies).toBe(1);
+  expect(study.comparisons[0]?.relationship).toBe('same-study-family');
+ });
+ it('rejects invalid approval seals and variant mismatches',()=>{
+  const investigation=make([sourceClaim()]);
+  expect(()=>reconcileInvestigationStudies({
+   ...investigation,observations:investigation.observations.map(c=>({
+    ...c,reviewSeals:['same','same']
+   }))
+  })).toThrow();
+  const study=reconcileInvestigationStudies(investigation);
+  expect(()=>createReconciliationBrief({...investigation,variantId:'19'},study,'1716G/A')).toThrow();
  });
 });
