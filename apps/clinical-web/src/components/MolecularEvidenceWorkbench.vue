@@ -7,6 +7,7 @@ import {
  type MechanismCategory,type MechanismInterpretation
 } from '../domain/mechanismAnnotationDraft';
 import {researchReviewHandoff,makeVerifiedScientificExport,portableScientificExport} from '../domain/scientificReviewReadiness';
+import {sourceInterpretationOpportunities} from '../domain/sourceInterpretationOpportunities';
 import {filterReviewQueue,reviewQueueItems,molecularProvenancePath,
  type ReviewQueueScope} from '../domain/researchReviewQueue';
 import {createMolecularReviewService,type MolecularReviewRecord} from '../services/molecularReviewService';
@@ -49,6 +50,10 @@ const queue=computed(()=>reviewQueueItems({
  variantId:props.variantId,claims:props.claims,
  mechanisms:loading.value==='ready'?records.value:[]
 }).filter(r=>r.kind==='molecular'));
+const opportunities=computed(()=>sourceInterpretationOpportunities({
+ variantId:props.variantId,claims:props.claims,references:props.references,
+ mechanisms:loading.value==='ready'?records.value:[]
+}).filter(x=>x.state==='ready-for-molecular-annotation'||x.state==='molecular-review-pending'));
 const visible=computed(()=>loading.value==='ready'?
  records.value.filter(r=>filterReviewQueue(queue.value,scope.value).some(q=>q.id===r.id)):[]);
 const provenance=(entry:MolecularReviewRecord)=>molecularProvenancePath({
@@ -84,6 +89,13 @@ function toggle():void{if(expanded.value)close();else{expanded.value=true;void r
 function toggleCategory(id:MechanismCategory):void{
  categories.value=categories.value.includes(id)?categories.value.filter(x=>x!==id):
  categories.value.length<5?[...categories.value,id]:categories.value;
+}
+async function beginFromSource(claimId:string):Promise<void>{
+ if(!approvedSources.value.some(c=>c.id===claimId)||!props.active||loading.value!=='ready')return;
+ clearForm();editor.value=true;
+ await nextTick();
+ sourceClaimId.value=claimId;
+ notice.value='The source is approved. Explicit experimental details and mechanism categories must be entered by the researcher; nothing is inferred.';
 }
 async function prepareRevision(record:MolecularReviewRecord):Promise<void>{
  if(!record.submittedByMe||!['approved','rejected'].includes(record.status))return;
@@ -240,6 +252,24 @@ onUnmounted(()=>request?.abort());
       {{busy?'Submitting…':revisionOf?'Submit corrected revision':'Submit for independent review'}}
      </button>
     </form>
+    <section v-if="opportunities.length" class="nfq-one-variant-opportunities"
+     data-testid="nfq-molecular-research-opportunities">
+     <strong>Publication-to-mechanism research handoff</strong>
+     <p class="nfq-one-variant-note">Only publications with two approved source reviews appear here.
+      A missing molecular record is a gap in this research register, not proof of biological absence.</p>
+     <div v-for="source in opportunities" :key="source.claimId" class="nfq-one-variant-opportunity">
+      <div>
+       <strong>{{source.studyFamilyId}} · {{source.therapy}}</strong>
+       <p class="nfq-one-variant-note">{{source.state==='molecular-review-pending'?
+        'Molecular interpretation submitted · awaiting independent reviewers':
+        'No molecular interpretation submitted for this approved source claim'}}</p>
+       <a v-if="source.sourceUrl" :href="source.sourceUrl" rel="noopener noreferrer" target="_blank">
+        {{source.sourceTitle||'Original linked publication'}}</a>
+      </div>
+      <button v-if="source.state==='ready-for-molecular-annotation'" type="button"
+       :disabled="busy" @click="beginFromSource(source.claimId)">Prepare source interpretation</button>
+     </div>
+    </section>
     <div class="nfq-one-variant-queue">
      <label>Review queue
       <select v-model="scope" aria-label="Filter single-variant molecular review queue">
@@ -334,6 +364,12 @@ onUnmounted(()=>request?.abort());
 .nfq-one-variant-form fieldset{border:0;padding:0;margin:0;display:grid;gap:6px}
 .nfq-one-variant-form legend{font-size:11px;font-weight:650;margin-bottom:8px}
 .nfq-one-variant-category{display:flex!important;align-items:center;gap:8px}
+.nfq-one-variant-opportunities{margin:12px 0;border-top:1px solid var(--border,#dee7ef);padding-top:11px}
+.nfq-one-variant-opportunities>strong{font-size:12px;font-weight:650}
+.nfq-one-variant-opportunity{display:flex;align-items:start;justify-content:space-between;flex-wrap:wrap;gap:8px 15px;padding:9px 0}
+.nfq-one-variant-opportunity>div{min-width:0}
+.nfq-one-variant-opportunity strong,.nfq-one-variant-opportunity a{font-size:11px}
+.nfq-one-variant-opportunity a{color:var(--link,#2869a9)}
 .nfq-one-variant-record{padding:13px 0;border-top:1px solid var(--border,#dee7ef)}
 .nfq-one-variant-record>p{line-height:1.55}
 .nfq-one-variant-record details{margin:10px 0}
