@@ -90,6 +90,11 @@ export interface StudyFamilyAnalysisProtocol{
  readonly adjudicationCandidates:number;
  readonly unresolvedStudyLinks:number;
  readonly acceptedSameStudyLinks:number;
+ readonly reviewedPairRevisions:readonly {
+  readonly id:string;readonly claimA:string;readonly claimB:string;
+  readonly revision:number;readonly disposition:string;readonly status:string;
+  readonly reviewCount:number;
+ }[]|null;
  readonly cohorts:readonly AnalysisCohort[];
  readonly internalSplitCandidateCohorts:number;
  readonly gate:'no-approved-source-data'|'no-selected-records'|'no-eligible-numeric-outcomes'|
@@ -273,6 +278,13 @@ export function buildStudyFamilyAnalysisProtocol(
   adjudicationCandidates:adjudication?.candidateCount??0,
   unresolvedStudyLinks:adjudication?.unresolvedCount??0,
   acceptedSameStudyLinks:adjudication?.approvedSameStudy??0,
+  reviewedPairRevisions:adjudications===null?null:Object.freeze(
+   [...adjudications].sort((a,b)=>a.claimA.localeCompare(b.claimA)||
+    a.claimB.localeCompare(b.claimB)).map(x=>Object.freeze({
+    id:x.id,claimA:x.claimA,claimB:x.claimB,revision:x.revision,
+    disposition:x.disposition,status:x.status,reviewCount:x.reviewCount
+   }))
+  ),
   cohorts:Object.freeze(planned),
   internalSplitCandidateCohorts:splitCandidate,gate,
   caveats:Object.freeze([
