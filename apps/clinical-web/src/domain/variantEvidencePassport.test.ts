@@ -237,7 +237,7 @@ describe('14H179–180 strict source comparison and traceable review brief',()=>
  )=>{
   const p=passport('responsive',claimRows);
   const task=buildEvidenceResearchPlan(p,claimRows).tasks.find(
-   t=>t.category==='review-disagreement'
+   t=>t.category==='review-disagreement'||t.category==='pending-peer-review'
   )!;
   return assembleEvidenceInvestigation(task,'18',claimRows,p.sources);
  };
