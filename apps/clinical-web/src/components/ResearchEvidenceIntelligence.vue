@@ -10,6 +10,7 @@ import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/l
 import {createCuratedSourceClaimService,reviewedSourceObservations,type CuratedSourceClaim} from '../services/curatedSourceClaims';
 import ReviewedSourceClaims from './ReviewedSourceClaims.vue';
 import VariantEvidencePassport from './VariantEvidencePassport.vue';
+import CrossVariantEvidence from './CrossVariantEvidence.vue';
 import type {PassportIdentity} from '../domain/variantEvidencePassport';
 import type {ClinVarAuthoritySummary} from '../services/liveClinVar';
 import {authController,authSessionProvider} from '../services/authSession';
@@ -156,6 +157,8 @@ onUnmounted(()=>request?.abort());
      :claims="curatedClaims" :clin-var-summary="clinVarSummary??null"
      :clin-var-loading="clinVarLoading??false" :clin-var-error="clinVarError??''"
      @check-clinvar="emit('checkClinvar')" />
+    <CrossVariantEvidence :first="report" :first-name="variantName"
+      :first-class="recordedIdentity.functionalClass" :active="open&&state==='ready'&&verified" />
     <div class="nfq-research-engines-table" role="list" data-testid="nfq-research-engines-therapies">
      <article v-for="item in report.assessedTherapies" :key="item.therapy" role="listitem"
       class="nfq-research-engines-line" :data-therapy="item.therapy">
