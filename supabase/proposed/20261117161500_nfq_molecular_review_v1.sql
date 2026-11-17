@@ -118,6 +118,11 @@ begin
      where r.mechanism_id=c.id and r.reviewer_id=v_actor)),
    'reviewCount',(select count(*) from nfq_evidence_review.mechanism_reviews r
      where r.mechanism_id=c.id and r.decision='approve'),
+   'reviewAudit',coalesce((select jsonb_agg(jsonb_build_object(
+    'decision',r.decision,'note',r.note,'at',r.reviewed_at)
+     order by r.reviewed_at,r.id)
+    from nfq_evidence_review.mechanism_reviews r
+    where r.mechanism_id=c.id),'[]'::jsonb),
    'reviewSeals',case when c.status='approved' then coalesce((
     select jsonb_agg('attestation:'||r.id::text order by r.reviewed_at,r.id)
     from nfq_evidence_review.mechanism_reviews r
@@ -241,9 +246,14 @@ begin
   select count(*) into v_approved from nfq_evidence_review.mechanism_reviews
    where mechanism_id=p_id and decision='approve';
   if v_approved=2 then
-   update nfq_evidence_review.mechanism_claims
+   with old_approved as (
+    update nfq_evidence_review.mechanism_claims
     set status='superseded',finalized_at=now()
-    where series_id=v_claim.series_id and status='approved';
+    where series_id=v_claim.series_id and status='approved'
+    returning id
+   )
+   insert into nfq_evidence_review.mechanism_events(mechanism_id,actor_id,action)
+   select id,v_actor,'superseded' from old_approved;
    update nfq_evidence_review.mechanism_claims
     set status='approved',finalized_at=now() where id=p_id;
    insert into nfq_evidence_review.mechanism_events(mechanism_id,actor_id,action)
