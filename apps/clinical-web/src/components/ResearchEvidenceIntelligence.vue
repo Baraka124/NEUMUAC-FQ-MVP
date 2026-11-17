@@ -12,6 +12,7 @@ import ReviewedSourceClaims from './ReviewedSourceClaims.vue';
 import VariantEvidencePassport from './VariantEvidencePassport.vue';
 import CrossVariantEvidence from './CrossVariantEvidence.vue';
 import MolecularEvidenceDiscovery from './MolecularEvidenceDiscovery.vue';
+import MolecularEvidenceWorkbench from './MolecularEvidenceWorkbench.vue';
 import type {PassportIdentity} from '../domain/variantEvidencePassport';
 import type {ClinVarAuthoritySummary} from '../services/liveClinVar';
 import {authController,authSessionProvider} from '../services/authSession';
@@ -216,6 +217,9 @@ onUnmounted(()=>request?.abort());
     </div>
     <ReviewedSourceClaims :variant-id="report.variantId" :claims="curatedClaims"
       :references="linkedReferences" @updated="refreshReviewedEvidence"/>
+    <MolecularEvidenceWorkbench :active="open&&state==='ready'&&verified"
+     :variant-id="report.variantId" :variant-name="variantName"
+     :claims="curatedClaims" :references="linkedReferences" />
     <details class="nfq-research-engines-limits">
      <summary>Source coverage and interpretation</summary>
      <ul><li v-for="line in report.dataLimitations" :key="line">{{line}}</li></ul>
