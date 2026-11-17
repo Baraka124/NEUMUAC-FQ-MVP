@@ -10,6 +10,7 @@ import {
 } from '../services/approvedResearchDataset';
 import {THERAPIES} from '../domain/therapyRegistry';
 import {statisticsSummary} from '../domain/reportedStudyStatistics';
+import {populationSummary} from '../domain/reportedStudyIdentity';
 import StudyFamilyAnalysisProtocol from './StudyFamilyAnalysisProtocol.vue';
 const config=readConfigFromEnvironment();
 const service=config&&authSessionProvider?createApprovedDatasetService(config,authSessionProvider):null;
@@ -97,12 +98,15 @@ const therapyLabel=(value:string)=>THERAPIES.find(x=>x.id===value)?.label??value
    <template v-else-if="phase==='ready'&&snapshot&&quality">
     <div class="nfq-dataset-stats" aria-label="Approved evidence dataset coverage">
      <span><strong>{{quality.total}}</strong> approved observations</span>
-     <span><strong>{{quality.independentStudyFamilies}}</strong> study families</span>
+     <span><strong>{{quality.independentStudyFamilies}}</strong> labelled study groups</span>
      <span><strong>{{quality.variants}}</strong> variants</span>
      <span><strong>{{quality.therapies}}</strong> therapies</span>
      <span><strong>{{quality.numeric}}</strong> numeric outcomes</span>
      <span><strong>{{quality.reportedSampleN}}</strong> rows with source n</span>
      <span><strong>{{quality.reportedDispersion}}</strong> rows with uncertainty</span>
+     <span><strong>{{quality.registeredStudyRows}}</strong> registered-study rows</span>
+     <span><strong>{{quality.populationCharacterized}}</strong> population-characterized</span>
+     <span v-if="quality.studyIdentityConflicts"><strong>{{quality.studyIdentityConflicts}}</strong> identity conflicts</span>
      <span><strong>{{quality.contextBounded}}</strong> context-bounded records</span>
     </div>
     <div class="nfq-dataset-manifest">
@@ -169,6 +173,16 @@ const therapyLabel=(value:string)=>THERAPIES.find(x=>x.id===value)?.label??value
         <p v-if="item.record.studyStats?.sourceLocator&&item.record.studyStats.sourceLocator!=='not-reported'"
          class="nfq-dataset-source">
          Sampling source: {{item.record.studyStats.sourceLocator}}
+        </p>
+        <p class="nfq-dataset-value" data-testid="nfq-dataset-population">
+         {{populationSummary(item.record.studyIdentity)}}
+        </p>
+        <p v-if="item.record.studyIdentity?.sourceLocator&&item.record.studyIdentity.sourceLocator!=='not-reported'"
+         class="nfq-dataset-source">
+         Population source: {{item.record.studyIdentity.sourceLocator}}
+        </p>
+        <p v-if="item.record.studyIdentity?.populationDescription" class="nfq-dataset-source">
+         {{item.record.studyIdentity.populationDescription}}
         </p>
         <p v-if="item.flags.length" class="nfq-dataset-flag">{{item.flags.join(' · ')}}</p>
        <div class="nfq-dataset-links">

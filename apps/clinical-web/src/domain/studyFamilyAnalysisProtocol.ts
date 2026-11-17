@@ -1,4 +1,5 @@
 import type {CoreModulatorId} from './therapyRegistry';
+import {resolveStudyIdentityLinks} from './reportedStudyIdentity';
 import {
  endpointComparisonKey,type EndpointCode
 } from './researchEndpointNormalization';
@@ -30,6 +31,12 @@ export interface ProtocolObservation{
  readonly claimId:string;
  readonly referenceId:number;
  readonly studyFamilyId:string;
+ readonly identityGroupKey:string;
+ readonly registryId:string|null;
+ readonly publicationRole:string|null;
+ readonly populationModel:string|null;
+ readonly cohortLabel:string|null;
+ readonly identityConflict:boolean;
  readonly partition:StudyPartition;
  readonly reportedValue:number;
  readonly samplingUnit:string|null;
@@ -54,6 +61,8 @@ export interface AnalysisCohort{
  readonly timepoint:string;
  readonly observationCount:number;
  readonly labelledStudyFamilies:number;
+ readonly registeredStudyGroups:number;
+ readonly identityConflictGroups:number;
  readonly developmentFamilies:number;
  readonly internalHoldoutFamilies:number;
  readonly internalSplitPossible:boolean;
@@ -72,6 +81,9 @@ export interface StudyFamilyAnalysisProtocol{
  readonly excludedObservations:number;
  readonly excluded:readonly ProtocolExcludedRow[];
  readonly labelledStudyFamilies:number;
+ readonly registeredStudyRows:number;
+ readonly populationCharacterizedRows:number;
+ readonly identityConflictRows:number;
  readonly cohorts:readonly AnalysisCohort[];
  readonly internalSplitCandidateCohorts:number;
  readonly gate:'no-approved-source-data'|'no-selected-records'|'no-eligible-numeric-outcomes'|
@@ -122,6 +134,7 @@ export function buildStudyFamilyAnalysisProtocol(
    !['sweat-chloride','ppfev1','cftr-current','organoid-fis','other','not-reported']
     .includes(selection.endpoint))
   throw new Error('Invalid analysis protocol or evidence snapshot');
+ const identityLinks=resolveStudyIdentityLinks(snapshot.records);
  const quality=assessApprovedDataset(snapshot);
  const selected=quality.rows.filter(({record:r})=>
   (selection.therapy==='all'||r.therapy===selection.therapy)&&
@@ -155,10 +168,19 @@ export function buildStudyFamilyAnalysisProtocol(
   if(!context)throw new Error('Missing exact experimental context');
   const key=r.variantId+'|'+r.therapy+'|'+context;
   const current=cohorts.get(key)??{representative:r,contextKey:context,observations:[]};
+  const link=identityLinks.get(r.claimId);
+  const allocationKey=link?.key.startsWith('family:')?
+   link.key.slice('family:'.length):(link?.key??normalizeFamily(r.studyFamilyId));
   current.observations.push(Object.freeze({
    claimId:r.claimId,referenceId:r.referenceId,
    studyFamilyId:r.studyFamilyId,
-   partition:studyFamilyPartition(r.studyFamilyId),
+   identityGroupKey:link?.key??'family:'+normalizeFamily(r.studyFamilyId),
+   registryId:r.studyIdentity?.registryId??null,
+   publicationRole:r.studyIdentity?.publicationRole??null,
+   populationModel:r.studyIdentity?.populationModel??null,
+   cohortLabel:r.studyIdentity?.cohortLabel??null,
+   identityConflict:link?.identityConflict??false,
+   partition:studyFamilyPartition(allocationKey),
    reportedValue:endpoint.value,
    samplingUnit:r.studyStats?.analysisUnit??null,
    interventionN:r.studyStats?.interventionN??null,
@@ -169,13 +191,13 @@ export function buildStudyFamilyAnalysisProtocol(
    reportedCiUpper:r.studyStats?.ciUpper??null
   }));
   cohorts.set(key,current);
-  eligibleFamilyLabels.add(normalizeFamily(r.studyFamilyId));
+  eligibleFamilyLabels.add(link?.key??'family:'+normalizeFamily(r.studyFamilyId));
  }
  const planned=[...cohorts].map(([key,{representative:r,observations}])=>{
   const endpoint=r.endpoint!;
   const families=new Map<string,StudyPartition>();
   for(const item of observations){
-   const label=normalizeFamily(item.studyFamilyId);
+   const label=item.identityGroupKey;
    if(families.has(label)&&families.get(label)!==item.partition)
     throw new Error('Study-family data split leakage');
    families.set(label,item.partition);
@@ -184,7 +206,9 @@ export function buildStudyFamilyAnalysisProtocol(
   const holdout=families.size-development;
   // An internal split can be *planned* only at an operational family-count
   // floor. This is not a statistical power calculation or scientific approval.
-  const internalSplitPossible=development>=5&&holdout>=2&&families.size>=8;
+  const conflictGroups=new Set(observations.filter(x=>x.identityConflict).map(x=>x.identityGroupKey));
+  const registeredGroups=new Set(observations.filter(x=>x.registryId!==null).map(x=>x.identityGroupKey));
+  const internalSplitPossible=conflictGroups.size===0&&development>=5&&holdout>=2&&families.size>=8;
   return Object.freeze({
    key,variantId:r.variantId,therapy:r.therapy,
    scope:r.scope,method:r.method,
@@ -192,6 +216,7 @@ export function buildStudyFamilyAnalysisProtocol(
    statistic:endpoint.statistic,unit:endpoint.unit,
    model:endpoint.model,comparator:endpoint.comparator,timepoint:endpoint.timepoint,
    observationCount:observations.length,labelledStudyFamilies:families.size,
+   registeredStudyGroups:registeredGroups.size,identityConflictGroups:conflictGroups.size,
    developmentFamilies:development,internalHoldoutFamilies:holdout,
    internalSplitPossible,observations:Object.freeze(observations)
   });
@@ -218,11 +243,17 @@ export function buildStudyFamilyAnalysisProtocol(
   excludedObservations:excluded.length,
   excluded:Object.freeze(excluded),
   labelledStudyFamilies:eligibleFamilyLabels.size,
+  registeredStudyRows:selected.filter(x=>x.record.studyIdentity?.registryId!==null&&
+   x.record.studyIdentity?.registryId!==undefined).length,
+  populationCharacterizedRows:selected.filter(x=>
+   x.record.studyIdentity?.populationModel!==undefined&&
+   x.record.studyIdentity.populationModel!=='not-reported').length,
+  identityConflictRows:selected.filter(x=>identityLinks.get(x.record.claimId)?.identityConflict).length,
   cohorts:Object.freeze(planned),
   internalSplitCandidateCohorts:splitCandidate,gate,
   caveats:Object.freeze([
    'Research-planning manifest only: no model fitting, inference or patient-level predictions',
-   'Study-family labels are provisional; linked publications can represent one trial',
+   'Registered study identities conservatively join multiple publications; conflicts cannot certify independent trials',
    'Reported counts and dispersion are metadata only; arm-level estimands, independence, repeated measures and model assumptions remain unverified',
    'Internal source-family holdout is not independent external clinical validation',
    'Cohorts with differing assays, scope, comparators, method, unit or timepoint are never pooled',

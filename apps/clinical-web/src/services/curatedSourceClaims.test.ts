@@ -20,6 +20,9 @@ const valid={
  studyStats:{analysisUnit:'not-reported',design:'not-reported',interventionN:null,comparatorN:null,
  uncertaintyType:'not-reported',uncertaintyValue:null,ciLower:null,ciUpper:null,
  uncertaintyTarget:'not-reported',sourceLocator:'not-reported'},
+ studyIdentity:{registryType:'not-reported',registryId:null,
+ publicationRole:'not-reported',populationModel:'not-reported',diseaseGroup:'not-reported',
+ ageGroup:'not-reported',cohortLabel:null,populationDescription:null,sourceLocator:'not-reported'},
  status:'approved',submittedAt:'2026-09-01T00:00:00Z',submittedByMe:false,
  reviewCount:2,canReview:false,reviewedAt:'2026-09-02T00:00:00Z',
  reviewSeals:[sealA,sealB],
@@ -37,7 +40,10 @@ const payload:CuratedClaimPayload={
   model:'not-reported',comparator:'not-reported',timepoint:'not-reported'},
  studyStats:{analysisUnit:'not-reported',design:'not-reported',interventionN:null,comparatorN:null,
  uncertaintyType:'not-reported',uncertaintyValue:null,ciLower:null,ciUpper:null,
- uncertaintyTarget:'not-reported',sourceLocator:'not-reported'}
+ uncertaintyTarget:'not-reported',sourceLocator:'not-reported'},
+ studyIdentity:{registryType:'not-reported',registryId:null,
+ publicationRole:'not-reported',populationModel:'not-reported',diseaseGroup:'not-reported',
+ ageGroup:'not-reported',cohortLabel:null,populationDescription:null,sourceLocator:'not-reported'}
 };
 const config:ReadOnlyConfig={endpoint:'https://cftr-contract.invalid',
  publishableKey:'sb_publishable_test_contract',enabled:true,accessMode:'anonymous',readTable:'variants'};
@@ -74,6 +80,25 @@ describe('14H166 approved-only evidence curation contracts',()=>{
   expect(()=>decodeCuratedClaims(envelope([valid,valid]),variant)).toThrow();
   expect(()=>decodeCuratedClaims(envelope([{...valid,scope:'genotype-specific',genotypePair:null}]),variant)).toThrow();
   expect(()=>reviewedSourceObservations(decodeCuratedClaims(envelope([valid]),variant),variant,[72])).toThrow();
+ });
+ it('requires a valid source-reported trial registration with population locator before submission',()=>{
+  const candidate={...payload.studyIdentity,
+   registryType:'nct' as const,registryId:'NCT12345678',
+   publicationRole:'secondary-analysis' as const,
+   populationModel:'clinical-participants' as const,
+   diseaseGroup:'cystic-fibrosis' as const,
+   ageGroup:'mixed' as const,sourceLocator:'Methods · Study cohort'
+  };
+  expect(validSourceClaimPayload(variant,{...payload,studyIdentity:candidate},[71])).toBe(true);
+  expect(validSourceClaimPayload(variant,{...payload,studyIdentity:{
+   ...candidate,registryId:'NCT123'
+  }},[71])).toBe(false);
+  expect(validSourceClaimPayload(variant,{...payload,studyIdentity:{
+   ...candidate,sourceLocator:'not-reported'
+  }},[71])).toBe(false);
+  expect(validSourceClaimPayload(variant,{...payload,studyIdentity:{
+   ...candidate,populationDescription:'Too short'
+  }},[71])).toBe(false);
  });
  it('recognizes exact variant reference, source locator and structured scope before allowing submission',()=>{
   expect(validSourceClaimPayload(variant,payload,[71])).toBe(true);

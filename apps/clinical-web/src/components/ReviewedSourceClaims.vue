@@ -12,6 +12,12 @@ import {
  type ReportedStudyStatistics,type AnalysisUnit,type DesignType,
  type UncertaintyType,type UncertaintyTarget
 } from '../domain/reportedStudyStatistics';
+import {
+ REGISTRY_TYPES,PUBLICATION_ROLES,POPULATION_MODELS,DISEASE_GROUPS,AGE_GROUPS,
+ UNREPORTED_STUDY_IDENTITY,populationSummary,
+ type ReportedStudyIdentity,type RegistryType,type PublicationRole,
+ type PopulationModel,type DiseaseGroup,type AgeGroup
+} from '../domain/reportedStudyIdentity';
 import {researcherRole} from '../services/researchRole';
 import {authSessionProvider} from '../services/authSession';
 import {readConfigFromEnvironment} from '../services/liveVariants';
@@ -97,6 +103,30 @@ function resetErrorContext():void{
  statsErrorValue.value='';statsCiLower.value='';statsCiUpper.value='';
  statsErrorTarget.value='not-reported';
 }
+const registryType=ref<RegistryType>('not-reported');
+const registryId=ref('');
+const publicationRole=ref<PublicationRole>('not-reported');
+const populationModel=ref<PopulationModel>('not-reported');
+const diseaseGroup=ref<DiseaseGroup>('not-reported');
+const ageGroup=ref<AgeGroup>('not-reported');
+const cohortLabel=ref('');
+const populationDescription=ref('');
+const identityLocator=ref('not-reported');
+const studyIdentity=computed<ReportedStudyIdentity>(()=>({
+ registryType:registryType.value,registryId:registryId.value.trim()||null,
+ publicationRole:publicationRole.value,populationModel:populationModel.value,
+ diseaseGroup:diseaseGroup.value,ageGroup:ageGroup.value,
+ cohortLabel:cohortLabel.value.trim()||null,
+ populationDescription:populationDescription.value.trim()||null,
+ sourceLocator:identityLocator.value.trim()
+}));
+function resetIdentity():void{
+ registryType.value='not-reported';registryId.value='';
+ publicationRole.value='not-reported';populationModel.value='not-reported';
+ diseaseGroup.value='not-reported';ageGroup.value='not-reported';
+ cohortLabel.value='';populationDescription.value='';identityLocator.value='not-reported';
+}
+function changeRegistryType():void{registryId.value='';}
 const endpointUnits:readonly EndpointUnit[]=['mmol/L','pp','%','uA/cm2','ratio','study-specific','not-reported'];
 function resetEndpoint():void{
  endpointCode.value='not-reported';endpointStatistic.value='not-reported';
@@ -131,7 +161,7 @@ const formData=computed<CuratedClaimPayload>(()=>({
  [props.variantId,genotypeOther.value] as const:null,
  method:formMethod.value,finding:formFinding.value,
  studyFamilyId:formFamily.value,locator:formLocator.value,rationale:formRationale.value,
- endpoint:endpoint.value,studyStats:stats.value
+ endpoint:endpoint.value,studyStats:stats.value,studyIdentity:studyIdentity.value
 }));
 const canSubmit=computed(()=>!busy.value&&canContribute.value&&Boolean(service)&&
  validSourceClaimPayload(props.variantId,formData.value,referenceIds.value));
@@ -140,7 +170,7 @@ function resetForm():void{
  revisionOf.value=null;formTherapy.value='ETI';formReference.value='';
  formScope.value='single-variant';genotypeOther.value='';
  formMethod.value='in-vitro-study';formFinding.value='inconclusive';
- formFamily.value='';formLocator.value='';formRationale.value='';resetEndpoint();resetStats();
+ formFamily.value='';formLocator.value='';formRationale.value='';resetEndpoint();resetStats();resetIdentity();
 }
 function startRevision(entry:CuratedSourceClaim):void{
  resetForm();revisionOf.value=entry;
@@ -165,6 +195,16 @@ function startRevision(entry:CuratedSourceClaim):void{
  statsCiUpper.value=original.ciUpper===null?'':String(original.ciUpper);
  statsErrorTarget.value=original.uncertaintyTarget;
  statsLocator.value=original.sourceLocator;
+ const previousIdentity=entry.studyIdentity??UNREPORTED_STUDY_IDENTITY;
+ registryType.value=previousIdentity.registryType;
+ registryId.value=previousIdentity.registryId??'';
+ publicationRole.value=previousIdentity.publicationRole;
+ populationModel.value=previousIdentity.populationModel;
+ diseaseGroup.value=previousIdentity.diseaseGroup;
+ ageGroup.value=previousIdentity.ageGroup;
+ cohortLabel.value=previousIdentity.cohortLabel??'';
+ populationDescription.value=previousIdentity.populationDescription??'';
+ identityLocator.value=previousIdentity.sourceLocator;
  formOpen.value=true;notice.value='';
 }
 async function submit():Promise<void>{
@@ -403,6 +443,61 @@ const shortId=(value:string)=>value.slice(0,8);
      </div>
      <p class="nfq-review-reference">Unreported values remain null. A reported n is not automatically a patient count or an independent replicate.</p>
     </details>
+    <details class="nfq-endpoint-intake" data-testid="nfq-study-identity-intake">
+     <summary>Study identity & population
+      <span>{{registryId||'Registration not recorded'}}</span>
+     </summary>
+     <p>Distinguish the publication from the underlying trial or experiment.
+      Record only aggregate, source-reported population context. No individual patient information.</p>
+     <div class="nfq-reviewed-grid">
+      <label>Study registry
+       <select v-model="registryType" :disabled="busy" data-testid="nfq-identity-registry-type"
+        @change="changeRegistryType">
+        <option v-for="v in REGISTRY_TYPES" :key="v.value" :value="v.value">{{v.label}}</option>
+       </select>
+      </label>
+      <label v-if="registryType!=='not-reported'">Source-reported study accession
+       <input v-model.trim="registryId" :disabled="busy" maxlength="60"
+        data-testid="nfq-identity-registry-id"
+        :placeholder="registryType==='nct'?'NCT12345678':registryType==='isrctn'?'ISRCTN12345678':'Source-reported accession'"/>
+      </label>
+      <label>Relationship of publication to study
+       <select v-model="publicationRole" :disabled="busy" data-testid="nfq-identity-publication-role">
+        <option v-for="v in PUBLICATION_ROLES" :key="v.value" :value="v.value">{{v.label}}</option>
+       </select>
+      </label>
+      <label>Study population or experimental model
+       <select v-model="populationModel" :disabled="busy" data-testid="nfq-identity-population-model">
+        <option v-for="v in POPULATION_MODELS" :key="v.value" :value="v.value">{{v.label}}</option>
+       </select>
+      </label>
+      <label>Disease group
+       <select v-model="diseaseGroup" :disabled="busy">
+        <option v-for="v in DISEASE_GROUPS" :key="v.value" :value="v.value">{{v.label}}</option>
+       </select>
+      </label>
+      <label>Age group
+       <select v-model="ageGroup" :disabled="busy">
+        <option v-for="v in AGE_GROUPS" :key="v.value" :value="v.value">{{v.label}}</option>
+       </select>
+      </label>
+      <label>Reported cohort or subgroup
+       <input v-model.trim="cohortLabel" :disabled="busy" maxlength="100"
+        data-testid="nfq-identity-cohort" placeholder="Optional source-reported subgroup"/>
+      </label>
+      <label>Population evidence locator
+       <input v-model.trim="identityLocator" :disabled="busy" maxlength="240"
+        data-testid="nfq-identity-locator" placeholder="not-reported or Methods · Table 1"/>
+      </label>
+     </div>
+     <label>Aggregate population description (optional, 20–280 characters)
+      <textarea v-model.trim="populationDescription" rows="2" maxlength="280"
+       data-testid="nfq-identity-description" :disabled="busy"
+       placeholder="Only published cohort characteristics; never patient-identifying information."/>
+     </label>
+     <p class="nfq-review-reference">Two publications sharing a verified registration may not be independent.
+      Unreported identities are not silently assigned.</p>
+    </details>
     <label>Scientific rationale and endpoint context
     <textarea v-model.trim="formRationale" maxlength="900" minlength="20" rows="3"
      placeholder="State the measured endpoint, experimental conditions, and why this finding is applicable."
@@ -444,6 +539,10 @@ const shortId=(value:string)=>value.slice(0,8);
        · {{entry.studyStats.sourceLocator}}
       </template>
      </p>
+     <p class="nfq-reviewed-attribution" data-testid="nfq-claim-study-identity">
+      Study identity: {{populationSummary(entry.studyIdentity)}}
+      <template v-if="entry.studyIdentity?.cohortLabel"> · {{entry.studyIdentity.cohortLabel}}</template>
+     </p>
      <p class="nfq-reviewed-rationale">{{entry.rationale}}</p>
     <details class="nfq-review-audit">
      <summary>Recorded review history · {{entry.audit.length}} events</summary>
@@ -462,7 +561,7 @@ const shortId=(value:string)=>value.slice(0,8);
      class="nfq-review-decision">
      <label>Independent review justification
       <textarea v-model.trim="reviewNotes[entry.id]" maxlength="900" minlength="20" rows="3"
-       placeholder="Verify source, endpoint, sample unit, arm counts, uncertainty, locator, method and interpretation."
+       placeholder="Verify study registration, population, source, endpoint, sampling, uncertainty and interpretation."
        :disabled="busy"></textarea>
      </label>
      <div class="nfq-review-actions">

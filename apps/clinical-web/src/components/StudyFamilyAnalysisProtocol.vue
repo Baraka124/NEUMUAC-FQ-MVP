@@ -79,6 +79,9 @@ function exportPlan():void{
     <span><strong>{{protocol.eligibleNumericObservations}}</strong> context-eligible values</span>
     <span><strong>{{protocol.reportedSampleN}}</strong> reviewed rows with source n</span>
     <span><strong>{{protocol.reportedUncertainty}}</strong> reviewed rows with dispersion</span>
+    <span><strong>{{protocol.registeredStudyRows}}</strong> registered-study rows</span>
+    <span><strong>{{protocol.populationCharacterizedRows}}</strong> population-characterized rows</span>
+    <span v-if="protocol.identityConflictRows"><strong>{{protocol.identityConflictRows}}</strong> identity conflicts</span>
     <span><strong>{{protocol.excludedObservations}}</strong> excluded values</span>
     <span><strong>{{protocol.cohorts.length}}</strong> exact-context cohorts</span>
     <span><strong>{{protocol.internalSplitCandidateCohorts}}</strong> internal split candidates</span>
@@ -95,10 +98,13 @@ function exportPlan():void{
     <article v-for="cohort in seen" :key="cohort.key" class="nfq-analysis-cohort">
      <div class="nfq-analysis-cohort-head">
       <strong>{{cohort.therapy}} · variant #{{cohort.variantId}}</strong>
-      <span>{{cohort.labelledStudyFamilies}} labelled stud{{cohort.labelledStudyFamilies===1?'y family':'y families'}}</span>
+      <span>{{cohort.labelledStudyFamilies}} linked study group{{cohort.labelledStudyFamilies===1?'':'s'}}</span>
      </div>
      <p>{{cohort.endpoint}} · {{cohort.statistic}} · {{cohort.unit}} ·
       {{cohort.model}} · {{cohort.comparator}} · {{cohort.timepoint}}</p>
+     <p v-if="cohort.identityConflictGroups" class="nfq-analysis-status">
+       Conflicting registered study identities · independent holdout not permitted
+      </p>
      <p>{{cohort.observationCount}} source values ·
       {{cohort.developmentFamilies}} development families ·
       {{cohort.internalHoldoutFamilies}} internal-holdout families</p>
