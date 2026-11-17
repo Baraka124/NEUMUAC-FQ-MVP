@@ -1,6 +1,10 @@
 import {endpointComparisonKey,validResearchEndpoint,type ResearchEndpoint} from '../domain/researchEndpointNormalization';
 import type {CoreModulatorId} from '../domain/therapyRegistry';
 import {
+ validReportedStudyIdentity,resolveStudyIdentityLinks,populationFlags,reportedRegistryKey,
+ type ReportedStudyIdentity
+} from '../domain/reportedStudyIdentity';
+import {
  validStudyStatistics,studyStatisticsFlags,studyStatisticsReadiness,
  type ReportedStudyStatistics
 } from '../domain/reportedStudyStatistics';
@@ -30,6 +34,7 @@ export interface ApprovedDatasetRow {
  readonly locator:string;
  readonly endpoint:ResearchEndpoint|null;
  readonly studyStats:ReportedStudyStatistics|null;
+ readonly studyIdentity:ReportedStudyIdentity|null;
  readonly reviewCount:2;
  readonly reviewedAt:string;
 }
@@ -48,6 +53,7 @@ export interface DatasetQualityRow{
  readonly readiness:DatasetReadiness;
  readonly contextKey:string|null;
  readonly studyFamilyDuplicates:number;
+ readonly sourceIdentityKey:string;
  readonly flags:readonly string[];
  readonly statisticsReadiness:ReturnType<typeof studyStatisticsReadiness>;
 }
@@ -59,6 +65,10 @@ export interface ApprovedDatasetQuality{
  readonly numeric:number;
  readonly reportedSampleN:number;
  readonly reportedDispersion:number;
+ readonly registeredStudyRows:number;
+ readonly populationCharacterized:number;
+ readonly studyIdentityConflicts:number;
+ readonly linkedStudyGroups:number;
  readonly contextBounded:number;
  readonly qualitativeOnly:number;
  readonly unextracted:number;
@@ -133,6 +143,18 @@ function decodeStudyStats(
  if(!validStudyStatistics(stats,endpoint))fail('Source statistics failed sampling and dispersion checks');
  return Object.freeze({...stats});
 }
+function decodeStudyIdentity(raw:unknown):ReportedStudyIdentity|null{
+ if(raw===null)return null;
+ const value=object(raw);
+ const keys=['registryType','registryId','publicationRole','populationModel',
+  'diseaseGroup','ageGroup','cohortLabel','populationDescription','sourceLocator'];
+ if(Object.keys(value).length!==keys.length||
+  keys.some(k=>!Object.prototype.hasOwnProperty.call(value,k)))
+  fail('Unknown study identity fields');
+ const identity=value as unknown as ReportedStudyIdentity;
+ if(!validReportedStudyIdentity(identity))fail('Invalid approved source population/registration context');
+ return Object.freeze({...identity});
+}
 function decodeRow(raw:unknown):ApprovedDatasetRow{
  const data=object(raw);
  const claimId=str(data.claimId,'claim identifier',36);
@@ -173,6 +195,7 @@ function decodeRow(raw:unknown):ApprovedDatasetRow{
   locator:str(data.locator,'source locator',240),
   endpoint:decodeEndpoint(data.endpoint),
   studyStats:decodeStudyStats(data.studyStats,decodeEndpoint(data.endpoint)),
+  studyIdentity:decodeStudyIdentity(data.studyIdentity),
   reviewCount:2,reviewedAt:timestamp(data.reviewedAt,'independent-review time')
  });
 }
@@ -206,12 +229,13 @@ export function decodeApprovedDataset(input:unknown):ApprovedDatasetSnapshot{
  });
 }
 export function assessApprovedDataset(snapshot:ApprovedDatasetSnapshot):ApprovedDatasetQuality{
+ const identities=resolveStudyIdentityLinks(snapshot.records);
  const families=new Set<string>();
  const byFamily=new Map<string,number>();
  const groups=new Map<string,Set<string>>();
  const groupCounts=new Map<string,number>();
  for(const row of snapshot.records){
-  const family=[row.variantId,row.therapy,row.studyFamilyId].join('|');
+  const family=[row.variantId,row.therapy,identities.get(row.claimId)?.key??row.studyFamilyId].join('|');
   families.add(family);byFamily.set(family,(byFamily.get(family)||0)+1);
  }
  const rows=snapshot.records.map(record=>{
@@ -226,7 +250,7 @@ export function assessApprovedDataset(snapshot:ApprovedDatasetSnapshot):Approved
   }
   if(key){
    const scoped=record.variantId+'|'+record.therapy+'|'+key;
-   groups.set(scoped,new Set([...(groups.get(scoped)||[]),record.studyFamilyId]));
+   groups.set(scoped,new Set([...(groups.get(scoped)||[]),identities.get(record.claimId)?.key??record.studyFamilyId]));
    groupCounts.set(scoped,(groupCounts.get(scoped)||0)+1);
   }
   const flags:string[]=[];
@@ -236,12 +260,19 @@ export function assessApprovedDataset(snapshot:ApprovedDatasetSnapshot):Approved
   if(record.method==='in-vitro-study'&&endpoint?.model==='clinical'||
    record.method==='clinical-study'&&endpoint?.model==='cell-line')
    flags.push('Research method and endpoint model require scientific reconciliation');
-  const studyFamily=record.variantId+'|'+record.therapy+'|'+record.studyFamilyId;
+  const identity=identities.get(record.claimId);
+  const studyFamily=record.variantId+'|'+record.therapy+'|'+(identity?.key??record.studyFamilyId);
   const count=byFamily.get(studyFamily)??0;
   if(count>1)flags.push('Multiple source rows from one study family: not independent replication');
   flags.push(...studyStatisticsFlags(record.studyStats,record.endpoint));
+  flags.push(...populationFlags(record.studyIdentity));
+  if(identity?.linkedPublications&&identity.linkedPublications>1)
+   flags.push('Linked publications or study-family reports are not independent replication');
+  if(identity?.identityConflict)
+   flags.push('Conflicting trial registrations in linked study family need reconciliation');
   return Object.freeze({
    record,readiness,contextKey:key,studyFamilyDuplicates:count,
+   sourceIdentityKey:identity?.key??'family:'+record.studyFamilyId,
    flags:Object.freeze(flags),
    statisticsReadiness:studyStatisticsReadiness(record.studyStats)
   });
@@ -259,6 +290,11 @@ export function assessApprovedDataset(snapshot:ApprovedDatasetSnapshot):Approved
    x.record.studyStats?.interventionN!==undefined).length,
   reportedDispersion:rows.filter(x=>x.record.studyStats?.uncertaintyType!==undefined&&
    x.record.studyStats.uncertaintyType!=='not-reported').length,
+  registeredStudyRows:rows.filter(x=>reportedRegistryKey(x.record.studyIdentity)!==null).length,
+  populationCharacterized:rows.filter(x=>x.record.studyIdentity?.populationModel!==undefined&&
+   x.record.studyIdentity.populationModel!=='not-reported').length,
+  studyIdentityConflicts:rows.filter(x=>identities.get(x.record.claimId)?.identityConflict).length,
+  linkedStudyGroups:new Set(rows.map(x=>identities.get(x.record.claimId)?.key)).size,
   contextBounded:rows.filter(x=>x.readiness==='context-bounded-numeric').length,
   qualitativeOnly:rows.filter(x=>x.readiness==='qualitative-only').length,
   unextracted:rows.filter(x=>x.readiness==='unextracted').length,
@@ -288,10 +324,12 @@ export function approvedDatasetCsv(snapshot:ApprovedDatasetSnapshot):string{
   'endpoint_model','endpoint_comparator','endpoint_timepoint',
   'analysis_unit','study_arm_design','intervention_n','comparator_n','uncertainty_type',
   'uncertainty_value','ci95_lower','ci95_upper','uncertainty_target','statistics_locator',
-  'readiness','context_key','quality_flags'
+  'registry_type','registry_id','publication_role','population_model',
+  'disease_group','age_group','cohort_label','population_description',
+  'population_locator','linked_study_group','readiness','context_key','quality_flags'
  ];
  const rows=assessApprovedDataset(snapshot).rows;
- return [heading.map(csvCell).join(','),...rows.map(({record:r,readiness,contextKey,flags})=>[
+ return [heading.map(csvCell).join(','),...rows.map(({record:r,readiness,contextKey,sourceIdentityKey,flags})=>[
   1,snapshot.snapshotSha256,r.claimId,r.seriesId,r.revision,r.variantId,r.therapy,
   r.referenceId,r.referenceTitle,r.referenceUrl,r.referencePmid,r.referenceDoi,r.studyFamilyId,
   r.scope,r.genotypePair?.[0]??null,r.genotypePair?.[1]??null,r.method,r.finding,r.locator,2,
@@ -303,6 +341,11 @@ export function approvedDatasetCsv(snapshot:ApprovedDatasetSnapshot):string{
   r.studyStats?.uncertaintyType??null,r.studyStats?.uncertaintyValue??null,
   r.studyStats?.ciLower??null,r.studyStats?.ciUpper??null,
   r.studyStats?.uncertaintyTarget??null,r.studyStats?.sourceLocator??null,
+  r.studyIdentity?.registryType??null,r.studyIdentity?.registryId??null,
+  r.studyIdentity?.publicationRole??null,r.studyIdentity?.populationModel??null,
+  r.studyIdentity?.diseaseGroup??null,r.studyIdentity?.ageGroup??null,
+  r.studyIdentity?.cohortLabel??null,r.studyIdentity?.populationDescription??null,
+  r.studyIdentity?.sourceLocator??null,sourceIdentityKey,
   readiness,contextKey,flags.join('; ')
  ].map(csvCell).join(','))].join('\r\n');
 }
@@ -316,6 +359,9 @@ export function approvedDatasetJson(snapshot:ApprovedDatasetSnapshot):string{
    numericEndpointRows:quality.numeric,contextBoundedRows:quality.contextBounded,
    rowsWithReportedSampleN:quality.reportedSampleN,
    rowsWithReportedDispersion:quality.reportedDispersion,
+   rowsWithStudyRegistrations:quality.registeredStudyRows,
+   populationCharacterizedRows:quality.populationCharacterized,
+   studyIdentityConflictRows:quality.studyIdentityConflicts,
    limitations:snapshot.limitations,
    caveat:'Source-approved research observations; no inferred effects, no clinical prediction.'
   },
