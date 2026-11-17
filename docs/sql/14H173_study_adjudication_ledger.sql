@@ -127,7 +127,7 @@ BEGIN
   IF p_adjudication_id IS NOT NULL OR p_review_decision IS NOT NULL OR
    p_claim_a IS NULL OR p_claim_b IS NULL OR p_claim_a=p_claim_b OR
    p_expected_revision IS NULL OR p_expected_revision NOT BETWEEN 0 AND 99 OR
-   p_disposition NOT IN ('same-study','distinct-studies','insufficient-evidence')
+   p_disposition IS NULL OR p_disposition NOT IN ('same-study','distinct-studies','insufficient-evidence')
    OR p_rationale IS NULL OR length(p_rationale) NOT BETWEEN 30 AND 900 OR
    p_rationale<>btrim(p_rationale) OR p_rationale ~ '[[:cntrl:]]' OR
    p_evidence_locator IS NULL OR length(p_evidence_locator) NOT BETWEEN 8 AND 240 OR
@@ -166,7 +166,7 @@ BEGIN
    p_adjudication_id IS NULL OR p_claim_a IS NOT NULL OR p_claim_b IS NOT NULL OR
    p_disposition IS NOT NULL OR p_evidence_locator IS NOT NULL OR
    p_expected_revision IS NULL OR p_expected_revision NOT BETWEEN 1 AND 100 OR
-   p_review_decision NOT IN ('approve','reject') OR
+   p_review_decision IS NULL OR p_review_decision NOT IN ('approve','reject') OR
    p_rationale IS NULL OR length(p_rationale) NOT BETWEEN 20 AND 500 OR
    p_rationale<>btrim(p_rationale) OR p_rationale ~ '[[:cntrl:]]'
   THEN RAISE EXCEPTION 'Independent scientific review required' USING ERRCODE='42501'; END IF;
