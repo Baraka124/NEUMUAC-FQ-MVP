@@ -1,5 +1,6 @@
 import {describe,it,expect} from 'vitest';
 import {buildEvidenceResearchPlan} from './evidenceResearchPriorities';
+import {assembleEvidenceInvestigation} from './evidenceInvestigation';
 import {projectVariantTherapies} from './therapyRegistry';
 import {buildMultiTherapyResearchReport} from './multiTherapyResearch';
 import {evaluateVariantEvidencePassport,assessPassportReference,
@@ -192,5 +193,39 @@ describe('14H175–176 evidence discrepancy triage and research prioritization',
  it('rejects mismatched variant claims and never fabricates cross-variant research priorities',()=>{
   const p=passport();
   expect(()=>buildEvidenceResearchPlan(p,[sourceClaim({variantId:'19'})])).toThrow();
+ });
+});
+
+describe('14H177–178 in-dossier evidence investigation and adjudication handoff',()=>{
+ it('reconstructs exact source provenance and reviewer status for a conflicting approved claim',()=>{
+  const claim=sourceClaim();
+  const p=passport('responsive',[claim]);
+  const task=buildEvidenceResearchPlan(p,[claim]).tasks.find(t=>t.category==='review-disagreement')!;
+  const investigation=assembleEvidenceInvestigation(task,'18',[claim],p.sources);
+  expect(investigation.approved).toBe(1);
+  expect(investigation.pending).toBe(0);
+  expect(investigation.observations[0]?.id).toBe(claim.id);
+  expect(investigation.observations[0]?.referenceId).toBe(71);
+  expect(investigation.observations[0]?.citationUrl).toBe(bibliographic.url);
+  expect(investigation.observations[0]?.finding).toBe('reported-no-response');
+  expect(investigation.observations[0]?.reviewCount).toBe(2);
+  expect(investigation.canAdjudicateHere).toBe(false);
+  expect(p.therapies[0]?.databaseLabel).toBe('responsive');
+ });
+ it('does not present unreviewed observations as approved',()=>{
+  const claim=sourceClaim({status:'pending',reviewCount:0,reviewedAt:null,reviewSeals:[]});
+  const p=passport('non_responsive',[claim]);
+  const task=buildEvidenceResearchPlan(p,[claim]).tasks.find(t=>t.category==='pending-peer-review')!;
+  const investigation=assembleEvidenceInvestigation(task,'18',[claim],p.sources);
+  expect(investigation.approved).toBe(0);
+  expect(investigation.pending).toBe(1);
+  expect(investigation.observations[0]?.status).toBe('pending');
+ });
+ it('fails closed on cross-variant claims or stale claim references',()=>{
+  const p=passport();
+  const task=buildEvidenceResearchPlan(p,[]).tasks[0]!;
+  expect(()=>assembleEvidenceInvestigation(task,'18',[sourceClaim({variantId:'19'})],p.sources)).toThrow();
+  expect(()=>assembleEvidenceInvestigation(
+   {...task,claimIds:['not-present']},'18',[],p.sources)).toThrow();
  });
 });
