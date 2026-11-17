@@ -3,6 +3,9 @@ import {computed,ref,watch,onUnmounted} from 'vue';
 import {RouterLink} from 'vue-router';
 import type {MultiTherapyResearchReport} from '../domain/multiTherapyResearch';
 import {compareCrossVariantEvidence} from '../domain/crossVariantEvidence';
+import {buildPairedEvidenceQuestions} from '../domain/pairedEvidenceQuestions';
+import type {CuratedSourceClaim} from '../services/curatedSourceClaims';
+import type {LiveEvidenceReference} from '../services/liveEvidence';
 import {buildMultiTherapyResearchReport} from '../domain/multiTherapyResearch';
 import {THERAPIES,type CoreModulatorId} from '../domain/therapyRegistry';
 import {createResearchSourceSnapshotReader} from '../services/researchSourceSnapshot';
@@ -16,6 +19,8 @@ import {readConfigFromEnvironment} from '../services/liveVariants';
 const props=defineProps<{
  first:MultiTherapyResearchReport;firstName:string;firstClass:string|null;
  active:boolean;
+ firstClaims:readonly CuratedSourceClaim[];
+ firstReferences:readonly LiveEvidenceReference[];
 }>();
 const config=readConfigFromEnvironment();
 const open=ref(false);
@@ -23,15 +28,25 @@ const peerId=ref('');
 const state=ref<'idle'|'loading'|'ready'|'unavailable'>('idle');
 const second=ref<MultiTherapyResearchReport|null>(null);
 const secondClass=ref<string|null>(null);
+const secondClaims=ref<readonly CuratedSourceClaim[]>([]);
+const secondReferences=ref<readonly LiveEvidenceReference[]>([]);
+const researchQuestionsOpen=ref(false);
 let controller:AbortController|null=null;
 const verified=computed(()=>props.active&&authController?.state.phase==='signed-in'&&
  researcherRole.phase==='verified'&&
  ['contributor','reviewer','administrator'].includes(researcherRole.role??''));
 const compare=computed(()=>second.value&&state.value==='ready'?
  compareCrossVariantEvidence(props.first,second.value,props.firstClass,secondClass.value):null);
+const paired=computed(()=>compare.value?buildPairedEvidenceQuestions({
+ firstId:props.first.variantId,secondId:compare.value.secondId,
+ firstClass:props.firstClass,secondClass:secondClass.value,
+ firstClaims:props.firstClaims,secondClaims:secondClaims.value,
+ firstReferences:props.firstReferences,secondReferences:secondReferences.value
+}):null);
 const therapyName=(id:CoreModulatorId)=>THERAPIES.find(x=>x.id===id)?.label??id;
 function clear():void{
- controller?.abort();controller=null;second.value=null;secondClass.value=null;state.value='idle';
+ controller?.abort();controller=null;second.value=null;secondClass.value=null;
+ secondClaims.value=[];secondReferences.value=[];researchQuestionsOpen.value=false;state.value='idle';
 }
 function reset():void{clear();open.value=false;peerId.value='';}
 function toggleOpen():void{if(open.value)reset();else open.value=true;}
@@ -62,6 +77,7 @@ async function loadPeer():Promise<void>{
    reviewedObservations:observations
   });
   secondClass.value=profile.functionalClass;
+  secondClaims.value=claims;secondReferences.value=references;
   second.value=report;state.value='ready';
  }catch{
   if(!request.signal.aborted&&controller===request){
@@ -132,6 +148,43 @@ async function loadPeer():Promise<void>{
      <p>Generated investigation prompts, not validated hypotheses or experimental conclusions.</p>
      <ol><li v-for="question in compare.hypotheses" :key="question">{{question}}</li></ol>
     </details>
+    <section v-if="paired" class="nfq-cross-mechanisms" data-testid="nfq-cross-source-pairs">
+     <header class="nfq-cross-head">
+      <div><strong>Mechanism &amp; study-source investigation</strong>
+       <p>{{paired.firstApprovedSources}} / {{paired.secondApprovedSources}} approved source claims ·
+        {{paired.questions.length}} paired research prompts</p></div>
+      <button type="button" class="nfq-cross-button" :aria-expanded="researchQuestionsOpen"
+       @click="researchQuestionsOpen=!researchQuestionsOpen">
+       {{researchQuestionsOpen?'Hide evidence pairs':'Examine evidence pairs'}}
+      </button>
+     </header>
+     <p class="nfq-cross-note">{{paired.note}}</p>
+     <p v-if="researchQuestionsOpen&&paired.questions.length===0" class="nfq-cross-note">
+      No independently reviewed source observations are available on both sides for the same therapy.
+      A matching class or missing study is not evidence of a common molecular mechanism.</p>
+     <div v-if="researchQuestionsOpen&&paired.questions.length" class="nfq-cross-source-list">
+      <article v-for="question in paired.questions" :key="question.id">
+       <strong>{{therapyName(question.therapy)}}</strong>
+       <span> · {{question.relation==='comparable-assay-context'?
+        'Matching reported assay context':'Non-equivalent or unreported assay context'}}</span>
+       <p>{{question.researchQuestion}}</p>
+       <div class="nfq-cross-two">
+        <div><span>Variant #{{question.left.variantId}} · {{question.left.finding}}</span>
+         <p>{{question.left.sourceTitle}}</p>
+         <p>{{question.left.method}} · {{question.left.endpointCode}} · {{question.left.sourceLocator}}</p>
+         <p>Study {{question.left.studyFamilyId}} · claim {{question.left.claimId}}</p>
+         <a :href="question.left.sourceUrl" target="_blank" rel="noopener noreferrer">Inspect original source</a>
+        </div>
+        <div><span>Variant #{{question.right.variantId}} · {{question.right.finding}}</span>
+         <p>{{question.right.sourceTitle}}</p>
+         <p>{{question.right.method}} · {{question.right.endpointCode}} · {{question.right.sourceLocator}}</p>
+         <p>Study {{question.right.studyFamilyId}} · claim {{question.right.claimId}}</p>
+         <a :href="question.right.sourceUrl" target="_blank" rel="noopener noreferrer">Inspect original source</a>
+        </div>
+       </div>
+      </article>
+     </div>
+    </section>
     <RouterLink :to="{path:'/variants/'+compare.secondId,query:{from:'/variants/'+compare.firstId}}">
      Open second variant dossier</RouterLink>
    </div>
@@ -153,6 +206,11 @@ async function loadPeer():Promise<void>{
 .nfq-cross-two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 20px;margin:7px 0}
 .nfq-cross-two span{font-size:10px;color:var(--text-muted,#6b839b)}
 .nfq-cross-two p{font-size:11px;margin:4px 0;line-height:1.5}
+.nfq-cross-mechanisms{border-top:1px solid var(--border,#dde7ef);margin:14px 0;padding-top:12px}
+.nfq-cross-source-list article{border-top:1px solid var(--border,#dde7ef);padding:10px 0;overflow-wrap:anywhere}
+.nfq-cross-source-list article>strong{font-size:11px}
+.nfq-cross-source-list article>span{font-size:10px;color:var(--text-muted,#6b839b)}
+.nfq-cross-source-list article>p{font-size:11px;line-height:1.5}
 .nfq-cross-questions{font-size:11px;margin:12px 0}
 .nfq-cross-questions li{line-height:1.5;margin:7px 0}
 .nfq-cross a{font-size:11px;color:var(--link,#2869a9);text-underline-offset:3px}
