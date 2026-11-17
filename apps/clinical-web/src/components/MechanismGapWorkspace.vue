@@ -1,0 +1,243 @@
+<script setup lang="ts">
+import {computed,ref,watch} from 'vue';
+import type {CuratedSourceClaim} from '../services/curatedSourceClaims';
+import type {LiveEvidenceReference} from '../services/liveEvidence';
+import {MECHANISM_CATEGORIES,prepareMechanismAnnotationDraft,portableMechanismDraft,
+ type MechanismAnnotationDraft,type MechanismCategory,type MechanismInterpretation} from '../domain/mechanismAnnotationDraft';
+import {buildCrossVariantGapMap} from '../domain/crossVariantGapMap';
+import {THERAPIES,type CoreModulatorId} from '../domain/therapyRegistry';
+
+const props=defineProps<{
+ firstId:string;secondId:string;
+ firstClaims:readonly CuratedSourceClaim[];secondClaims:readonly CuratedSourceClaim[];
+ firstReferences:readonly LiveEvidenceReference[];secondReferences:readonly LiveEvidenceReference[];
+}>();
+const expanded=ref(false);
+const editor=ref(false);
+const draftVariant=ref('');
+const draftClaim=ref('');
+const categories=ref<MechanismCategory[]>([]);
+const interpretation=ref<MechanismInterpretation>('reported-observation');
+const statement=ref('');
+const locator=ref('');
+const experimentalContext=ref('');
+const limitations=ref('');
+const savedDrafts=ref<readonly MechanismAnnotationDraft[]>([]);
+const notice=ref('');
+const reviewed=(variantId:string)=>(
+ variantId===props.firstId?props.firstClaims:props.secondClaims
+).filter(c=>c.status==='approved');
+const choices=computed(()=>reviewed(draftVariant.value).map(c=>({
+ id:c.id,therapy:c.therapy,referenceId:c.referenceId,studyFamilyId:c.studyFamilyId
+})));
+const availableSources=computed(()=>draftVariant.value===props.firstId?
+ props.firstReferences:props.secondReferences);
+const selectedSource=computed(()=>availableSources.value.find(r=>r.id===
+ choices.value.find(c=>c.id===draftClaim.value)?.referenceId));
+const map=computed(()=>buildCrossVariantGapMap({
+ firstId:props.firstId,secondId:props.secondId,
+ firstClaims:props.firstClaims,secondClaims:props.secondClaims,
+ firstReferences:props.firstReferences,secondReferences:props.secondReferences,
+ drafts:savedDrafts.value
+}));
+const therapy=(id:CoreModulatorId)=>THERAPIES.find(t=>t.id===id)?.label??id;
+const gapLabel=(gap:string)=>({
+ 'no-reviewed-source-claim':'No approved claim in loaded register',
+ 'endpoint-not-extracted':'No extracted experimental endpoint',
+ 'study-context-not-extracted':'Population/model context not extracted',
+ 'mechanism-not-adjudicated':'Mechanism-specific independent review not recorded'
+} as Record<string,string>)[gap]??gap;
+function clearForm():void{
+ draftVariant.value=props.firstId;draftClaim.value='';categories.value=[];
+ interpretation.value='reported-observation';statement.value='';locator.value='';
+ experimentalContext.value='';limitations.value='';notice.value='';
+}
+function reset():void{clearForm();savedDrafts.value=[];expanded.value=false;editor.value=false;}
+watch([()=>props.firstId,()=>props.secondId],reset,{immediate:true});
+watch(draftVariant,()=>{draftClaim.value='';categories.value=[];notice.value='';});
+function toggleCategory(value:MechanismCategory):void{
+ categories.value=categories.value.includes(value)?
+ categories.value.filter(c=>c!==value):categories.value.length<5?
+ [...categories.value,value]:categories.value;
+}
+async function addDraft():Promise<void>{
+ try{
+  const draft=prepareMechanismAnnotationDraft({
+   variantId:draftVariant.value,claimId:draftClaim.value,categories:categories.value,
+   interpretation:interpretation.value,statement:statement.value.trim(),
+   exactLocator:locator.value.trim(),experimentalContext:experimentalContext.value.trim(),
+   limitations:limitations.value.trim()
+  },draftVariant.value===props.firstId?props.firstClaims:props.secondClaims,
+    availableSources.value);
+  savedDrafts.value=[...savedDrafts.value,draft];
+  clearForm();editor.value=false;
+  notice.value='Added to this comparison only. Not saved to the clinical database or independently approved.';
+ }catch{
+  notice.value='The mechanism draft needs an approved linked source, selected mechanism, exact locator and complete interpretation/context/limitations.';
+ }
+}
+async function copyDraft(draft:MechanismAnnotationDraft):Promise<void>{
+ try{
+  if(!navigator.clipboard?.writeText)throw new Error('Clipboard unavailable');
+  await navigator.clipboard.writeText(portableMechanismDraft(draft));
+  notice.value='Unreviewed, source-linked draft copied. No persistent record or review was created.';
+ }catch{notice.value='Clipboard access failed. No record was saved.';}
+}
+function removeDraft(index:number):void{
+ savedDrafts.value=savedDrafts.value.filter((_,i)=>i!==index);
+ notice.value='Local draft removed from this comparison.';
+}
+</script>
+<template>
+ <section class="nfq-mechanism" data-testid="nfq-mechanism-gap-map">
+  <header class="nfq-mechanism-head">
+   <div><strong>Mechanism evidence &amp; research coverage</strong>
+    <p>Source-linked annotation drafts · five-therapy evidence inventory</p></div>
+   <button type="button" :aria-expanded="expanded" @click="expanded=!expanded">
+    {{expanded?'Hide gap map':'Examine evidence gaps'}}
+   </button>
+  </header>
+  <div v-if="expanded">
+   <p class="nfq-mechanism-note">{{map.interpretation}}</p>
+   <div class="nfq-mechanism-matrix" role="table" aria-label="Source coverage by variant and therapy">
+    <div class="nfq-mechanism-matrix-head" role="row">
+     <span role="columnheader">Therapy</span>
+     <span role="columnheader">#{{firstId}}</span>
+     <span role="columnheader">#{{secondId}}</span>
+    </div>
+    <div v-for="therapyRow in THERAPIES" :key="therapyRow.id"
+     class="nfq-mechanism-matrix-row" role="row">
+     <strong role="rowheader">{{therapyRow.label}}</strong>
+     <div v-for="variantId in [firstId,secondId]" :key="variantId" role="cell">
+      <template v-for="cell in map.cells.filter(c=>c.variantId===variantId&&c.therapy===therapyRow.id)" :key="cell.variantId">
+       <span>{{cell.uniqueStudyFamilies}} reviewed stud{{cell.uniqueStudyFamilies===1?'y':'ies'}}</span>
+       <span>{{cell.mechanismProposalCount}} mechanism draft{{cell.mechanismProposalCount===1?'':'s'}}</span>
+       <details>
+        <summary>{{cell.gaps.length}} register gap{{cell.gaps.length===1?'':'s'}}</summary>
+        <ul><li v-for="gap in cell.gaps" :key="gap">{{gapLabel(gap)}}</li></ul>
+       </details>
+      </template>
+     </div>
+    </div>
+   </div>
+   <p class="nfq-mechanism-note">A gap represents only this verified source register.
+    Absence of annotations is not evidence of absence of the underlying mechanism.</p>
+   <div class="nfq-mechanism-coverage">
+    <strong>Mechanism categories · unreviewed draft coverage</strong>
+    <div v-for="category in map.mechanismCoverage" :key="category.category"
+     class="nfq-mechanism-category">
+     <span>{{category.label}}</span>
+     <span>{{category.firstDraftCount}} / {{category.secondDraftCount}} drafts</span>
+    </div>
+   </div>
+   <header class="nfq-mechanism-head nfq-mechanism-editor-head">
+    <div><strong>Record an explicit source observation</strong>
+     <p>Research-only draft. Independent mechanism review is not yet a supported persistence workflow.</p></div>
+    <button type="button" :aria-expanded="editor" @click="editor=!editor">
+     {{editor?'Close draft':'Prepare mechanism draft'}}
+    </button>
+   </header>
+   <form v-if="editor" class="nfq-mechanism-form" @submit.prevent="addDraft"
+    data-testid="nfq-mechanism-annotation-form">
+    <label>Variant
+     <select v-model="draftVariant">
+      <option :value="firstId">Variant #{{firstId}}</option>
+      <option :value="secondId">Variant #{{secondId}}</option>
+     </select>
+    </label>
+    <label>Approved source claim
+     <select v-model="draftClaim" required>
+      <option value="" disabled>Choose an independently reviewed source claim</option>
+      <option v-for="entry in choices" :key="entry.id" :value="entry.id">
+       {{therapy(entry.therapy)}} · study {{entry.studyFamilyId}} · claim {{entry.id.slice(0,8)}}
+      </option>
+     </select>
+    </label>
+    <p v-if="selectedSource" class="nfq-mechanism-note">Source:
+     <a :href="selectedSource.url" target="_blank" rel="noopener noreferrer">{{selectedSource.title}}</a></p>
+    <fieldset>
+     <legend>Mechanism(s) explicitly discussed by the original source · max 5</legend>
+     <label v-for="category in MECHANISM_CATEGORIES" :key="category.id" class="nfq-mechanism-check">
+      <input type="checkbox" :checked="categories.includes(category.id)"
+       :disabled="!categories.includes(category.id)&&categories.length>=5"
+       @change="toggleCategory(category.id)" /> {{category.label}}
+     </label>
+    </fieldset>
+    <label>What does the publication actually establish?
+     <select v-model="interpretation">
+      <option value="reported-observation">Source-reported observation (not independently mechanism-adjudicated)</option>
+      <option value="mechanistic-hypothesis">Author hypothesis · not demonstrated</option>
+      <option value="contradictory-or-uncertain">Contradictory or uncertain interpretation</option>
+     </select>
+    </label>
+    <label>Exact source-based statement
+     <textarea v-model="statement" rows="3" maxlength="850"
+      placeholder="Summarize precisely without claiming more than the original study reports" required/>
+    </label>
+    <label>Original page, figure or assay locator
+     <input v-model="locator" maxlength="240" placeholder="Figure 2B · assay description" required/>
+    </label>
+    <label>Experimental model / genotype context
+     <textarea v-model="experimentalContext" rows="2" maxlength="350"
+      placeholder="Source-reported model and tested genotype; specify limitations of scope" required/>
+    </label>
+    <label>Limitations, uncertainty or conflicting observations
+     <textarea v-model="limitations" rows="2" maxlength="500"
+      placeholder="What remains untested or cannot be concluded?" required/>
+    </label>
+    <button type="submit">Add local research draft</button>
+   </form>
+   <p v-if="notice" role="status" class="nfq-mechanism-note">{{notice}}</p>
+   <div v-if="savedDrafts.length" class="nfq-mechanism-drafts">
+    <article v-for="(draft,index) in savedDrafts" :key="draft.claimId+':'+index">
+     <div class="nfq-mechanism-head">
+      <strong>Variant #{{draft.variantId}} · {{draft.categories.join(' / ')}}</strong>
+      <span>Unreviewed research draft</span>
+     </div>
+     <p>{{draft.statement}}</p>
+     <p class="nfq-mechanism-note">{{draft.experimentalContext}} · {{draft.exactLocator}}</p>
+     <p class="nfq-mechanism-note">Limitations: {{draft.limitations}}</p>
+     <a :href="draft.sourceUrl" target="_blank" rel="noopener noreferrer">
+      Original source · claim {{draft.claimId.slice(0,8)}}</a>
+     <div class="nfq-mechanism-actions">
+      <button type="button" @click="copyDraft(draft)">Copy source-linked draft</button>
+      <button type="button" @click="removeDraft(index)">Discard local draft</button>
+     </div>
+    </article>
+   </div>
+  </div>
+ </section>
+</template>
+<style scoped>
+.nfq-mechanism{margin:12px 0;padding:12px 0;border-top:1px solid var(--border,#dde7ef);font-size:11px}
+.nfq-mechanism-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.nfq-mechanism-head strong{font-size:12px;font-weight:650}
+.nfq-mechanism-head p,.nfq-mechanism-note{font-size:11px;line-height:1.55;color:var(--text-muted,#6b839b);margin:5px 0}
+.nfq-mechanism button{background:transparent;color:inherit;border:1px solid var(--border,#c7d8e7);padding:5px 9px;border-radius:5px;font:inherit;font-size:11px;cursor:pointer}
+.nfq-mechanism button:focus-visible,.nfq-mechanism a:focus-visible,.nfq-mechanism input:focus-visible,.nfq-mechanism select:focus-visible,.nfq-mechanism textarea:focus-visible{outline:2px solid #3876c5;outline-offset:2px}
+.nfq-mechanism-matrix{margin:12px 0;overflow-wrap:anywhere}
+.nfq-mechanism-matrix-head,.nfq-mechanism-matrix-row{display:grid;grid-template-columns:minmax(105px,.85fr) minmax(0,1fr) minmax(0,1fr);gap:8px;border-bottom:1px solid var(--border,#dde7ef);padding:8px 0}
+.nfq-mechanism-matrix-head{color:var(--text-muted,#6b839b);font-size:10px}
+.nfq-mechanism-matrix-row strong{font-size:11px}
+.nfq-mechanism-matrix-row span{display:block;margin:2px 0}
+.nfq-mechanism details{font-size:10px;margin-top:4px}
+.nfq-mechanism summary{cursor:pointer}
+.nfq-mechanism li{margin:5px 0}
+.nfq-mechanism-coverage{padding:8px 0}
+.nfq-mechanism-coverage>strong{display:block;margin-bottom:8px}
+.nfq-mechanism-category{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid var(--border,#dde7ef)}
+.nfq-mechanism-category span:last-child{color:var(--text-muted,#6b839b)}
+.nfq-mechanism-editor-head{margin-top:12px}
+.nfq-mechanism-form{display:grid;gap:10px;max-width:690px;padding:12px 0}
+.nfq-mechanism-form label{display:grid;gap:5px;font-size:11px}
+.nfq-mechanism-form select,.nfq-mechanism-form textarea,.nfq-mechanism-form input:not([type=checkbox]){width:100%;min-width:0;box-sizing:border-box;background:transparent;color:inherit;border:1px solid var(--border,#c7d8e7);border-radius:4px;font:inherit;font-size:11px;padding:7px 9px}
+.nfq-mechanism-form fieldset{border:1px solid var(--border,#dde7ef);padding:9px}
+.nfq-mechanism-form legend{font-size:11px}
+.nfq-mechanism-form .nfq-mechanism-check{display:flex;align-items:center;gap:7px;padding:3px 0}
+.nfq-mechanism-form button{justify-self:start}
+.nfq-mechanism-drafts article{padding:12px 0;border-top:1px solid var(--border,#dde7ef)}
+.nfq-mechanism-drafts p{line-height:1.55}
+.nfq-mechanism-actions{display:flex;gap:7px;margin-top:8px}
+.nfq-mechanism a{color:var(--link,#2869a9);text-underline-offset:3px}
+@media(max-width:460px){.nfq-mechanism-matrix-head,.nfq-mechanism-matrix-row{grid-template-columns:75px minmax(0,1fr) minmax(0,1fr);gap:6px}}
+</style>

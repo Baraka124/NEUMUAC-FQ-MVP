@@ -1,0 +1,86 @@
+import {describe,it,expect} from 'vitest';
+import {prepareMechanismAnnotationDraft,portableMechanismDraft} from './mechanismAnnotationDraft';
+import {buildCrossVariantGapMap} from './crossVariantGapMap';
+import type {CuratedSourceClaim} from '../services/curatedSourceClaims';
+import type {LiveEvidenceReference} from '../services/liveEvidence';
+
+const reference=(variantId:string):LiveEvidenceReference=>({
+ id:71,variantId,title:'Original experimental publication',source:'PubMed',
+ url:'https://pubmed.ncbi.nlm.nih.gov/12345678/',type:null,category:null,
+ journal:null,year:2024,pmid:'12345678',doi:null,
+ recordedQualityScore:null,recordedSourceWeight:null,recordedCitationCount:null
+});
+const claim=(variantId:string,override:Partial<CuratedSourceClaim>={}):CuratedSourceClaim=>({
+ id:variantId==='18'?'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa':'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+ seriesId:variantId==='18'?'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb':'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+ revision:1,parentClaimId:null,variantId,referenceId:71,therapy:'ETI',
+ scope:'single-variant',genotypePair:null,method:'in-vitro-study',
+ finding:'reported-response',studyFamilyId:'experiment-'+variantId,
+ locator:'Figure 2B · original study',rationale:'Experimental context described in source',
+ endpoint:null,studyStats:null,studyIdentity:null,status:'approved',
+ submittedAt:'2026-11-17T09:00:00Z',submittedByMe:false,
+ reviewCount:2,canReview:false,reviewedAt:'2026-11-17T10:00:00Z',
+ reviewSeals:['attestation:aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+  'attestation:bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'],audit:[],...override
+});
+const proposal={
+ variantId:'18',claimId:claim('18').id,categories:['rna-splicing','trafficking'] as const,
+ interpretation:'mechanistic-hypothesis' as const,
+ statement:'The authors propose a possible transcript-processing contribution; this remains unconfirmed.',
+ exactLocator:'Figure 2B · Results, paragraph 4',
+ experimentalContext:'Reported in a cell-line context with explicit variant identity',
+ limitations:'Mechanistic causality has not been independently established for this variant.'
+};
+describe('14H185 source-linked molecular research drafts',()=>{
+ it('supports overlapping mechanism categories without auto-approval',()=>{
+  const result=prepareMechanismAnnotationDraft(proposal,[claim('18')],[reference('18')]);
+  expect(result.categories).toEqual(['rna-splicing','trafficking']);
+  expect(result.validationState).toBe('unreviewed-research-draft');
+  expect(result.clinicalDecisionProvided).toBe(false);
+  expect(result.referenceId).toBe(71);
+  expect(portableMechanismDraft(result)).toContain('separate-independent-scientific-adjudication');
+ });
+ it('rejects unapproved or unlinked source annotations and incomplete original locators',()=>{
+  expect(()=>prepareMechanismAnnotationDraft(proposal,
+   [claim('18',{status:'pending',reviewCount:0,reviewedAt:null,reviewSeals:[]})],
+   [reference('18')])).toThrow();
+  expect(()=>prepareMechanismAnnotationDraft(proposal,
+   [claim('18',{referenceId:72})],[reference('18')])).toThrow();
+  expect(()=>prepareMechanismAnnotationDraft({...proposal,exactLocator:'vague'},
+   [claim('18')],[reference('18')])).toThrow();
+  expect(()=>prepareMechanismAnnotationDraft({...proposal,categories:['rna-splicing','rna-splicing']},
+   [claim('18')],[reference('18')])).toThrow();
+ });
+});
+describe('14H186 research register gap map',()=>{
+ const input={
+  firstId:'18',secondId:'19',firstClaims:[claim('18')],
+  secondClaims:[] as CuratedSourceClaim[],
+  firstReferences:[reference('18')],secondReferences:[] as LiveEvidenceReference[]
+ };
+ it('distinguishes missing structured records from molecular absence',()=>{
+  const result=buildCrossVariantGapMap(input);
+  expect(result.cells).toHaveLength(10);
+  const first=result.cells.find(c=>c.variantId==='18'&&c.therapy==='ETI')!;
+  const second=result.cells.find(c=>c.variantId==='19'&&c.therapy==='ETI')!;
+  expect(first.uniqueStudyFamilies).toBe(1);
+  expect(first.gaps).toContain('mechanism-not-adjudicated');
+  expect(second.gaps).toContain('no-reviewed-source-claim');
+  expect(second.endpointObserved).toBe(false);
+  expect(result.researchOnly).toBe(true);
+ });
+ it('unreviewed local proposals never close a verified mechanism gap',()=>{
+  const draft=prepareMechanismAnnotationDraft(proposal,[claim('18')],[reference('18')]);
+  const result=buildCrossVariantGapMap({...input,drafts:[draft]});
+  expect(result.mechanismCoverage.find(x=>x.category==='rna-splicing')?.firstDraftCount).toBe(1);
+  expect(result.mechanismCoverage.every(x=>x.verifiedMechanismCount===0)).toBe(true);
+  expect(result.cells[0]?.gaps).toContain('mechanism-not-adjudicated');
+ });
+ it('fails closed on cross-variant provenance or orphaned mechanism drafts',()=>{
+  expect(()=>buildCrossVariantGapMap({...input,
+   firstClaims:[claim('19')]})).toThrow();
+  const orphan=prepareMechanismAnnotationDraft(proposal,[claim('18')],[reference('18')]);
+  expect(()=>buildCrossVariantGapMap({...input,firstClaims:[],drafts:[orphan]})).toThrow();
+  expect(()=>buildCrossVariantGapMap({...input,secondId:'18'})).toThrow();
+ });
+});
