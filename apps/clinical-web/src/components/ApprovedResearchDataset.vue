@@ -9,6 +9,7 @@ import {
  approvedDatasetCsv,approvedDatasetJson,type ApprovedDatasetSnapshot
 } from '../services/approvedResearchDataset';
 import {THERAPIES} from '../domain/therapyRegistry';
+import StudyFamilyAnalysisProtocol from './StudyFamilyAnalysisProtocol.vue';
 const config=readConfigFromEnvironment();
 const service=config&&authSessionProvider?createApprovedDatasetService(config,authSessionProvider):null;
 const open=ref(false);
@@ -116,6 +117,7 @@ const therapyLabel=(value:string)=>THERAPIES.find(x=>x.id===value)?.label??value
      </div>
     </div>
     <p v-if="notice" class="nfq-dataset-muted" role="status">{{notice}}</p>
+    <StudyFamilyAnalysisProtocol :snapshot="snapshot" />
     <div v-if="quality.total===0" class="nfq-dataset-empty" data-testid="nfq-dataset-empty">
      <strong>No independently approved source observations yet.</strong>
      <p>The export schema is available, but the dataset contains no experimental
