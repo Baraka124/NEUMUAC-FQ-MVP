@@ -59,6 +59,16 @@ async function setup(page:Page,role:'verified'|'unassigned'|'public'='verified',
     body:JSON.stringify(role==='verified'?[{user_id:ID,role:'reviewer',revoked_at:null}]:[])});
    return;
   }
+  if(u.pathname.endsWith('/rpc/nfq_study_adjudications')){
+   if(role!=='verified'){
+    await route.fulfill({status:403,headers:cors,contentType:'application/json',
+     body:JSON.stringify({message:'Current research membership required'})});
+    return;
+   }
+   await route.fulfill({status:200,headers:cors,contentType:'application/json',
+    body:JSON.stringify({source:'nfq-study-adjudication-v1',total:0,records:[]})});
+   return;
+  }
   if(u.pathname.endsWith('/rpc/nfq_approved_research_dataset')){
    datasetCalls++;
    if(role!=='verified'){
@@ -432,3 +442,30 @@ test('14H172 evidence intake distinguishes source paper from registered underlyi
  await expect(form.getByTestId('nfq-source-claim-submit')).toBeEnabled();
  expect(record.methods.filter(m=>m.includes('/rpc/nfq_reviewed_source_claims')).length).toBe(1);
 });
+
+test('14H173 evidence research dataset loads source-pair adjudications only after authenticated expansion',async({page})=>{
+ const record=await setup(page,'verified');
+ await page.goto('/#/evidence');
+ const root=page.getByTestId('nfq-approved-dataset');
+ await expect(root.getByTestId('nfq-dataset-toggle')).toHaveAttribute('aria-expanded','false');
+ expect(record.methods.some(x=>x.includes('/rpc/nfq_study_adjudications'))).toBe(false);
+ await root.getByTestId('nfq-dataset-toggle').click();
+ const adj=root.getByTestId('nfq-study-adjudication');
+ await adj.getByTestId('nfq-adj-toggle').click();
+ await expect(adj.getByTestId('nfq-adj-empty')).toContainText('No source-pair overlap candidates');
+ await expect(root.getByTestId('nfq-dataset-empty')).toBeVisible();
+ expect(record.methods.filter(x=>x.includes('/rpc/nfq_study_adjudications'))).toHaveLength(1);
+ await root.getByTestId('nfq-dataset-toggle').click();
+ await expect(adj).toHaveCount(0);
+});
+
+for(const persona of ['unassigned','public'] as const){
+ test('14H173 '+persona+' may not retrieve private scientific pair adjudications',async({page})=>{
+  const record=await setup(page,persona);
+  await page.goto('/#/evidence');
+  const dataset=page.getByTestId('nfq-approved-dataset');
+  await dataset.getByTestId('nfq-dataset-toggle').click();
+  await expect(dataset).toContainText('An active research membership is required');
+  expect(record.methods.some(x=>x.includes('/rpc/nfq_study_adjudications'))).toBe(false);
+ });
+}
