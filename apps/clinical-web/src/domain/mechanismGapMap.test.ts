@@ -91,7 +91,10 @@ describe('14H186 research register gap map',()=>{
    submittedByMe:false,canReview:false,reviewCount:2,
    reviewSeals:['attestation:aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     'attestation:bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'],
-   events:[]
+   reviewAudit:[
+    {decision:'approve',note:'This interpretation was independently reviewed with complete source context.',at:'2026-11-17T13:00:00Z'},
+    {decision:'approve',note:'Second scientific reviewer independently verified the source evidence.',at:'2026-11-17T13:30:00Z'}
+   ],events:[]
   };
   const result=buildCrossVariantGapMap({...input,persisted:[approved]});
   const row=result.cells.find(c=>c.variantId==='18'&&c.therapy==='ETI')!;
