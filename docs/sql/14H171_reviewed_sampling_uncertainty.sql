@@ -20,7 +20,8 @@ BEGIN
  v_unit:=p->>'analysisUnit'; v_design:=p->>'design';
  v_kind:=p->>'uncertaintyType'; v_target:=p->>'uncertaintyTarget';
  v_locator:=p->>'sourceLocator';
- IF v_unit NOT IN ('participants','donors','biological-replicates','technical-replicates','not-reported')
+ IF v_unit IS NULL OR v_design IS NULL OR v_kind IS NULL OR v_target IS NULL OR
+  v_unit NOT IN ('participants','donors','biological-replicates','technical-replicates','not-reported')
   OR v_design NOT IN ('parallel','paired','single-arm','not-reported')
   OR v_kind NOT IN ('sd','sem','ci95','not-reported')
   OR v_target NOT IN ('reported-outcome','intervention-arm','between-group-contrast','not-reported')
