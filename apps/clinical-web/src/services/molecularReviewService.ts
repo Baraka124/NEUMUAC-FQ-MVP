@@ -24,6 +24,7 @@ export interface MolecularReviewRecord{
  readonly reviewCount:number;
  readonly reviewSeals:readonly string[];
  readonly events:readonly {readonly action:string;readonly at:string}[];
+ readonly reviewAudit:readonly {readonly decision:'approve'|'reject';readonly note:string;readonly at:string}[];
 }
 const canonical=/^[1-9][0-9]{0,17}$/;
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -69,7 +70,10 @@ export function decodeMolecularReviewRecords(raw:unknown,variantId:string):reado
    (c.status==='approved'&&(c.reviewCount!==2||c.reviewSeals.length!==2||
     c.reviewSeals[0]===c.reviewSeals[1]))||
    (c.status!=='approved'&&c.reviewSeals.length!==0)||
-   !Array.isArray(c.events)||c.events.length>100)
+   (c.status==='approved'&&(c.reviewAudit.length!==2||
+    c.reviewAudit.some((r:unknown)=>obj(r).decision!=='approve')))||
+   !Array.isArray(c.events)||c.events.length>100||
+   !Array.isArray(c.reviewAudit)||c.reviewAudit.length>2)
    throw new VariantConnectionError('schema-mismatch','Invalid molecular review record');
   const events=c.events.map((e:unknown)=>{
    const row=obj(e);
@@ -77,6 +81,15 @@ export function decodeMolecularReviewRecords(raw:unknown,variantId:string):reado
     !Number.isFinite(Date.parse(row.at as string)))
     throw new VariantConnectionError('schema-mismatch','Invalid molecular audit event');
    return Object.freeze({action:row.action as string,at:row.at as string});
+  });
+  const reviewAudit=c.reviewAudit.map((event:unknown)=>{
+   const row=obj(event);
+   if(!['approve','reject'].includes(String(row.decision))||
+    !string(row.note,20,900)||!string(row.at,10,64)||
+    !Number.isFinite(Date.parse(row.at as string)))
+    throw new VariantConnectionError('schema-mismatch','Invalid scientific review rationale');
+   return Object.freeze({decision:row.decision as 'approve'|'reject',
+    note:row.note as string,at:row.at as string});
   });
   return Object.freeze({
    id:c.id as string,seriesId:c.seriesId as string,
@@ -89,7 +102,7 @@ export function decodeMolecularReviewRecords(raw:unknown,variantId:string):reado
    status:c.status as MolecularReviewStatus,submittedAt:c.submittedAt as string,
    submittedByMe:c.submittedByMe as boolean,canReview:c.canReview as boolean,
    reviewCount:c.reviewCount as number,reviewSeals:Object.freeze(c.reviewSeals as string[]),
-   events:Object.freeze(events)
+   events:Object.freeze(events),reviewAudit:Object.freeze(reviewAudit)
   });
  });
  if(new Set(result.map(c=>c.id)).size!==result.length||
