@@ -2,6 +2,7 @@ import {describe,it,expect} from 'vitest';
 import {prepareMechanismAnnotationDraft,portableMechanismDraft} from './mechanismAnnotationDraft';
 import {buildCrossVariantGapMap} from './crossVariantGapMap';
 import type {CuratedSourceClaim} from '../services/curatedSourceClaims';
+import type {MolecularReviewRecord} from '../services/molecularReviewService';
 import type {LiveEvidenceReference} from '../services/liveEvidence';
 
 const reference=(variantId:string):LiveEvidenceReference=>({
@@ -75,6 +76,34 @@ describe('14H186 research register gap map',()=>{
   expect(result.mechanismCoverage.find(x=>x.category==='rna-splicing')?.firstDraftCount).toBe(1);
   expect(result.mechanismCoverage.every(x=>x.verifiedMechanismCount===0)).toBe(true);
   expect(result.cells[0]?.gaps).toContain('mechanism-not-adjudicated');
+ });
+ it('counts only independently approved persisted molecular mechanisms',()=>{
+  const approved:MolecularReviewRecord={
+   id:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+   seriesId:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+   revision:1,parentId:null,variantId:'18',sourceClaimId:claim('18').id,
+   categories:['rna-splicing'],interpretation:'mechanistic-hypothesis',
+   statement:'This is a sufficiently detailed experimentally grounded interpretation.',
+   exactLocator:'Original Figure 2B',
+   experimentalContext:'Study performed in variant-bearing experimental airway cells.',
+   limitations:'Clinical genotype effect and independent functional replication are unknown.',
+   status:'approved',submittedAt:'2026-11-17T14:00:00Z',
+   submittedByMe:false,canReview:false,reviewCount:2,
+   reviewSeals:['attestation:aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    'attestation:bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'],
+   reviewAudit:[
+    {decision:'approve',note:'This interpretation was independently reviewed with complete source context.',at:'2026-11-17T13:00:00Z'},
+    {decision:'approve',note:'Second scientific reviewer independently verified the source evidence.',at:'2026-11-17T13:30:00Z'}
+   ],events:[]
+  };
+  const result=buildCrossVariantGapMap({...input,persisted:[approved]});
+  const row=result.cells.find(c=>c.variantId==='18'&&c.therapy==='ETI')!;
+  expect(row.approvedMolecularAnnotations).toBe(1);
+  expect(row.gaps).not.toContain('mechanism-not-adjudicated');
+  expect(result.mechanismCoverage.find(c=>c.category==='rna-splicing')?.verifiedMechanismCount).toBe(1);
+  expect(()=>buildCrossVariantGapMap({...input,persisted:[{
+   ...approved,reviewSeals:[approved.reviewSeals[0]!,approved.reviewSeals[0]!]
+  }]})).toThrow();
  });
  it('fails closed on cross-variant provenance or orphaned mechanism drafts',()=>{
   expect(()=>buildCrossVariantGapMap({...input,
