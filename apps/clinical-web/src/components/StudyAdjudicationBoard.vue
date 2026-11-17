@@ -35,6 +35,12 @@ const audit=computed(()=>props.adjudications===null?null:
  evaluateStudyAdjudications(props.snapshot,props.adjudications));
 const candidateRows=computed(()=>audit.value?.candidates.slice(0,40)??[]);
 const pendingDecisions=computed(()=>props.adjudications?.filter(x=>x.status==='pending')??[]);
+const decisionsByPair=computed(()=>new Map((props.adjudications??[]).map(
+ x=>[pairKey(x.claimA,x.claimB),x] as const
+)));
+function decisionFor(a:string,b:string):StudyAdjudication|undefined{
+ return decisionsByPair.value.get(pairKey(a,b));
+}
 const selected=computed(()=>audit.value?.candidates.find(x=>
  pairKey(x.claimA,x.claimB)===editingPair.value)??null);
 const submitEnabled=computed(()=>!!service&&canContribute.value&&!busy.value&&
@@ -129,6 +135,12 @@ watch(()=>[props.snapshot.snapshotSha256,props.adjudications] as const,()=>cance
        <template v-if="candidate.needsFurtherReview">
         Further source reconciliation is required before treating these reports as separate studies.
        </template>
+      </p>
+      <p v-if="decisionFor(candidate.claimA,candidate.claimB)" class="nfq-adj-meta"
+       data-testid="nfq-adj-decision-provenance">
+       Source reasoning: {{decisionFor(candidate.claimA,candidate.claimB)?.rationale}}
+       · {{decisionFor(candidate.claimA,candidate.claimB)?.evidenceLocator}}
+       · revision {{candidate.revision}}
       </p>
       <button v-if="canContribute&&candidate.status!=='pending'" type="button"
        :disabled="busy" data-testid="nfq-adj-propose-trigger" @click="choose(candidate)">
