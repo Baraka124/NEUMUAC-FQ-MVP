@@ -6,6 +6,10 @@ const uuidB='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
 const uuidC='cccccccc-cccc-4ccc-8ccc-cccccccccccc';
 const sealA='attestation:'+uuidA;
 const sealB='attestation:'+uuidB;
+const review=(decision:'approve'|'reject'='approve')=>({
+ decision,note:'This study interpretation has been reviewed against the original source in full.',
+ at:'2026-11-17T13:20:00Z'
+});
 const record=(overrides:Record<string,unknown>={})=>({
  id:uuidA,seriesId:uuidB,revision:1,parentId:null,
  variantId:'18',sourceClaimId:uuidC,
@@ -16,7 +20,7 @@ const record=(overrides:Record<string,unknown>={})=>({
  experimentalContext:'Assay performed in an experimental culture with documented CFTR variant identity.',
  limitations:'The proposed pathway is not demonstrated as causal by the available results.',
  status:'pending',submittedAt:'2026-11-17T13:00:00Z',submittedByMe:false,canReview:true,
- reviewCount:1,reviewSeals:[],events:[{action:'submitted',at:'2026-11-17T13:00:00Z'}],
+ reviewCount:1,reviewSeals:[],reviewAudit:[review()],events:[{action:'submitted',at:'2026-11-17T13:00:00Z'}],
  ...overrides
 });
 const response=(claims:unknown[])=>({
@@ -32,7 +36,7 @@ describe('14H187–188 persisted independent molecular review decoding',()=>{
   expect(rows[0]?.reviewSeals).toHaveLength(0);
  });
  it('requires two unique server attestations for approved molecular interpretations',()=>{
-  const approved=record({status:'approved',reviewCount:2,reviewSeals:[sealA,sealB]});
+  const approved=record({status:'approved',reviewCount:2,reviewSeals:[sealA,sealB],reviewAudit:[review(),review()]});
   expect(decodeMolecularReviewRecords(response([approved]),'18')[0]?.status).toBe('approved');
   expect(()=>decodeMolecularReviewRecords(response([
    {...approved,reviewCount:1}
@@ -55,7 +59,7 @@ describe('14H187–188 persisted independent molecular review decoding',()=>{
   const first=record({status:'superseded',reviewCount:2,
    id:uuidA,revision:1,parentId:null});
   const second=record({id:uuidC,revision:2,parentId:uuidA,
-   status:'approved',reviewCount:2,reviewSeals:[sealA,sealB]});
+   status:'approved',reviewCount:2,reviewSeals:[sealA,sealB],reviewAudit:[review(),review()]});
   const rows=decodeMolecularReviewRecords(response([first,second]),'18');
   expect(rows.map(c=>c.status)).toEqual(['superseded','approved']);
   expect(rows[1]?.parentId).toBe(uuidA);
