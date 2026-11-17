@@ -113,7 +113,7 @@ describe('14H170 source-family-safe pre-analysis protocol',()=>{
   ];
   expect(chosen).toHaveLength(9);
   const plan=buildStudyFamilyAnalysisProtocol(
-   snapshot(chosen.map((name,i)=>source(i+1,name))),all
+   snapshot(chosen.map((name,i)=>source(i+1,name))),all,[]
   );
   expect(plan.cohorts).toHaveLength(1);
   expect(plan.cohorts[0].labelledStudyFamilies).toBe(9);
