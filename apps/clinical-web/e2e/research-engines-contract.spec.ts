@@ -194,6 +194,9 @@ test('14H166 verified double-review source enters actual five-therapy conflict a
    model:'clinical',comparator:'baseline',timepoint:'Day 28'},
   status:'approved',submittedAt:'2026-09-01T10:00:00Z',submittedByMe:false,
   reviewCount:2,canReview:false,reviewedAt:'2026-09-03T10:00:00Z',
+  studyStats:{analysisUnit:'not-reported',design:'not-reported',interventionN:null,comparatorN:null,
+ uncertaintyType:'not-reported',uncertaintyValue:null,ciLower:null,ciUpper:null,
+ uncertaintyTarget:'not-reported',sourceLocator:'not-reported'},
   reviewSeals:[
    'attestation:cccccccc-cccc-4ccc-8ccc-cccccccccccc',
    'attestation:dddddddd-dddd-4ddd-8ddd-dddddddddddd'
