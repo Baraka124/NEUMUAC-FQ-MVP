@@ -49,7 +49,8 @@ const map=computed(()=>buildCrossVariantGapMap({
  firstId:props.firstId,secondId:props.secondId,
  firstClaims:props.firstClaims,secondClaims:props.secondClaims,
  firstReferences:props.firstReferences,secondReferences:props.secondReferences,
- drafts:savedDrafts.value
+ drafts:savedDrafts.value,
+ persisted:molecularState.value==='ready'?molecularRecords.value:[]
 }));
 const therapy=(id:CoreModulatorId)=>THERAPIES.find(t=>t.id===id)?.label??id;
 const gapLabel=(gap:string)=>({
@@ -241,7 +242,8 @@ function removeDraft(index:number):void{
      <div v-for="variantId in [firstId,secondId]" :key="variantId" role="cell">
       <template v-for="cell in map.cells.filter(c=>c.variantId===variantId&&c.therapy===therapyRow.id)" :key="cell.variantId">
        <span>{{cell.uniqueStudyFamilies}} reviewed stud{{cell.uniqueStudyFamilies===1?'y':'ies'}}</span>
-       <span>{{cell.mechanismProposalCount}} mechanism draft{{cell.mechanismProposalCount===1?'':'s'}}</span>
+       <span>{{cell.mechanismProposalCount}} local draft{{cell.mechanismProposalCount===1?'':'s'}}</span>
+       <span v-if="molecularState==='ready'">{{cell.approvedMolecularAnnotations}} independently approved molecular revision{{cell.approvedMolecularAnnotations===1?'':'s'}}</span>
        <details>
         <summary>{{cell.gaps.length}} register gap{{cell.gaps.length===1?'':'s'}}</summary>
         <ul><li v-for="gap in cell.gaps" :key="gap">{{gapLabel(gap)}}</li></ul>
@@ -251,13 +253,15 @@ function removeDraft(index:number):void{
     </div>
    </div>
    <p class="nfq-mechanism-note">A gap represents only this verified source register.
-    Absence of annotations is not evidence of absence of the underlying mechanism.</p>
+    Absence of annotations is not evidence of absence of the underlying mechanism.
+    <template v-if="molecularState!=='ready'"> Persistent molecular approval coverage is currently unverified.</template></p>
    <div class="nfq-mechanism-coverage">
     <strong>Mechanism categories · unreviewed draft coverage</strong>
     <div v-for="category in map.mechanismCoverage" :key="category.category"
      class="nfq-mechanism-category">
      <span>{{category.label}}</span>
-     <span>{{category.firstDraftCount}} / {{category.secondDraftCount}} drafts</span>
+     <span>{{category.firstDraftCount}} / {{category.secondDraftCount}} drafts
+      <template v-if="molecularState==='ready'"> · {{category.verifiedMechanismCount}} approved molecular records</template></span>
     </div>
    </div>
    <header class="nfq-mechanism-head nfq-mechanism-editor-head">
