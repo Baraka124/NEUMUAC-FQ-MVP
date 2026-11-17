@@ -32,6 +32,13 @@ export interface ProtocolObservation{
  readonly studyFamilyId:string;
  readonly partition:StudyPartition;
  readonly reportedValue:number;
+ readonly samplingUnit:string|null;
+ readonly interventionN:number|null;
+ readonly comparatorN:number|null;
+ readonly reportedUncertaintyType:string|null;
+ readonly reportedUncertaintyValue:number|null;
+ readonly reportedCiLower:number|null;
+ readonly reportedCiUpper:number|null;
 }
 export interface AnalysisCohort{
  readonly key:string;
@@ -60,6 +67,8 @@ export interface StudyFamilyAnalysisProtocol{
  readonly selection:ProtocolSelection;
  readonly reviewedRowsInScope:number;
  readonly eligibleNumericObservations:number;
+ readonly reportedSampleN:number;
+ readonly reportedUncertainty:number;
  readonly excludedObservations:number;
  readonly excluded:readonly ProtocolExcludedRow[];
  readonly labelledStudyFamilies:number;
@@ -150,7 +159,14 @@ export function buildStudyFamilyAnalysisProtocol(
    claimId:r.claimId,referenceId:r.referenceId,
    studyFamilyId:r.studyFamilyId,
    partition:studyFamilyPartition(r.studyFamilyId),
-   reportedValue:endpoint.value
+   reportedValue:endpoint.value,
+   samplingUnit:r.studyStats?.analysisUnit??null,
+   interventionN:r.studyStats?.interventionN??null,
+   comparatorN:r.studyStats?.comparatorN??null,
+   reportedUncertaintyType:r.studyStats?.uncertaintyType??null,
+   reportedUncertaintyValue:r.studyStats?.uncertaintyValue??null,
+   reportedCiLower:r.studyStats?.ciLower??null,
+   reportedCiUpper:r.studyStats?.ciUpper??null
   }));
   cohorts.set(key,current);
   eligibleFamilyLabels.add(normalizeFamily(r.studyFamilyId));
@@ -195,6 +211,10 @@ export function buildStudyFamilyAnalysisProtocol(
   selection:Object.freeze({...selection}),
   reviewedRowsInScope:selected.length,
   eligibleNumericObservations:eligible,
+  reportedSampleN:selected.filter(x=>x.record.studyStats?.interventionN!==null&&
+   x.record.studyStats?.interventionN!==undefined).length,
+  reportedUncertainty:selected.filter(x=>x.record.studyStats?.uncertaintyType!==undefined&&
+   x.record.studyStats.uncertaintyType!=='not-reported').length,
   excludedObservations:excluded.length,
   excluded:Object.freeze(excluded),
   labelledStudyFamilies:eligibleFamilyLabels.size,
@@ -203,7 +223,7 @@ export function buildStudyFamilyAnalysisProtocol(
   caveats:Object.freeze([
    'Research-planning manifest only: no model fitting, inference or patient-level predictions',
    'Study-family labels are provisional; linked publications can represent one trial',
-   'No source-reported sample sizes, standard errors or variance were established for effect estimation',
+   'Reported counts and dispersion are metadata only; arm-level estimands, independence, repeated measures and model assumptions remain unverified',
    'Internal source-family holdout is not independent external clinical validation',
    'Cohorts with differing assays, scope, comparators, method, unit or timepoint are never pooled',
    'All statistical design and proposed thresholds require scientific protocol approval'
