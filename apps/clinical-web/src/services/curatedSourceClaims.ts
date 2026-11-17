@@ -1,6 +1,7 @@
 import type {CoreModulatorId} from '../domain/therapyRegistry';
 import {validResearchEndpoint,type ResearchEndpoint} from '../domain/researchEndpointNormalization';
 import {validStudyStatistics,type ReportedStudyStatistics} from '../domain/reportedStudyStatistics';
+import {validReportedStudyIdentity,type ReportedStudyIdentity} from '../domain/reportedStudyIdentity';
 import type {
  DoubleReviewedSourceClaim,ResearchObservationMethod,ResearchObservationFinding,
  ResearchClaimScope
@@ -27,6 +28,7 @@ export interface CuratedSourceClaim{
  readonly rationale:string;
  readonly endpoint:ResearchEndpoint|null;
  readonly studyStats:ReportedStudyStatistics|null;
+ readonly studyIdentity:ReportedStudyIdentity|null;
  readonly status:ClaimReviewStatus;
  readonly submittedAt:string;
  readonly submittedByMe:boolean;
@@ -48,6 +50,7 @@ export interface CuratedClaimPayload{
  readonly rationale:string;
  readonly endpoint:ResearchEndpoint;
  readonly studyStats:ReportedStudyStatistics;
+ readonly studyIdentity:ReportedStudyIdentity;
 }
 const canonical=/^[1-9][0-9]{0,17}$/;
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -94,6 +97,18 @@ function verifiedStudyStats(raw:unknown,endpoint:ResearchEndpoint|null):Reported
  if(!validStudyStatistics(stats,endpoint))
   throw new VariantConnectionError('schema-mismatch','Invalid reported study-design or uncertainty context');
  return Object.freeze({...stats});
+}
+function verifiedStudyIdentity(raw:unknown):ReportedStudyIdentity|null{
+ if(raw===null)return null; // Historical immutable revision
+ const data=record(raw);
+ const keys=['registryType','registryId','publicationRole','populationModel',
+  'diseaseGroup','ageGroup','cohortLabel','populationDescription','sourceLocator'];
+ if(Object.keys(data).length!==keys.length||keys.some(k=>!Object.prototype.hasOwnProperty.call(data,k)))
+  throw new VariantConnectionError('schema-mismatch','Unrecognized source study identity');
+ const identity=data as unknown as ReportedStudyIdentity;
+ if(!validReportedStudyIdentity(identity))
+  throw new VariantConnectionError('schema-mismatch','Invalid source study or population metadata');
+ return Object.freeze({...identity});
 }
 function claim(raw:unknown,variantId:string):CuratedSourceClaim{
  const row=record(raw);
@@ -155,6 +170,7 @@ function claim(raw:unknown,variantId:string):CuratedSourceClaim{
   rationale:str(row.rationale,'scientific rationale',900),
   endpoint:verifiedEndpoint(row.endpoint),
   studyStats:verifiedStudyStats(row.studyStats,verifiedEndpoint(row.endpoint)),
+  studyIdentity:verifiedStudyIdentity(row.studyIdentity),
   status,submittedAt:date(row.submittedAt,'submission time'),
   submittedByMe:row.submittedByMe,reviewCount:row.reviewCount as number,
   canReview:row.canReview,
@@ -210,7 +226,8 @@ export function validSourceClaimPayload(
   data.rationale.trim().length<20||data.rationale.trim().length>900||
   /[\u0000-\u001f\u007f]/.test(data.locator+data.rationale)||
   !validResearchEndpoint(data.endpoint)||
-  !validStudyStatistics(data.studyStats,data.endpoint))return false;
+  !validStudyStatistics(data.studyStats,data.endpoint)||
+  !validReportedStudyIdentity(data.studyIdentity))return false;
  if(data.scope==='single-variant')return data.genotypePair===null;
  return Array.isArray(data.genotypePair)&&data.genotypePair.length===2&&
   data.genotypePair.every(id=>canonical.test(id))&&data.genotypePair.includes(variantId);
