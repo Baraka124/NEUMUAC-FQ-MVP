@@ -4,15 +4,21 @@ import type {VariantEvidencePassport} from '../domain/variantEvidencePassport';
 import type {CuratedSourceClaim} from '../services/curatedSourceClaims';
 import {buildEvidenceResearchPlan,type TriageBand} from '../domain/evidenceResearchPriorities';
 import {THERAPIES} from '../domain/therapyRegistry';
+import EvidenceInvestigation from './EvidenceInvestigation.vue';
+import type {EvidenceTriageTask} from '../domain/evidenceResearchPriorities';
 
 const props=defineProps<{passport:VariantEvidencePassport;claims:readonly CuratedSourceClaim[]}>();
 const emit=defineEmits<{openReview:[]}>();
 const expanded=ref(false);
 const band=ref<'all'|TriageBand>('all');
+const selectedTask=ref<string|null>(null);
 const plan=computed(()=>buildEvidenceResearchPlan(props.passport,props.claims));
 const visible=computed(()=>plan.value.tasks.filter(t=>band.value==='all'||t.band===band.value));
+function toggleInvestigation(task:EvidenceTriageTask):void{
+ selectedTask.value=selectedTask.value===task.id?null:task.id;
+}
 const therapyName=(id:string|null)=>id?THERAPIES.find(t=>t.id===id)?.label??id:'Source identity';
-watch(()=>props.passport.variantId,()=>{expanded.value=false;band.value='all';});
+watch(()=>props.passport.variantId,()=>{expanded.value=false;band.value='all';selectedTask.value=null;});
 </script>
 
 <template>
@@ -60,6 +66,13 @@ watch(()=>props.passport.variantId,()=>{expanded.value=false;band.value='all';})
      <p><b>Next investigation:</b> {{task.nextAction}}</p>
      <p class="nfq-triage-trace">{{task.trace}}
       <span v-if="task.claimIds.length"> · claim IDs {{task.claimIds.join(', ')}}</span></p>
+     <button type="button" class="nfq-triage-action" :aria-expanded="selectedTask===task.id"
+      data-testid="nfq-open-investigation" @click="toggleInvestigation(task)">
+      {{selectedTask===task.id?'Close investigation':'Examine source investigation'}}
+     </button>
+     <EvidenceInvestigation v-if="selectedTask===task.id" :task="task"
+      :variant-id="passport.variantId" :claims="claims" :sources="passport.sources"
+      @open-review="emit('openReview')" />
      <button v-if="task.category==='pending-peer-review'" type="button"
       class="nfq-triage-action" @click="emit('openReview')">
       Open existing independent review
