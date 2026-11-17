@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {computed,ref,watch,onUnmounted} from 'vue';
 import {RouterLink} from 'vue-router';
+import MechanismGapWorkspace from './MechanismGapWorkspace.vue';
 import type {MultiTherapyResearchReport} from '../domain/multiTherapyResearch';
 import {compareCrossVariantEvidence} from '../domain/crossVariantEvidence';
 import {buildPairedEvidenceQuestions} from '../domain/pairedEvidenceQuestions';
@@ -185,6 +186,9 @@ async function loadPeer():Promise<void>{
       </article>
      </div>
     </section>
+    <MechanismGapWorkspace :first-id="compare.firstId" :second-id="compare.secondId"
+     :first-claims="firstClaims" :second-claims="secondClaims"
+     :first-references="firstReferences" :second-references="secondReferences" />
     <RouterLink :to="{path:'/variants/'+compare.secondId,query:{from:'/variants/'+compare.firstId}}">
      Open second variant dossier</RouterLink>
    </div>
