@@ -197,6 +197,9 @@ test('14H166 verified double-review source enters actual five-therapy conflict a
   studyStats:{analysisUnit:'not-reported',design:'not-reported',interventionN:null,comparatorN:null,
  uncertaintyType:'not-reported',uncertaintyValue:null,ciLower:null,ciUpper:null,
  uncertaintyTarget:'not-reported',sourceLocator:'not-reported'},
+  studyIdentity:{registryType:'not-reported',registryId:null,
+ publicationRole:'not-reported',populationModel:'not-reported',diseaseGroup:'not-reported',
+ ageGroup:'not-reported',cohortLabel:null,populationDescription:null,sourceLocator:'not-reported'},
   reviewSeals:[
    'attestation:cccccccc-cccc-4ccc-8ccc-cccccccccccc',
    'attestation:dddddddd-dddd-4ddd-8ddd-dddddddddddd'
