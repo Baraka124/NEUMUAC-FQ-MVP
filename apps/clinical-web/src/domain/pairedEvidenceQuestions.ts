@@ -93,7 +93,10 @@ export function buildPairedEvidenceQuestions(input:{
   const l=left.filter(c=>c.therapy===therapy.id);
   const r=right.filter(c=>c.therapy===therapy.id);
   const visited=new Set<string>();
-  for(const first of l)for(const second of r){
+  for(const first of l){
+   if(questions.length>=100)break;
+   for(const second of r){
+   if(questions.length>=100)break;
    const identity=first.studyFamilyId+'|'+second.studyFamilyId;
    if(visited.has(identity))continue;
    visited.add(identity);
@@ -107,7 +110,7 @@ export function buildPairedEvidenceQuestions(input:{
     relation,left:first,right:second,researchQuestion:question,
     requiresScientificReview:true as const
    }));
-   if(questions.length>=100)break;
+   }
   }
   if(questions.length>=100)break;
  }
