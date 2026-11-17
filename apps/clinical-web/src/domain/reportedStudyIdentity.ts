@@ -137,8 +137,6 @@ export function resolveStudyIdentityLinks(
 ):ReadonlyMap<string,ResolvedStudyLink>{
  const ids=new Set<string>();
  const parent=new Map<string,string>();
- const registrations=new Map<string,Set<string>>();
- const labels=new Map<string,Set<string>>();
  const find=(key:string):string=>{
   const p=parent.get(key);
   if(!p){parent.set(key,key);return key;}
