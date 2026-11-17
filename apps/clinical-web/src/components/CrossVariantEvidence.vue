@@ -34,6 +34,7 @@ function clear():void{
  controller?.abort();controller=null;second.value=null;secondClass.value=null;state.value='idle';
 }
 function reset():void{clear();open.value=false;peerId.value='';}
+function toggleOpen():void{if(open.value)reset();else open.value=true;}
 watch([()=>props.first.variantId,()=>props.active,verified],reset);
 watch(peerId,clear);
 onUnmounted(clear);
@@ -76,7 +77,7 @@ async function loadPeer():Promise<void>{
    <div><strong>Cross-variant research comparison</strong>
     <p>Two separately verified variant records · research scope only</p></div>
    <button type="button" class="nfq-cross-button" :aria-expanded="open"
-    @click="open=!open; if(!open)reset()">
+    @click="toggleOpen">
     {{open?'Close comparison':'Compare another variant'}}
    </button>
   </header>
