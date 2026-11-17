@@ -11,6 +11,7 @@ import {createCuratedSourceClaimService,reviewedSourceObservations,type CuratedS
 import ReviewedSourceClaims from './ReviewedSourceClaims.vue';
 import VariantEvidencePassport from './VariantEvidencePassport.vue';
 import CrossVariantEvidence from './CrossVariantEvidence.vue';
+import MolecularEvidenceDiscovery from './MolecularEvidenceDiscovery.vue';
 import type {PassportIdentity} from '../domain/variantEvidencePassport';
 import type {ClinVarAuthoritySummary} from '../services/liveClinVar';
 import {authController,authSessionProvider} from '../services/authSession';
@@ -157,6 +158,8 @@ onUnmounted(()=>request?.abort());
      :claims="curatedClaims" :clin-var-summary="clinVarSummary??null"
      :clin-var-loading="clinVarLoading??false" :clin-var-error="clinVarError??''"
      @check-clinvar="emit('checkClinvar')" />
+    <MolecularEvidenceDiscovery :active="open&&state==='ready'&&verified"
+      :current-variant-id="report.variantId" />
     <CrossVariantEvidence :first="report" :first-name="variantName"
        :first-class="recordedIdentity.functionalClass" :active="open&&state==='ready'&&verified"
       :first-claims="curatedClaims" :first-references="linkedReferences" />
