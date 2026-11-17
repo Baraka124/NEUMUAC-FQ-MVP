@@ -57,7 +57,7 @@ describe('14H187–188 persisted independent molecular review decoding',()=>{
  });
  it('allows an approved revision while maintaining superseded, auditable earlier history',()=>{
   const first=record({status:'superseded',reviewCount:2,
-   id:uuidA,revision:1,parentId:null});
+   id:uuidA,revision:1,parentId:null,reviewAudit:[review(),review()]});
   const second=record({id:uuidC,revision:2,parentId:uuidA,
    status:'approved',reviewCount:2,reviewSeals:[sealA,sealB],reviewAudit:[review(),review()]});
   const rows=decodeMolecularReviewRecords(response([first,second]),'18');

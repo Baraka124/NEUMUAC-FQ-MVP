@@ -70,10 +70,12 @@ export function decodeMolecularReviewRecords(raw:unknown,variantId:string):reado
    (c.status==='approved'&&(c.reviewCount!==2||c.reviewSeals.length!==2||
     c.reviewSeals[0]===c.reviewSeals[1]))||
    (c.status!=='approved'&&c.reviewSeals.length!==0)||
-   (c.status==='approved'&&((c.reviewAudit as unknown[]).length!==2||
-    (c.reviewAudit as unknown[]).some((r:unknown)=>obj(r).decision!=='approve')))||
    !Array.isArray(c.events)||c.events.length>100||
-   !Array.isArray(c.reviewAudit)||c.reviewAudit.length>2)
+   !Array.isArray(c.reviewAudit)||c.reviewAudit.length>2||
+   (c.status!=='rejected'&&
+    c.reviewAudit.filter((r:unknown)=>obj(r).decision==='approve').length!==c.reviewCount)||
+   (c.status==='approved'&&(c.reviewAudit.length!==2||
+    c.reviewAudit.some((r:unknown)=>obj(r).decision!=='approve'))))
    throw new VariantConnectionError('schema-mismatch','Invalid molecular review record');
   const events=c.events.map((e:unknown)=>{
    const row=obj(e);
