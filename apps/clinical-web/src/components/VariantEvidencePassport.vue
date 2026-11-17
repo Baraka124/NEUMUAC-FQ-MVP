@@ -76,6 +76,11 @@ async function checkPubMed(source:PassportSource):Promise<void>{
    pubmed.value={referenceId:source.id,phase:'unavailable'};
  }finally{if(pubmedAbort===abort)pubmedAbort=null;}
 }
+function focusReviewIntake():void{
+ const section=document.getElementById('nfq-reviewed-source-claims');
+ section?.scrollIntoView({block:'start',behavior:'smooth'});
+ section?.querySelector('button')?.focus({preventScroll:true});
+}
 function titleAligned(source:PassportSource,publication:PubMedPublicationMetadata):boolean{
  if(!publication.title)return false;
  const standard=(value:string)=>value.normalize('NFKC').trim().replace(/\s+/g,' ').toLowerCase();
@@ -272,7 +277,8 @@ onUnmounted(clearPubmed);
     <RouterLink :to="{path:'/evidence',
       query:{variant:variantId,from:'/variants/'+variantId}}">
      Inspect complete source record and provenance</RouterLink>
-    <a href="#nfq-reviewed-source-claims">Propose or review a source observation below</a>
+    <button type="button" class="nfq-passport-text-action" @click="focusReviewIntake">
+     Propose or review a source observation below</button>
    </div>
    <details class="nfq-passport-limitations">
     <summary>Interpretation boundaries</summary>
@@ -323,6 +329,7 @@ onUnmounted(clearPubmed);
 .nfq-passport-source p{font-size:11px;line-height:1.55;margin:3px 0;overflow-wrap:anywhere}
 .nfq-passport-source-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;justify-content:flex-end}
 .nfq-passport-index{grid-column:1/-1;font-size:11px;margin-top:3px;padding:5px 0;border-top:1px solid var(--border,#e1e9ef)}
+.nfq-passport-tail .nfq-passport-text-action{font:inherit;font-size:11px;background:transparent;border:0;padding:0;text-align:left;text-decoration:underline;text-underline-offset:3px;color:var(--link,#2869a9);cursor:pointer}
 .nfq-passport-tail{display:flex;flex-wrap:wrap;gap:8px 18px;padding:13px 0}
 .nfq-passport-limitations{font-size:11px;color:var(--text-muted,#627e97)}
 .nfq-passport-limitations summary{cursor:pointer}
