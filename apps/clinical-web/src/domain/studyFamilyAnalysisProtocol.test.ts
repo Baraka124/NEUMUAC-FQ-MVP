@@ -150,3 +150,53 @@ describe('14H170 source-family-safe pre-analysis protocol',()=>{
   expect(()=>buildStudyFamilyAnalysisProtocol(s,{therapy:'NONEXISTENT' as 'ETI',endpoint:'all'})).toThrow();
  });
 });
+
+describe('14H172 cross-publication registry identity governs study-family partitioning',()=>{
+ const registry={
+  registryType:'nct',registryId:'NCT12345678',publicationRole:'primary-report',
+  populationModel:'clinical-participants',diseaseGroup:'cystic-fibrosis',
+  ageGroup:'adult',cohortLabel:null,populationDescription:null,
+  sourceLocator:'Methods · Study design'
+ };
+ it('deduplicates two approved publications with one reported trial accession despite different study-family labels',()=>{
+  const data=snapshot([
+   source(100,'PMID-article-A',{studyIdentity:registry,referenceId:71}),
+   source(101,'PMID-article-B',{studyIdentity:{...registry,publicationRole:'extension'},referenceId:72})
+  ]);
+  const plan=buildStudyFamilyAnalysisProtocol(data,all);
+  expect(plan.registeredStudyRows).toBe(2);
+  expect(plan.cohorts).toHaveLength(1);
+  expect(plan.cohorts[0].observationCount).toBe(2);
+  expect(plan.cohorts[0].labelledStudyFamilies).toBe(1);
+  expect(plan.cohorts[0].observations[0].partition).toBe(
+   plan.cohorts[0].observations[1].partition
+  );
+  expect(plan.labelledStudyFamilies).toBe(1);
+  expect(plan.internalSplitCandidateCohorts).toBe(0);
+ });
+ it('prevents cross-variant or cross-therapy leakage even if the selected filter only contains one paper',()=>{
+  const data=snapshot([
+   source(100,'study-M',{studyIdentity:registry,therapy:'ETI'}),
+   source(101,'study-N',{studyIdentity:{...registry,publicationRole:'extension'},
+    variantId:'19',therapy:'ALYFTREK'})
+  ]);
+  const combined=buildStudyFamilyAnalysisProtocol(data,all);
+  expect(new Set(combined.cohorts.flatMap(c=>c.observations.map(x=>x.identityGroupKey))).size).toBe(1);
+  const filtered=buildStudyFamilyAnalysisProtocol(data,{therapy:'ETI',endpoint:'all'});
+  expect(filtered.cohorts).toHaveLength(1);
+  expect(filtered.cohorts[0].observations[0].partition).toBe(
+   combined.cohorts.find(x=>x.therapy==='ETI')?.observations[0]?.partition
+  );
+ });
+ it('discloses two distinct registrations attached to one study-family label and forbids certified independent splitting',()=>{
+  const data=snapshot([
+   source(100,'study-X',{studyIdentity:registry}),
+   source(101,'study-X',{studyIdentity:{...registry,registryId:'NCT87654321'}})
+  ]);
+  const plan=buildStudyFamilyAnalysisProtocol(data,all);
+  expect(plan.identityConflictRows).toBe(2);
+  expect(plan.cohorts[0].identityConflictGroups).toBe(1);
+  expect(plan.cohorts[0].internalSplitPossible).toBe(false);
+  expect(plan.cohorts[0].labelledStudyFamilies).toBe(1);
+ });
+});
