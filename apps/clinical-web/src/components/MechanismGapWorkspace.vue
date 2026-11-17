@@ -9,6 +9,8 @@ import {THERAPIES,type CoreModulatorId} from '../domain/therapyRegistry';
 import {createMolecularReviewService,type MolecularReviewRecord} from '../services/molecularReviewService';
 import {authSessionProvider} from '../services/authSession';
 import {readConfigFromEnvironment} from '../services/liveVariants';
+import {researchReviewHandoff,makeVerifiedScientificExport,
+ portableScientificExport} from '../domain/scientificReviewReadiness';
 
 const props=defineProps<{
  firstId:string;secondId:string;
@@ -52,7 +54,40 @@ const map=computed(()=>buildCrossVariantGapMap({
  drafts:savedDrafts.value,
  persisted:molecularState.value==='ready'?molecularRecords.value:[]
 }));
+const firstHandoff=computed(()=>researchReviewHandoff({
+ variantId:props.firstId,sourceClaims:props.firstClaims,
+ molecularClaims:molecularState.value==='ready'?molecularRecords.value.filter(m=>m.variantId===props.firstId):[]
+}));
+const secondHandoff=computed(()=>researchReviewHandoff({
+ variantId:props.secondId,sourceClaims:props.secondClaims,
+ molecularClaims:molecularState.value==='ready'?molecularRecords.value.filter(m=>m.variantId===props.secondId):[]
+}));
 const therapy=(id:CoreModulatorId)=>THERAPIES.find(t=>t.id===id)?.label??id;
+const exportBusy=ref(false);
+async function exportVerifiedSources(variantId:string):Promise<void>{
+ if(molecularState.value!=='ready'||exportBusy.value)return;
+ exportBusy.value=true;
+ try{
+  const first=variantId===props.firstId;
+  const bundle=makeVerifiedScientificExport({
+   variantId,claims:first?props.firstClaims:props.secondClaims,
+   molecular:molecularRecords.value.filter(m=>m.variantId===variantId),
+   references:first?props.firstReferences:props.secondReferences,
+   generatedAt:new Date().toISOString()
+  });
+  const url=URL.createObjectURL(new Blob([portableScientificExport(bundle)],{
+   type:'application/json;charset=utf-8'
+  }));
+  try{
+   const anchor=document.createElement('a');
+   anchor.href=url;anchor.download='neumuacfq-reviewed-evidence-'+variantId+'.json';
+   document.body.appendChild(anchor);anchor.click();anchor.remove();
+  }finally{window.setTimeout(()=>URL.revokeObjectURL(url),5000);}
+  notice.value='Approved-source research export requested. Pending drafts and unreviewed molecular claims are excluded.';
+ }catch{
+  notice.value='A complete independently reviewed source inventory was not verified. No export was produced.';
+ }finally{exportBusy.value=false;}
+}
 const gapLabel=(gap:string)=>({
  'no-reviewed-source-claim':'No approved claim in loaded register',
  'endpoint-not-extracted':'No extracted experimental endpoint',
@@ -196,6 +231,23 @@ function removeDraft(index:number):void{
      molecular record is implied. Database migration may not yet be deployed.</p>
     <p v-else-if="molecularState==='ready'&&!molecularRecords.length" class="nfq-mechanism-note">
      No persisted molecular interpretation revisions are recorded for these variants.</p>
+    <div v-if="molecularState==='ready'" class="nfq-molecular-handoffs"
+     data-testid="nfq-molecular-handoffs">
+     <div v-for="entry in [{id:firstId,summary:firstHandoff},{id:secondId,summary:secondHandoff}]"
+      :key="entry.id">
+      <strong>Variant #{{entry.id}} · scientific review</strong>
+      <span>{{entry.summary.approvedSourceClaims}} approved source claims</span>
+      <span>{{entry.summary.sourceAwaitingFirst}} / {{entry.summary.sourceAwaitingSecond}} awaiting first / second source review</span>
+      <span>{{entry.summary.molecularAwaitingFirst}} / {{entry.summary.molecularAwaitingSecond}} awaiting first / second molecular review</span>
+      <span>{{entry.summary.approvedMolecularClaims}} approved molecular records</span>
+      <span v-if="entry.summary.sourceLinkedEvidenceRequired">
+       Approved source evidence required before molecular submission</span>
+      <span v-if="entry.summary.blockedMolecularClaims">
+       {{entry.summary.blockedMolecularClaims}} molecular approval(s) excluded: original claim no longer approved</span>
+      <button type="button" :disabled="exportBusy" @click="exportVerifiedSources(entry.id)">
+       Export verified research record</button>
+     </div>
+    </div>
     <article v-for="item in molecularState==='ready'?molecularRecords:[]" :key="item.id"
      class="nfq-molecular-record">
      <div class="nfq-mechanism-head">
@@ -383,6 +435,11 @@ function removeDraft(index:number):void{
 .nfq-mechanism-form .nfq-mechanism-check{display:flex;align-items:center;gap:7px;padding:3px 0}
 .nfq-mechanism-form button{justify-self:start}
 .nfq-molecular-persist{margin:15px 0;padding:12px 0;border-top:1px solid var(--border,#dde7ef)}
+.nfq-molecular-handoffs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 22px;padding:10px 0;margin:7px 0}
+.nfq-molecular-handoffs>div{display:grid;justify-items:start;gap:4px}
+.nfq-molecular-handoffs span{color:var(--text-muted,#6b839b);font-size:11px}
+.nfq-molecular-handoffs button{margin-top:4px}
+@media(max-width:520px){.nfq-molecular-handoffs{grid-template-columns:1fr}}
 .nfq-molecular-record{padding:11px 0;border-top:1px solid var(--border,#dde7ef)}
 .nfq-molecular-record p{line-height:1.5}
 .nfq-molecular-review-form{display:grid;gap:7px;max-width:640px;margin:8px 0}
