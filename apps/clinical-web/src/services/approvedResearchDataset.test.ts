@@ -86,7 +86,7 @@ describe('14H169 approved source research dataset',()=>{
   const csv=approvedDatasetCsv(snapshot);
   expect(csv).toContain('registry_id');
   expect(csv).toContain('NCT12345678');
-  expect(JSON.parse(approvedDatasetJson(snapshot)).records[0].record.studyIdentity.registryId)
+  expect(JSON.parse(approvedDatasetJson(snapshot)).records[0].studyIdentity.registryId)
    .toBe('NCT12345678');
  });
  it('rejects malformed study registration rather than silently inferring a population',()=>{
