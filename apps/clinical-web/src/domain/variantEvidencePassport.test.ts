@@ -77,7 +77,7 @@ describe('14H174 source-traceable CFTR variant evidence passport',()=>{
   expect(p.identity.functionalClass).toBe('II');
   expect(p.therapies).toHaveLength(5);
   expect(p.therapies[0].databaseLabel).toBe('non_responsive');
-  expect(p.therapies[0].verificationState).toBe('no-reviewed-observation-in-register');
+  expect(p.therapies[0].verificationState).toBe('recorded-history-only');
   expect(p.therapies[0].provenanceNote).toContain('not independently confirmed');
   expect(p.therapies[1].databaseLabel).toBe('non_responsive');
   expect(p.therapies.slice(2).every(x=>x.databaseLabel===null&&
@@ -107,7 +107,7 @@ describe('14H174 source-traceable CFTR variant evidence passport',()=>{
   expect(p.authority.alignment).toBe('recorded-notation-aligned');
   expect(p.authority.classification).toBe('Uncertain significance');
   expect(p.therapies[0].databaseLabel).toBe('non_responsive');
-  expect(p.therapies[0].verificationState).toBe('no-reviewed-observation-in-register');
+  expect(p.therapies[0].verificationState).toBe('recorded-history-only');
   expect(p.identity.functionalClass).toBe('II');
  });
  it('does not conflate similar but different splice/legacy notations',()=>{
