@@ -97,8 +97,10 @@ export function buildCrossVariantGapMap(input:{
   drafts.some(d=>d.variantId!==input.firstId&&d.variantId!==input.secondId)||
   persisted.some(m=>m.variantId!==input.firstId&&m.variantId!==input.secondId))
   throw new Error('Invalid draft scope');
- const first=sourceCells(input.firstId,input.firstClaims,input.firstReferences,drafts.filter(d=>d.variantId===input.firstId));
- const second=sourceCells(input.secondId,input.secondClaims,input.secondReferences,drafts.filter(d=>d.variantId===input.secondId));
+ const first=sourceCells(input.firstId,input.firstClaims,input.firstReferences,
+  drafts.filter(d=>d.variantId===input.firstId),persisted.filter(m=>m.variantId===input.firstId));
+ const second=sourceCells(input.secondId,input.secondClaims,input.secondReferences,
+  drafts.filter(d=>d.variantId===input.secondId),persisted.filter(m=>m.variantId===input.secondId));
  const coverage=MECHANISM_CATEGORIES.map(category=>Object.freeze({
   category:category.id,label:category.label,
   firstDraftCount:drafts.filter(d=>d.variantId===input.firstId&&d.categories.includes(category.id)).length,
