@@ -11,11 +11,18 @@ import {
 import {THERAPIES} from '../domain/therapyRegistry';
 import {statisticsSummary} from '../domain/reportedStudyStatistics';
 import {populationSummary} from '../domain/reportedStudyIdentity';
+import type {StudyAdjudication} from '../domain/studyAdjudication';
+import {createStudyAdjudicationsService} from '../services/studyAdjudications';
+import StudyAdjudicationBoard from './StudyAdjudicationBoard.vue';
 import StudyFamilyAnalysisProtocol from './StudyFamilyAnalysisProtocol.vue';
 const config=readConfigFromEnvironment();
 const service=config&&authSessionProvider?createApprovedDatasetService(config,authSessionProvider):null;
+const adjudicationService=config&&authSessionProvider?
+ createStudyAdjudicationsService(config,authSessionProvider):null;
 const open=ref(false);
 const snapshot=ref<ApprovedDatasetSnapshot|null>(null);
+const adjudications=ref<readonly StudyAdjudication[]|null>(null);
+const adjudicationPhase=ref<'loading'|'ready'|'failed'>('loading');
 const phase=ref<'closed'|'restricted'|'loading'|'ready'|'failed'>('closed');
 const notice=ref('');
 const filter=ref<'all'|'numeric'|'missing'|'quality'>('all');
@@ -34,8 +41,29 @@ const pageSize=12;
 const pages=computed(()=>Math.max(1,Math.ceil(filtered.value.length/pageSize)));
 const visible=computed(()=>filtered.value.slice(page.value*pageSize,(page.value+1)*pageSize));
 let active:AbortController|null=null;
+let adjudicationActive:AbortController|null=null;
+async function refreshAdjudications(data:ApprovedDatasetSnapshot|null=snapshot.value):Promise<void>{
+ adjudicationActive?.abort();adjudicationActive=null;adjudications.value=null;
+ if(!data||!access.value||!adjudicationService||!open.value){
+  adjudicationPhase.value='failed';return;
+ }
+ const controller=new AbortController();adjudicationActive=controller;
+ adjudicationPhase.value='loading';
+ try{
+  const records=await adjudicationService.list(data,controller.signal);
+  if(controller.signal.aborted||adjudicationActive!==controller||!access.value||
+   snapshot.value!==data||!open.value)return;
+  adjudications.value=records;adjudicationPhase.value='ready';
+ }catch{
+  if(!controller.signal.aborted&&adjudicationActive===controller&&open.value)
+   adjudicationPhase.value='failed';
+ }finally{
+  if(adjudicationActive===controller)adjudicationActive=null;
+ }
+}
 async function load():Promise<void>{
- active?.abort();active=null;snapshot.value=null;
+ active?.abort();active=null;adjudicationActive?.abort();adjudicationActive=null;
+ adjudications.value=null;snapshot.value=null;
  if(!open.value){phase.value='closed';return;}
  if(!access.value||!service){phase.value='restricted';return;}
  const controller=new AbortController();active=controller;phase.value='loading';
@@ -43,13 +71,15 @@ async function load():Promise<void>{
   const data=await service.snapshot(controller.signal);
   if(controller.signal.aborted||active!==controller||!access.value)return;
   snapshot.value=data;phase.value='ready';page.value=0;
+  await refreshAdjudications(data);
  }catch{
   if(!controller.signal.aborted&&active===controller)phase.value='failed';
  }finally{if(active===controller)active=null;}
 }
 function toggle():void{
  open.value=!open.value;
- if(!open.value){active?.abort();active=null;snapshot.value=null;phase.value='closed';return;}
+ if(!open.value){active?.abort();active=null;adjudicationActive?.abort();
+  adjudicationActive=null;adjudications.value=null;snapshot.value=null;phase.value='closed';return;}
  void load();
 }
 function download(kind:'json'|'csv'):void{
@@ -71,7 +101,7 @@ watch([
  ()=>authController?.state.phase,()=>authController?.state.userId,
  ()=>researcherRole.phase,()=>researcherRole.role
 ],()=>{if(open.value)void load();});
-onUnmounted(()=>active?.abort());
+onUnmounted(()=>{active?.abort();adjudicationActive?.abort();});
 const therapyLabel=(value:string)=>THERAPIES.find(x=>x.id===value)?.label??value;
 </script>
 <template>
@@ -124,7 +154,9 @@ const therapyLabel=(value:string)=>THERAPIES.find(x=>x.id===value)?.label??value
      </div>
     </div>
     <p v-if="notice" class="nfq-dataset-muted" role="status">{{notice}}</p>
-    <StudyFamilyAnalysisProtocol :snapshot="snapshot" />
+    <StudyAdjudicationBoard :snapshot="snapshot" :adjudications="adjudications"
+     :state="adjudicationPhase" @changed="refreshAdjudications" />
+    <StudyFamilyAnalysisProtocol :snapshot="snapshot" :adjudications="adjudications" />
     <div v-if="quality.total===0" class="nfq-dataset-empty" data-testid="nfq-dataset-empty">
      <strong>No independently approved source observations yet.</strong>
      <p>The export schema is available, but the dataset contains no experimental
