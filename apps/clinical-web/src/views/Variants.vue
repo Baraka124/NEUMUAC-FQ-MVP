@@ -672,7 +672,14 @@ function select(id:string):void{
        />
        </section>
        <ResearchEvidenceIntelligence v-if="!selectedFromSearch" :key="'research-'+selected.id"
-        :variant-id="selected.id" :variant-name="variantDisplayName(selected)" />
+        :variant-id="selected.id" :variant-name="variantDisplayName(selected)"
+        :legacy-name="selected.legacyName" :protein-name="selected.proteinName"
+        :cdna-name="selected.cdnaName" :aliases="selected.aliases"
+        :functional-class="dossier?.functionalClass??selected.recordedClass??null"
+        :class-subtype="dossier?.subtype??selected.classSubtype??null"
+        :clin-var-id="dossier?.clinvarId??null" :clin-var-summary="clinVarSummary"
+        :clin-var-loading="clinVarLoading" :clin-var-error="clinVarError"
+        @check-clinvar="checkClinVar" />
       </div><section id="nfq-variant-science" tabindex="-1" v-if="!selectedFromSearch" class="dossier-science" aria-label="Additional scientific record details">
       <p v-if="dossierError" role="alert">{{dossierError}}</p>
       <div class="nfq-details-control">
