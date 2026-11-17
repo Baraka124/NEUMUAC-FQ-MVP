@@ -41,7 +41,7 @@ describe('14H172 study registration and aggregate cohort provenance',()=>{
  it('conservatively links two distinct publication reports with one source-reviewed registry across variants and therapies',()=>{
   const rows=[
    {claimId:'a',studyFamilyId:'PMID-11111111',studyIdentity:registered},
-   {claimId:'b',studyFamilyId:'PMID-22222222',studyIdentity:{...registered,publicationRole:'extension'}},
+   {claimId:'b',studyFamilyId:'PMID-22222222',studyIdentity:{...registered,publicationRole:'extension' as const}},
    {claimId:'c',studyFamilyId:'PMID-22222222',studyIdentity:null}
   ];
   const links=resolveStudyIdentityLinks(rows);
