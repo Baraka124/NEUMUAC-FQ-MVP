@@ -7,21 +7,24 @@ import {
  type ProtocolSelection
 } from '../domain/studyFamilyAnalysisProtocol';
 import type {ApprovedDatasetSnapshot} from '../services/approvedResearchDataset';
-const props=defineProps<{snapshot:ApprovedDatasetSnapshot}>();
+import type {StudyAdjudication} from '../domain/studyAdjudication';
+const props=defineProps<{snapshot:ApprovedDatasetSnapshot;adjudications:readonly StudyAdjudication[]|null}>();
 const expanded=ref(false);
 const therapy=ref<ProtocolSelection['therapy']>('all');
 const endpoint=ref<ProtocolSelection['endpoint']>('all');
 const notice=ref('');
 const protocol=computed(()=>buildStudyFamilyAnalysisProtocol(props.snapshot,{
  therapy:therapy.value,endpoint:endpoint.value
-}));
+},props.adjudications));
 const seen=computed(()=>protocol.value.cohorts.slice(0,12));
 const gateLabels={
  'no-approved-source-data':'No approved observations',
  'no-selected-records':'No approved observations match these filters',
  'no-eligible-numeric-outcomes':'No eligible numeric observations',
  'descriptive-research-only':'Descriptive research only',
- 'internal-split-plan-only':'Internal holdout can be planned — not validated'
+ 'internal-split-plan-only':'Internal holdout can be planned — not validated',
+ 'identity-review-unavailable':'Study adjudication unavailable — internal split not certified',
+ 'identity-adjudication-required':'Unresolved study identities — internal split blocked'
 } as const;
 function exportPlan():void{
  const result=protocol.value;
@@ -84,6 +87,9 @@ function exportPlan():void{
     <span v-if="protocol.identityConflictRows"><strong>{{protocol.identityConflictRows}}</strong> identity conflicts</span>
     <span><strong>{{protocol.excludedObservations}}</strong> excluded values</span>
     <span><strong>{{protocol.cohorts.length}}</strong> exact-context cohorts</span>
+    <span><strong>{{protocol.adjudicationCandidates}}</strong> overlap pairs</span>
+    <span><strong>{{protocol.unresolvedStudyLinks}}</strong> unresolved pairs</span>
+    <span><strong>{{protocol.acceptedSameStudyLinks}}</strong> accepted same-study links</span>
     <span><strong>{{protocol.internalSplitCandidateCohorts}}</strong> internal split candidates</span>
    </div>
    <p class="nfq-analysis-gate" role="status" data-testid="nfq-analysis-gate">
@@ -102,6 +108,10 @@ function exportPlan():void{
      </div>
      <p>{{cohort.endpoint}} · {{cohort.statistic}} · {{cohort.unit}} ·
       {{cohort.model}} · {{cohort.comparator}} · {{cohort.timepoint}}</p>
+     <p v-if="cohort.unresolvedIdentityGroups&&protocol.adjudicationInventoryVerified" class="nfq-analysis-status">
+       {{cohort.unresolvedIdentityGroups}} study group{{cohort.unresolvedIdentityGroups===1?'':'s'}}
+       require{{cohort.unresolvedIdentityGroups===1?'s':''}} further identity adjudication
+      </p>
      <p v-if="cohort.identityConflictGroups" class="nfq-analysis-status">
        Conflicting registered study identities · independent holdout not permitted
       </p>
@@ -110,7 +120,7 @@ function exportPlan():void{
       {{cohort.internalHoldoutFamilies}} internal-holdout families</p>
      <p class="nfq-analysis-status">
       {{cohort.internalSplitPossible?'Provisional internal split plan only — external validation still required':
-      'Insufficient distinct source families for a provisional internal split'}}
+      'Internal holdout not certified: study review or independent source families are insufficient'}}
      </p>
     </article>
     <p v-if="protocol.cohorts.length>seen.length" class="nfq-analysis-note">
@@ -129,8 +139,8 @@ function exportPlan():void{
    <p class="nfq-analysis-note">
     Snapshot {{protocol.sourceSnapshotSha256.slice(0,16)}}… ·
     Protocol v{{protocol.protocolVersion}} ·
-    Reported counts and dispersion do not establish sampling independence, prespecified power calculations,
-    external cohort metadata or clinical validation are established.
+    Source counts and linked study labels do not establish sampling independence, statistical power,
+    external cohort independence or clinical validation.
    </p>
    <p v-if="notice" role="status" class="nfq-analysis-note">{{notice}}</p>
   </div>

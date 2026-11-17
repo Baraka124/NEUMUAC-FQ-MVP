@@ -1,5 +1,6 @@
 import type {CoreModulatorId} from './therapyRegistry';
 import {resolveStudyIdentityLinks} from './reportedStudyIdentity';
+import {evaluateStudyAdjudications,type StudyAdjudication} from './studyAdjudication';
 import {
  endpointComparisonKey,type EndpointCode
 } from './researchEndpointNormalization';
@@ -63,6 +64,7 @@ export interface AnalysisCohort{
  readonly labelledStudyFamilies:number;
  readonly registeredStudyGroups:number;
  readonly identityConflictGroups:number;
+ readonly unresolvedIdentityGroups:number;
  readonly developmentFamilies:number;
  readonly internalHoldoutFamilies:number;
  readonly internalSplitPossible:boolean;
@@ -84,9 +86,19 @@ export interface StudyFamilyAnalysisProtocol{
  readonly registeredStudyRows:number;
  readonly populationCharacterizedRows:number;
  readonly identityConflictRows:number;
+ readonly adjudicationInventoryVerified:boolean;
+ readonly adjudicationCandidates:number;
+ readonly unresolvedStudyLinks:number;
+ readonly acceptedSameStudyLinks:number;
+ readonly reviewedPairRevisions:readonly {
+  readonly id:string;readonly claimA:string;readonly claimB:string;
+  readonly revision:number;readonly disposition:string;readonly status:string;
+  readonly reviewCount:number;
+ }[]|null;
  readonly cohorts:readonly AnalysisCohort[];
  readonly internalSplitCandidateCohorts:number;
  readonly gate:'no-approved-source-data'|'no-selected-records'|'no-eligible-numeric-outcomes'|
+  'identity-review-unavailable'|'identity-adjudication-required'|
   'descriptive-research-only'|'internal-split-plan-only';
  readonly caveats:readonly string[];
 }
@@ -123,7 +135,8 @@ function compareCohorts(a:AnalysisCohort,b:AnalysisCohort):number{
  return a.therapy.localeCompare(b.therapy)||a.key.localeCompare(b.key);
 }
 export function buildStudyFamilyAnalysisProtocol(
- snapshot:ApprovedDatasetSnapshot,selection:ProtocolSelection
+ snapshot:ApprovedDatasetSnapshot,selection:ProtocolSelection,
+ adjudications:readonly StudyAdjudication[]|null=null
 ):StudyFamilyAnalysisProtocol{
  if(!snapshot||snapshot.source!=='nfq-approved-research-dataset-v1'||snapshot.schemaVersion!==1||
   !/^[0-9a-f]{64}$/.test(snapshot.snapshotSha256)||
@@ -135,6 +148,7 @@ export function buildStudyFamilyAnalysisProtocol(
     .includes(selection.endpoint))
   throw new Error('Invalid analysis protocol or evidence snapshot');
  const identityLinks=resolveStudyIdentityLinks(snapshot.records);
+ const adjudication=adjudications===null?null:evaluateStudyAdjudications(snapshot,adjudications);
  const quality=assessApprovedDataset(snapshot);
  const selected=quality.rows.filter(({record:r})=>
   (selection.therapy==='all'||r.therapy===selection.therapy)&&
@@ -208,7 +222,12 @@ export function buildStudyFamilyAnalysisProtocol(
   // floor. This is not a statistical power calculation or scientific approval.
   const conflictGroups=new Set(observations.filter(x=>x.identityConflict).map(x=>x.identityGroupKey));
   const registeredGroups=new Set(observations.filter(x=>x.registryId!==null).map(x=>x.identityGroupKey));
-  const internalSplitPossible=conflictGroups.size===0&&development>=5&&holdout>=2&&families.size>=8;
+  const unresolvedGroups=new Set(observations.filter(x=>
+   adjudication?.unresolvedStudyGroupKeys.has(x.identityGroupKey)??false
+  ).map(x=>x.identityGroupKey));
+  const internalSplitPossible=adjudication!==null&&!adjudication.truncated&&
+   unresolvedGroups.size===0&&conflictGroups.size===0&&
+   development>=5&&holdout>=2&&families.size>=8;
   return Object.freeze({
    key,variantId:r.variantId,therapy:r.therapy,
    scope:r.scope,method:r.method,
@@ -217,18 +236,24 @@ export function buildStudyFamilyAnalysisProtocol(
    model:endpoint.model,comparator:endpoint.comparator,timepoint:endpoint.timepoint,
    observationCount:observations.length,labelledStudyFamilies:families.size,
    registeredStudyGroups:registeredGroups.size,identityConflictGroups:conflictGroups.size,
+   unresolvedIdentityGroups:unresolvedGroups.size,
    developmentFamilies:development,internalHoldoutFamilies:holdout,
    internalSplitPossible,observations:Object.freeze(observations)
   });
  }).sort(compareCohorts);
  const splitCandidate=planned.filter(x=>x.internalSplitPossible).length;
+ const possibleByFamilies=planned.filter(x=>x.developmentFamilies>=5&&
+  x.internalHoldoutFamilies>=2&&x.labelledStudyFamilies>=8).length;
  const eligible=[...planned].reduce((n,c)=>n+c.observationCount,0);
  if(eligible+excluded.length!==selected.length)
   throw new Error('The research protocol has dropped source observations');
  const gate:StudyFamilyAnalysisProtocol['gate']=snapshot.total===0?
   'no-approved-source-data':selected.length===0?'no-selected-records':
   eligible===0?'no-eligible-numeric-outcomes':
-  splitCandidate>0?'internal-split-plan-only':'descriptive-research-only';
+  splitCandidate>0?'internal-split-plan-only':
+  possibleByFamilies>0&&adjudications===null?'identity-review-unavailable':
+  possibleByFamilies>0?'identity-adjudication-required':
+  'descriptive-research-only';
  return Object.freeze({
   protocol:ANALYSIS_PROTOCOL_ID,protocolVersion:1,
   sourceSnapshotSha256:snapshot.snapshotSha256,
@@ -249,11 +274,24 @@ export function buildStudyFamilyAnalysisProtocol(
    x.record.studyIdentity?.populationModel!==undefined&&
    x.record.studyIdentity.populationModel!=='not-reported').length,
   identityConflictRows:selected.filter(x=>identityLinks.get(x.record.claimId)?.identityConflict).length,
+  adjudicationInventoryVerified:adjudication!==null,
+  adjudicationCandidates:adjudication?.candidateCount??0,
+  unresolvedStudyLinks:adjudication?.unresolvedCount??0,
+  acceptedSameStudyLinks:adjudication?.approvedSameStudy??0,
+  reviewedPairRevisions:adjudications===null?null:Object.freeze(
+   [...adjudications].sort((a,b)=>a.claimA.localeCompare(b.claimA)||
+    a.claimB.localeCompare(b.claimB)).map(x=>Object.freeze({
+    id:x.id,claimA:x.claimA,claimB:x.claimB,revision:x.revision,
+    disposition:x.disposition,status:x.status,reviewCount:x.reviewCount
+   }))
+  ),
   cohorts:Object.freeze(planned),
   internalSplitCandidateCohorts:splitCandidate,gate,
   caveats:Object.freeze([
    'Research-planning manifest only: no model fitting, inference or patient-level predictions',
    'Registered study identities conservatively join multiple publications; conflicts cannot certify independent trials',
+   'An unavailable or unresolved independent adjudication inventory blocks internal split certification',
+   'Two source-pair reviews confirm only the reported relationship; external cohort independence still requires validation',
    'Reported counts and dispersion are metadata only; arm-level estimands, independence, repeated measures and model assumptions remain unverified',
    'Internal source-family holdout is not independent external clinical validation',
    'Cohorts with differing assays, scope, comparators, method, unit or timepoint are never pooled',
