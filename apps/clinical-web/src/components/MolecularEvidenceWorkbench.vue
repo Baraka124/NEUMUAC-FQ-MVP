@@ -8,6 +8,9 @@ import {
 } from '../domain/mechanismAnnotationDraft';
 import {researchReviewHandoff,makeVerifiedScientificExport,portableScientificExport} from '../domain/scientificReviewReadiness';
 import {sourceInterpretationOpportunities} from '../domain/sourceInterpretationOpportunities';
+import {assessScientificEvidenceQuality,REVIEW_CHECKLIST,
+ reviewChecklistComplete,reviewChecklistInitial,type ReviewChecklistKey}
+ from '../domain/scientificEvidenceQuality';
 import {filterReviewQueue,reviewQueueItems,molecularProvenancePath,
  type ReviewQueueScope} from '../domain/researchReviewQueue';
 import {createMolecularReviewService,type MolecularReviewRecord} from '../services/molecularReviewService';
@@ -29,6 +32,20 @@ const busy=ref(false);
 const notice=ref('');
 const selectedReview=ref<string|null>(null);
 const reviewNotes=ref<Record<string,string>>({});
+const reviewChecks=ref<Record<ReviewChecklistKey,boolean>>(reviewChecklistInitial());
+const qualityExpanded=ref(false);
+const evidenceFlags=computed(()=>loading.value==='ready'?assessScientificEvidenceQuality({
+ variantId:props.variantId,claims:props.claims,mechanisms:records.value,
+ references:props.references
+}):[]);
+const blockingFlags=computed(()=>evidenceFlags.value.filter(f=>f.severity==='provenance-blocked'));
+const reviewNeededFlags=computed(()=>evidenceFlags.value.filter(f=>f.severity==='review-needed'));
+const checklistReady=computed(()=>reviewChecklistComplete(reviewChecks.value));
+function toggleReview(recordId:string):void{
+ selectedReview.value=selectedReview.value===recordId?null:recordId;
+ reviewChecks.value=reviewChecklistInitial();
+}
+
 const revisionOf=ref<MolecularReviewRecord|null>(null);
 const sourceClaimId=ref('');
 const categories=ref<MechanismCategory[]>([]);
@@ -83,6 +100,7 @@ function close():void{
  request?.abort();request=null;records.value=[];loading.value='closed';
  expanded.value=false;editor.value=false;busy.value=false;
  scope.value='all';selectedReview.value=null;reviewNotes.value={};
+ reviewChecks.value=reviewChecklistInitial();qualityExpanded.value=false;
  clearForm();notice.value='';
 }
 function toggle():void{if(expanded.value)close();else{expanded.value=true;void refresh();}}
@@ -132,13 +150,14 @@ async function submit():Promise<void>{
 }
 async function decide(record:MolecularReviewRecord,decision:'approve'|'reject'):Promise<void>{
  if(!service||busy.value||!record.canReview||record.status!=='pending'||
-  selectedReview.value!==record.id||!props.active)return;
+  selectedReview.value!==record.id||!props.active||!checklistReady.value)return;
  const note=(reviewNotes.value[record.id]??'').trim();
  if(note.length<20)return;
  busy.value=true;notice.value='';
  try{
   const result=await service.review(record,decision,note);
   selectedReview.value=null;reviewNotes.value={};
+  reviewChecks.value=reviewChecklistInitial();
   notice.value=result.status==='approved'?'Two independent molecular attestations recorded.':
    result.status==='rejected'?'Molecular interpretation rejected with preserved audit.':
    'One independent molecular attestation recorded. A different reviewer is required.';
@@ -192,6 +211,37 @@ onUnmounted(()=>request?.abort());
      <span>{{summary.pendingMolecularClaims}} molecular proposals pending</span>
      <span>{{summary.approvedMolecularClaims}} independently approved molecular records</span>
     </div>
+    <section class="nfq-one-variant-quality" data-testid="nfq-scientific-quality">
+     <header class="nfq-one-variant-heading">
+      <div>
+       <strong>Source completeness &amp; review questions</strong>
+       <p>{{blockingFlags.length}} provenance issue{{blockingFlags.length===1?'':'s'}} ·
+        {{reviewNeededFlags.length}} scientific review question{{reviewNeededFlags.length===1?'':'s'}}</p>
+      </div>
+      <button type="button" :aria-expanded="qualityExpanded"
+       @click="qualityExpanded=!qualityExpanded">
+       {{qualityExpanded?'Hide questions':'Inspect source quality'}}
+      </button>
+     </header>
+     <div v-if="qualityExpanded">
+      <p class="nfq-one-variant-note">
+       These are source-register checks only. They do not assess disease severity, molecular
+       causality, treatment response or clinical eligibility.
+      </p>
+      <p v-if="!evidenceFlags.length" class="nfq-one-variant-note">
+       No predefined source-register completeness flags were identified.
+       This is not a scientific quality endorsement.
+      </p>
+      <ul v-else class="nfq-one-variant-flags">
+       <li v-for="(flag,index) in evidenceFlags" :key="flag.code+':'+index">
+        <strong>{{flag.title}}</strong>
+        <span>{{flag.severity.replaceAll('-',' ')}}</span>
+        <p>{{flag.explanation}}</p>
+        <p>Records: {{flag.recordIds.map(x=>x.slice(0,8)).join(' · ')}}</p>
+       </li>
+      </ul>
+     </div>
+    </section>
     <div class="nfq-one-variant-operations">
      <button type="button" :disabled="busy" @click="refresh">Refresh register</button>
      <button type="button" :disabled="busy||!approvedSources.length"
@@ -319,15 +369,25 @@ onUnmounted(()=>request?.abort());
       type="button" :disabled="busy" @click="prepareRevision(item)">Prepare corrected revision</button>
      <div v-if="item.canReview&&item.status==='pending'" class="nfq-one-variant-decision">
       <button type="button" :disabled="busy" :aria-expanded="selectedReview===item.id"
-       @click="selectedReview=selectedReview===item.id?null:item.id">
+       @click="toggleReview(item.id)">
        {{selectedReview===item.id?'Close independent review':'Review molecular interpretation'}}
       </button>
       <div v-if="selectedReview===item.id">
+       <div class="nfq-one-variant-review-checks" data-testid="nfq-independent-review-checklist">
+        <strong>Reviewer preparation · not an approval</strong>
+        <p class="nfq-one-variant-note">Confirm each source-specific check before recording a decision.
+         The server independently verifies reviewer identity and permissions.</p>
+        <label v-for="check in REVIEW_CHECKLIST" :key="check.id" class="nfq-one-variant-check">
+         <input type="checkbox" :checked="reviewChecks[check.id]"
+          @change="reviewChecks={...reviewChecks,[check.id]:!reviewChecks[check.id]}" />
+         {{check.label}}
+        </label>
+       </div>
        <label>Independent scientific review rationale (minimum 20 characters)
         <textarea :value="reviewNotes[item.id]??''" rows="2" maxlength="900"
          @input="reviewNotes={...reviewNotes,[item.id]:($event.target as HTMLTextAreaElement).value}" />
        </label>
-       <button type="button" :disabled="busy||(reviewNotes[item.id]??'').trim().length<20"
+       <button type="button" :disabled="busy||!checklistReady||(reviewNotes[item.id]??'').trim().length<20"
         @click="decide(item,'approve')">Approve independently</button>
        <button type="button" :disabled="busy||(reviewNotes[item.id]??'').trim().length<20"
         @click="decide(item,'reject')">Reject with rationale</button>
@@ -370,6 +430,16 @@ onUnmounted(()=>request?.abort());
 .nfq-one-variant-opportunity>div{min-width:0}
 .nfq-one-variant-opportunity strong,.nfq-one-variant-opportunity a{font-size:11px}
 .nfq-one-variant-opportunity a{color:var(--link,#2869a9)}
+.nfq-one-variant-quality{padding:9px 0;margin:10px 0;border-top:1px solid var(--border,#dee7ef)}
+.nfq-one-variant-quality .nfq-one-variant-heading:first-child{padding:3px 0}
+.nfq-one-variant-flags{padding:0;margin:10px 0;list-style:none;display:grid;gap:0}
+.nfq-one-variant-flags li{padding:9px 0;border-top:1px solid var(--border,#dee7ef)}
+.nfq-one-variant-flags strong,.nfq-one-variant-review-checks strong{font-size:11px}
+.nfq-one-variant-flags span{margin-left:9px;font-size:10px;color:var(--text-muted,#6b8298)}
+.nfq-one-variant-flags p{font-size:11px;line-height:1.5;margin:4px 0;color:var(--text-muted,#6b8298)}
+.nfq-one-variant-review-checks{display:grid;gap:7px;margin:8px 0;width:100%}
+.nfq-one-variant-check{display:flex!important;align-items:flex-start;gap:8px;font-size:11px;line-height:1.45}
+.nfq-one-variant-check input{flex:none;margin-top:2px}
 .nfq-one-variant-record{padding:13px 0;border-top:1px solid var(--border,#dee7ef)}
 .nfq-one-variant-record>p{line-height:1.55}
 .nfq-one-variant-record details{margin:10px 0}
