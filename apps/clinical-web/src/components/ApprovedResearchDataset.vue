@@ -9,6 +9,7 @@ import {
  approvedDatasetCsv,approvedDatasetJson,type ApprovedDatasetSnapshot
 } from '../services/approvedResearchDataset';
 import {THERAPIES} from '../domain/therapyRegistry';
+import {statisticsSummary} from '../domain/reportedStudyStatistics';
 import StudyFamilyAnalysisProtocol from './StudyFamilyAnalysisProtocol.vue';
 const config=readConfigFromEnvironment();
 const service=config&&authSessionProvider?createApprovedDatasetService(config,authSessionProvider):null;
@@ -100,6 +101,8 @@ const therapyLabel=(value:string)=>THERAPIES.find(x=>x.id===value)?.label??value
      <span><strong>{{quality.variants}}</strong> variants</span>
      <span><strong>{{quality.therapies}}</strong> therapies</span>
      <span><strong>{{quality.numeric}}</strong> numeric outcomes</span>
+     <span><strong>{{quality.reportedSampleN}}</strong> rows with source n</span>
+     <span><strong>{{quality.reportedDispersion}}</strong> rows with uncertainty</span>
      <span><strong>{{quality.contextBounded}}</strong> context-bounded records</span>
     </div>
     <div class="nfq-dataset-manifest">
@@ -160,7 +163,14 @@ const therapyLabel=(value:string)=>THERAPIES.find(x=>x.id===value)?.label??value
         {{item.record.endpoint.timepoint}}
        </p>
        <p v-else class="nfq-dataset-muted">No structured endpoint recorded in the historical claim revision.</p>
-       <p v-if="item.flags.length" class="nfq-dataset-flag">{{item.flags.join(' · ')}}</p>
+       <p class="nfq-dataset-value" data-testid="nfq-dataset-statistics">
+         {{statisticsSummary(item.record.studyStats)}}
+        </p>
+        <p v-if="item.record.studyStats?.sourceLocator&&item.record.studyStats.sourceLocator!=='not-reported'"
+         class="nfq-dataset-source">
+         Sampling source: {{item.record.studyStats.sourceLocator}}
+        </p>
+        <p v-if="item.flags.length" class="nfq-dataset-flag">{{item.flags.join(' · ')}}</p>
        <div class="nfq-dataset-links">
         <a :href="item.record.referenceUrl" target="_blank" rel="noopener noreferrer">Inspect original source</a>
         <RouterLink :to="'/variants/'+item.record.variantId">Inspect variant</RouterLink>
