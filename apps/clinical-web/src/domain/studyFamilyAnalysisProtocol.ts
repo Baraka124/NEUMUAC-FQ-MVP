@@ -218,7 +218,7 @@ export function buildStudyFamilyAnalysisProtocol(
   const conflictGroups=new Set(observations.filter(x=>x.identityConflict).map(x=>x.identityGroupKey));
   const registeredGroups=new Set(observations.filter(x=>x.registryId!==null).map(x=>x.identityGroupKey));
   const unresolvedGroups=new Set(observations.filter(x=>
-   adjudication?.unresolvedStudyGroupKeys.has(x.identityGroupKey)??true
+   adjudication?.unresolvedStudyGroupKeys.has(x.identityGroupKey)??false
   ).map(x=>x.identityGroupKey));
   const internalSplitPossible=adjudication!==null&&!adjudication.truncated&&
    unresolvedGroups.size===0&&conflictGroups.size===0&&
