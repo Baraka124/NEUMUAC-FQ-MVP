@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed,ref,watch} from 'vue';
+import {computed,nextTick,ref,watch,onUnmounted} from 'vue';
 import type {CuratedSourceClaim} from '../services/curatedSourceClaims';
 import type {LiveEvidenceReference} from '../services/liveEvidence';
 import {MECHANISM_CATEGORIES,prepareMechanismAnnotationDraft,portableMechanismDraft,
@@ -91,9 +91,11 @@ function toggleExpanded():void{
  if(expanded.value)void loadMolecularRecords();
  else {molecularAbort?.abort();molecularRecords.value=[];molecularState.value='closed';}
 }
-function startRevision(item:MolecularReviewRecord):void{
+async function startRevision(item:MolecularReviewRecord):Promise<void>{
  if(!item.submittedByMe||!['approved','rejected'].includes(item.status))return;
- draftVariant.value=item.variantId;draftClaim.value=item.sourceClaimId;
+ draftVariant.value=item.variantId;
+ await nextTick();
+ draftClaim.value=item.sourceClaimId;
  categories.value=[...item.categories];interpretation.value=item.interpretation;
  statement.value=item.statement;locator.value=item.exactLocator;
  experimentalContext.value=item.experimentalContext;limitations.value=item.limitations;
@@ -111,6 +113,7 @@ async function persistDraft(draft:MechanismAnnotationDraft):Promise<void>{
   }else await service.submit(draft);
   reviseOf.value=null;
   notice.value='Submitted to the independent molecular review queue. No mechanism is approved until two distinct scientific reviewers attest.';
+  savedDrafts.value=savedDrafts.value.filter(item=>item!==draft);
   await loadMolecularRecords();
  }catch{
   notice.value='Server confirmation unavailable. No persisted mechanism approval is assumed; refresh the review queue before retrying.';
@@ -134,6 +137,7 @@ async function decide(item:MolecularReviewRecord,decision:'approve'|'reject'):Pr
 }
 watch([()=>props.firstId,()=>props.secondId],reset,{immediate:true});
 watch(draftVariant,()=>{draftClaim.value='';categories.value=[];notice.value='';});
+onUnmounted(()=>molecularAbort?.abort());
 function toggleCategory(value:MechanismCategory):void{
  categories.value=categories.value.includes(value)?
  categories.value.filter(c=>c!==value):categories.value.length<5?
