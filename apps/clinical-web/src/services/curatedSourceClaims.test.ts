@@ -81,6 +81,25 @@ describe('14H166 approved-only evidence curation contracts',()=>{
   expect(()=>decodeCuratedClaims(envelope([{...valid,scope:'genotype-specific',genotypePair:null}]),variant)).toThrow();
   expect(()=>reviewedSourceObservations(decodeCuratedClaims(envelope([valid]),variant),variant,[72])).toThrow();
  });
+ it('requires a valid source-reported trial registration with population locator before submission',()=>{
+  const candidate={...payload.studyIdentity,
+   registryType:'nct' as const,registryId:'NCT12345678',
+   publicationRole:'secondary-analysis' as const,
+   populationModel:'clinical-participants' as const,
+   diseaseGroup:'cystic-fibrosis' as const,
+   ageGroup:'mixed' as const,sourceLocator:'Methods · Study cohort'
+  };
+  expect(validSourceClaimPayload(variant,{...payload,studyIdentity:candidate},[71])).toBe(true);
+  expect(validSourceClaimPayload(variant,{...payload,studyIdentity:{
+   ...candidate,registryId:'NCT123'
+  }},[71])).toBe(false);
+  expect(validSourceClaimPayload(variant,{...payload,studyIdentity:{
+   ...candidate,sourceLocator:'not-reported'
+  }},[71])).toBe(false);
+  expect(validSourceClaimPayload(variant,{...payload,studyIdentity:{
+   ...candidate,populationDescription:'Too short'
+  }},[71])).toBe(false);
+ });
  it('recognizes exact variant reference, source locator and structured scope before allowing submission',()=>{
   expect(validSourceClaimPayload(variant,payload,[71])).toBe(true);
   expect(validSourceClaimPayload(variant,{...payload,referenceId:72},[71])).toBe(false);
