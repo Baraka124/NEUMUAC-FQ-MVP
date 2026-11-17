@@ -158,7 +158,8 @@ onUnmounted(()=>request?.abort());
      :clin-var-loading="clinVarLoading??false" :clin-var-error="clinVarError??''"
      @check-clinvar="emit('checkClinvar')" />
     <CrossVariantEvidence :first="report" :first-name="variantName"
-      :first-class="recordedIdentity.functionalClass" :active="open&&state==='ready'&&verified" />
+       :first-class="recordedIdentity.functionalClass" :active="open&&state==='ready'&&verified"
+      :first-claims="curatedClaims" :first-references="linkedReferences" />
     <div class="nfq-research-engines-table" role="list" data-testid="nfq-research-engines-therapies">
      <article v-for="item in report.assessedTherapies" :key="item.therapy" role="listitem"
       class="nfq-research-engines-line" :data-therapy="item.therapy">
