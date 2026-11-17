@@ -236,7 +236,8 @@ export function assessApprovedDataset(snapshot:ApprovedDatasetSnapshot):Approved
  const groupCounts=new Map<string,number>();
  for(const row of snapshot.records){
   const family=[row.variantId,row.therapy,identities.get(row.claimId)?.key??row.studyFamilyId].join('|');
-  families.add(family);byFamily.set(family,(byFamily.get(family)||0)+1);
+  families.add(identities.get(row.claimId)?.key??'family:'+row.studyFamilyId);
+  byFamily.set(family,(byFamily.get(family)||0)+1);
  }
  const rows=snapshot.records.map(record=>{
   const endpoint=record.endpoint;
@@ -266,6 +267,12 @@ export function assessApprovedDataset(snapshot:ApprovedDatasetSnapshot):Approved
   if(count>1)flags.push('Multiple source rows from one study family: not independent replication');
   flags.push(...studyStatisticsFlags(record.studyStats,record.endpoint));
   flags.push(...populationFlags(record.studyIdentity));
+  if(record.studyIdentity?.populationModel==='clinical-participants'&&
+   record.endpoint?.model!==undefined&&record.endpoint.model!=='clinical'&&
+   record.endpoint.model!=='not-reported')
+   flags.push('Clinical participant context and experimental assay model differ; verify source');
+  if(record.studyIdentity?.populationModel==='cell-line'&&record.endpoint?.model==='clinical')
+   flags.push('Cell-line population and clinical endpoint model differ; verify source');
   if(identity?.linkedPublications&&identity.linkedPublications>1)
    flags.push('Linked publications or study-family reports are not independent replication');
   if(identity?.identityConflict)
