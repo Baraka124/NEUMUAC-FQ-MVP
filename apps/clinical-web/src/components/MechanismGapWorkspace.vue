@@ -9,6 +9,8 @@ import {THERAPIES,type CoreModulatorId} from '../domain/therapyRegistry';
 import {createMolecularReviewService,type MolecularReviewRecord} from '../services/molecularReviewService';
 import {authSessionProvider} from '../services/authSession';
 import {readConfigFromEnvironment} from '../services/liveVariants';
+import {reviewQueueItems,filterReviewQueue,molecularProvenancePath,
+ type ReviewQueueScope} from '../domain/researchReviewQueue';
 import {researchReviewHandoff,makeVerifiedScientificExport,
  portableScientificExport} from '../domain/scientificReviewReadiness';
 
@@ -35,6 +37,24 @@ const molecularRecords=ref<readonly MolecularReviewRecord[]>([]);
 const molecularState=ref<'closed'|'loading'|'ready'|'unavailable'>('closed');
 const molecularBusy=ref(false);
 const reviewSelection=ref<string|null>(null);
+const molecularFilter=ref<ReviewQueueScope>('all');
+const molecularQueue=computed(()=>[
+ ...reviewQueueItems({variantId:props.firstId,claims:props.firstClaims,
+  mechanisms:molecularRecords.value.filter(m=>m.variantId===props.firstId)}),
+ ...reviewQueueItems({variantId:props.secondId,claims:props.secondClaims,
+  mechanisms:molecularRecords.value.filter(m=>m.variantId===props.secondId)})
+].filter(x=>x.kind==='molecular'));
+const molecularShown=computed(()=>new Set(
+ filterReviewQueue(molecularQueue.value,molecularFilter.value).map(x=>x.id)));
+const visibleMolecular=computed(()=>molecularState.value==='ready'?
+ molecularRecords.value.filter(m=>molecularShown.value.has(m.id)):[]);
+function provenance(item:MolecularReviewRecord){
+ const first=item.variantId===props.firstId;
+ return molecularProvenancePath({
+  mechanism:item,claims:first?props.firstClaims:props.secondClaims,
+  references:first?props.firstReferences:props.secondReferences
+ });
+}
 const reviewNotes=ref<Record<string,string>>({});
 const reviseOf=ref<MolecularReviewRecord|null>(null);
 const reviewed=(variantId:string)=>(
@@ -119,7 +139,7 @@ async function loadMolecularRecords():Promise<void>{
 function reset():void{
  molecularAbort?.abort();molecularAbort=null;
  molecularRecords.value=[];molecularState.value='closed';molecularBusy.value=false;
- reviewSelection.value=null;reviewNotes.value={};reviseOf.value=null;
+ reviewSelection.value=null;molecularFilter.value='all';reviewNotes.value={};reviseOf.value=null;
  clearForm();savedDrafts.value=[];expanded.value=false;editor.value=false;
 }
 function toggleExpanded():void{
@@ -248,7 +268,22 @@ function removeDraft(index:number):void{
        Export verified research record</button>
      </div>
     </div>
-    <article v-for="item in molecularState==='ready'?molecularRecords:[]" :key="item.id"
+    <div v-if="molecularState==='ready'&&molecularRecords.length" class="nfq-molecular-queue-controls"
+     data-testid="nfq-molecular-queue-filters">
+     <label>Independent molecular review queue
+      <select v-model="molecularFilter" aria-label="Filter molecular review queue">
+       <option value="all">All revisions</option>
+       <option value="actionable">Ready for my independent review</option>
+       <option value="pending">Awaiting reviewers</option>
+       <option value="approved">Approved molecular interpretations</option>
+       <option value="history">Rejected, withdrawn or superseded</option>
+      </select>
+     </label>
+     <span>{{visibleMolecular.length}} matching molecular record{{visibleMolecular.length===1?'':'s'}}</span>
+    </div>
+    <p v-if="molecularState==='ready'&&molecularRecords.length&&!visibleMolecular.length"
+     class="nfq-mechanism-note" role="status">No molecular records match this filter.</p>
+    <article v-for="item in visibleMolecular" :key="item.id"
      class="nfq-molecular-record">
      <div class="nfq-mechanism-head">
       <strong>Variant #{{item.variantId}} · {{item.categories.join(' / ')}}</strong>
@@ -256,7 +291,25 @@ function removeDraft(index:number):void{
      </div>
      <p>{{item.statement}}</p>
      <p class="nfq-mechanism-note">{{item.interpretation}} · {{item.experimentalContext}}</p>
-     <p class="nfq-mechanism-note">Source claim {{item.sourceClaimId}} · {{item.exactLocator}}</p>
+     <div class="nfq-provenance-path" data-testid="nfq-molecular-provenance">
+      <strong>Source provenance</strong>
+      <p>Variant #{{item.variantId}} · molecular revision {{item.revision}} ·
+       source claim {{item.sourceClaimId}}</p>
+      <p>Original source: {{provenance(item).originalTitle||'Unlinked in verified source inventory'}}
+       <template v-if="provenance(item).referenceId">
+        · reference #{{provenance(item).referenceId}}</template></p>
+      <p v-if="provenance(item).studyFamilyId">
+       Study {{provenance(item).studyFamilyId}} · source {{provenance(item).sourceLocator}}</p>
+      <a v-if="provenance(item).originalUrl" :href="provenance(item).originalUrl!"
+       target="_blank" rel="noopener noreferrer">Read original linked publication</a>
+      <p>Underlying claim: {{provenance(item).sourceStatus}} · molecular review: {{item.status}}
+       · {{provenance(item).mechanismApprovedAndLinked?'Both approval boundaries verified':
+       'Not independently approved as a complete source-to-mechanism chain'}}</p>
+      <ul v-if="provenance(item).limitations.length">
+       <li v-for="limitation in provenance(item).limitations" :key="limitation">{{limitation}}</li>
+      </ul>
+      <p>Exact interpretation locator: {{item.exactLocator}}</p>
+     </div>
      <p class="nfq-mechanism-note">Limitations: {{item.limitations}}</p>
      <details v-if="item.reviewAudit.length">
       <summary>Independent scientific rationales ({{item.reviewAudit.length}})</summary>
@@ -270,6 +323,9 @@ function removeDraft(index:number):void{
      </details>
      <button v-if="item.submittedByMe&&['approved','rejected'].includes(item.status)"
       type="button" @click="startRevision(item)">Propose corrected revision</button>
+     <p v-if="item.status==='pending'&&!item.canReview" class="nfq-mechanism-note">
+      {{item.submittedByMe?'Submitted by you · an independent reviewer must attest':
+       'No independent review action is available to this signed-in account'}}</p>
      <div v-if="item.canReview">
       <button type="button" :aria-expanded="reviewSelection===item.id"
        @click="reviewSelection=reviewSelection===item.id?null:item.id">
@@ -324,7 +380,7 @@ function removeDraft(index:number):void{
    </div>
    <header class="nfq-mechanism-head nfq-mechanism-editor-head">
     <div><strong>Record an explicit source observation</strong>
-     <p>Research-only draft. Independent mechanism review is not yet a supported persistence workflow.</p></div>
+     <p>Research-only local draft. Persistent submission requires an approved source claim; two further independent molecular reviews are required.</p></div>
     <button type="button" :aria-expanded="editor" @click="editor=!editor">
      {{editor?'Close draft':'Prepare mechanism draft'}}
     </button>
@@ -435,6 +491,15 @@ function removeDraft(index:number):void{
 .nfq-mechanism-form .nfq-mechanism-check{display:flex;align-items:center;gap:7px;padding:3px 0}
 .nfq-mechanism-form button{justify-self:start}
 .nfq-molecular-persist{margin:15px 0;padding:12px 0;border-top:1px solid var(--border,#dde7ef)}
+.nfq-molecular-queue-controls{display:flex;gap:9px 16px;align-items:end;flex-wrap:wrap;margin:10px 0}
+.nfq-molecular-queue-controls label{display:grid;gap:4px;font-size:11px}
+.nfq-molecular-queue-controls select{font:inherit;font-size:11px;max-width:280px;min-width:0;padding:6px;border:1px solid var(--border,#cbd9e6);background:transparent;color:inherit}
+.nfq-molecular-queue-controls span{font-size:11px;color:var(--text-muted,#6b839b)}
+.nfq-provenance-path{padding:8px 0;margin:9px 0;border-top:1px solid var(--border,#dde7ef)}
+.nfq-provenance-path strong,.nfq-provenance-path p,.nfq-provenance-path a,.nfq-provenance-path li{font-size:11px;line-height:1.5}
+.nfq-provenance-path p{margin:5px 0;color:var(--text-muted,#6b839b)}
+.nfq-provenance-path a{color:var(--link,#2869a9)}
+.nfq-provenance-path ul{padding-left:18px}
 .nfq-molecular-handoffs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 22px;padding:10px 0;margin:7px 0}
 .nfq-molecular-handoffs>div{display:grid;justify-items:start;gap:4px}
 .nfq-molecular-handoffs span{color:var(--text-muted,#6b839b);font-size:11px}

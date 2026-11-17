@@ -20,6 +20,7 @@ import {
 } from '../domain/reportedStudyIdentity';
 import {researcherRole} from '../services/researchRole';
 import {sourceSubmissionReadiness,researchReviewHandoff} from '../domain/scientificReviewReadiness';
+import {reviewQueueItems,filterReviewQueue,type ReviewQueueScope} from '../domain/researchReviewQueue';
 import {authSessionProvider} from '../services/authSession';
 import {readConfigFromEnvironment} from '../services/liveVariants';
 import {createCuratedSourceClaimService,validSourceClaimPayload,
@@ -171,7 +172,12 @@ const sourceHandoff=computed(()=>researchReviewHandoff({
 }));
 const canSubmit=computed(()=>!busy.value&&canContribute.value&&Boolean(service)&&
  formReadiness.value.canSubmit);
-const writableClaims=computed(()=>props.claims.filter(x=>x.status!=='superseded'));
+const reviewFilter=ref<ReviewQueueScope>('all');
+const queueRows=computed(()=>reviewQueueItems({
+ variantId:props.variantId,claims:props.claims,mechanisms:[]
+}));
+const shownIds=computed(()=>new Set(filterReviewQueue(queueRows.value,reviewFilter.value).map(x=>x.id)));
+const writableClaims=computed(()=>props.claims.filter(x=>shownIds.value.has(x.id)));
 function resetForm():void{
  revisionOf.value=null;formTherapy.value='ETI';formReference.value='';
  formScope.value='single-variant';genotypeOther.value='';
@@ -257,7 +263,7 @@ async function withdraw(item:CuratedSourceClaim):Promise<void>{
  finally{busy.value=false;}
 }
 watch(()=>props.variantId,()=>{
- resetForm();formOpen.value=false;confirmedReview.value=null;
+ resetForm();formOpen.value=false;reviewFilter.value='all';confirmedReview.value=null;
  reviewNotes.value={};notice.value='';busy.value=false;
 });
 function resetEndpointSelection():void{
@@ -531,8 +537,23 @@ const shortId=(value:string)=>value.slice(0,8);
    </footer>
   </form>
 
+  <div v-if="claims.length" class="nfq-source-queue-controls" data-testid="nfq-source-queue-filters">
+   <label>Review queue
+    <select v-model="reviewFilter" aria-label="Filter source review queue">
+     <option value="all">All recorded revisions</option>
+     <option value="actionable">Ready for my independent review</option>
+     <option value="pending">Awaiting reviewers</option>
+     <option value="approved">Approved sources</option>
+     <option value="history">Rejected, withdrawn or superseded</option>
+    </select>
+   </label>
+   <span>{{writableClaims.length}} matching records · reviewer access comes from the server</span>
+  </div>
   <p v-if="!claims.length" class="nfq-review-empty">
    No source claims have been submitted. Linked references are not yet independently reviewed treatment-response evidence.
+  </p>
+  <p v-else-if="!writableClaims.length" class="nfq-review-empty" role="status">
+   No source records match this review filter. This does not mean that the scientific evidence is absent.
   </p>
   <div v-else class="nfq-reviewed-list" data-testid="nfq-reviewed-claim-list">
    <article v-for="entry in writableClaims" :key="entry.id" class="nfq-reviewed-record"
@@ -546,6 +567,17 @@ const shortId=(value:string)=>value.slice(0,8);
       entry.status==='pending'?'Pending · '+entry.reviewCount+'/2':entry.status}}</span>
     </div>
     <p class="nfq-reviewed-attribution">Study family {{entry.studyFamilyId}} · {{entry.locator}} · revision {{entry.revision}}</p>
+    <p v-if="entry.status==='pending'" class="nfq-reviewed-attribution" data-testid="nfq-source-next-review">
+     {{entry.canReview?'Independent review permitted for this signed-in reviewer':
+     entry.submittedByMe?'Submitted by you · another independent reviewer is required':
+     entry.reviewCount===1?'Second attestation pending or already provided by your account':
+     'Not available to this account for independent review'}}
+    </p>
+    <p v-if="references.find(source=>source.id===entry.referenceId)" class="nfq-review-reference">
+     <a :href="references.find(source=>source.id===entry.referenceId)!.url"
+      target="_blank" rel="noopener noreferrer">
+      Original publication · {{references.find(source=>source.id===entry.referenceId)!.title}}</a>
+    </p>
     <p class="nfq-reviewed-attribution" data-testid="nfq-claim-endpoint">
      Endpoint: {{entry.endpoint?ENDPOINTS.find(x=>x.code===entry.endpoint!.code)?.label:'Legacy claim · not recorded'}}
      · {{entry.endpoint?endpointDisplayValue(entry.endpoint):'No measurement attached'}}
@@ -602,6 +634,10 @@ const shortId=(value:string)=>value.slice(0,8);
 .nfq-source-readiness ul{margin:6px 0;padding-left:18px}
 .nfq-source-readiness li{line-height:1.5;margin:3px 0}
 .nfq-source-readiness p{font-size:11px;line-height:1.5}
+.nfq-source-queue-controls{display:flex;align-items:end;flex-wrap:wrap;gap:8px 16px;margin:10px 0}
+.nfq-source-queue-controls label{display:grid;gap:4px;max-width:270px}
+.nfq-source-queue-controls select{min-width:0;max-width:270px}
+.nfq-source-queue-controls span{font-size:11px;color:var(--text-muted,#6b839b)}
 .nfq-review-handoff{display:flex;flex-wrap:wrap;gap:5px 16px;font-size:11px;color:var(--text-muted,#6b839b);margin:7px 0}
 .nfq-reviewed-intake{padding:15px 0 2px;margin-top:12px;border-top:1px solid var(--border,#e1e8f0);min-width:0;color:var(--text,#223c59)}
 .nfq-reviewed-intake-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
