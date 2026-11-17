@@ -17,6 +17,7 @@ const sourceBase={
   unit:'mmol/L',value:-22.4,model:'clinical',
   comparator:'baseline',timepoint:'Day 28'},
  studyStats:null,
+ studyIdentity:null,
  reviewCount:2,reviewedAt:'2026-11-16T08:00:00Z'
 };
 function source(n:number,family:string,extra:Record<string,unknown>={}){
