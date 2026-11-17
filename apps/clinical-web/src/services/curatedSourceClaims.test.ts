@@ -20,6 +20,9 @@ const valid={
  studyStats:{analysisUnit:'not-reported',design:'not-reported',interventionN:null,comparatorN:null,
  uncertaintyType:'not-reported',uncertaintyValue:null,ciLower:null,ciUpper:null,
  uncertaintyTarget:'not-reported',sourceLocator:'not-reported'},
+ studyIdentity:{registryType:'not-reported',registryId:null,
+ publicationRole:'not-reported',populationModel:'not-reported',diseaseGroup:'not-reported',
+ ageGroup:'not-reported',cohortLabel:null,populationDescription:null,sourceLocator:'not-reported'},
  status:'approved',submittedAt:'2026-09-01T00:00:00Z',submittedByMe:false,
  reviewCount:2,canReview:false,reviewedAt:'2026-09-02T00:00:00Z',
  reviewSeals:[sealA,sealB],
@@ -37,7 +40,10 @@ const payload:CuratedClaimPayload={
   model:'not-reported',comparator:'not-reported',timepoint:'not-reported'},
  studyStats:{analysisUnit:'not-reported',design:'not-reported',interventionN:null,comparatorN:null,
  uncertaintyType:'not-reported',uncertaintyValue:null,ciLower:null,ciUpper:null,
- uncertaintyTarget:'not-reported',sourceLocator:'not-reported'}
+ uncertaintyTarget:'not-reported',sourceLocator:'not-reported'},
+ studyIdentity:{registryType:'not-reported',registryId:null,
+ publicationRole:'not-reported',populationModel:'not-reported',diseaseGroup:'not-reported',
+ ageGroup:'not-reported',cohortLabel:null,populationDescription:null,sourceLocator:'not-reported'}
 };
 const config:ReadOnlyConfig={endpoint:'https://cftr-contract.invalid',
  publishableKey:'sb_publishable_test_contract',enabled:true,accessMode:'anonymous',readTable:'variants'};
