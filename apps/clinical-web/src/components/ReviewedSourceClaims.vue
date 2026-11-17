@@ -263,7 +263,7 @@ const shortId=(value:string)=>value.slice(0,8);
 </script>
 
 <template>
- <section class="nfq-reviewed-intake" data-testid="nfq-reviewed-claims">
+ <section id="nfq-reviewed-source-claims" class="nfq-reviewed-intake" data-testid="nfq-reviewed-claims">
   <header class="nfq-reviewed-intake-head">
    <div>
     <h3>Independently reviewed source claims</h3>
