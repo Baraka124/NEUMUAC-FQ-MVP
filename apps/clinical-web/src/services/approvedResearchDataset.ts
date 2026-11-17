@@ -1,5 +1,9 @@
 import {endpointComparisonKey,validResearchEndpoint,type ResearchEndpoint} from '../domain/researchEndpointNormalization';
 import type {CoreModulatorId} from '../domain/therapyRegistry';
+import {
+ validStudyStatistics,studyStatisticsFlags,studyStatisticsReadiness,
+ type ReportedStudyStatistics
+} from '../domain/reportedStudyStatistics';
 import type {
  ResearchClaimScope,ResearchObservationMethod,ResearchObservationFinding
 } from '../domain/sourceConflictReconciliation';
@@ -25,6 +29,7 @@ export interface ApprovedDatasetRow {
  readonly finding:ResearchObservationFinding;
  readonly locator:string;
  readonly endpoint:ResearchEndpoint|null;
+ readonly studyStats:ReportedStudyStatistics|null;
  readonly reviewCount:2;
  readonly reviewedAt:string;
 }
@@ -44,6 +49,7 @@ export interface DatasetQualityRow{
  readonly contextKey:string|null;
  readonly studyFamilyDuplicates:number;
  readonly flags:readonly string[];
+ readonly statisticsReadiness:ReturnType<typeof studyStatisticsReadiness>;
 }
 export interface ApprovedDatasetQuality{
  readonly total:number;
@@ -51,6 +57,8 @@ export interface ApprovedDatasetQuality{
  readonly variants:number;
  readonly therapies:number;
  readonly numeric:number;
+ readonly reportedSampleN:number;
+ readonly reportedDispersion:number;
  readonly contextBounded:number;
  readonly qualitativeOnly:number;
  readonly unextracted:number;
@@ -112,6 +120,19 @@ function decodeEndpoint(raw:unknown):ResearchEndpoint|null{
  if(!validResearchEndpoint(endpoint))fail('Source endpoint failed biological and unit validation');
  return Object.freeze({...endpoint});
 }
+function decodeStudyStats(
+ raw:unknown,endpoint:ResearchEndpoint|null
+):ReportedStudyStatistics|null{
+ if(raw===null)return null; // Historical approved claim predates 14H171.
+ const value=object(raw);
+ const keys=['analysisUnit','design','interventionN','comparatorN','uncertaintyType',
+  'uncertaintyValue','ciLower','ciUpper','uncertaintyTarget','sourceLocator'];
+ if(Object.keys(value).length!==keys.length||keys.some(k=>!Object.prototype.hasOwnProperty.call(value,k)))
+  fail('Unrecognized source statistics fields');
+ const stats=value as unknown as ReportedStudyStatistics;
+ if(!validStudyStatistics(stats,endpoint))fail('Source statistics failed sampling and dispersion checks');
+ return Object.freeze({...stats});
+}
 function decodeRow(raw:unknown):ApprovedDatasetRow{
  const data=object(raw);
  const claimId=str(data.claimId,'claim identifier',36);
@@ -151,6 +172,7 @@ function decodeRow(raw:unknown):ApprovedDatasetRow{
   finding:data.finding as ResearchObservationFinding,
   locator:str(data.locator,'source locator',240),
   endpoint:decodeEndpoint(data.endpoint),
+  studyStats:decodeStudyStats(data.studyStats,decodeEndpoint(data.endpoint)),
   reviewCount:2,reviewedAt:timestamp(data.reviewedAt,'independent-review time')
  });
 }
@@ -217,9 +239,11 @@ export function assessApprovedDataset(snapshot:ApprovedDatasetSnapshot):Approved
   const studyFamily=record.variantId+'|'+record.therapy+'|'+record.studyFamilyId;
   const count=byFamily.get(studyFamily)??0;
   if(count>1)flags.push('Multiple source rows from one study family: not independent replication');
+  flags.push(...studyStatisticsFlags(record.studyStats,record.endpoint));
   return Object.freeze({
    record,readiness,contextKey:key,studyFamilyDuplicates:count,
-   flags:Object.freeze(flags)
+   flags:Object.freeze(flags),
+   statisticsReadiness:studyStatisticsReadiness(record.studyStats)
   });
  });
  const datasetGroups=[...groups.entries()].map(([key,studies])=>Object.freeze({
@@ -231,6 +255,10 @@ export function assessApprovedDataset(snapshot:ApprovedDatasetSnapshot):Approved
   therapies:new Set(snapshot.records.map(x=>x.therapy)).size,
   numeric:rows.filter(x=>x.record.endpoint?.value!==null&&
    x.record.endpoint?.value!==undefined).length,
+  reportedSampleN:rows.filter(x=>x.record.studyStats?.interventionN!==null&&
+   x.record.studyStats?.interventionN!==undefined).length,
+  reportedDispersion:rows.filter(x=>x.record.studyStats?.uncertaintyType!==undefined&&
+   x.record.studyStats.uncertaintyType!=='not-reported').length,
   contextBounded:rows.filter(x=>x.readiness==='context-bounded-numeric').length,
   qualitativeOnly:rows.filter(x=>x.readiness==='qualitative-only').length,
   unextracted:rows.filter(x=>x.readiness==='unextracted').length,
@@ -257,7 +285,10 @@ export function approvedDatasetCsv(snapshot:ApprovedDatasetSnapshot):string{
   'reference_id','reference_title','reference_url','pmid','doi','study_family_id',
   'scope','genotype_a','genotype_b','method','finding','source_locator','review_count',
   'reviewed_at','endpoint_code','endpoint_statistic','endpoint_value','endpoint_unit',
-  'endpoint_model','endpoint_comparator','endpoint_timepoint','readiness','context_key','quality_flags'
+  'endpoint_model','endpoint_comparator','endpoint_timepoint',
+  'analysis_unit','study_arm_design','intervention_n','comparator_n','uncertainty_type',
+  'uncertainty_value','ci95_lower','ci95_upper','uncertainty_target','statistics_locator',
+  'readiness','context_key','quality_flags'
  ];
  const rows=assessApprovedDataset(snapshot).rows;
  return [heading.map(csvCell).join(','),...rows.map(({record:r,readiness,contextKey,flags})=>[
@@ -266,7 +297,13 @@ export function approvedDatasetCsv(snapshot:ApprovedDatasetSnapshot):string{
   r.scope,r.genotypePair?.[0]??null,r.genotypePair?.[1]??null,r.method,r.finding,r.locator,2,
   r.reviewedAt,r.endpoint?.code??null,r.endpoint?.statistic??null,r.endpoint?.value??null,
   r.endpoint?.unit??null,r.endpoint?.model??null,r.endpoint?.comparator??null,
-  r.endpoint?.timepoint??null,readiness,contextKey,flags.join('; ')
+  r.endpoint?.timepoint??null,
+  r.studyStats?.analysisUnit??null,r.studyStats?.design??null,
+  r.studyStats?.interventionN??null,r.studyStats?.comparatorN??null,
+  r.studyStats?.uncertaintyType??null,r.studyStats?.uncertaintyValue??null,
+  r.studyStats?.ciLower??null,r.studyStats?.ciUpper??null,
+  r.studyStats?.uncertaintyTarget??null,r.studyStats?.sourceLocator??null,
+  readiness,contextKey,flags.join('; ')
  ].map(csvCell).join(','))].join('\r\n');
 }
 export function approvedDatasetJson(snapshot:ApprovedDatasetSnapshot):string{
@@ -277,6 +314,8 @@ export function approvedDatasetJson(snapshot:ApprovedDatasetSnapshot):string{
    snapshotSha256:snapshot.snapshotSha256,generatedAt:snapshot.generatedAt,
    total:snapshot.total,independentStudyFamilies:quality.independentStudyFamilies,
    numericEndpointRows:quality.numeric,contextBoundedRows:quality.contextBounded,
+   rowsWithReportedSampleN:quality.reportedSampleN,
+   rowsWithReportedDispersion:quality.reportedDispersion,
    limitations:snapshot.limitations,
    caveat:'Source-approved research observations; no inferred effects, no clinical prediction.'
   },
