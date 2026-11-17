@@ -469,3 +469,70 @@ for(const persona of ['unassigned','public'] as const){
   expect(record.methods.some(x=>x.includes('/rpc/nfq_study_adjudications'))).toBe(false);
  });
 }
+
+test('14H174 reviewed variant passport separates recorded therapy responses from approved clinical evidence',async({page})=>{
+ const record=await setup(page);
+ await page.route('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi**',async route=>{
+  const u=new URL(route.request().url());
+  expect(u.searchParams.get('db')).toBe('pubmed');
+  expect(u.searchParams.get('id')).toBe('12345678');
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+   result:{uids:['12345678'],12345678:{
+    uid:'12345678',title:'Documented research source',pubtype:['Journal Article']
+   }}
+  })});
+ });
+ await page.goto('/#/variants/18');
+ await expect(page.locator('#selected-title')).toHaveText('R117H');
+ const root=page.getByTestId('nfq-research-engines');
+ await expect(root.getByTestId('nfq-variant-evidence-passport')).toHaveCount(0);
+ await root.getByTestId('nfq-research-engines-toggle').click();
+ const passport=root.getByTestId('nfq-variant-evidence-passport');
+ await expect(passport.getByTestId('nfq-passport-toggle')).toHaveAttribute('aria-expanded','false');
+ await passport.getByTestId('nfq-passport-toggle').click();
+ const therapies=passport.getByTestId('nfq-passport-therapy-list');
+ await expect(therapies.getByRole('listitem')).toHaveCount(5);
+ await expect(therapies.locator('[data-therapy="ETI"]')).toContainText('Responsive · database');
+ await expect(therapies.locator('[data-therapy="ETI"]')).toContainText('Recorded history only');
+ await expect(passport).toContainText('ClinVar');
+ await expect(passport).toContainText('No linked variation identifier');
+ await expect(passport.getByTestId('nfq-passport-sources')).toContainText('Catalogued PMID matches publication URL');
+ await passport.getByTestId('nfq-passport-pubmed-check').click();
+ const indexed=passport.getByTestId('nfq-passport-pubmed-result');
+ await expect(indexed).toContainText('Official PMID 12345678');
+ await expect(indexed).toContainText('Catalogued title matches PubMed indexing');
+ await expect(indexed).toContainText('does not validate a variant-specific response claim');
+ expect(record.methods.filter(m=>m.includes('/rpc/nfq_reviewed_source_claims'))).toHaveLength(1);
+});
+
+test('14H174 unavailable external PubMed lookup cannot be presented as evidence of drug non-response',async({page})=>{
+ await setup(page);
+ await page.route('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi**',async route=>{
+  await route.fulfill({status:503,contentType:'application/json',
+   body:JSON.stringify({error:'External indexing unavailable'})});
+ });
+ await page.goto('/#/variants/18');
+ const root=page.getByTestId('nfq-research-engines');
+ await root.getByTestId('nfq-research-engines-toggle').click();
+ const passport=root.getByTestId('nfq-variant-evidence-passport');
+ await passport.getByTestId('nfq-passport-toggle').click();
+ await passport.getByTestId('nfq-passport-pubmed-check').click();
+ await expect(passport.getByTestId('nfq-passport-pubmed-result')).toContainText(
+  'PubMed indexing unavailable'
+ );
+ await expect(passport.getByTestId('nfq-passport-pubmed-result')).toContainText(
+  'No conclusion about study coverage'
+ );
+});
+
+for(const persona of ['public','unassigned'] as const){
+ test('14H174 '+persona+' role cannot access private source-claim verification passport',async({page})=>{
+  const r=await setup(page,persona);
+  await page.goto('/#/variants/18');
+  const root=page.getByTestId('nfq-research-engines');
+  await root.getByTestId('nfq-research-engines-toggle').click();
+  await expect(root).toContainText('Active research membership required');
+  await expect(root.getByTestId('nfq-variant-evidence-passport')).toHaveCount(0);
+  expect(r.methods.some(x=>x.includes('/rpc/nfq_reviewed_source_claims'))).toBe(false);
+ });
+}
