@@ -63,6 +63,40 @@ describe('14H169 approved source research dataset',()=>{
   expect(approvedDatasetCsv(snapshot)).not.toContain("'"+'-22.4');
   expect(JSON.parse(approvedDatasetJson(snapshot)).manifest.snapshotSha256).toBe('a'.repeat(64));
  });
+ it('treats separate papers with one independently reviewed trial identity as one linked study group',()=>{
+  const registered={
+   registryType:'nct',registryId:'NCT12345678',
+   publicationRole:'primary-report',populationModel:'clinical-participants',
+   diseaseGroup:'cystic-fibrosis',ageGroup:'adult',
+   cohortLabel:null,populationDescription:null,sourceLocator:'Methods · Trial registration'
+  };
+  const snapshot=decodeApprovedDataset(raw([
+   {...a,studyIdentity:registered},
+   {...b,studyIdentity:{...registered,publicationRole:'secondary-analysis'}}
+  ]));
+  const quality=assessApprovedDataset(snapshot);
+  expect(quality.registeredStudyRows).toBe(2);
+  expect(quality.populationCharacterized).toBe(2);
+  expect(quality.linkedStudyGroups).toBe(1);
+  expect(quality.groups[0].studyFamilies).toBe(1);
+  expect(quality.rows[1].sourceIdentityKey).toBe(quality.rows[0].sourceIdentityKey);
+  expect(quality.rows[1].flags).toContain(
+   'Linked publications or study-family reports are not independent replication'
+  );
+  const csv=approvedDatasetCsv(snapshot);
+  expect(csv).toContain('registry_id');
+  expect(csv).toContain('NCT12345678');
+  expect(JSON.parse(approvedDatasetJson(snapshot)).records[0].record.studyIdentity.registryId)
+   .toBe('NCT12345678');
+ });
+ it('rejects malformed study registration rather than silently inferring a population',()=>{
+  const invalid={
+   registryType:'nct',registryId:'NCTx',publicationRole:'primary-report',
+   populationModel:'clinical-participants',diseaseGroup:'cystic-fibrosis',
+   ageGroup:'adult',cohortLabel:null,populationDescription:null,sourceLocator:'Methods · Table 1'
+  };
+  expect(()=>decodeApprovedDataset(raw([{...a,studyIdentity:invalid}]))).toThrow();
+ });
  it('does not equate duplicate study-family rows with independent experimental support',()=>{
   const snapshot=decodeApprovedDataset(raw([a,{...b,studyFamilyId:a.studyFamilyId}]));
   const quality=assessApprovedDataset(snapshot);
