@@ -9,11 +9,27 @@ import {createVariantTherapySource} from '../services/variantTherapySource';
 import {createLiveEvidenceSource,type LiveEvidenceReference} from '../services/liveEvidence';
 import {createCuratedSourceClaimService,reviewedSourceObservations,type CuratedSourceClaim} from '../services/curatedSourceClaims';
 import ReviewedSourceClaims from './ReviewedSourceClaims.vue';
+import VariantEvidencePassport from './VariantEvidencePassport.vue';
+import type {PassportIdentity} from '../domain/variantEvidencePassport';
+import type {ClinVarAuthoritySummary} from '../services/liveClinVar';
 import {authController,authSessionProvider} from '../services/authSession';
 import {researcherRole} from '../services/researchRole';
 import {readConfigFromEnvironment} from '../services/liveVariants';
 
-const props=defineProps<{variantId:string;variantName:string}>();
+const props=defineProps<{
+ variantId:string;variantName:string;
+ legacyName?:string|null;proteinName?:string|null;cdnaName?:string|null;
+ aliases?:readonly string[];functionalClass?:string|null;classSubtype?:string|null;
+ clinVarId?:string|null;clinVarSummary?:ClinVarAuthoritySummary|null;
+ clinVarLoading?:boolean;clinVarError?:string;
+}>();
+const emit=defineEmits<{checkClinvar:[]}>();
+const recordedIdentity=computed<PassportIdentity>(()=>Object.freeze({
+ legacyName:props.legacyName??null,proteinName:props.proteinName??null,
+ cdnaName:props.cdnaName??null,aliases:Object.freeze([...(props.aliases??[])]),
+ functionalClass:props.functionalClass??null,classSubtype:props.classSubtype??null,
+ clinVarId:props.clinVarId??null
+}));
 const open=ref(false);
 const report=ref<MultiTherapyResearchReport|null>(null);
 const curatedClaims=ref<readonly CuratedSourceClaim[]>([]);
@@ -135,6 +151,11 @@ onUnmounted(()=>request?.abort());
     <p class="nfq-research-engines-guide">
      Recorded response is separate from a reviewed experimental finding. A linked reference alone is not a verified therapeutic claim.
     </p>
+    <VariantEvidencePassport :variant-id="report.variantId" :variant-name="variantName"
+     :identity="recordedIdentity" :report="report" :references="linkedReferences"
+     :claims="curatedClaims" :clin-var-summary="clinVarSummary??null"
+     :clin-var-loading="clinVarLoading??false" :clin-var-error="clinVarError??''"
+     @check-clinvar="emit('checkClinvar')" />
     <div class="nfq-research-engines-table" role="list" data-testid="nfq-research-engines-therapies">
      <article v-for="item in report.assessedTherapies" :key="item.therapy" role="listitem"
       class="nfq-research-engines-line" :data-therapy="item.therapy">
