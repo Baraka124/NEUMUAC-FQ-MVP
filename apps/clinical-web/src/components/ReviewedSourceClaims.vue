@@ -19,6 +19,7 @@ import {
  type PopulationModel,type DiseaseGroup,type AgeGroup
 } from '../domain/reportedStudyIdentity';
 import {researcherRole} from '../services/researchRole';
+import {sourceSubmissionReadiness,researchReviewHandoff} from '../domain/scientificReviewReadiness';
 import {authSessionProvider} from '../services/authSession';
 import {readConfigFromEnvironment} from '../services/liveVariants';
 import {createCuratedSourceClaimService,validSourceClaimPayload,
@@ -163,8 +164,13 @@ const formData=computed<CuratedClaimPayload>(()=>({
  studyFamilyId:formFamily.value,locator:formLocator.value,rationale:formRationale.value,
  endpoint:endpoint.value,studyStats:stats.value,studyIdentity:studyIdentity.value
 }));
+const formReadiness=computed(()=>sourceSubmissionReadiness(
+ props.variantId,formData.value,props.references));
+const sourceHandoff=computed(()=>researchReviewHandoff({
+ variantId:props.variantId,sourceClaims:props.claims,molecularClaims:[]
+}));
 const canSubmit=computed(()=>!busy.value&&canContribute.value&&Boolean(service)&&
- validSourceClaimPayload(props.variantId,formData.value,referenceIds.value));
+ formReadiness.value.canSubmit);
 const writableClaims=computed(()=>props.claims.filter(x=>x.status!=='superseded'));
 function resetForm():void{
  revisionOf.value=null;formTherapy.value='ETI';formReference.value='';
@@ -279,11 +285,25 @@ const shortId=(value:string)=>value.slice(0,8);
    <span>{{submittedCount}} pending</span>
    <span>{{claims.length}} historical revisions</span>
   </div>
+  <div v-if="claims.length" class="nfq-review-handoff" data-testid="nfq-source-review-handoff">
+   <span>{{sourceHandoff.sourceAwaitingFirst}} awaiting first independent source review</span>
+   <span>{{sourceHandoff.sourceAwaitingSecond}} awaiting second independent source review</span>
+   <span v-if="canReview&&submittedCount">Only reviewers other than the submitter can attest</span>
+  </div>
   <p v-if="notice" class="nfq-review-message" role="status">{{notice}}</p>
   <form v-if="formOpen&&canContribute" class="nfq-reviewed-form" data-testid="nfq-source-claim-form"
    @submit.prevent="submit">
    <p>{{revisionOf?'New revision of #'+shortId(revisionOf.id):
      'An observation must be tied to a real bibliographic record and located in the original source.'}}</p>
+   <div class="nfq-source-readiness" data-testid="nfq-source-submission-readiness"
+    aria-label="Scientific source submission readiness">
+    <strong>Submission readiness · {{formReadiness.canSubmit?'Source fields complete':'Information still required'}}</strong>
+    <ul v-if="formReadiness.instructions.length">
+     <li v-for="instruction in formReadiness.instructions" :key="instruction">{{instruction}}</li>
+    </ul>
+    <p v-else>All required source fields pass structural validation. Scientific truth and study
+     interpretation remain subject to two independent reviews.</p>
+   </div>
    <div class="nfq-reviewed-grid">
     <label>Therapy
      <select v-model="formTherapy" :disabled="busy">
@@ -577,6 +597,12 @@ const shortId=(value:string)=>value.slice(0,8);
 </template>
 
 <style scoped>
+.nfq-source-readiness{font-size:11px;padding:9px 0;margin:6px 0;border-top:1px solid var(--border,#dde7ef);border-bottom:1px solid var(--border,#dde7ef)}
+.nfq-source-readiness strong{font-size:11px;font-weight:650}
+.nfq-source-readiness ul{margin:6px 0;padding-left:18px}
+.nfq-source-readiness li{line-height:1.5;margin:3px 0}
+.nfq-source-readiness p{font-size:11px;line-height:1.5}
+.nfq-review-handoff{display:flex;flex-wrap:wrap;gap:5px 16px;font-size:11px;color:var(--text-muted,#6b839b);margin:7px 0}
 .nfq-reviewed-intake{padding:15px 0 2px;margin-top:12px;border-top:1px solid var(--border,#e1e8f0);min-width:0;color:var(--text,#223c59)}
 .nfq-reviewed-intake-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .nfq-reviewed-intake-head h3{margin:0;font-size:12px;font-weight:660;letter-spacing:-.01em}
