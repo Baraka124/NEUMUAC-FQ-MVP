@@ -236,7 +236,7 @@ begin
     set status='rejected',finalized_at=now() where id=p_id;
    insert into nfq_evidence_review.mechanism_events(mechanism_id,actor_id,action)
     values(p_id,v_actor,'rejected');
-   return jsonb_build_object('id',p_id::text,'status','rejected');
+   return jsonb_build_object('id',p_id::text,'status','rejected','reviewCount',0);
   end if;
   select count(*) into v_approved from nfq_evidence_review.mechanism_reviews
    where mechanism_id=p_id and decision='approve';
@@ -248,9 +248,9 @@ begin
     set status='approved',finalized_at=now() where id=p_id;
    insert into nfq_evidence_review.mechanism_events(mechanism_id,actor_id,action)
     values(p_id,v_actor,'approved');
-   return jsonb_build_object('id',p_id::text,'status','approved');
+   return jsonb_build_object('id',p_id::text,'status','approved','reviewCount',2);
   end if;
-  return jsonb_build_object('id',p_id::text,'status','pending');
+  return jsonb_build_object('id',p_id::text,'status','pending','reviewCount',v_approved);
  end if;
 
  raise exception 'Unknown molecular review operation' using errcode='22023';
