@@ -72,7 +72,8 @@ export function decodeMolecularReviewRecords(raw:unknown,variantId:string):reado
    (c.status!=='approved'&&c.reviewSeals.length!==0)||
    !Array.isArray(c.events)||c.events.length>100||
    !Array.isArray(c.reviewAudit)||c.reviewAudit.length>2||
-   c.reviewAudit.filter((r:unknown)=>obj(r).decision==='approve').length!==c.reviewCount||
+   (c.status!=='rejected'&&
+    c.reviewAudit.filter((r:unknown)=>obj(r).decision==='approve').length!==c.reviewCount)||
    (c.status==='approved'&&(c.reviewAudit.length!==2||
     c.reviewAudit.some((r:unknown)=>obj(r).decision!=='approve'))))
    throw new VariantConnectionError('schema-mismatch','Invalid molecular review record');
