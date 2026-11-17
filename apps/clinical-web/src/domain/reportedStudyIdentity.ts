@@ -60,7 +60,7 @@ const isOneOf=<T extends string>(value:unknown,items:readonly {value:T}[]):value
  typeof value==='string'&&items.some(x=>x.value===value);
 const clean=(value:string|null,min:number,max:number)=>
  value===null||(typeof value==='string'&&value.length>=min&&value.length<=max&&
- value===value.trim()&&!/[\u0000-\u001f\u007f]/.test(value)));
+ value===value.trim()&&!/[\u0000-\u001f\u007f]/.test(value));
 export function validReportedStudyIdentity(value:ReportedStudyIdentity):boolean{
  if(!value||typeof value!=='object'||Array.isArray(value)||
   !isOneOf(value.registryType,REGISTRY_TYPES)||
