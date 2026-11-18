@@ -18,6 +18,17 @@ export interface GapMapCell{
  readonly explicitStudyContext:boolean;
  readonly mechanismProposalCount:number;
  readonly approvedMolecularAnnotations:number;
+ /** Orthogonal register descriptors, never a numeric biological confidence score. */
+ readonly evidenceDimensions:{
+  readonly sourceCoverage:'no-reviewed-source'|'reviewed-source-present';
+  readonly experimentalExtraction:'no-endpoint'|'endpoint-without-model'|'endpoint-and-model-reported';
+  readonly reviewedInterpretations:{
+   readonly sourceReportedObservations:number;
+   readonly mechanisticHypotheses:number;
+   readonly uncertainOrContradictory:number;
+  };
+  readonly causalConfidence:'not-assessed-by-register';
+ };
  readonly categoriesWithDrafts:readonly MechanismCategory[];
  readonly gaps:readonly ('no-reviewed-source-claim'|'endpoint-not-extracted'|'study-context-not-extracted'|'mechanism-not-adjudicated')[];
 }
@@ -90,6 +101,17 @@ function sourceCells(variantId:string,claims:readonly CuratedSourceClaim[],
    endpointObserved:endpoint,explicitStudyContext:context,
    mechanismProposalCount:associated.length,
    approvedMolecularAnnotations:adjudicated.length,
+   evidenceDimensions:Object.freeze({
+    sourceCoverage:rows.length?'reviewed-source-present' as const:'no-reviewed-source' as const,
+    experimentalExtraction:!endpoint?'no-endpoint' as const:
+     !context?'endpoint-without-model' as const:'endpoint-and-model-reported' as const,
+    reviewedInterpretations:Object.freeze({
+     sourceReportedObservations:adjudicated.filter(m=>m.interpretation==='reported-observation').length,
+     mechanisticHypotheses:adjudicated.filter(m=>m.interpretation==='mechanistic-hypothesis').length,
+     uncertainOrContradictory:adjudicated.filter(m=>m.interpretation==='contradictory-or-uncertain').length
+    }),
+    causalConfidence:'not-assessed-by-register' as const
+   }),
    categoriesWithDrafts:Object.freeze([...new Set(associated.flatMap(d=>d.categories))]),
    gaps:Object.freeze(gaps)
   });
@@ -132,6 +154,6 @@ export function buildCrossVariantGapMap(input:{
   cells:Object.freeze([...first,...second]),
   mechanismCoverage:Object.freeze(coverage),
   researchOnly:true as const,
-  interpretation:'Register coverage only. Missing structured claims, endpoints, context or reviewed mechanism annotations do not imply missing biological evidence or absence of drug response. Only independently reviewed and approved molecular revisions can close the mechanism-review gap; local drafts never do.'
+  interpretation:'Register coverage only. Missing structured claims, endpoints, context or reviewed mechanism annotations do not imply missing biological evidence or absence of drug response. Only independently reviewed and approved molecular revisions can close the mechanism-review gap; local drafts never do. Reviewed interpretation counts describe recorded research claims, not mechanistic causality, proof strength or therapy eligibility.'
  });
 }

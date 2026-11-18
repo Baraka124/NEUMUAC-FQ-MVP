@@ -358,6 +358,28 @@ function removeDraft(index:number):void{
        <span>{{cell.uniqueStudyFamilies}} reviewed stud{{cell.uniqueStudyFamilies===1?'y':'ies'}}</span>
        <span>{{cell.mechanismProposalCount}} local draft{{cell.mechanismProposalCount===1?'':'s'}}</span>
        <span v-if="molecularState==='ready'">{{cell.approvedMolecularAnnotations}} independently approved molecular revision{{cell.approvedMolecularAnnotations===1?'':'s'}}</span>
+       <details class="nfq-evidence-dimensions" data-testid="nfq-orthogonal-evidence-dimensions">
+        <summary>Evidence dimensions · research only</summary>
+        <dl>
+         <dt>Reviewed source coverage</dt>
+         <dd>{{cell.evidenceDimensions.sourceCoverage==='reviewed-source-present'?
+          'Reviewed sources recorded':'No reviewed source in register'}}</dd>
+         <dt>Experimental extraction</dt>
+         <dd>{{cell.evidenceDimensions.experimentalExtraction==='endpoint-and-model-reported'?
+          'Endpoint and model/context extracted':
+          cell.evidenceDimensions.experimentalExtraction==='endpoint-without-model'?
+          'Endpoint extracted; model/context incomplete':'Experimental endpoint not extracted'}}</dd>
+         <dt>Reviewed molecular interpretations</dt>
+         <dd v-if="molecularState==='ready'">
+          {{cell.evidenceDimensions.reviewedInterpretations.sourceReportedObservations}} source-reported observations ·
+          {{cell.evidenceDimensions.reviewedInterpretations.mechanisticHypotheses}} hypotheses ·
+          {{cell.evidenceDimensions.reviewedInterpretations.uncertainOrContradictory}} uncertain/contradictory
+         </dd>
+         <dd v-else>Independent molecular register unavailable or not loaded</dd>
+         <dt>Molecular causal confidence</dt>
+         <dd>Not assessed by this register — no causal proof inferred</dd>
+        </dl>
+       </details>
        <details>
         <summary>{{cell.gaps.length}} register gap{{cell.gaps.length===1?'':'s'}}</summary>
         <ul><li v-for="gap in cell.gaps" :key="gap">{{gapLabel(gap)}}</li></ul>
@@ -478,6 +500,9 @@ function removeDraft(index:number):void{
 .nfq-mechanism details{font-size:10px;margin-top:4px}
 .nfq-mechanism summary{cursor:pointer}
 .nfq-mechanism li{margin:5px 0}
+.nfq-evidence-dimensions dl{display:grid;grid-template-columns:minmax(85px,1fr) minmax(0,1.4fr);gap:5px 8px;margin:7px 0;font-size:10px;line-height:1.45}
+.nfq-evidence-dimensions dt{color:var(--text-muted,#6b839b)}
+.nfq-evidence-dimensions dd{margin:0;overflow-wrap:anywhere}
 .nfq-mechanism-coverage{padding:8px 0}
 .nfq-mechanism-coverage>strong{display:block;margin-bottom:8px}
 .nfq-mechanism-category{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid var(--border,#dde7ef)}

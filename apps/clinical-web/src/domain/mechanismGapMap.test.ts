@@ -65,6 +65,11 @@ describe('14H186 research register gap map',()=>{
   const first=result.cells.find(c=>c.variantId==='18'&&c.therapy==='ETI')!;
   const second=result.cells.find(c=>c.variantId==='19'&&c.therapy==='ETI')!;
   expect(first.uniqueStudyFamilies).toBe(1);
+  expect(first.evidenceDimensions.sourceCoverage).toBe('reviewed-source-present');
+  expect(first.evidenceDimensions.experimentalExtraction).toBe('no-endpoint');
+  expect(first.evidenceDimensions.causalConfidence).toBe('not-assessed-by-register');
+  expect(second.evidenceDimensions.sourceCoverage).toBe('no-reviewed-source');
+  expect(second.evidenceDimensions.reviewedInterpretations.mechanisticHypotheses).toBe(0);
   expect(first.gaps).toContain('mechanism-not-adjudicated');
   expect(second.gaps).toContain('no-reviewed-source-claim');
   expect(second.endpointObserved).toBe(false);
@@ -99,6 +104,13 @@ describe('14H186 research register gap map',()=>{
   const result=buildCrossVariantGapMap({...input,persisted:[approved]});
   const row=result.cells.find(c=>c.variantId==='18'&&c.therapy==='ETI')!;
   expect(row.approvedMolecularAnnotations).toBe(1);
+  expect(row.evidenceDimensions.reviewedInterpretations.mechanisticHypotheses).toBe(1);
+  expect(row.evidenceDimensions.reviewedInterpretations.sourceReportedObservations).toBe(0);
+  expect(row.evidenceDimensions.causalConfidence).toBe('not-assessed-by-register');
+  expect(buildCrossVariantGapMap({...input,persisted:[{
+   ...approved,status:'pending',reviewCount:1,reviewSeals:[],
+   reviewAudit:[approved.reviewAudit[0]!]
+  }]}).cells[0]?.evidenceDimensions.reviewedInterpretations.mechanisticHypotheses).toBe(0);
   expect(row.gaps).not.toContain('mechanism-not-adjudicated');
   expect(result.mechanismCoverage.find(c=>c.category==='rna-splicing')?.verifiedMechanismCount).toBe(1);
   expect(()=>buildCrossVariantGapMap({...input,persisted:[{
