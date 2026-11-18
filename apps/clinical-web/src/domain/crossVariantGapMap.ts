@@ -2,6 +2,7 @@ import type {CuratedSourceClaim} from '../services/curatedSourceClaims';
 import type {LiveEvidenceReference} from '../services/liveEvidence';
 import {THERAPIES,type CoreModulatorId} from './therapyRegistry';
 import type {MolecularReviewRecord} from '../services/molecularReviewService';
+import {molecularProvenancePath} from './researchReviewQueue';
 import {MECHANISM_CATEGORIES,type MechanismAnnotationDraft,type MechanismCategory} from './mechanismAnnotationDraft';
 
 /** Gap means "not represented by an approved structured source observation
@@ -34,6 +35,22 @@ export interface CrossVariantGapMap{
  readonly interpretation:string;
 }
 const id=/^[1-9][0-9]{0,17}$/;
+/** Approval is meaningful only with an independently reviewed original source. */
+function verifiedMolecularRevisions(
+ claims:readonly CuratedSourceClaim[],
+ references:readonly LiveEvidenceReference[],
+ persisted:readonly MolecularReviewRecord[]
+):readonly MolecularReviewRecord[]{
+ const approved=persisted.filter(m=>m.status==='approved');
+ if(new Set(approved.map(m=>m.seriesId)).size!==approved.length)
+  throw new Error('Concurrent approved molecular revisions cannot close research gaps');
+ for(const mechanism of approved){
+  const provenance=molecularProvenancePath({mechanism,claims,references});
+  if(!provenance.mechanismApprovedAndLinked)
+   throw new Error('Unverified original publication or independent molecular review');
+ }
+ return approved;
+}
 function sourceCells(variantId:string,claims:readonly CuratedSourceClaim[],
  references:readonly LiveEvidenceReference[],drafts:readonly MechanismAnnotationDraft[],
  persisted:readonly MolecularReviewRecord[]):GapMapCell[]{
@@ -44,21 +61,18 @@ function sourceCells(variantId:string,claims:readonly CuratedSourceClaim[],
   new Set(claims.map(c=>c.id)).size!==claims.length||
   new Set(references.map(r=>r.id)).size!==references.length)
   throw new Error('Cross-variant evidence gaps cannot be calculated from an invalid source inventory');
+ const verifiedMolecular=verifiedMolecularRevisions(claims,references,persisted);
  const refs=new Set(references.map(x=>x.id));
  const approved=claims.filter(c=>c.status==='approved');
  if(new Set(approved.map(c=>c.seriesId)).size!==approved.length||
   approved.some(c=>!refs.has(c.referenceId)||c.reviewCount!==2||
    c.reviewSeals.length!==2||c.reviewSeals[0]===c.reviewSeals[1]||!c.reviewedAt)||
-  drafts.some(d=>!approved.some(c=>c.id===d.claimId&&c.referenceId===d.referenceId))||
-  persisted.some(m=>m.status==='approved'&&(
-   m.reviewCount!==2||m.reviewSeals.length!==2||
-   m.reviewSeals[0]===m.reviewSeals[1]||
-   !approved.some(c=>c.id===m.sourceClaimId))))
+  drafts.some(d=>!approved.some(c=>c.id===d.claimId&&c.referenceId===d.referenceId)) )
   throw new Error('Mechanism drafts must refer to independently reviewed source claims');
  return THERAPIES.map(({id:therapy})=>{
   const rows=approved.filter(c=>c.therapy===therapy);
   const associated=drafts.filter(d=>rows.some(c=>c.id===d.claimId));
-  const adjudicated=persisted.filter(m=>m.status==='approved'&&
+  const adjudicated=verifiedMolecular.filter(m=>
    rows.some(c=>c.id===m.sourceClaimId));
   const endpoint=rows.some(c=>c.endpoint?.code!=='not-reported'&&c.endpoint!==null);
   const context=rows.some(c=>c.studyIdentity!==null&&
@@ -101,11 +115,17 @@ export function buildCrossVariantGapMap(input:{
   drafts.filter(d=>d.variantId===input.firstId),persisted.filter(m=>m.variantId===input.firstId));
  const second=sourceCells(input.secondId,input.secondClaims,input.secondReferences,
   drafts.filter(d=>d.variantId===input.secondId),persisted.filter(m=>m.variantId===input.secondId));
+ const independentlyReviewed=[
+  ...verifiedMolecularRevisions(input.firstClaims,input.firstReferences,
+   persisted.filter(m=>m.variantId===input.firstId)),
+  ...verifiedMolecularRevisions(input.secondClaims,input.secondReferences,
+   persisted.filter(m=>m.variantId===input.secondId))
+ ];
  const coverage=MECHANISM_CATEGORIES.map(category=>Object.freeze({
   category:category.id,label:category.label,
   firstDraftCount:drafts.filter(d=>d.variantId===input.firstId&&d.categories.includes(category.id)).length,
   secondDraftCount:drafts.filter(d=>d.variantId===input.secondId&&d.categories.includes(category.id)).length,
-  verifiedMechanismCount:persisted.filter(m=>m.status==='approved'&&m.categories.includes(category.id)).length
+  verifiedMechanismCount:independentlyReviewed.filter(m=>m.categories.includes(category.id)).length
  }));
  return Object.freeze({
   variantIds:[input.firstId,input.secondId] as const,
