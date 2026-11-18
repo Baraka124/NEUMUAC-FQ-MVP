@@ -211,6 +211,61 @@ begin
     and v_claim.scope<>'genotype-specific'
   then raise exception 'Clinical trial comparison requires genotype-specific scope'
     using errcode='22023';end if;
+  -- A mapping may be attested only once BOTH independent extractions exist.
+  if (select count(*) from nfq_evidence_review.expert_reference_extractions e
+      where e.case_id=p_case_id and e.variant_id=p_variant_id)<>2
+  then raise exception 'Both independent expert submissions are required'
+    using errcode='22023';end if;
+  -- Exact study intervention and genotype scope must be retained; never
+  -- reinterpret a cohort-level paper as an isolated allele response.
+  if p_case_id='g551d-ivacaftor-2011' and v_claim.therapy<>'IVACAFTOR'
+     or p_case_id='phe508del-mf-eti-2019' and v_claim.therapy<>'ETI'
+  then raise exception 'Therapy does not correspond to the anchored clinical publication'
+    using errcode='22023';end if;
+  if v_claim.scope='genotype-specific' and
+    (v_claim.genotype_a is null or v_claim.genotype_b is null
+      or p_variant_id not in (v_claim.genotype_a,v_claim.genotype_b))
+  then raise exception 'Required two-allele genotype context missing'
+    using errcode='22023';end if;
+  if v_claim.endpoint is null or
+    v_claim.endpoint->>'code' is distinct from v_payload->>'endpointCode' or
+    v_claim.endpoint->>'timepoint' is distinct from v_payload->>'endpointTimepoint'
+  then raise exception 'Cannot compare incompatible structured endpoints'
+    using errcode='22023';end if;
+  if length(btrim(coalesce(v_payload->>'genotypeContext',''))) not between 3 and 300
+    or length(btrim(coalesce(v_payload->>'sourceLocator',''))) not between 3 and 240
+    or length(btrim(coalesce(v_payload->>'endpointCode',''))) not between 3 and 80
+    or length(btrim(coalesce(v_payload->>'endpointTimepoint',''))) not between 3 and 80
+    or v_payload->>'expertFinding' not in
+      ('supports','does-not-support','inconclusive','not-assessable')
+    or (v_payload->'expertReportedFinding'<>'null'::jsonb and
+      v_payload->>'expertReportedFinding' not in
+       ('reported-response','reported-no-response','mixed','inconclusive'))
+  then raise exception 'Invalid expert-to-source comparability mapping'
+    using errcode='22023';end if;
+  -- Two concordant submissions must agree on the reported cohort, endpoint
+  -- and locator. Otherwise adjudication must exist, irrespective of finding.
+  if not exists(select 1 from nfq_evidence_review.expert_reference_adjudications a
+    where a.case_id=p_case_id and a.variant_id=p_variant_id)
+   and exists(select 1
+     from nfq_evidence_review.expert_reference_extractions x
+     join nfq_evidence_review.expert_reference_extractions y
+       on x.case_id=y.case_id and x.variant_id=y.variant_id and x.id<y.id
+     where x.case_id=p_case_id and x.variant_id=p_variant_id
+      and (x.finding,x.genotype_context,x.endpoint,x.model_or_cohort,x.claim_id)
+       is distinct from
+          (y.finding,y.genotype_context,y.endpoint,y.model_or_cohort,y.claim_id))
+  then raise exception 'Unadjudicated scientific context disagreement'
+    using errcode='22023';end if;
+  -- Never accept mapping to an unverified source locator.
+  if not exists(select 1 from nfq_evidence_review.expert_reference_extractions x
+   where x.case_id=p_case_id and x.variant_id=p_variant_id
+     and x.source_locator=v_payload->>'sourceLocator')
+   and not exists(select 1 from nfq_evidence_review.expert_reference_adjudications a
+   where a.case_id=p_case_id and a.variant_id=p_variant_id
+     and a.source_locator=v_payload->>'sourceLocator')
+  then raise exception 'Mapped source locator lacks an independent extraction'
+    using errcode='22023';end if;
   -- The consensus, if any, must match the attested expert finding.
   -- If an adjudication exists, its final finding supersedes incompatible reviews.
   if exists(select 1 from nfq_evidence_review.expert_reference_adjudications a
