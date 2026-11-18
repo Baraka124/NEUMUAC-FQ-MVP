@@ -32,6 +32,8 @@ function verifiedRecord(raw:unknown,caseId:string,variantId:string):ExpertRegist
   throw new VariantConnectionError('schema-mismatch','Unverified expert review registry response');
  // The backend owns reviewer identity, timestamps and authorization. Still
  // reject tampered/partial responses before they reach the research engine.
+ const adjudication=isObject(raw.adjudication)?raw.adjudication:null;
+ const mapping=isObject(raw.mapping)?raw.mapping:null;
  const publication=PUBLISHED_CFTR_REFERENCE_CASES.find(p=>p.id===caseId);
  const timestamp=(v:unknown):v is string=>
   typeof v==='string'&&Number.isFinite(Date.parse(v))&&v.length<=64;
@@ -53,8 +55,8 @@ function verifiedRecord(raw:unknown,caseId:string,variantId:string):ExpertRegist
    throw new VariantConnectionError('schema-mismatch','Unverified expert extraction record');
   reviewerIds.add(String(record.reviewerId));
  }
- if(raw.adjudication){
-  const a=raw.adjudication;
+ if(adjudication){
+  const a=adjudication;
   const accepted=Array.isArray(a.acceptedReviewerIds)?a.acceptedReviewerIds:[];
   if(raw.extracts.length!==2||a.caseId!==caseId||a.variantId!==variantId||
    !UUID.test(String(a.adjudicatorId))||reviewerIds.has(String(a.adjudicatorId))||
@@ -64,13 +66,13 @@ function verifiedRecord(raw:unknown,caseId:string,variantId:string):ExpertRegist
    !accepted.every(x=>typeof x==='string'&&reviewerIds.has(x)))
    throw new VariantConnectionError('schema-mismatch','Unverified independent adjudication');
  }
- if(raw.mapping){
-  const m=raw.mapping;
+ if(mapping){
+  const m=mapping;
   const acceptedFindings=['reported-response','reported-no-response','mixed','inconclusive'];
   if(raw.extracts.length!==2||m.caseId!==caseId||m.variantId!==variantId||
    m.mappingVersion!==1||!UUID.test(String(m.platformClaimId))||
    !UUID.test(String(m.attestedBy))||reviewerIds.has(String(m.attestedBy))||
-   (raw.adjudication&&m.attestedBy===raw.adjudication.adjudicatorId)||
+   (adjudication&&m.attestedBy===adjudication.adjudicatorId)||
    !timestamp(m.attestedAt)||!findings.has(String(m.expertFinding))||
    !acceptedFindings.includes(String(m.claimFinding))||
    !(m.expertReportedFinding===null||
@@ -88,18 +90,18 @@ function verifiedRecord(raw:unknown,caseId:string,variantId:string):ExpertRegist
   throw new VariantConnectionError('schema-mismatch','Malformed expert audit trail');
  const eventRows=audit as Record<string,unknown>[];
  if(new Set(eventRows.map(e=>e.eventId)).size!==eventRows.length||
-  eventRows.length!==raw.extracts.length+(raw.adjudication?1:0)+(raw.mapping?1:0)||
+  eventRows.length!==raw.extracts.length+(adjudication?1:0)+(mapping?1:0)||
   [...reviewerIds].some(id=>!eventRows.some(e=>e.action==='extraction-submitted'&&e.actorId===id))||
-  (raw.adjudication&&!eventRows.some(e=>e.action==='adjudication-submitted'&&
-    e.actorId===raw.adjudication?.adjudicatorId))||
-  (raw.mapping&&!eventRows.some(e=>e.action==='mapping-attested'&&
-    e.actorId===raw.mapping?.attestedBy)))
+  (adjudication&&!eventRows.some(e=>e.action==='adjudication-submitted'&&
+    e.actorId===adjudication?.adjudicatorId))||
+  (mapping&&!eventRows.some(e=>e.action==='mapping-attested'&&
+    e.actorId===mapping?.attestedBy)))
   throw new VariantConnectionError('schema-mismatch','Expert review audit does not match submissions');
  return Object.freeze({
   caseId,variantId,
   extracts:Object.freeze(raw.extracts as ExpertExtraction[]),
-  adjudication:raw.adjudication as ExpertAdjudication|null,
-  mapping:raw.mapping as AttestedBenchmarkMapping|null,
+  adjudication:adjudication as ExpertAdjudication|null,
+  mapping:mapping as AttestedBenchmarkMapping|null,
   audit:Object.freeze(audit as ExpertRegistryRecord['audit']),
   source:'nfq-authenticated-expert-registry-v1' as const
  });
