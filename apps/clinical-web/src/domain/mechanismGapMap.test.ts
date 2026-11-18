@@ -1,6 +1,7 @@
 import {describe,it,expect} from 'vitest';
 import {prepareMechanismAnnotationDraft,portableMechanismDraft} from './mechanismAnnotationDraft';
 import {buildCrossVariantGapMap} from './crossVariantGapMap';
+import {appraiseExperimentalEvidence} from './experimentalEvidenceAppraisal';
 import type {CuratedSourceClaim} from '../services/curatedSourceClaims';
 import type {MolecularReviewRecord} from '../services/molecularReviewService';
 import type {LiveEvidenceReference} from '../services/liveEvidence';
@@ -143,5 +144,47 @@ describe('14H186 research register gap map',()=>{
   const orphan=prepareMechanismAnnotationDraft(proposal,[claim('18')],[reference('18')]);
   expect(()=>buildCrossVariantGapMap({...input,firstClaims:[],drafts:[orphan]})).toThrow();
   expect(()=>buildCrossVariantGapMap({...input,secondId:'18'})).toThrow();
+ });
+});
+
+describe('14H189 source-grounded experimental evidence appraisal',()=>{
+ const base=claim('18');
+ const second:CuratedSourceClaim={...base,
+  id:'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+  seriesId:'ffffffff-ffff-4fff-8fff-ffffffffffff',
+  studyFamilyId:'second-study',finding:'reported-no-response'};
+ it('does not convert multiple papers or reviewed claims into replication or causality',()=>{
+  const result=appraiseExperimentalEvidence({variantId:'18',therapy:'ETI',
+   claims:[base,{...second,studyFamilyId:base.studyFamilyId}],
+   references:[reference('18')]});
+  expect(result.approvedSourceClaims).toBe(2);
+  expect(result.studyClusters).toBe(1);
+  expect(result.mixedOrInconclusiveClusters).toBe(1);
+  expect(result.directionallyDiscordant).toBe(false);
+  expect(result.proposedReplication).toBe('not-established-by-record-count');
+  expect(result.studyMethods.inVitro).toBe(2);
+  expect(result.variantScopes.singleVariant).toBe(2);
+  expect(result.mechanisticDirectness).toBe('requires-source-specific-appraisal');
+  expect(result.causalInterpretation).toBe('not-assessed');
+ });
+ it('flags separate opposing study clusters without inferring superiority',()=>{
+  const result=appraiseExperimentalEvidence({variantId:'18',therapy:'ETI',
+   claims:[base,second],references:[reference('18')]});
+  expect(result.studyClusters).toBe(2);
+  expect(result.reportedPositiveClusters).toBe(1);
+  expect(result.reportedNegativeClusters).toBe(1);
+  expect(result.directionallyDiscordant).toBe(true);
+  expect(result.limitations.join(' ')).toContain('reconciliation');
+ });
+ it('excludes pending claims and fails closed on invalid approved provenance',()=>{
+  const pending={...second,status:'pending' as const,reviewCount:0,
+   reviewSeals:[],reviewedAt:null};
+  const result=appraiseExperimentalEvidence({variantId:'18',therapy:'ETI',
+   claims:[base,pending],references:[reference('18')]});
+  expect(result.approvedSourceClaims).toBe(1);
+  expect(()=>appraiseExperimentalEvidence({variantId:'18',therapy:'ETI',
+   claims:[base],references:[]})).toThrow();
+  expect(()=>appraiseExperimentalEvidence({variantId:'18',therapy:'ETI',
+   claims:[claim('19')],references:[reference('18')]})).toThrow();
  });
 });

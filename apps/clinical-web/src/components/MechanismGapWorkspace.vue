@@ -11,6 +11,8 @@ import {authSessionProvider} from '../services/authSession';
 import {readConfigFromEnvironment} from '../services/liveVariants';
 import {reviewQueueItems,filterReviewQueue,molecularProvenancePath,
  type ReviewQueueScope} from '../domain/researchReviewQueue';
+import {scientificAppraisalReviewNote,scientificAppraisalReadiness,EMPTY_SCIENTIFIC_APPRAISAL,
+ type IndependentScientificAppraisal} from '../domain/independentScientificAppraisal';
 import {researchReviewHandoff,makeVerifiedScientificExport,
  portableScientificExport} from '../domain/scientificReviewReadiness';
 
@@ -56,6 +58,22 @@ function provenance(item:MolecularReviewRecord){
  });
 }
 const reviewNotes=ref<Record<string,string>>({});
+const reviewerAppraisals=ref<Record<string,IndependentScientificAppraisal>>({});
+function appraisalFor(id:string):IndependentScientificAppraisal{
+ return reviewerAppraisals.value[id]??EMPTY_SCIENTIFIC_APPRAISAL;
+}
+function updateAppraisal(id:string,patch:Partial<IndependentScientificAppraisal>):void{
+ reviewerAppraisals.value={
+  ...reviewerAppraisals.value,
+  [id]:{...appraisalFor(id),...patch}
+ };
+}
+function canAdjudicate(item:MolecularReviewRecord,decision:'approve'|'reject'):boolean{
+ const assessment={...appraisalFor(item.id),rationale:(reviewNotes.value[item.id]??'').trim()};
+ const readiness=scientificAppraisalReadiness(assessment);
+ return item.status==='pending'&&item.canReview&&
+  (decision==='reject'?readiness.complete:readiness.approvalEligible);
+}
 const reviseOf=ref<MolecularReviewRecord|null>(null);
 const reviewed=(variantId:string)=>(
  variantId===props.firstId?props.firstClaims:props.secondClaims
@@ -139,7 +157,8 @@ async function loadMolecularRecords():Promise<void>{
 function reset():void{
  molecularAbort?.abort();molecularAbort=null;
  molecularRecords.value=[];molecularState.value='closed';molecularBusy.value=false;
- reviewSelection.value=null;molecularFilter.value='all';reviewNotes.value={};reviseOf.value=null;
+ reviewSelection.value=null;molecularFilter.value='all';reviewNotes.value={};
+ reviewerAppraisals.value={};reviseOf.value=null;
  clearForm();savedDrafts.value=[];expanded.value=false;editor.value=false;
 }
 function toggleExpanded():void{
@@ -177,12 +196,17 @@ async function persistDraft(draft:MechanismAnnotationDraft):Promise<void>{
 }
 async function decide(item:MolecularReviewRecord,decision:'approve'|'reject'):Promise<void>{
  if(!service||molecularBusy.value||!item.canReview||reviewSelection.value!==item.id)return;
- const note=(reviewNotes.value[item.id]??'').trim();
- if(note.length<20)return;
+ if(!canAdjudicate(item,decision))return;
  molecularBusy.value=true;notice.value='';
  try{
+  const note=scientificAppraisalReviewNote({
+   record:item,decision,
+   assessment:{...appraisalFor(item.id),rationale:(reviewNotes.value[item.id]??'').trim()},
+   claims:item.variantId===props.firstId?props.firstClaims:props.secondClaims,
+   references:item.variantId===props.firstId?props.firstReferences:props.secondReferences
+  });
   const result=await service.review(item,decision,note);
-  reviewSelection.value=null;reviewNotes.value={};
+  reviewSelection.value=null;reviewNotes.value={};reviewerAppraisals.value={};
   notice.value=result.status==='approved'?'Two independent mechanism reviews completed; the server approved this revision.':
    result.status==='rejected'?'Mechanism interpretation rejected with retained revision history.':
    'One independent approval recorded; the second scientific reviewer is still required.';
@@ -331,15 +355,73 @@ function removeDraft(index:number):void{
        @click="reviewSelection=reviewSelection===item.id?null:item.id">
        {{reviewSelection===item.id?'Close independent review':'Review source interpretation'}}
       </button>
-      <div v-if="reviewSelection===item.id" class="nfq-molecular-review-form">
-       <label>Independent reviewer rationale (minimum 20 characters)
-        <textarea :value="reviewNotes[item.id]??''" rows="2" maxlength="900"
+      <div v-if="reviewSelection===item.id" class="nfq-molecular-review-form"
+       data-testid="nfq-independent-scientific-appraisal">
+       <p class="nfq-mechanism-note">Independent scientific appraisal · verify the original
+        publication and exact genotype context. Your selections and rationale are retained
+        in the authenticated review audit. These are not clinical eligibility judgments.</p>
+       <label>Does the original source support this exact interpretation?
+        <select :value="appraisalFor(item.id).sourceAlignment"
+         @change="updateAppraisal(item.id,{sourceAlignment:($event.target as HTMLSelectElement).value as IndependentScientificAppraisal['sourceAlignment']})">
+         <option value="unassessed">Not yet assessed</option>
+         <option value="supported">Supported by cited passage</option>
+         <option value="unsupported">Not supported by source</option>
+         <option value="uncertain">Source support uncertain</option>
+        </select>
+       </label>
+       <label>Assay and experimental model
+        <select :value="appraisalFor(item.id).assayContext"
+         @change="updateAppraisal(item.id,{assayContext:($event.target as HTMLSelectElement).value as IndependentScientificAppraisal['assayContext']})">
+         <option value="unassessed">Not yet assessed</option>
+         <option value="explicit">Explicitly described</option>
+         <option value="insufficient">Insufficient methodological context</option>
+        </select>
+       </label>
+       <label>Tested variant or genotype specificity
+        <select :value="appraisalFor(item.id).genotypeScope"
+         @change="updateAppraisal(item.id,{genotypeScope:($event.target as HTMLSelectElement).value as IndependentScientificAppraisal['genotypeScope']})">
+         <option value="unassessed">Not yet assessed</option>
+         <option value="explicit">Exact tested scope is explicit</option>
+         <option value="ambiguous">Scope remains ambiguous</option>
+        </select>
+       </label>
+       <label>Independent experimental replication
+        <select :value="appraisalFor(item.id).replication"
+         @change="updateAppraisal(item.id,{replication:($event.target as HTMLSelectElement).value as IndependentScientificAppraisal['replication']})">
+         <option value="unassessed">Not yet assessed</option>
+         <option value="independently-reported">Independent replication reported and checked</option>
+         <option value="not-established">Not established by reviewed records</option>
+        </select>
+       </label>
+       <label>Contradictory or competing findings
+        <select :value="appraisalFor(item.id).contradictions"
+         @change="updateAppraisal(item.id,{contradictions:($event.target as HTMLSelectElement).value as IndependentScientificAppraisal['contradictions']})">
+         <option value="unassessed">Not yet assessed</option>
+         <option value="discussed">Discussed with source context</option>
+         <option value="unresolved">Unresolved contradiction</option>
+         <option value="not-reported">No contradiction identified in reviewed source register</option>
+        </select>
+       </label>
+       <label>Scientific limitations
+        <select :value="appraisalFor(item.id).limitations"
+         @change="updateAppraisal(item.id,{limitations:($event.target as HTMLSelectElement).value as IndependentScientificAppraisal['limitations']})">
+         <option value="unassessed">Not yet assessed</option>
+         <option value="explicit">Explicitly reviewed</option>
+         <option value="insufficient">Insufficiently addressed</option>
+        </select>
+       </label>
+       <label>Independent reviewer rationale · 20–400 characters
+        <textarea :value="reviewNotes[item.id]??''" rows="3" maxlength="400"
          @input="reviewNotes={...reviewNotes,[item.id]:($event.target as HTMLTextAreaElement).value}" />
        </label>
-       <button type="button" :disabled="molecularBusy||(reviewNotes[item.id]??'').trim().length<20"
-        @click="decide(item,'approve')">Record independent approval</button>
-       <button type="button" :disabled="molecularBusy||(reviewNotes[item.id]??'').trim().length<20"
-        @click="decide(item,'reject')">Reject with rationale</button>
+       <p v-if="!scientificAppraisalReadiness({...appraisalFor(item.id),rationale:(reviewNotes[item.id]??'').trim()}).approvalEligible"
+        class="nfq-mechanism-note">Approval blocked until source support, exact scope, assay and
+        limitations are verified, and any contradictions are resolved.
+        Rejection can still be recorded once all criteria are assessed.</p>
+       <button type="button" :disabled="molecularBusy||!canAdjudicate(item,'approve')"
+        @click="decide(item,'approve')">Record independent scientific approval</button>
+       <button type="button" :disabled="molecularBusy||!canAdjudicate(item,'reject')"
+        @click="decide(item,'reject')">Reject with structured rationale</button>
       </div>
      </div>
     </article>
@@ -379,6 +461,40 @@ function removeDraft(index:number):void{
          <dt>Molecular causal confidence</dt>
          <dd>Not assessed by this register — no causal proof inferred</dd>
         </dl>
+       </details>
+       <details class="nfq-evidence-dimensions" data-testid="nfq-experimental-appraisal">
+        <summary>Experimental appraisal · extracted records</summary>
+        <dl>
+         <dt>Source references / study clusters</dt>
+         <dd>{{cell.experimentalAppraisal.distinctSourceReferences}} / {{cell.experimentalAppraisal.studyClusters}}</dd>
+         <dt>Study populations / models</dt>
+         <dd>{{cell.experimentalAppraisal.populationModels.join(', ')||'Not recorded'}}</dd>
+         <dt>Measured endpoints</dt>
+         <dd>{{cell.experimentalAppraisal.numericEndpoints}} numeric ·
+          {{cell.experimentalAppraisal.qualitativeEndpoints}} qualitative ·
+          {{cell.experimentalAppraisal.unextractedEndpoints}} unextracted</dd>
+         <dt>Comparators recorded</dt>
+         <dd>{{cell.experimentalAppraisal.comparatorSpecified}} claims</dd>
+         <dt>Source observation method</dt>
+         <dd>{{cell.experimentalAppraisal.studyMethods.clinical}} clinical ·
+          {{cell.experimentalAppraisal.studyMethods.inVitro}} laboratory ·
+          {{cell.experimentalAppraisal.studyMethods.curatedLiterature}} literature</dd>
+         <dt>Variant / genotype scope</dt>
+         <dd>{{cell.experimentalAppraisal.variantScopes.singleVariant}} single variant ·
+          {{cell.experimentalAppraisal.variantScopes.genotypeSpecific}} genotype-specific</dd>
+         <dt>Direct mechanistic evidence</dt><dd>Requires source-specific appraisal</dd>
+         <dt>Source-reported directions</dt>
+         <dd>{{cell.experimentalAppraisal.reportedPositiveClusters}} response ·
+          {{cell.experimentalAppraisal.reportedNegativeClusters}} nonresponse ·
+          {{cell.experimentalAppraisal.mixedOrInconclusiveClusters}} mixed/inconclusive</dd>
+         <dt>Replication</dt><dd>Not established by report counts</dd>
+         <dt>Mechanistic causality</dt><dd>Not assessed</dd>
+        </dl>
+        <p v-if="cell.experimentalAppraisal.directionallyDiscordant" class="nfq-mechanism-note">
+         Opposing reported study directions; independent reconciliation required.</p>
+        <ul v-if="cell.experimentalAppraisal.limitations.length">
+         <li v-for="limitation in cell.experimentalAppraisal.limitations" :key="limitation">{{limitation}}</li>
+        </ul>
        </details>
        <details>
         <summary>{{cell.gaps.length}} register gap{{cell.gaps.length===1?'':'s'}}</summary>
@@ -534,6 +650,7 @@ function removeDraft(index:number):void{
 .nfq-molecular-record p{line-height:1.5}
 .nfq-molecular-review-form{display:grid;gap:7px;max-width:640px;margin:8px 0}
 .nfq-molecular-review-form label{display:grid;gap:5px}
+.nfq-molecular-review-form select{font:inherit;padding:7px;min-width:0;max-width:100%;background:transparent;color:inherit;border:1px solid var(--border,#c7d8e7)}
 .nfq-molecular-review-form textarea{font:inherit;padding:8px;min-width:0;max-width:100%;background:transparent;color:inherit;border:1px solid var(--border,#c7d8e7)}
 .nfq-mechanism-drafts article{padding:12px 0;border-top:1px solid var(--border,#dde7ef)}
 .nfq-mechanism-drafts p{line-height:1.55}
