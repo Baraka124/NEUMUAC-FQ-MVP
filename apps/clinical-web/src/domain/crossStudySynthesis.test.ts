@@ -43,11 +43,21 @@ describe('14H192–193 source-linked study synthesis and conflicts',()=>{
  it('surfaces opposing independently registered families without deciding therapeutic response',()=>{
   const result=run([base,other]);
   expect(result.studies).toHaveLength(2);
-  expect(result.issues.some(i=>i.kind==='cross-study-opposition')).toBe(true);
-  const conflict=result.issues.find(i=>i.kind==='cross-study-opposition')!;
+  expect(result.issues.some(i=>i.kind==='population-or-assay-mismatch')).toBe(true);
+  const conflict=result.issues.find(i=>i.kind==='population-or-assay-mismatch')!;
   expect(conflict.claimIds).toHaveLength(2);
   expect(conflict.referenceIds).toEqual([31]);
   expect(result.decisionSupport).toBe(false);
+ });
+ it('allows comparable direction conflict only after study model is explicitly extracted',()=>{
+  const identity={
+   registryType:'not-reported' as const,registryId:null,
+   publicationRole:'primary-report' as const,populationModel:'primary-cells' as const,
+   diseaseGroup:'cystic-fibrosis' as const,ageGroup:'not-reported' as const,
+   cohortLabel:null,populationDescription:null,sourceLocator:'Original methods section'
+  };
+  const result=run([{...base,studyIdentity:identity},{...other,studyIdentity:identity}]);
+  expect(result.issues.some(i=>i.kind==='cross-study-opposition')).toBe(true);
  });
  it('distinguishes genotype-scope differences from directly comparable disagreement',()=>{
   const result=run([base,{...other,scope:'genotype-specific',genotypePair:['18','19']}]);
