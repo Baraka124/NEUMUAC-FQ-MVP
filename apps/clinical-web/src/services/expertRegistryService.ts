@@ -2,6 +2,7 @@ import type {ReadOnlyConfig,ReadSessionProvider} from './liveVariants';
 import {validateReadOnlyConfig,VariantConnectionError} from './liveVariants';
 import type {ExpertExtraction,ExpertAdjudication} from '../domain/expertBenchmarkAdjudication';
 import type {AttestedBenchmarkMapping} from '../domain/scientificBenchmarkComparison';
+import {PUBLISHED_CFTR_REFERENCE_CASES} from '../domain/publishedCftrReferenceCases';
 
 /** 14H200. Authenticated transport for a server-side researcher registry.
  * The RPC is a strict deployment prerequisite. This client DOES NOT create
@@ -29,14 +30,71 @@ function verifiedRecord(raw:unknown,caseId:string,variantId:string):ExpertRegist
   !(raw.adjudication===null||isObject(raw.adjudication))||
   !(raw.mapping===null||isObject(raw.mapping)))
   throw new VariantConnectionError('schema-mismatch','Unverified expert review registry response');
- // This parser checks structural envelope only; the trusted RPC must enforce
- // actor ownership, reviewer separation, append-only audit and exact provenance.
+ // The backend owns reviewer identity, timestamps and authorization. Still
+ // reject tampered/partial responses before they reach the research engine.
+ const publication=PUBLISHED_CFTR_REFERENCE_CASES.find(p=>p.id===caseId);
+ const timestamp=(v:unknown):v is string=>
+  typeof v==='string'&&Number.isFinite(Date.parse(v))&&v.length<=64;
+ const scienceText=(v:unknown,min=3,max=1200):v is string=>
+  typeof v==='string'&&v.trim()===v&&v.length>=min&&v.length<=max&&
+  !/[\\u0000-\\u001f\\u007f]/.test(v);
+ const findings=new Set(['supports','does-not-support','inconclusive','not-assessable']);
+ const reviewerIds=new Set<string>();
+ if(!publication)throw new VariantConnectionError('schema-mismatch','Unknown expert reference case');
+ for(const record of raw.extracts){
+  if(!isObject(record)||record.caseId!==caseId||record.variantId!==variantId||
+   record.pmid!==publication.pmid||!UUID.test(String(record.reviewerId))||
+   !timestamp(record.submittedAt)||!scienceText(record.sourceLocator,3,240)||
+   !scienceText(record.genotypeContext,3,300)||!scienceText(record.endpoint,3,160)||
+   !scienceText(record.modelOrCohort,3,300)||!scienceText(record.methodNotes,3,1200)||
+   !findings.has(String(record.finding))||
+   !(record.claimId===null||UUID.test(String(record.claimId)))||
+   reviewerIds.has(String(record.reviewerId)))
+   throw new VariantConnectionError('schema-mismatch','Unverified expert extraction record');
+  reviewerIds.add(String(record.reviewerId));
+ }
+ if(raw.adjudication){
+  const a=raw.adjudication;
+  const accepted=Array.isArray(a.acceptedReviewerIds)?a.acceptedReviewerIds:[];
+  if(raw.extracts.length!==2||a.caseId!==caseId||a.variantId!==variantId||
+   !UUID.test(String(a.adjudicatorId))||reviewerIds.has(String(a.adjudicatorId))||
+   !timestamp(a.submittedAt)||!findings.has(String(a.finalFinding))||
+   !scienceText(a.sourceLocator,3,240)||!scienceText(a.justification,20,1200)||
+   accepted.length!==2||new Set(accepted).size!==2||
+   !accepted.every(x=>typeof x==='string'&&reviewerIds.has(x)))
+   throw new VariantConnectionError('schema-mismatch','Unverified independent adjudication');
+ }
+ if(raw.mapping){
+  const m=raw.mapping;
+  const acceptedFindings=['reported-response','reported-no-response','mixed','inconclusive'];
+  if(raw.extracts.length!==2||m.caseId!==caseId||m.variantId!==variantId||
+   m.mappingVersion!==1||!UUID.test(String(m.platformClaimId))||
+   !UUID.test(String(m.attestedBy))||reviewerIds.has(String(m.attestedBy))||
+   (raw.adjudication&&m.attestedBy===raw.adjudication.adjudicatorId)||
+   !timestamp(m.attestedAt)||!findings.has(String(m.expertFinding))||
+   !acceptedFindings.includes(String(m.claimFinding))||
+   !(m.expertReportedFinding===null||
+     acceptedFindings.includes(String(m.expertReportedFinding)))||
+   !scienceText(m.genotypeContext,3,300)||!scienceText(m.endpointCode,3,80)||
+   !scienceText(m.endpointTimepoint,3,80)||!scienceText(m.sourceLocator,3,240))
+   throw new VariantConnectionError('schema-mismatch','Unverified scientific comparison mapping');
+ }
+
  const audit=raw.audit as unknown[];
  if(audit.some(e=>!isObject(e)||!UUID.test(String(e.eventId))||
   !UUID.test(String(e.actorId))||
   !['extraction-submitted','adjudication-submitted','mapping-attested'].includes(String(e.action))||
-  typeof e.at!=='string'||!Number.isFinite(Date.parse(e.at))))
+  !timestamp(e.at)))
   throw new VariantConnectionError('schema-mismatch','Malformed expert audit trail');
+ const eventRows=audit as Record<string,unknown>[];
+ if(new Set(eventRows.map(e=>e.eventId)).size!==eventRows.length||
+  eventRows.length!==raw.extracts.length+(raw.adjudication?1:0)+(raw.mapping?1:0)||
+  [...reviewerIds].some(id=>!eventRows.some(e=>e.action==='extraction-submitted'&&e.actorId===id))||
+  (raw.adjudication&&!eventRows.some(e=>e.action==='adjudication-submitted'&&
+    e.actorId===raw.adjudication?.adjudicatorId))||
+  (raw.mapping&&!eventRows.some(e=>e.action==='mapping-attested'&&
+    e.actorId===raw.mapping?.attestedBy)))
+  throw new VariantConnectionError('schema-mismatch','Expert review audit does not match submissions');
  return Object.freeze({
   caseId,variantId,
   extracts:Object.freeze(raw.extracts as ExpertExtraction[]),
