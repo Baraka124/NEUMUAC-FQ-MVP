@@ -35,6 +35,11 @@ const sidebarAccessSummary=computed(()=>({
 function workspaceTarget(path:string){return connectedResearchDestination(path,{path:route.path,fullPath:route.fullPath,query:route.query});}
 function goToShortcut(path:string){closeLauncher();void router.push(workspaceTarget(path));}
 const isHome = computed(() => route.path==='/workspace');
+const activeWorkspaceLabel=computed(()=>{
+ if(route.path==='/admin')return accountWorkspaceTitle.value;
+ if(route.path.startsWith('/variants/'))return 'Variant dossier';
+ return availableSections.find(item=>item.path===route.path)?.name??'Research workspace';
+});
 const isOuterEntry = computed(() => route.path==='/' || route.path==='/sign-in' || route.path==='/activate' || route.path==='/recover');
 const researchTheme=ref<ResearchTheme>('light');
 function switchResearchTheme():void{
@@ -188,6 +193,8 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
             <span>{{ mobileMenuOpen ? 'Close menu' : 'Workspaces' }}</span>
           </button>
           <RouterLink class="header-path header-overview-link" to="/workspace" aria-label="Research overview">Research</RouterLink>
+          <span class="nfq-editorial-crumb-divider" aria-hidden="true">/</span>
+          <span class="nfq-editorial-crumb-current" aria-current="page">{{activeWorkspaceLabel}}</span>
         </div>
         <RouterLink class="nfq-phone-wordmark" to="/workspace" aria-label="neumuacFQ research overview"><strong>neumuac<span>FQ</span></strong></RouterLink>
         <button type="button" class="workspace-launcher-trigger" @click="openLauncher" aria-label="Open workspace switcher"><svg class="nfq-phone-launcher-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><span>Switch workspace</span><kbd>Ctrl K</kbd></button>
