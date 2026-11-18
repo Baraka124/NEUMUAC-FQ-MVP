@@ -1,0 +1,161 @@
+/*
+ * E01 · neumAC-FQ clinical editorial foundation.
+ * A token-based optical refinement of the existing proven Vue shell.
+ * Scientific states, mutation badges, original static index and middleware
+ * are intentionally not styled here. E02 owns component-specific controls.
+ */
+.app-frame[data-nfq-theme="light"]{
+ --ed-paper:#fff;
+ --ed-canvas:#f7f8fa;
+ --ed-ink:#172238;
+ --ed-secondary:#485a70;
+ --ed-muted:#62728a;
+ --ed-line:#e6eaf0;
+ --ed-line-strong:#cad4e2;
+ --ed-accent:#245bb0;
+ --ed-hover:#f3f6fa;
+ --ed-side:#111a2b;
+ --ed-side-text:#e9eff8;
+ --ed-side-muted:#adbbce;
+ --nfq-ui-text:#172238;
+ --nfq-ui-secondary:#485a70;
+ --nfq-ui-hairline:#e6eaf0;
+ --nfq-ui-focus:#245bb0;
+ --nfq-ui-canvas:#f7f8fa;
+ --nfq-ui-paper:#fff;
+ --nfq-ui-hover:#f3f6fa;
+ --nfq-ui-radius:6px;
+ --nfq-ui-control-height:36px;
+ color:var(--nfq-ui-text);
+ background:var(--nfq-ui-canvas);
+}
+.app-frame[data-nfq-theme="midnight"]{
+ --nfq-ui-text:#e4ebf7;
+ --nfq-ui-secondary:#b1bfd3;
+ --nfq-ui-hairline:#34435a;
+ --nfq-ui-focus:#9abcf4;
+ --nfq-ui-canvas:#111925;
+ --nfq-ui-paper:#182337;
+ --nfq-ui-hover:#24334c;
+ --nfq-ui-radius:6px;
+ --nfq-ui-control-height:36px;
+}
+.app-frame{
+ --nfq-ui-font:'IBM Plex Sans',Inter,'Segoe UI',system-ui,sans-serif;
+ --nfq-ui-display:'IBM Plex Sans',Inter,'Segoe UI',system-ui,sans-serif;
+ font-family:var(--nfq-ui-font);
+ font-kerning:normal;
+ font-optical-sizing:auto;
+ font-feature-settings:'kern' 1,'liga' 1;
+ line-height:1.48;
+ -webkit-font-smoothing:antialiased;
+ text-rendering:optimizeLegibility;
+}
+.app-frame :is(button,input,textarea,select){
+ font-family:var(--nfq-ui-font);
+ font-synthesis:none;
+}
+.app-frame :is(input,textarea,select){
+ caret-color:var(--nfq-ui-focus);
+}
+.app-frame :is(button,[role="button"],a,input,textarea,select,summary):focus-visible{
+ outline:2px solid var(--nfq-ui-focus)!important;
+ outline-offset:2px!important;
+}
+.app-frame :is(button,[role="button"],a,summary):focus-visible{
+ border-radius:var(--nfq-ui-radius);
+}
+.app-frame :is(button,input,textarea,select):disabled{
+ cursor:not-allowed;
+}
+.app-frame .page :is(h1,h2,h3),
+.app-frame .workspace-frame :is(.nfq-editorial-crumb-current,.nfq-gov-header h1){
+ font-family:var(--nfq-ui-display);
+ font-synthesis:none;
+ text-wrap:pretty;
+}
+.app-frame .page h1{
+ font-weight:620;
+ letter-spacing:-.047em;
+}
+.app-frame .page h2{
+ font-weight:620;
+ letter-spacing:-.028em;
+}
+.app-frame .page h3{
+ font-weight:620;
+ letter-spacing:-.022em;
+}
+.app-frame :is(.page,.workspace-frame) :is(.eyebrow,.section-label,.nfq-gov-kicker,.nfq-gov-label){
+ letter-spacing:.035em!important;
+ text-transform:none;
+}
+.app-frame :is(.page,.workspace-frame) :is(.record-total,.intelligence-metrics,.nfq-dossier-classification-strip){
+ font-variant-numeric:tabular-nums;
+}
+.app-frame[data-nfq-theme="light"] .workspace-frame{
+ background:var(--nfq-ui-canvas)!important;
+}
+.app-frame[data-nfq-theme="light"] .institution-header{
+ background:var(--nfq-ui-paper)!important;
+ border-bottom-color:var(--nfq-ui-hairline)!important;
+}
+.app-frame[data-nfq-theme="light"] .sidebar{
+ background:var(--ed-side)!important;
+ color:var(--ed-side-text)!important;
+}
+.app-frame[data-nfq-theme="light"] .workspace-frame>.page-footer{
+ background:var(--nfq-ui-paper)!important;
+ color:var(--nfq-ui-secondary)!important;
+ border-top-color:var(--nfq-ui-hairline)!important;
+ box-shadow:none!important;
+}
+.app-frame[data-nfq-theme="light"] .page :is(.surface,.record-overview,.record-section,.record-rail,.nfq-gov-identity,.nfq-gov-access,.nfq-gov-review){
+ background:var(--nfq-ui-paper)!important;
+ border-color:var(--nfq-ui-hairline)!important;
+ box-shadow:none!important;
+}
+.app-frame .workspace-frame .page :is(.surface,.record-overview,.record-section,.record-rail){
+ border-radius:var(--nfq-ui-radius);
+}
+.app-frame .page :is(input[type="search"],input[type="text"],input[type="email"],input[type="number"],input[type="password"],select,textarea){
+ max-width:100%;
+ letter-spacing:0;
+ border-radius:var(--nfq-ui-radius);
+}
+.app-frame[data-nfq-theme="light"] .page :is(input[type="search"],input[type="text"],input[type="email"],input[type="number"],input[type="password"],select,textarea):not(:disabled){
+ border-color:var(--nfq-ui-hairline);
+}
+.app-frame[data-nfq-theme="light"] .page :is(input[type="search"],input[type="text"],input[type="email"],input[type="number"],input[type="password"],select,textarea):hover:not(:disabled){
+ border-color:#aabbd2;
+}
+.app-frame .page :is(button,[role="button"]){
+ transition:background-color 130ms ease,border-color 130ms ease,color 130ms ease,box-shadow 130ms ease;
+}
+.app-frame .page button:active:not(:disabled){
+ transform:translateY(.5px);
+}
+.app-frame .page :is(button,input,select,textarea):focus-visible{
+ box-shadow:0 0 0 3px rgba(36,91,176,.11);
+}
+.app-frame[data-nfq-theme="light"] .page :is(.nfq-governance-page,.nfq-governance-page h1,.nfq-governance-page h2,.nfq-governance-page h3){
+ color:var(--nfq-ui-text)!important;
+}
+.app-frame[data-nfq-theme="light"] .page :is(.nfq-gov-header p,.nfq-gov-quiet-note,.nfq-gov-capability-copy p,.intro){
+ color:var(--nfq-ui-secondary)!important;
+}
+/* Small screens keep deliberate finger targets while retaining compact optics. */
+@media(max-width:760px){
+ .app-frame{--nfq-ui-control-height:40px}
+ .app-frame .workspace-frame>main{
+  padding-inline:clamp(14px,3.6vw,20px)!important;
+ }
+ .app-frame .page :is(button,input,select,summary){
+  touch-action:manipulation;
+ }
+}
+/* Avoid interrupting clinical tasks with nonessential movement. */
+@media(prefers-reduced-motion:reduce){
+ .app-frame .page :is(button,[role="button"]){transition:none!important}
+ .app-frame .page button:active:not(:disabled){transform:none}
+}
