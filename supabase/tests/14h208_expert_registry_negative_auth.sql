@@ -14,7 +14,7 @@ begin
  if v_oid is null then raise exception 'Missing versioned expert reference RPC';end if;
  select p.prosecdef,p.proconfig into v_secdef,v_path
  from pg_proc p where p.oid=v_oid;
- if v_secdef is distinct from true or not ('search_path='=any(v_path))
+ if v_secdef is distinct from true or not coalesce('search_path='=any(v_path),false)
   then raise exception 'Registry RPC security context is not pinned';end if;
  if has_function_privilege('anon',v_oid,'EXECUTE')
   then raise exception 'Anonymous role unexpectedly has RPC execute access';end if;
