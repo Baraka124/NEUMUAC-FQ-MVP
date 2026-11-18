@@ -1,0 +1,419 @@
+/*
+ * 14H196 — Editorial research system / unified presentation layer
+ *
+ * One final optical system for the MODERN research workspace.
+ * Loaded last, after the historical incremental CSS layers. Does not touch
+ * the standalone original HTML, database statuses, scientific semantics,
+ * auth, requests, reviewers, exports or responsive interactive logic.
+ *
+ * Design: near-white paper, original deep-ink/sidebar signature, original
+ * precise electric-blue accent, restrained information density. Daylight
+ * and Midnight retain their distinct contrast treatments. Controls are
+ * optical furniture, not a field of filled cards.
+ */
+.app-frame{
+ --ed-paper:#ffffff;
+ --ed-canvas:#f6f7f9;
+ --ed-ink:#14233c;
+ --ed-secondary:#465973;
+ --ed-muted:#687b92;
+ --ed-line:#e2e7ee;
+ --ed-line-strong:#cad5e3;
+ --ed-accent:#2b66bb;
+ --ed-hover:#f2f5fa;
+ --ed-side:#0c1422;
+ --ed-side-text:#dbe5f2;
+ --ed-side-muted:#96abc5;
+ --ed-radius:5px;
+ --ed-text:13px;
+ --ed-heading:clamp(29px,2.45vw,38px);
+ font-family:'IBM Plex Sans',Inter,'Segoe UI',system-ui,sans-serif;
+ font-size:var(--ed-text);
+ line-height:1.48;
+ letter-spacing:-.008em;
+ color:var(--ed-ink);
+ background:var(--ed-canvas);
+ font-synthesis:none;
+}
+.app-frame .workspace-frame{
+ min-width:0;min-height:100vh;
+ background:var(--ed-canvas)!important;color:var(--ed-ink)!important;
+}
+.app-frame .workspace-frame>main{
+ min-width:0;flex:1 0 auto;
+ padding:clamp(18px,2.4vw,34px) clamp(18px,3vw,46px) 32px!important;
+ background:transparent!important;
+}
+.app-frame .workspace-frame>main>.page{
+ width:100%;max-width:none;min-width:0;
+ padding-top:0!important;margin-top:0!important;
+}
+.app-frame .workspace-frame>main>.page:is(.evidence-page,.intelligence-page,.genotype-page,.nfq-governance-page){
+ max-width:1480px;
+}
+.app-frame .page :is(h1,h2,h3){
+ text-wrap:pretty;overflow-wrap:anywhere;
+}
+.app-frame .page h1,
+.app-frame .variant-page .variant-heading h1,
+.app-frame .nfq-evidence-heading h1,
+.app-frame .nfq-gov-header h1,
+.app-frame .helios-head h1{
+ color:var(--ed-ink)!important;
+ font-family:'IBM Plex Sans',Inter,'Segoe UI',system-ui,sans-serif;
+ font-size:var(--ed-heading)!important;
+ line-height:1.1!important;
+ font-weight:620!important;
+ letter-spacing:-.052em!important;
+}
+.app-frame .page h2,
+.app-frame .nfq-gov-header h2,
+.app-frame .variant-page .rail-topline h2{
+ color:var(--ed-ink)!important;letter-spacing:-.035em!important;
+}
+.app-frame .page :is(.eyebrow,.section-label,.nfq-gov-kicker,.nfq-gov-label,.sidebar-caption){
+ font-weight:640!important;letter-spacing:.095em!important;
+ font-size:10px!important;color:var(--ed-muted)!important;
+}
+.app-frame .page :is(p,.nfq-mechanism-note,.nfq-home-research-note){
+ text-wrap:pretty;
+}
+/* Research shell: reduced margins, no monumental navigation blocks. */
+@media(min-width:761px){
+ .app-frame:not(.sidebar-collapsed){grid-template-columns:clamp(218px,16.5vw,252px) minmax(0,1fr)!important}
+ .app-frame.sidebar-collapsed{grid-template-columns:68px minmax(0,1fr)!important}
+ .app-frame .sidebar{
+  background:var(--ed-side)!important;color:var(--ed-side-text)!important;
+  padding:22px 12px 15px!important;
+  border-right:1px solid #28374e!important;
+ }
+ .app-frame .sidebar .wordmark{
+  margin:0 0 17px!important;padding:8px 9px 19px!important;
+  gap:10px!important;border-bottom:1px solid #2b3850!important;
+ }
+ .app-frame .wordmark-icon{
+  width:36px!important;height:36px!important;min-width:36px;
+  border:1px solid rgba(177,196,222,.26)!important;
+  background:rgba(255,255,255,.025)!important;
+  border-radius:6px!important;box-shadow:none!important;
+ }
+ .app-frame .wordmark-icon img{max-width:100%;max-height:100%;object-fit:contain}
+ .app-frame .wordmark-text strong{font-size:16px!important;letter-spacing:-.045em!important;font-weight:690!important;color:#fff!important}
+ .app-frame .wordmark-text small{font-size:10px!important;letter-spacing:0!important;color:var(--ed-side-muted)!important}
+ .app-frame .sidebar-caption{padding-left:12px!important;margin:6px 0 8px!important;color:#8ea4c0!important}
+ .app-frame .workspace-nav{gap:2px!important}
+ .app-frame .workspace-nav a,.app-frame .staff-access-link{
+  min-height:39px!important;padding:8px 11px!important;
+  border:1px solid transparent!important;border-radius:5px!important;
+  background:transparent!important;box-shadow:none!important;
+  color:#afc0d5!important;font-size:12px!important;
+  font-weight:480!important;letter-spacing:0!important;
+  transition:background .14s ease,color .14s ease;
+ }
+ .app-frame .workspace-nav a:hover,.app-frame .staff-access-link:hover{
+  background:#16243a!important;color:#fff!important;
+ }
+ .app-frame .workspace-nav a[aria-current="page"],
+ .app-frame .workspace-nav a.router-link-exact-active,
+ .app-frame .workspace-nav a.variant-route-active{
+  color:#fff!important;background:#1c2d48!important;
+  font-weight:610!important;border-color:#293f5c!important;
+  box-shadow:inset 2px 0 #78a9ff!important;
+ }
+ .app-frame .workspace-nav a .nav-glyph,.app-frame .staff-access-link .nav-glyph{
+  width:17px!important;height:17px!important;opacity:.74;
+  stroke:currentColor!important;
+ }
+ .app-frame .workspace-nav a[aria-current="page"] .nav-glyph,
+ .app-frame .workspace-nav a.variant-route-active .nav-glyph{opacity:1;stroke:#a9c7ff!important}
+ .app-frame .sidebar-toggle{
+  width:26px!important;height:26px!important;top:25px!important;right:-13px!important;
+  border-radius:5px!important;background:#fff!important;
+  color:#35516e!important;border:1px solid #cbd6e5!important;box-shadow:0 2px 8px rgba(9,20,38,.08)!important;
+ }
+ .app-frame .sidebar-base{padding:17px 11px 0!important;color:var(--ed-side-muted)!important;font-size:10.5px!important}
+ .app-frame .sidebar-rule{background:#2b3850!important}
+ .app-frame.sidebar-collapsed .sidebar{padding-inline:7px!important}
+ .app-frame.sidebar-collapsed .sidebar .wordmark{justify-content:center;padding:8px 0 18px!important}
+ .app-frame.sidebar-collapsed .workspace-nav a{padding:8px!important;justify-content:center}
+}
+/* Product toolbar: a single quiet horizontal rule. */
+.app-frame .institution-header{
+ height:61px!important;min-height:61px!important;
+ padding:0 clamp(18px,3vw,46px)!important;
+ background:var(--ed-paper)!important;
+ border-bottom:1px solid var(--ed-line)!important;
+ box-shadow:none!important;
+ color:var(--ed-ink)!important;
+}
+.app-frame .header-location,.app-frame .nfq-header-right{min-width:0}
+.app-frame .header-path{
+ color:var(--ed-muted)!important;font-size:11.5px!important;
+ font-weight:550!important;text-decoration:none!important;
+ letter-spacing:.01em;
+}
+.app-frame .workspace-launcher-trigger,
+.app-frame .nfq-theme-switch{
+ border:1px solid var(--ed-line-strong)!important;
+ border-radius:5px!important;min-height:34px!important;height:34px!important;
+ padding:5px 10px!important;
+ background:transparent!important;box-shadow:none!important;
+ color:var(--ed-secondary)!important;font-size:11px!important;font-weight:540!important;
+}
+.app-frame .workspace-launcher-trigger:hover,
+.app-frame .nfq-theme-switch:hover{
+ background:var(--ed-hover)!important;border-color:#b7c8de!important;color:var(--ed-accent)!important;
+}
+.app-frame .workspace-launcher-trigger kbd{
+ border:0!important;background:transparent!important;
+ color:var(--ed-muted)!important;font-size:10px!important;
+}
+.app-frame .nfq-header-profile-mark{
+ border-radius:5px!important;box-shadow:none!important;
+}
+.app-frame .nfq-header-right .nfq-header-signout{border-radius:5px!important}
+/* Panel grammar: white book pages and hairlines, never giant dashboard tiles. */
+.app-frame .page :is(
+ .surface,.record-overview,.record-rail,.nfq-therapy,
+ .nfq-gov-identity,.nfq-gov-access,.nfq-gov-review,
+ .nfq-batch,.nfq-visit-session,.nfq-home-discovery
+){
+ background:var(--ed-paper)!important;
+ border:1px solid var(--ed-line)!important;
+ border-radius:6px!important;
+ box-shadow:none!important;
+}
+.app-frame .page :is(.nfq-batch,.nfq-visit-session,.nfq-gov-identity,.nfq-gov-access,.nfq-gov-review){
+ padding:clamp(14px,1.5vw,22px)!important;
+ margin-bottom:12px!important;
+}
+.app-frame .page :is(.variant-heading,.nfq-evidence-heading,.nfq-gov-header){
+ padding:0 0 14px!important;margin:0 0 16px!important;
+ gap:10px 20px!important;
+ border-bottom:1px solid var(--ed-line)!important;
+}
+.app-frame .page .nfq-gov-header>div{min-width:0}
+.app-frame .page :is(.intro,.nfq-gov-header p,.nfq-mechanism-note){
+ color:var(--ed-secondary)!important;
+}
+/* Restrained control vocabulary. Do not recolor scientific status chips,
+   clinical response badges, evidence semantics or alerts. */
+.app-frame .page button:not(.discovery-info-button):not(.nfq-context-help-trigger),
+.app-frame .page input,
+.app-frame .page select,
+.app-frame .page textarea{
+ font-family:inherit;letter-spacing:0;
+ box-shadow:none;
+}
+.app-frame .page :is(input[type="text"],input[type="search"],input[type="email"],input[type="number"],select){
+ border-radius:5px;max-width:100%;
+}
+.app-frame .page :is(.nfq-saved-trigger,.nfq-batch-toggle,.nfq-session-toggle,.variant-filter-trigger,.nfq-science-clear,.nfq-coverage-refresh,.nfq-coverage-clear){
+ border-radius:5px!important;min-height:35px!important;height:auto!important;
+ padding:6px 10px!important;background:transparent!important;box-shadow:none!important;
+}
+.app-frame .page :is(.nfq-saved-trigger,.nfq-batch-toggle,.nfq-session-toggle,.variant-filter-trigger):hover{
+ background:var(--ed-hover)!important;
+}
+.app-frame .page :is(.nfq-research-trail,.nfq-home-links){
+ border-color:var(--ed-line)!important;
+}
+.app-frame .page a:not(.router-link-exact-active){text-underline-offset:3px}
+.app-frame .page :is(.nfq-home-links a,.nfq-research-trail a){
+ font-size:12px!important;font-weight:540!important;color:var(--ed-accent)!important;
+}
+/* Overview: an editorial research landing, not a center-screen white card. */
+.app-frame .research-home.nfq-workspace-home{
+ width:100%!important;max-width:1160px!important;min-height:0;
+ padding:clamp(8px,2vw,24px) 0 0!important;
+}
+.app-frame .research-home .research-home-intro{
+ max-width:850px!important;margin:0 0 clamp(30px,4vw,52px)!important;
+}
+.app-frame .research-home .research-home-intro .eyebrow{
+ margin-bottom:13px!important;
+}
+.app-frame .research-home .research-home-intro h1{
+ font-size:clamp(37px,4.5vw,62px)!important;
+ font-weight:570!important;letter-spacing:-.064em!important;
+ line-height:1.06!important;margin:0 0 15px!important;
+ max-width:850px;
+}
+.app-frame .research-home .research-home-intro .intro{
+ color:var(--ed-secondary)!important;
+ font-size:14px!important;line-height:1.65!important;
+ max-width:560px!important;
+}
+.app-frame .research-home .nfq-home-discovery{
+ max-width:840px!important;padding:clamp(18px,2.4vw,32px)!important;
+ background:var(--ed-paper)!important;border-radius:6px!important;
+}
+.app-frame .research-home .nfq-home-discovery-heading h2{
+ font-size:clamp(19px,2.2vw,25px)!important;
+ font-weight:580!important;line-height:1.2!important;
+ margin:4px 0 22px!important;
+}
+.app-frame .research-home .nfq-home-read-status{
+ background:transparent!important;border-color:var(--ed-line)!important;
+ padding:3px 7px!important;font-weight:480!important;
+ color:var(--ed-muted)!important;font-size:10px!important;
+}
+.app-frame .research-home .nfq-home-search-form label{
+ color:var(--ed-secondary)!important;font-size:11.5px!important;font-weight:550!important;
+}
+.app-frame .research-home .nfq-home-search-controls{
+ max-width:575px!important;gap:8px!important;
+}
+.app-frame .research-home .nfq-home-search-controls input{
+ height:40px!important;min-height:40px!important;
+ border:1px solid var(--ed-line-strong)!important;
+ border-radius:5px!important;background:var(--ed-paper)!important;
+ color:var(--ed-ink)!important;font-size:13px!important;
+}
+.app-frame .research-home .nfq-home-search-controls button{
+ height:40px!important;min-height:40px!important;
+ padding:7px 13px!important;border:1px solid var(--ed-line-strong)!important;
+ background:transparent!important;color:var(--ed-accent)!important;
+ border-radius:5px!important;font-size:11.5px!important;font-weight:570!important;
+}
+.app-frame .research-home .nfq-home-search-controls button:hover{background:var(--ed-hover)!important}
+.app-frame .research-home .nfq-home-links{margin-top:24px!important;padding-top:16px!important;gap:11px 26px!important}
+.app-frame .research-home .nfq-home-research-note{
+ max-width:850px!important;margin:17px 0 0!important;
+ font-size:11.5px!important;color:var(--ed-muted)!important;
+}
+/* Evidence behaves as a scholarly register, not a stack of callout cards. */
+.app-frame .evidence-page .evidence-register{
+ background:var(--ed-paper);border:1px solid var(--ed-line);
+ border-radius:6px;overflow:hidden;
+}
+.app-frame .evidence-page .evidence-row{
+ background:transparent!important;border:0!important;border-bottom:1px solid var(--ed-line)!important;
+ border-radius:0!important;padding:clamp(12px,1.4vw,18px)!important;box-shadow:none!important;
+}
+.app-frame .evidence-page .evidence-row:last-child{border-bottom:0!important}
+.app-frame .evidence-page .evidence-row h2{
+ margin:4px 0!important;font-size:15px!important;font-weight:570!important;line-height:1.35!important;
+}
+.app-frame .evidence-page .evidence-row-disclosure{
+ background:transparent!important;box-shadow:none!important;
+ padding:3px 0!important;min-height:28px!important;line-height:1.4;
+ border:0!important;text-align:left;
+ color:var(--ed-ink)!important;font-size:inherit!important;font-weight:inherit!important;
+}
+.app-frame .evidence-page .evidence-row-disclosure:hover{color:var(--ed-accent)!important}
+.app-frame .evidence-page .evidence-row-meta{font-size:10.5px!important;color:var(--ed-muted)!important}
+.app-frame .evidence-page .nfq-evidence-heading{padding-bottom:15px!important}
+.app-frame .evidence-page :is(.nfq-evidence-curation,.nfq-evidence-reconciliation){
+ border-radius:6px!important;box-shadow:none!important;
+}
+/* Variant search/dossier should fill the available space and start at the top. */
+.app-frame .variant-page .record-layout{
+ min-width:0;width:100%;align-items:start;gap:clamp(12px,1.6vw,22px)!important;
+}
+.app-frame .variant-page .record-rail{box-shadow:none!important}
+.app-frame .variant-page .record-overview{box-shadow:none!important}
+.app-frame .variant-page .discovery-input{
+ border-radius:5px!important;box-shadow:none!important;max-width:100%!important;
+}
+.app-frame .variant-page .discovery-utility-row{gap:5px 7px!important;align-items:center}
+.app-frame .variant-page .rail-topline{margin-bottom:10px!important}
+.app-frame .variant-page .variant-heading h1{margin-top:0!important}
+.app-frame .variant-page .nfq-dossier-group-title{
+ font-weight:580!important;letter-spacing:-.027em!important;
+}
+/* Research mechanism and appraisals: quiet, reviewable reading panes. */
+.app-frame .nfq-mechanism-workspace :is(.nfq-molecular-record,.nfq-provenance-path,.nfq-study-synthesis-row),
+.app-frame .nfq-mechanism-matrix{
+ box-shadow:none!important;
+}
+.app-frame .nfq-mechanism-workspace :is(.nfq-evidence-dimensions,.nfq-published-cases) summary{
+ font-size:11.5px!important;font-weight:580!important;color:var(--ed-secondary)!important;
+}
+.app-frame .nfq-published-cases{border-color:var(--ed-line)!important}
+.app-frame .nfq-published-inspection{gap:9px!important;max-width:720px}
+/* Popovers and launcher: tiny, readable, never promotional. */
+.app-frame .workspace-launcher{
+ border-radius:8px!important;
+ border:1px solid var(--ed-line-strong)!important;
+ box-shadow:0 20px 54px rgba(12,23,42,.18)!important;
+}
+.app-frame .launcher-options button{border-radius:5px!important}
+/* Footer is a low-contrast institutional folio. */
+.app-frame .page-footer{
+ border-top:1px solid var(--ed-line)!important;
+ background:var(--ed-canvas)!important;
+ color:var(--ed-muted)!important;
+ font-size:10px!important;letter-spacing:.01em!important;
+}
+/* Original Midnight: dark neutral stage, dark panels and quiet cobalt;
+   not simply daylight CSS forced over the existing theme. */
+.app-frame[data-nfq-theme="midnight"]{
+ --ed-paper:#0f1d30;
+ --ed-canvas:#05091a;
+ --ed-ink:#edf3ff;
+ --ed-secondary:#b1c3dc;
+ --ed-muted:#95aac7;
+ --ed-line:rgba(125,155,204,.22);
+ --ed-line-strong:rgba(141,172,221,.34);
+ --ed-accent:#a4c6ff;
+ --ed-hover:#182b45;
+ color:var(--ed-ink);
+}
+.app-frame[data-nfq-theme="midnight"] .workspace-frame{
+ background:var(--ed-canvas)!important;color:var(--ed-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] :is(.institution-header,.page-footer){
+ background:var(--ed-paper)!important;border-color:var(--ed-line)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .page-footer{background:var(--ed-canvas)!important}
+.app-frame[data-nfq-theme="midnight"] .page :is(
+ .surface,.record-overview,.record-rail,.nfq-therapy,
+ .nfq-gov-identity,.nfq-gov-access,.nfq-gov-review,
+ .nfq-batch,.nfq-visit-session,.nfq-home-discovery,
+ .evidence-register
+){
+ background:var(--ed-paper)!important;border-color:var(--ed-line)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .research-home .nfq-home-search-controls input{
+ background:#0a182a!important;color:#eef5ff!important;border-color:var(--ed-line-strong)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .evidence-page .evidence-row{
+ border-color:var(--ed-line)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .evidence-page .evidence-row-disclosure{
+ color:var(--ed-ink)!important;
+}
+.app-frame[data-nfq-theme="midnight"] .page :is(.nfq-home-links a,.nfq-research-trail a){
+ color:var(--ed-accent)!important;
+}
+/* Mobile: keep thumb-sized touch controls, no overflow/hidden controls.
+   The phone-native navigation is retained, not replaced. */
+@media(max-width:760px){
+ .app-frame .institution-header{
+  height:56px!important;min-height:56px!important;
+  padding:0 12px!important;
+ }
+ .app-frame .workspace-frame>main{padding:14px 13px 28px!important}
+ .app-frame .workspace-frame>main>.page{padding-top:0!important;min-width:0}
+ .app-frame .research-home .research-home-intro{margin-bottom:25px!important}
+ .app-frame .research-home .research-home-intro h1{
+  font-size:clamp(33px,8vw,44px)!important;
+ }
+ .app-frame .research-home .nfq-home-discovery{padding:17px 15px!important}
+ .app-frame .research-home .nfq-home-search-controls{
+  grid-template-columns:minmax(0,1fr);max-width:100%!important;
+ }
+ .app-frame .research-home .nfq-home-search-controls input{
+  font-size:16px!important;min-height:44px!important;height:44px!important;
+ }
+ .app-frame .research-home .nfq-home-search-controls button{min-height:42px!important;height:42px!important}
+ .app-frame .page :is(.nfq-saved-trigger,.nfq-batch-toggle,.nfq-session-toggle,.variant-filter-trigger){
+  min-height:40px!important;
+ }
+ .app-frame .page :is(.nfq-batch,.nfq-visit-session,.nfq-gov-identity,.nfq-gov-access,.nfq-gov-review){padding:14px!important}
+ .app-frame .evidence-page .evidence-row{padding:13px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .app-frame .workspace-nav a,.app-frame :is(button,a){transition:none!important}
+}
