@@ -149,8 +149,8 @@ begin
    where case_id=p_case_id and variant_id=p_variant_id order by submitted_at,id offset 1 limit 1;
   if v_a.id is null or v_b.id is null or v_actor in (v_a.reviewer_id,v_b.reviewer_id)
    then raise exception 'Two other independent reviewers required' using errcode='42501';end if;
-  v_is_disputed:=(v_a.finding,v_a.genotype_context,v_a.endpoint,v_a.model_or_cohort,v_a.claim_id)
-   is distinct from (v_b.finding,v_b.genotype_context,v_b.endpoint,v_b.model_or_cohort,v_b.claim_id);
+  v_is_disputed:=(v_a.finding,v_a.genotype_context,v_a.endpoint,v_a.model_or_cohort,v_a.claim_id,v_a.source_locator)
+   is distinct from (v_b.finding,v_b.genotype_context,v_b.endpoint,v_b.model_or_cohort,v_b.claim_id,v_b.source_locator);
   if not v_is_disputed then raise exception 'There is no scientific disagreement to adjudicate' using errcode='22023';end if;
   if jsonb_typeof(v_payload)<>'object' or
    (select count(*) from jsonb_object_keys(v_payload))<>6 or
@@ -252,9 +252,9 @@ begin
      join nfq_evidence_review.expert_reference_extractions y
        on x.case_id=y.case_id and x.variant_id=y.variant_id and x.id<y.id
      where x.case_id=p_case_id and x.variant_id=p_variant_id
-      and (x.finding,x.genotype_context,x.endpoint,x.model_or_cohort,x.claim_id)
+      and (x.finding,x.genotype_context,x.endpoint,x.model_or_cohort,x.claim_id,x.source_locator)
        is distinct from
-          (y.finding,y.genotype_context,y.endpoint,y.model_or_cohort,y.claim_id))
+          (y.finding,y.genotype_context,y.endpoint,y.model_or_cohort,y.claim_id,y.source_locator))
   then raise exception 'Unadjudicated scientific context disagreement'
     using errcode='22023';end if;
   -- Never accept mapping to an unverified source locator.
