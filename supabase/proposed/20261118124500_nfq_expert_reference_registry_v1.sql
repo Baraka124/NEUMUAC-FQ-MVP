@@ -96,6 +96,8 @@ begin
    and role in ('contributor','reviewer','administrator');
  if v_role is null then
   raise exception 'Active scientific research membership required' using errcode='42501';end if;
+ -- The RPC serves a research-only registry, not a shared peer-answer feed:
+ -- no member may see another review before the second review is submitted.
  if p_variant_id is null or p_variant_id<1
   or not exists(select 1 from public.variants where id=p_variant_id)
  then raise exception 'Unknown variant' using errcode='22023';end if;
@@ -301,7 +303,12 @@ begin
    'claimId',e.claim_id::text,'methodNotes',e.method_notes)
    order by e.submitted_at,e.id),'[]'::jsonb) into v_extracts
  from nfq_evidence_review.expert_reference_extractions e
- where e.case_id=p_case_id and e.variant_id=p_variant_id;
+ where e.case_id=p_case_id and e.variant_id=p_variant_id
+   -- Until both reviews are committed, never disclose another scientist's
+   -- unpublished interpretation through list or write-response snapshots.
+   and (e.reviewer_id=v_actor or
+      (select count(*) from nfq_evidence_review.expert_reference_extractions c
+       where c.case_id=p_case_id and c.variant_id=p_variant_id)=2);
  select jsonb_build_object('caseId',a.case_id,'variantId',a.variant_id::text,
    'adjudicatorId',a.adjudicator_id::text,'submittedAt',a.submitted_at,
    'finalFinding',a.final_finding,'sourceLocator',a.source_locator,
@@ -320,7 +327,10 @@ begin
   'action',a.action,'actorId',a.actor_id::text,'at',a.at) order by a.at,a.event_id),
   '[]'::jsonb) into v_audit
  from nfq_evidence_review.expert_reference_audit a
- where a.case_id=p_case_id and a.variant_id=p_variant_id;
+ where a.case_id=p_case_id and a.variant_id=p_variant_id
+  and (a.actor_id=v_actor or
+     (select count(*) from nfq_evidence_review.expert_reference_extractions c
+      where c.case_id=p_case_id and c.variant_id=p_variant_id)=2);
  return jsonb_build_object('source','nfq-authenticated-expert-registry-v1',
   'caseId',p_case_id,'variantId',p_variant_id::text,
   'extracts',v_extracts,'adjudication',v_adjudication,'mapping',v_mapping,'audit',v_audit);
