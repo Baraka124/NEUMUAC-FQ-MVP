@@ -3,7 +3,7 @@ import {createExpertRegistryService} from './expertRegistryService';
 import type {ReadOnlyConfig,ReadSessionProvider} from './liveVariants';
 
 const config:ReadOnlyConfig={
- endpoint:'https://research-example.supabase.co',publishableKey:'research-publishable',
+ endpoint:'https://research-example.supabase.co',publishableKey:'sb_publishable_research_test_only',
  enabled:true,accessMode:'authenticated'
 };
 // Construct a non-secret structural token only during the test; never embed a JWT-like literal.
