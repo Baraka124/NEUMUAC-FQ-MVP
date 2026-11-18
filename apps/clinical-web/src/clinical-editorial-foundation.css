@@ -6,7 +6,7 @@
  */
 .app-frame[data-nfq-theme="light"]{
  --ed-paper:#fff;
- --ed-canvas:#f7f8fa;
+ --ed-canvas:#f4f5f7;
  --ed-ink:#172238;
  --ed-secondary:#485a70;
  --ed-muted:#62728a;
@@ -14,14 +14,14 @@
  --ed-line-strong:#cad4e2;
  --ed-accent:#245bb0;
  --ed-hover:#f3f6fa;
- --ed-side:#111a2b;
+ --ed-side:#0c1422;
  --ed-side-text:#e9eff8;
  --ed-side-muted:#adbbce;
  --nfq-ui-text:#172238;
  --nfq-ui-secondary:#485a70;
  --nfq-ui-hairline:#e6eaf0;
  --nfq-ui-focus:#245bb0;
- --nfq-ui-canvas:#f7f8fa;
+ --nfq-ui-canvas:#f4f5f7;
  --nfq-ui-paper:#fff;
  --nfq-ui-hover:#f3f6fa;
  --nfq-ui-radius:6px;
@@ -158,4 +158,12 @@
 @media(prefers-reduced-motion:reduce){
  .app-frame .page :is(button,[role="button"]){transition:none!important}
  .app-frame .page button:active:not(:disabled){transform:none}
+}
+
+/* E01 regression correction: these explicit original visual contracts are
+ * protected by desktop/mobile Playwright checks. */
+.app-frame[data-nfq-theme="light"] .sidebar{background:#0c1422!important}
+.app-frame[data-nfq-theme="light"] .workspace-frame{background:#f4f5f7!important}
+.app-frame[data-nfq-theme="light"] .variant-page .record-rail :is(.variant-filter-trigger,.nfq-saved-trigger){
+ background:transparent!important;transition:none!important;
 }
