@@ -104,6 +104,26 @@ describe('14H186 research register gap map',()=>{
   expect(()=>buildCrossVariantGapMap({...input,persisted:[{
    ...approved,reviewSeals:[approved.reviewSeals[0]!,approved.reviewSeals[0]!]
   }]})).toThrow();
+  // Approval status alone is not evidence: the exact review audit and original
+  // approved publication must also be independently verifiable.
+  expect(()=>buildCrossVariantGapMap({...input,persisted:[{
+   ...approved,reviewAudit:[approved.reviewAudit[0]!]
+  }]})).toThrow();
+  expect(()=>buildCrossVariantGapMap({...input,persisted:[{
+   ...approved,reviewAudit:[
+    {decision:'reject' as const,note:'Original publication does not support the claim.',at:'2026-11-17T13:00:00Z'},
+    approved.reviewAudit[1]!
+   ]
+  }]})).toThrow();
+  expect(()=>buildCrossVariantGapMap({...input,persisted:[approved],
+   firstReferences:[]})).toThrow();
+  expect(()=>buildCrossVariantGapMap({...input,persisted:[approved],
+   firstClaims:[claim('18',{status:'superseded',reviewCount:0,reviewedAt:null,reviewSeals:[]})]
+  })).toThrow();
+  expect(()=>buildCrossVariantGapMap({...input,persisted:[
+   approved,{...approved,id:'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',revision:2,
+    parentId:approved.id}
+  ]})).toThrow();
  });
  it('fails closed on cross-variant provenance or orphaned mechanism drafts',()=>{
   expect(()=>buildCrossVariantGapMap({...input,
