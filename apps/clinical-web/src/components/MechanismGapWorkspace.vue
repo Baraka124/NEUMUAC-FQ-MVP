@@ -496,6 +496,27 @@ function removeDraft(index:number):void{
          <li v-for="limitation in cell.experimentalAppraisal.limitations" :key="limitation">{{limitation}}</li>
         </ul>
        </details>
+       <details class="nfq-evidence-dimensions" data-testid="nfq-cross-study-synthesis">
+        <summary>Cross-study synthesis · {{cell.crossStudySynthesis.studies.length}} study clusters · {{cell.crossStudySynthesis.issues.length}} review questions</summary>
+        <p class="nfq-mechanism-note">Research source register only · no pooled effect,
+         proven replication or automatic treatment conclusion.</p>
+        <div v-for="study in cell.crossStudySynthesis.studies" :key="study.key" class="nfq-study-synthesis-row">
+         <strong>{{study.sourceReferenceIds.length}} source reference{{study.sourceReferenceIds.length===1?'':'s'}} · {{study.claimIds.length}} reviewed observation{{study.claimIds.length===1?'':'s'}}</strong>
+         <p class="nfq-mechanism-note">{{study.findings.join(' / ')}} ·
+          {{study.populationModels.join(', ')}} · {{study.scopeKeys.join(', ')}}</p>
+         <p class="nfq-mechanism-note">Study cluster {{study.key}} ·
+          source claims {{study.claimIds.map(id=>id.slice(0,8)).join(', ')}}</p>
+        </div>
+        <div v-for="(issue,index) in cell.crossStudySynthesis.issues"
+         :key="issue.kind+':'+index" class="nfq-study-synthesis-row">
+         <strong>{{issue.kind.replaceAll('-',' ')}}</strong>
+         <p>{{issue.question}}</p>
+         <p class="nfq-mechanism-note">Original reference IDs:
+          {{issue.referenceIds.join(', ')}} · reviewed claims:
+          {{issue.claimIds.map(id=>id.slice(0,8)).join(', ')}}</p>
+         <p class="nfq-mechanism-note">Independent scientific reconciliation required.</p>
+        </div>
+       </details>
        <details>
         <summary>{{cell.gaps.length}} register gap{{cell.gaps.length===1?'':'s'}}</summary>
         <ul><li v-for="gap in cell.gaps" :key="gap">{{gapLabel(gap)}}</li></ul>
@@ -616,6 +637,8 @@ function removeDraft(index:number):void{
 .nfq-mechanism details{font-size:10px;margin-top:4px}
 .nfq-mechanism summary{cursor:pointer}
 .nfq-mechanism li{margin:5px 0}
+.nfq-study-synthesis-row{padding:7px 0;border-top:1px solid var(--border,#dde7ef);overflow-wrap:anywhere}
+.nfq-study-synthesis-row p{margin:4px 0}
 .nfq-evidence-dimensions dl{display:grid;grid-template-columns:minmax(85px,1fr) minmax(0,1.4fr);gap:5px 8px;margin:7px 0;font-size:10px;line-height:1.45}
 .nfq-evidence-dimensions dt{color:var(--text-muted,#6b839b)}
 .nfq-evidence-dimensions dd{margin:0;overflow-wrap:anywhere}
