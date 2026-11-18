@@ -162,6 +162,9 @@ describe('14H189 source-grounded experimental evidence appraisal',()=>{
   expect(result.mixedOrInconclusiveClusters).toBe(1);
   expect(result.directionallyDiscordant).toBe(false);
   expect(result.proposedReplication).toBe('not-established-by-record-count');
+  expect(result.studyMethods.inVitro).toBe(2);
+  expect(result.variantScopes.singleVariant).toBe(2);
+  expect(result.mechanisticDirectness).toBe('requires-source-specific-appraisal');
   expect(result.causalInterpretation).toBe('not-assessed');
  });
  it('flags separate opposing study clusters without inferring superiority',()=>{
