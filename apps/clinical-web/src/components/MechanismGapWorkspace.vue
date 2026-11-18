@@ -393,6 +393,14 @@ function removeDraft(index:number):void{
           {{cell.experimentalAppraisal.unextractedEndpoints}} unextracted</dd>
          <dt>Comparators recorded</dt>
          <dd>{{cell.experimentalAppraisal.comparatorSpecified}} claims</dd>
+         <dt>Source observation method</dt>
+         <dd>{{cell.experimentalAppraisal.studyMethods.clinical}} clinical ·
+          {{cell.experimentalAppraisal.studyMethods.inVitro}} laboratory ·
+          {{cell.experimentalAppraisal.studyMethods.curatedLiterature}} literature</dd>
+         <dt>Variant / genotype scope</dt>
+         <dd>{{cell.experimentalAppraisal.variantScopes.singleVariant}} single variant ·
+          {{cell.experimentalAppraisal.variantScopes.genotypeSpecific}} genotype-specific</dd>
+         <dt>Direct mechanistic evidence</dt><dd>Requires source-specific appraisal</dd>
          <dt>Source-reported directions</dt>
          <dd>{{cell.experimentalAppraisal.reportedPositiveClusters}} response ·
           {{cell.experimentalAppraisal.reportedNegativeClusters}} nonresponse ·
