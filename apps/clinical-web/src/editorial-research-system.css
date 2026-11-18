@@ -451,3 +451,183 @@
  .app-frame .research-home .nfq-home-discovery{max-width:780px!important}
  .app-frame .research-home .nfq-home-search-controls{max-width:540px!important}
 }
+
+
+/* 14H197 — page-specific editorial composition.
+ * All scoped to research workspaces. No changes to the variant search,
+ * original five-therapy dossier, home control, login or semantic statuses. */
+
+/* A consistent top-of-document hierarchy across independent modules. */
+.app-frame .page:is(.genotype-page,.intelligence-page,.nfq-audit-page,.nfq-governance-page,.helios-workspace)
+ :is(.nfq-pair-heading,.nfq-coverage-heading,.nfq-audit-head,.nfq-gov-header,.helios-head){
+ display:flex;align-items:flex-start;justify-content:space-between;
+ flex-wrap:wrap;gap:12px 18px;
+ margin:0 0 18px!important;
+ padding:0 0 17px!important;
+ border-bottom:1px solid var(--ed-line)!important;
+ min-width:0;
+}
+.app-frame .page:is(.genotype-page,.intelligence-page,.nfq-audit-page,.nfq-governance-page,.helios-workspace)
+ :is(.nfq-pair-heading,.nfq-coverage-heading,.nfq-audit-head,.nfq-gov-header,.helios-head) h1{
+ margin:0!important;color:var(--ed-ink)!important;
+ font-size:var(--ed-heading)!important;font-weight:620!important;
+ letter-spacing:-.052em!important;line-height:1.1!important;
+}
+.app-frame .nfq-audit-head p,.app-frame .nfq-gov-header p{
+ max-width:620px;margin:8px 0 0!important;
+ color:var(--ed-secondary)!important;font-size:12.5px!important;
+ line-height:1.6!important;
+}
+.app-frame .nfq-audit-eyebrow,.app-frame .nfq-audit-label{
+ font-size:10px!important;letter-spacing:.095em!important;
+ font-weight:640!important;color:var(--ed-muted)!important;
+}
+.app-frame .nfq-audit-head h1,.app-frame .nfq-gov-header h1{margin-top:6px!important}
+.app-frame .genotype-page .nfq-pair-heading-actions{
+ display:flex;flex-wrap:wrap;align-items:center;gap:7px!important;
+ max-width:100%;
+}
+.app-frame .genotype-page .nfq-pair-heading-actions button{
+ background:transparent!important;border:1px solid var(--ed-line-strong)!important;
+ border-radius:5px!important;box-shadow:none!important;
+ min-height:40px!important;padding:8px 10px!important;
+ color:var(--ed-accent)!important;font-size:11.5px!important;
+ font-weight:550!important;
+}
+/* Two research columns share one reading geometry, no oversized empty gulf. */
+.app-frame .genotype-page .genotype-comparison{
+ gap:clamp(14px,1.9vw,26px)!important;
+ margin:16px 0 22px!important;align-items:start;
+}
+.app-frame .genotype-page .genotype-locus{
+ padding:15px clamp(13px,1.5vw,20px) 18px!important;
+ border:1px solid var(--ed-line)!important;
+ border-top:2px solid var(--ed-line-strong)!important;
+ border-radius:5px!important;background:var(--ed-paper)!important;
+ box-shadow:none!important;min-width:0;
+}
+.app-frame .genotype-page .genotype-topline{
+ margin-bottom:10px!important;min-height:23px;
+}
+.app-frame .genotype-page .genotype-locus label{
+ margin:9px 0 7px!important;font-size:11.5px!important;
+ color:var(--ed-secondary)!important;font-weight:550!important;
+}
+.app-frame .genotype-page .genotype-locus input[type="search"]{
+ max-width:420px!important;width:100%;min-height:42px!important;
+ border:1px solid var(--ed-line-strong)!important;
+ border-radius:5px!important;box-shadow:none!important;
+ background:var(--ed-paper)!important;color:var(--ed-ink)!important;
+}
+.app-frame .genotype-page .genotype-locus .genotype-fields{
+ border-color:var(--ed-line)!important;
+}
+.app-frame .genotype-page .genotype-locus h2{font-size:clamp(18px,2vw,25px)!important}
+
+/* Coverage reads as statistics plus compact filter rows, not four colorful CTAs. */
+.app-frame .intelligence-page .intelligence-metrics{
+ gap:12px!important;padding:16px 0!important;margin:0 0 21px!important;
+ border-top:0!important;border-bottom:1px solid var(--ed-line)!important;
+}
+.app-frame .intelligence-page .intelligence-metrics>div{
+ min-width:0;gap:3px!important;padding-right:12px;
+}
+.app-frame .intelligence-page .intelligence-metrics strong{
+ font-variant-numeric:tabular-nums;
+ color:var(--ed-ink)!important;letter-spacing:-.045em!important;
+ font-size:clamp(22px,2.5vw,31px)!important;font-weight:600!important;
+}
+.app-frame .intelligence-page .intelligence-metrics span{
+ color:var(--ed-muted)!important;font-size:11px!important;
+}
+.app-frame .intelligence-page .nfq-coverage-groups{
+ gap:7px!important;margin:10px 0 19px!important;
+}
+.app-frame .intelligence-page .nfq-coverage-groups button{
+ min-height:53px!important;padding:10px 12px!important;
+ background:transparent!important;border:1px solid var(--ed-line)!important;
+ border-radius:5px!important;color:var(--ed-secondary)!important;
+ box-shadow:none!important;font-size:11.5px!important;
+}
+.app-frame .intelligence-page .nfq-coverage-groups button strong{
+ color:var(--ed-ink)!important;font-size:15px!important;font-weight:600!important;
+}
+.app-frame .intelligence-page .nfq-coverage-groups button[aria-pressed="true"]{
+ border-color:var(--ed-line-strong)!important;
+ box-shadow:inset 2px 0 var(--ed-accent)!important;
+ background:var(--ed-hover)!important;
+}
+.app-frame .intelligence-page .nfq-coverage-search input[type="search"]{
+ max-width:440px!important;border-color:var(--ed-line-strong)!important;
+ background:var(--ed-paper)!important;color:var(--ed-ink)!important;
+}
+
+/* Reports and governance use manuscript sections and concise action alignment. */
+.app-frame .nfq-audit-page .nfq-audit-picker{
+ max-width:790px!important;padding:18px clamp(15px,2vw,24px)!important;
+ background:var(--ed-paper)!important;border:1px solid var(--ed-line)!important;
+ border-radius:5px!important;box-shadow:none!important;
+}
+.app-frame .nfq-audit-page .nfq-audit-picker-head{
+ gap:8px 16px;flex-wrap:wrap;
+}
+.app-frame .nfq-audit-page .nfq-audit-picker-head h2{
+ color:var(--ed-ink)!important;font-weight:600!important;
+ font-size:17px!important;
+}
+.app-frame .nfq-audit-page .nfq-audit-picker-head span{
+ color:var(--ed-muted)!important;font-size:10px!important;
+}
+.app-frame .nfq-audit-page .nfq-audit-search-row{max-width:510px!important}
+.app-frame .nfq-audit-page .nfq-audit-search-row input{
+ min-width:0;border-color:var(--ed-line-strong)!important;
+ border-radius:5px!important;background:var(--ed-paper)!important;
+}
+.app-frame .nfq-governance-page .nfq-gov-identity,
+.app-frame .nfq-governance-page .nfq-gov-access,
+.app-frame .nfq-governance-page .nfq-gov-review{
+ border-radius:5px!important;box-shadow:none!important;
+}
+.app-frame .nfq-governance-page .nfq-gov-capability{
+ padding:13px 0!important;gap:12px 22px!important;
+ border-color:var(--ed-line)!important;
+}
+.app-frame .nfq-governance-page .nfq-gov-capability-copy strong{
+ font-weight:600!important;color:var(--ed-ink)!important;
+}
+.app-frame .nfq-governance-page .nfq-gov-capability-copy p{
+ color:var(--ed-muted)!important;
+}
+/* Helios should read as an editorial review navigator, not stacked tiles. */
+.app-frame .helios-workspace{
+ max-width:1380px!important;margin-inline:0!important;
+}
+.app-frame .helios-workspace .helios-panel{
+ background:var(--ed-paper)!important;border:1px solid var(--ed-line)!important;
+ border-radius:5px!important;box-shadow:none!important;
+ grid-template-columns:minmax(178px,216px) minmax(0,1fr);
+}
+.app-frame .helios-workspace .helios-area-nav{
+ border-color:var(--ed-line)!important;
+}
+.app-frame .helios-workspace .helios-area-intro h2{
+ font-size:clamp(18px,2vw,23px)!important;
+ color:var(--ed-ink)!important;letter-spacing:-.035em!important;
+}
+@media(max-width:800px){
+ .app-frame .genotype-page .genotype-comparison{gap:13px!important}
+ .app-frame .helios-workspace .helios-panel{grid-template-columns:minmax(0,1fr)}
+ .app-frame .intelligence-page .nfq-coverage-groups{gap:7px!important}
+}
+@media(max-width:600px){
+ .app-frame .page:is(.genotype-page,.intelligence-page,.nfq-audit-page,.nfq-governance-page,.helios-workspace)
+ :is(.nfq-pair-heading,.nfq-coverage-heading,.nfq-audit-head,.nfq-gov-header,.helios-head){
+  padding-bottom:12px!important;margin-bottom:13px!important;
+ }
+ .app-frame .genotype-page .genotype-comparison{grid-template-columns:minmax(0,1fr)!important}
+ .app-frame .genotype-page .genotype-locus{padding:14px!important}
+ .app-frame .genotype-page .genotype-locus input[type="search"]{font-size:16px!important}
+ .app-frame .intelligence-page .intelligence-metrics{gap:12px 8px!important}
+ .app-frame .intelligence-page .nfq-coverage-groups button{min-height:44px!important}
+ .app-frame .nfq-audit-page .nfq-audit-picker{padding:15px!important}
+}
