@@ -74,7 +74,7 @@ export function preflightScientificReferences(
     'incompatible-source-evidence':'review-records-complete-not-externally-validated';
   if(state==='review-records-complete-not-externally-validated')++complete;
   results.push(Object.freeze({
-   caseId:id.split(':')[0]!,variantId:registry.variantId,pmid:challenge.pmid,
+   caseId:registry.caseId,variantId:registry.variantId,pmid:challenge.pmid,
    state,comparison:comparison.status,blockingReasons:Object.freeze(reasons),
    externalScientificValidation:false as const,eligibleForClinicalDecision:false as const
   }));
