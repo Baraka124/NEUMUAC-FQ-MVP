@@ -1,4 +1,4 @@
-import type {BlindedReviewBatch,BlindedReferencePacket} from './blindedReferenceProtocol';
+import type {BlindedReviewBatch} from './blindedReferenceProtocol';
 import {PUBLISHED_CFTR_REFERENCE_CASES} from './publishedCftrReferenceCases';
 
 /** 14H211 · Human study-operation handoff, NOT submitted expert reviews.
