@@ -39,7 +39,7 @@ function verifiedRecord(raw:unknown,caseId:string,variantId:string):ExpertRegist
   typeof v==='string'&&Number.isFinite(Date.parse(v))&&v.length<=64;
  const scienceText=(v:unknown,min=3,max=1200):v is string=>
   typeof v==='string'&&v.trim()===v&&v.length>=min&&v.length<=max&&
-  !/[\\u0000-\\u001f\\u007f]/.test(v);
+  !/[\u0000-\u001f\u007f]/.test(v);
  const findings=new Set(['supports','does-not-support','inconclusive','not-assessable']);
  const reviewerIds=new Set<string>();
  if(!publication)throw new VariantConnectionError('schema-mismatch','Unknown expert reference case');
