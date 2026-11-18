@@ -22,6 +22,8 @@ import './original-workflow-parity.css';
 import './premium-visual-finish.css';
 import './premium-control-coherence.css';
 import './editorial-research-system.css';
+// E01 design foundation remains last: optical tokens without clinical data changes.
+import './clinical-editorial-foundation.css';
 import {authController} from './services/authSession';
 import {refreshResearcherRole} from './services/researchRole';
 import {refreshGuestDesignation} from './services/guestDesignation';
