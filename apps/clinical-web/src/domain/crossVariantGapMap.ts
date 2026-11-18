@@ -3,6 +3,7 @@ import type {LiveEvidenceReference} from '../services/liveEvidence';
 import {THERAPIES,type CoreModulatorId} from './therapyRegistry';
 import type {MolecularReviewRecord} from '../services/molecularReviewService';
 import {molecularProvenancePath} from './researchReviewQueue';
+import {appraiseExperimentalEvidence,type ExperimentalEvidenceAppraisal} from './experimentalEvidenceAppraisal';
 import {MECHANISM_CATEGORIES,type MechanismAnnotationDraft,type MechanismCategory} from './mechanismAnnotationDraft';
 
 /** Gap means "not represented by an approved structured source observation
@@ -19,6 +20,7 @@ export interface GapMapCell{
  readonly mechanismProposalCount:number;
  readonly approvedMolecularAnnotations:number;
  /** Orthogonal register descriptors, never a numeric biological confidence score. */
+ readonly experimentalAppraisal:ExperimentalEvidenceAppraisal;
  readonly evidenceDimensions:{
   readonly sourceCoverage:'no-reviewed-source'|'reviewed-source-present';
   readonly experimentalExtraction:'no-endpoint'|'endpoint-without-model'|'endpoint-and-model-reported';
@@ -101,6 +103,7 @@ function sourceCells(variantId:string,claims:readonly CuratedSourceClaim[],
    endpointObserved:endpoint,explicitStudyContext:context,
    mechanismProposalCount:associated.length,
    approvedMolecularAnnotations:adjudicated.length,
+   experimentalAppraisal:appraiseExperimentalEvidence({variantId,therapy,claims,references}),
    evidenceDimensions:Object.freeze({
     sourceCoverage:rows.length?'reviewed-source-present' as const:'no-reviewed-source' as const,
     experimentalExtraction:!endpoint?'no-endpoint' as const:

@@ -380,6 +380,40 @@ function removeDraft(index:number):void{
          <dd>Not assessed by this register — no causal proof inferred</dd>
         </dl>
        </details>
+       <details class="nfq-evidence-dimensions" data-testid="nfq-experimental-appraisal">
+        <summary>Experimental appraisal · extracted records</summary>
+        <dl>
+         <dt>Source references / study clusters</dt>
+         <dd>{{cell.experimentalAppraisal.distinctSourceReferences}} / {{cell.experimentalAppraisal.studyClusters}}</dd>
+         <dt>Study populations / models</dt>
+         <dd>{{cell.experimentalAppraisal.populationModels.join(', ')||'Not recorded'}}</dd>
+         <dt>Measured endpoints</dt>
+         <dd>{{cell.experimentalAppraisal.numericEndpoints}} numeric ·
+          {{cell.experimentalAppraisal.qualitativeEndpoints}} qualitative ·
+          {{cell.experimentalAppraisal.unextractedEndpoints}} unextracted</dd>
+         <dt>Comparators recorded</dt>
+         <dd>{{cell.experimentalAppraisal.comparatorSpecified}} claims</dd>
+         <dt>Source observation method</dt>
+         <dd>{{cell.experimentalAppraisal.studyMethods.clinical}} clinical ·
+          {{cell.experimentalAppraisal.studyMethods.inVitro}} laboratory ·
+          {{cell.experimentalAppraisal.studyMethods.curatedLiterature}} literature</dd>
+         <dt>Variant / genotype scope</dt>
+         <dd>{{cell.experimentalAppraisal.variantScopes.singleVariant}} single variant ·
+          {{cell.experimentalAppraisal.variantScopes.genotypeSpecific}} genotype-specific</dd>
+         <dt>Direct mechanistic evidence</dt><dd>Requires source-specific appraisal</dd>
+         <dt>Source-reported directions</dt>
+         <dd>{{cell.experimentalAppraisal.reportedPositiveClusters}} response ·
+          {{cell.experimentalAppraisal.reportedNegativeClusters}} nonresponse ·
+          {{cell.experimentalAppraisal.mixedOrInconclusiveClusters}} mixed/inconclusive</dd>
+         <dt>Replication</dt><dd>Not established by report counts</dd>
+         <dt>Mechanistic causality</dt><dd>Not assessed</dd>
+        </dl>
+        <p v-if="cell.experimentalAppraisal.directionallyDiscordant" class="nfq-mechanism-note">
+         Opposing reported study directions; independent reconciliation required.</p>
+        <ul v-if="cell.experimentalAppraisal.limitations.length">
+         <li v-for="limitation in cell.experimentalAppraisal.limitations" :key="limitation">{{limitation}}</li>
+        </ul>
+       </details>
        <details>
         <summary>{{cell.gaps.length}} register gap{{cell.gaps.length===1?'':'s'}}</summary>
         <ul><li v-for="gap in cell.gaps" :key="gap">{{gapLabel(gap)}}</li></ul>
