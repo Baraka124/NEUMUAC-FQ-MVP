@@ -195,6 +195,22 @@ begin
     v_payload->>'caseId'<>p_case_id or v_payload->>'variantId'<>p_variant_id::text or
     v_payload->>'mappingVersion'<>'1'
   then raise exception 'Mapping not linked to reviewed source claim' using errcode='22023';end if;
+  -- Exact bibliographic/variant identity is mandatory; never map an
+  -- unrelated study just because it shares a variant or therapy label.
+  if not exists(select 1 from public.evidence_links r
+    where r.id=v_claim.reference_id and r.variant_id=p_variant_id
+      and r.pmid=v_pmid
+      and r.url='https://pubmed.ncbi.nlm.nih.gov/'||v_pmid||'/')
+  then raise exception 'Source claim does not point to the anchored original publication'
+    using errcode='22023';end if;
+  -- The synonymous complex-allele paper is not modulator efficacy evidence.
+  if p_case_id='c1584ga-complex-allele-splicing-2020' then
+   raise exception 'Complex-allele mechanism source must not be converted to a therapy response mapping'
+    using errcode='22023';end if;
+  if p_case_id in ('g551d-ivacaftor-2011','phe508del-mf-eti-2019')
+    and v_claim.scope<>'genotype-specific'
+  then raise exception 'Clinical trial comparison requires genotype-specific scope'
+    using errcode='22023';end if;
   -- The consensus, if any, must match the attested expert finding.
   -- If an adjudication exists, its final finding supersedes incompatible reviews.
   if exists(select 1 from nfq_evidence_review.expert_reference_adjudications a
