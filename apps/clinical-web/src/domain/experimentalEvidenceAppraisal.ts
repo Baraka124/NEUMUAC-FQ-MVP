@@ -19,6 +19,9 @@ export interface ExperimentalEvidenceAppraisal {
  readonly qualitativeEndpoints:number;
  readonly unextractedEndpoints:number;
  readonly comparatorSpecified:number;
+ readonly studyMethods:{readonly clinical:number;readonly inVitro:number;readonly curatedLiterature:number};
+ readonly variantScopes:{readonly singleVariant:number;readonly genotypeSpecific:number};
+ readonly mechanisticDirectness:'requires-source-specific-appraisal';
  readonly reportedPositiveClusters:number;
  readonly reportedNegativeClusters:number;
  readonly mixedOrInconclusiveClusters:number;
@@ -86,6 +89,16 @@ export function appraiseExperimentalEvidence(input:{
   numericEndpoints:numeric,qualitativeEndpoints:qualitative,
   unextractedEndpoints:rows.length-numeric-qualitative,
   comparatorSpecified:rows.filter(c=>c.endpoint&&c.endpoint.comparator!=='not-reported').length,
+  studyMethods:Object.freeze({
+   clinical:rows.filter(c=>c.method==='clinical-study').length,
+   inVitro:rows.filter(c=>c.method==='in-vitro-study').length,
+   curatedLiterature:rows.filter(c=>c.method==='curated-literature').length
+  }),
+  variantScopes:Object.freeze({
+   singleVariant:rows.filter(c=>c.scope==='single-variant').length,
+   genotypeSpecific:rows.filter(c=>c.scope==='genotype-specific').length
+  }),
+  mechanisticDirectness:'requires-source-specific-appraisal' as const,
   reportedPositiveClusters:positive,reportedNegativeClusters:negative,
   mixedOrInconclusiveClusters:indeterminate,
   directionallyDiscordant:positive>0&&negative>0,
