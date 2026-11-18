@@ -118,7 +118,8 @@ export function synthesizeReviewedStudies(input:{
   const models=new Set(paired.map(c=>c.studyIdentity?.populationModel??'not-reported'));
   const methods=new Set(paired.map(c=>c.method));
   const kind:SynthesisIssueKind=scopes.size>1?'genotype-scope-mismatch':
-   models.size>1||methods.size>1?'population-or-assay-mismatch':'cross-study-opposition';
+   models.size>1||models.has('not-reported')||methods.size>1||
+   methods.has('curated-literature')?'population-or-assay-mismatch':'cross-study-opposition';
   const key=kind+':'+paired.map(c=>c.id).sort().join(':');
   if(seen.has(key))continue;seen.add(key);
   issues.push(issue(kind,paired,kind==='cross-study-opposition'?
