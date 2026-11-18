@@ -86,8 +86,17 @@ export function compareExpertWithPlatform(input:{
  }
  if(!input.extracts.every(e=>exact(e.genotypeContext,m.genotypeContext)))
   problems.push('Expert genotype descriptions do not match mapping');
- if(!input.extracts.every(e=>exact(e.sourceLocator,m.sourceLocator)))
-  problems.push('Source locators do not match mapping');
+ if(benchmark.disagreements.some(field=>
+  field==='endpoint'||field==='modelOrCohort'||field==='genotypeContext'))
+  problems.push('Disputed experimental cohort or endpoint cannot be normalized by finding-only adjudication');
+ // When two reviewers cite different locations, only the independently
+ // adjudicated locator may ground the mapping. Keep all other scope conflicts
+ // incompatible: an adjudicator's finding does not rewrite the trial design.
+ const reviewerLocatorsAgree=input.extracts.every(e=>exact(e.sourceLocator,m.sourceLocator));
+ if(!reviewerLocatorsAgree&&
+  !(input.adjudication&&benchmark.disagreements.includes('sourceLocator')&&
+    exact(input.adjudication.sourceLocator,m.sourceLocator)))
+  problems.push('Mapped source locator lacks reviewer consensus or adjudicator reconciliation');
  if(problems.length)return answer('incompatible-evidence',problems,claim.id,claim.finding);
  // A human must explicitly map the expert-reviewed observation to the source
  // finding vocabulary. We never equate "supports" with a treatment response.
