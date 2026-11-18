@@ -1,0 +1,156 @@
+/*
+ * E02 · Precision controls and navigation furniture
+ * Strongest visual choices remain reserved for clinical meaning; controls stay
+ * quiet, purposeful and keyboard-accessible. No DOM, data or behavior changes.
+ */
+.app-frame{
+ --nfq-control-border:#c9d4e2;
+ --nfq-control-border-hover:#9eb4d1;
+ --nfq-control-ink:#29486d;
+ --nfq-control-accent:#275cae;
+ --nfq-control-hover:rgba(39,92,174,.045);
+ --nfq-control-pressed:rgba(39,92,174,.09);
+ --nfq-control-track:#edf1f6;
+}
+.app-frame[data-nfq-theme="midnight"]{
+ --nfq-control-border:#3c4b64;
+ --nfq-control-border-hover:#6b89b6;
+ --nfq-control-ink:#d9e6fa;
+ --nfq-control-accent:#aac8f8;
+ --nfq-control-hover:rgba(171,197,239,.085);
+ --nfq-control-pressed:rgba(171,197,239,.13);
+ --nfq-control-track:#29374e;
+}
+/* Refine explicitly known controls, leaving scientific classifications and
+ * therapy-response signals in their own domain-owned styles. */
+.app-frame .page :is(
+ .nfq-batch-toggle,.nfq-session-toggle,.nfq-saved-trigger,
+ .variant-filter-trigger,.nfq-pair-retry,.nfq-coverage-clear,
+ .nfq-audit-retry,.nfq-home-links a
+){
+ font-family:var(--nfq-ui-font);
+ font-weight:590;
+ letter-spacing:-.007em;
+ border-radius:5px;
+ box-shadow:none;
+}
+.app-frame .page :is(.variant-filter-trigger,.nfq-saved-trigger){
+ background:transparent!important;
+}
+.app-frame .variant-page :is(.variant-filter-trigger,.nfq-saved-trigger,.nfq-batch-toggle,.nfq-session-toggle){
+ min-height:40px;
+ max-height:44px;
+ padding:7px 10px;
+ box-shadow:none!important;
+}
+.app-frame .variant-page .discovery-input{
+ border-radius:6px;
+ transition:border-color .14s ease,box-shadow .14s ease;
+}
+.app-frame .variant-page .discovery-input:focus-within{
+ border-color:var(--nfq-control-border-hover);
+ box-shadow:0 0 0 3px rgba(39,92,174,.085);
+}
+.app-frame .variant-page .discovery-input input#search{
+ min-height:40px;
+ line-height:1.45;
+ letter-spacing:0;
+}
+.app-frame .variant-page .discovery-utility-row{
+ align-items:center;
+ gap:8px;
+}
+.app-frame .variant-page .variant-filter-panel{
+ border-radius:7px;
+ box-shadow:0 15px 42px rgba(17,30,55,.1);
+}
+.app-frame .variant-page .variant-filter-panel :is(select,input){
+ border-radius:5px;
+}
+.app-frame .variant-page .variant-filter-panel :is(button,select):focus-visible{
+ outline:2px solid var(--nfq-ui-focus)!important;
+ outline-offset:2px!important;
+}
+.app-frame .page :is(.nfq-saved-trigger,.nfq-batch-toggle,.nfq-session-toggle,.variant-filter-trigger):hover:not(:disabled){
+ color:var(--nfq-control-accent);
+ border-color:var(--nfq-control-border-hover);
+}
+.app-frame .page :is(.nfq-saved-trigger,.nfq-batch-toggle,.nfq-session-toggle,.variant-filter-trigger)[aria-pressed="true"],
+.app-frame .page .variant-filter-trigger[aria-expanded="true"]{
+ color:var(--nfq-control-accent);
+ border-color:var(--nfq-control-border-hover);
+}
+.app-frame .launcher-search{
+ border-radius:7px;
+}
+.app-frame .launcher-search input[type="search"]{
+ font-weight:450;
+ letter-spacing:-.005em;
+}
+.app-frame .launcher-options button{
+ text-align:left;
+ border-radius:5px;
+ transition:background-color .14s ease,border-color .14s ease;
+}
+.app-frame .launcher-options button:focus-visible{
+ outline:2px solid var(--nfq-ui-focus)!important;
+ outline-offset:2px;
+}
+.app-frame .research-home .nfq-home-search-controls{
+ gap:8px;
+}
+.app-frame .research-home .nfq-home-search-controls input{
+ border-radius:6px;
+ letter-spacing:0;
+}
+.app-frame .research-home .nfq-home-search-controls button{
+ border-radius:5px;
+ font-weight:610;
+}
+.app-frame .intelligence-page .nfq-coverage-search input[type="search"],
+.app-frame .genotype-page .genotype-locus input[type="search"],
+.app-frame .nfq-audit-page .nfq-audit-search-row input{
+ border-radius:6px;
+ max-width:100%;
+}
+.app-frame .page :is(.record-list,.nfq-coverage-groups) button{
+ font-family:var(--nfq-ui-font);
+ border-radius:6px;
+}
+.app-frame .page .record-list button:focus-visible{
+ outline:2px solid var(--nfq-ui-focus)!important;
+ outline-offset:2px!important;
+}
+.app-frame .page :is(.nfq-coverage-groups button,.geo-region-grid button)[aria-pressed="true"]{
+ box-shadow:none;
+}
+.app-frame .nfq-governance-page button{
+ font-weight:600;
+ border-radius:5px;
+}
+.app-frame .page :is(.nfq-context-help summary,.discovery-info-button){
+ box-shadow:none;
+}
+.app-frame :is(.nfq-context-help summary,.discovery-info-button):focus-visible{
+ outline:2px solid var(--nfq-ui-focus)!important;
+ outline-offset:2px!important;
+}
+.app-frame .page :is(input[type="search"],input[type="text"],input[type="email"],input[type="number"],select,textarea):focus-visible{
+ outline:2px solid var(--nfq-ui-focus)!important;
+ outline-offset:1px!important;
+}
+@media(max-width:760px){
+ .app-frame .page .variant-page .discovery-utility-row{
+  gap:7px;
+ }
+ .app-frame .variant-page :is(.variant-filter-trigger,.nfq-saved-trigger,.nfq-batch-toggle,.nfq-session-toggle){
+  min-height:40px;
+ }
+ .app-frame .launcher-options button{
+  min-height:44px;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ .app-frame .variant-page .discovery-input,
+ .app-frame .launcher-options button{transition:none}
+}
