@@ -35,7 +35,7 @@ export interface ExpertBenchmark {
 }
 const validId=(v:string)=>/^[1-9][0-9]{0,17}$/.test(v);
 const filled=(v:string)=>v.trim().length>=3&&v.trim().length<=2000;
-const validTime=(v:string)=>/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?Z$/.test(v)&&Number.isFinite(Date.parse(v));
+const validTime=(v:string)=>/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)$/.test(v)&&Number.isFinite(Date.parse(v));
 const normalize=(v:string)=>v.trim().toLowerCase().replace(/\s+/g,' ');
 const matchingFields=(a:ExpertExtraction,b:ExpertExtraction)=>
  ['genotypeContext','endpoint','modelOrCohort','finding','claimId'].filter(key=>{
