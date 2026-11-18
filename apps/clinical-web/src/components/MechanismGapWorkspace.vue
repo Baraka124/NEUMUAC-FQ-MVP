@@ -5,6 +5,7 @@ import type {LiveEvidenceReference} from '../services/liveEvidence';
 import {MECHANISM_CATEGORIES,prepareMechanismAnnotationDraft,portableMechanismDraft,
  type MechanismAnnotationDraft,type MechanismCategory,type MechanismInterpretation} from '../domain/mechanismAnnotationDraft';
 import {buildCrossVariantGapMap} from '../domain/crossVariantGapMap';
+import {PUBLISHED_CFTR_REFERENCE_CASES,inspectPublishedCase} from '../domain/publishedCftrReferenceCases';
 import {THERAPIES,type CoreModulatorId} from '../domain/therapyRegistry';
 import {createMolecularReviewService,type MolecularReviewRecord} from '../services/molecularReviewService';
 import {authSessionProvider} from '../services/authSession';
@@ -23,6 +24,19 @@ const props=defineProps<{
 }>();
 const expanded=ref(false);
 const editor=ref(false);
+const showPublishedCases=ref(false);
+const publishedCaseId=ref<string>(PUBLISHED_CFTR_REFERENCE_CASES[0]!.id);
+const inspectedVariantId=ref('');
+const inspectedCase=computed(()=>PUBLISHED_CFTR_REFERENCE_CASES.find(c=>c.id===publishedCaseId.value)!);
+const inspectedInventory=computed(()=>{
+ const first=inspectedVariantId.value===props.firstId;
+ return inspectPublishedCase({
+  caseId:publishedCaseId.value,
+  variantId:first?props.firstId:props.secondId,
+  references:first?props.firstReferences:props.secondReferences,
+  claims:first?props.firstClaims:props.secondClaims
+ });
+});
 const draftVariant=ref('');
 const draftClaim=ref('');
 const categories=ref<MechanismCategory[]>([]);
@@ -160,6 +174,8 @@ function reset():void{
  reviewSelection.value=null;molecularFilter.value='all';reviewNotes.value={};
  reviewerAppraisals.value={};reviseOf.value=null;
  clearForm();savedDrafts.value=[];expanded.value=false;editor.value=false;
+ showPublishedCases.value=false;publishedCaseId.value=PUBLISHED_CFTR_REFERENCE_CASES[0]!.id;
+ inspectedVariantId.value=props.firstId;
 }
 function toggleExpanded():void{
  expanded.value=!expanded.value;
@@ -262,6 +278,47 @@ function removeDraft(index:number):void{
   </header>
   <div v-if="expanded">
    <p class="nfq-mechanism-note">{{map.interpretation}}</p>
+   <section class="nfq-published-cases" data-testid="nfq-published-reference-benchmark">
+    <header class="nfq-mechanism-head">
+     <div><strong>Published CFTR reference cases</strong>
+      <p>Primary publication anchors · independent expert validation not yet completed</p></div>
+     <button type="button" :aria-expanded="showPublishedCases"
+      @click="showPublishedCases=!showPublishedCases">
+      {{showPublishedCases?'Close reference cases':'Inspect reference cases'}}
+     </button>
+    </header>
+    <div v-if="showPublishedCases" class="nfq-published-inspection">
+     <label>Published reference case
+      <select v-model="publishedCaseId">
+       <option v-for="entry in PUBLISHED_CFTR_REFERENCE_CASES"
+        :key="entry.id" :value="entry.id">{{entry.variantLabel}} · {{entry.pmid}}</option>
+      </select>
+     </label>
+     <label>Match to catalogue variant (manual identity verification required)
+      <select v-model="inspectedVariantId">
+       <option :value="firstId">Variant #{{firstId}}</option>
+       <option :value="secondId">Variant #{{secondId}}</option>
+      </select>
+     </label>
+     <p class="nfq-mechanism-note">{{inspectedCase.title}}</p>
+     <a :href="inspectedCase.pubmedUrl" target="_blank" rel="noopener noreferrer">
+      Original peer-reviewed paper · PMID {{inspectedCase.pmid}}</a>
+     <p>{{inspectedCase.humanReviewQuestion}}</p>
+     <p class="nfq-mechanism-note">Register readiness:
+      {{inspectedInventory.stage.replaceAll('-',' ')}} ·
+      {{inspectedInventory.linkedReferences.length}} matching references ·
+      {{inspectedInventory.matchedScopeClaimIds.length}} independently reviewed scope-matching claims</p>
+     <ul v-if="inspectedInventory.issues.length">
+      <li v-for="issue in inspectedInventory.issues" :key="issue">{{issue}}</li>
+     </ul>
+     <details>
+      <summary>Publication limitations · essential review context</summary>
+      <ul><li v-for="constraint in inspectedCase.nonInference" :key="constraint">{{constraint}}</li></ul>
+     </details>
+     <p class="nfq-mechanism-note">Bibliography-linked is not scientifically validated.
+      Clinical eligibility, mutation class and drug response cannot be inferred here.</p>
+    </div>
+   </section>
    <section class="nfq-molecular-persist" data-testid="nfq-molecular-review-records">
     <header class="nfq-mechanism-head">
      <div><strong>Independent molecular review register</strong>
@@ -654,6 +711,11 @@ function removeDraft(index:number):void{
 .nfq-mechanism-form legend{font-size:11px}
 .nfq-mechanism-form .nfq-mechanism-check{display:flex;align-items:center;gap:7px;padding:3px 0}
 .nfq-mechanism-form button{justify-self:start}
+.nfq-published-cases{margin:12px 0;padding:10px 0;border-top:1px solid var(--border,#dde7ef)}
+.nfq-published-inspection{display:grid;gap:7px;max-width:720px;padding:8px 0}
+.nfq-published-inspection label{display:grid;gap:4px;font-size:11px}
+.nfq-published-inspection select{font:inherit;font-size:11px;max-width:100%;padding:6px;background:transparent;color:inherit;border:1px solid var(--border,#cbd9e6)}
+.nfq-published-inspection p{margin:4px 0;line-height:1.5}
 .nfq-molecular-persist{margin:15px 0;padding:12px 0;border-top:1px solid var(--border,#dde7ef)}
 .nfq-molecular-queue-controls{display:flex;gap:9px 16px;align-items:end;flex-wrap:wrap;margin:10px 0}
 .nfq-molecular-queue-controls label{display:grid;gap:4px;font-size:11px}
