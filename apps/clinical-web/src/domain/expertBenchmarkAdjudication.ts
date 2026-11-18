@@ -38,7 +38,7 @@ const filled=(v:string)=>v.trim().length>=3&&v.trim().length<=2000;
 const validTime=(v:string)=>/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)$/.test(v)&&Number.isFinite(Date.parse(v));
 const normalize=(v:string)=>v.trim().toLowerCase().replace(/\s+/g,' ');
 const matchingFields=(a:ExpertExtraction,b:ExpertExtraction)=>
- ['genotypeContext','endpoint','modelOrCohort','finding','claimId'].filter(key=>{
+ ['genotypeContext','endpoint','modelOrCohort','finding','claimId','sourceLocator'].filter(key=>{
   const x=a[key as keyof ExpertExtraction],y=b[key as keyof ExpertExtraction];
   return typeof x==='string'&&typeof y==='string'?normalize(x)!==normalize(y):x!==y;
  });
@@ -81,6 +81,7 @@ export function evaluateExpertBenchmark(input:{
  const adjudication=input.adjudication;
  if(disagreements.length&&!adjudication)issues.push('Expert disagreement requires an independent adjudicator');
  if(adjudication){
+  if(!disagreements.length)throw new Error('Adjudication without a recorded independent expert disagreement');
   if(adjudication.caseId!==input.caseId||adjudication.variantId!==input.variantId||
    !filled(adjudication.adjudicatorId)||identities.has(normalize(adjudication.adjudicatorId))||
    !validTime(adjudication.submittedAt)||!filled(adjudication.sourceLocator)||
