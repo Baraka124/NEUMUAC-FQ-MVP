@@ -108,9 +108,11 @@ begin
   raise exception 'Unknown anchored publication challenge' using errcode='22023';end if;
  perform pg_advisory_xact_lock(hashtextextended(p_case_id||':'||p_variant_id::text,0));
 
+ if p_action='list' and v_payload<>'{}'::jsonb then
+  raise exception 'List operation accepts no payload' using errcode='22023';end if;
  if p_action='submit-extraction' then
   if jsonb_typeof(v_payload)<>'object' or
-    (select count(*) from jsonb_object_keys(v_payload))<>9 or
+    (select count(*) from jsonb_object_keys(v_payload))<>10 or
     not (v_payload ?& array['caseId','variantId','pmid','sourceLocator',
      'genotypeContext','endpoint','modelOrCohort','finding','claimId','methodNotes']) then
    -- The Omit<ExpertExtraction,...> client sends 10 scientific fields.
@@ -193,12 +195,19 @@ begin
     v_payload->>'caseId'<>p_case_id or v_payload->>'variantId'<>p_variant_id::text or
     v_payload->>'mappingVersion'<>'1'
   then raise exception 'Mapping not linked to reviewed source claim' using errcode='22023';end if;
-  if not exists(select 1 from nfq_evidence_review.expert_reference_adjudications
-    where case_id=p_case_id and variant_id=p_variant_id)
-   and exists(select 1 from nfq_evidence_review.expert_reference_extractions e
+  -- The consensus, if any, must match the attested expert finding.
+  -- If an adjudication exists, its final finding supersedes incompatible reviews.
+  if exists(select 1 from nfq_evidence_review.expert_reference_adjudications a
+    where a.case_id=p_case_id and a.variant_id=p_variant_id
+    and a.final_finding is distinct from v_payload->>'expertFinding')
+   or (
+    not exists(select 1 from nfq_evidence_review.expert_reference_adjudications a
+     where a.case_id=p_case_id and a.variant_id=p_variant_id)
+    and exists(select 1 from nfq_evidence_review.expert_reference_extractions e
      where e.case_id=p_case_id and e.variant_id=p_variant_id
-     and e.finding is distinct from v_payload->>'expertFinding')
-  then raise exception 'Expert disagreement remains unresolved' using errcode='22023';end if;
+      and e.finding is distinct from v_payload->>'expertFinding')
+   )
+  then raise exception 'Expert consensus or adjudication mismatch' using errcode='22023';end if;
   insert into nfq_evidence_review.expert_reference_mappings(
    case_id,variant_id,platform_claim_id,expert_finding,claim_finding,
    expert_reported_finding,genotype_context,endpoint_code,endpoint_timepoint,
