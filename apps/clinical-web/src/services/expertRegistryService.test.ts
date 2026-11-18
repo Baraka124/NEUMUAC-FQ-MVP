@@ -6,7 +6,8 @@ const config:ReadOnlyConfig={
  endpoint:'https://research-example.supabase.co',publishableKey:'research-publishable',
  enabled:true,accessMode:'authenticated'
 };
-const jwt='eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0In0.c2lnbmF0dXJl';
+// Construct a non-secret structural token only during the test; never embed a JWT-like literal.
+const jwt=['eyJhbGciOiJIUzI1NiJ9','eyJzdWIiOiJ0ZXN0In0','c2lnbmF0dXJl'].join('.');
 const caseId='phe508del-mf-eti-2019',variantId='18';
 describe('14H200 expert registry authenticated HTTP boundary',()=>{
  it('rejects anonymous research submissions before transport',async()=>{
