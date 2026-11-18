@@ -29,7 +29,7 @@ The read-only `buildScientificBenchmarkLedger` function:
 ## Release blockers
 
 1. Verify proposed RPC SQL against an isolated CF staging database. Include Postgres transaction, mutation/replay, two-reviewer concurrency, RLS and role-based authorization tests. Do not execute these experimental writes in production.
-2. Replace the frontend registry's structural envelope-only validation with strict per-record source and audit checks before enabling it in the clinical app.
+2. The frontend registry now checks individual source identities, reviewer separation and audit continuity. Before clinical integration, verify that these checks agree with actual staging RPC responses, including timestamps and permission-denied cases.
 3. Review source-claim linkage to the primary publication including a curator-verifiable figure/page or trial locator.
 4. Obtain real independent expert extractions and document reviewer disagreement/adjudication.
 5. Only then consider a trusted, versioned mapping and reproducible comparison report. Never infer clinical drug responsiveness from bibliographic evidence.
