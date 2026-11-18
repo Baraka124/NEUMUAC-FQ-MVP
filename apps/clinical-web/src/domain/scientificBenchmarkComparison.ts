@@ -14,6 +14,8 @@ export interface AttestedBenchmarkMapping {
  readonly platformClaimId:string;
  readonly expertFinding:'supports'|'does-not-support'|'inconclusive'|'not-assessable';
  readonly claimFinding:'reported-response'|'reported-no-response'|'mixed'|'inconclusive';
+ /** Independently attested reference conclusion, never inferred from supports/does-not-support. */
+ readonly expertReportedFinding:'reported-response'|'reported-no-response'|'mixed'|'inconclusive'|null;
  readonly genotypeContext:string;
  readonly endpointCode:string;
  readonly endpointTimepoint:string;
@@ -87,15 +89,15 @@ export function compareExpertWithPlatform(input:{
  if(!input.extracts.every(e=>exact(e.sourceLocator,m.sourceLocator)))
   problems.push('Source locators do not match mapping');
  if(problems.length)return answer('incompatible-evidence',problems,claim.id,claim.finding);
- // Only the two directionally comparable qualitative findings are contrasted.
- // "Supports" describes a reported observation, not a proven treatment benefit.
- const toDirection=(v:string):number|null=>
-  v==='supports'||v==='reported-response'?1:
-  v==='does-not-support'||v==='reported-no-response'?-1:null;
- const expertDirection=toDirection(m.expertFinding);
- const sourceDirection=toDirection(m.claimFinding);
- if(expertDirection===null||sourceDirection===null)
-  return answer('indeterminate',['Source finding is mixed, inconclusive, or not assessable'],claim.id,claim.finding);
- return answer(expertDirection===sourceDirection?'agreement':'disagreement',[],
+ // A human must explicitly map the expert-reviewed observation to the source
+ // finding vocabulary. We never equate "supports" with a treatment response.
+ if(m.expertReportedFinding===null||m.expertFinding==='not-assessable'||
+  m.expertFinding==='inconclusive'||m.claimFinding==='inconclusive'||
+  m.claimFinding==='mixed'||m.expertReportedFinding==='inconclusive'||
+  m.expertReportedFinding==='mixed')
+  return answer('indeterminate',['Uncertain, mixed or unmapped scientific interpretation'],claim.id,claim.finding);
+ if(!['reported-response','reported-no-response'].includes(m.expertReportedFinding))
+  throw new Error('Invalid expert evidence interpretation mapping');
+ return answer(m.expertReportedFinding===claim.finding?'agreement':'disagreement',[],
   claim.id,claim.finding);
 }
