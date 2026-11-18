@@ -8,7 +8,7 @@ import type {LiveEvidenceReference} from '../services/liveEvidence';
  * A trusted service must verify identity, independent submissions and audit records.
  */
 export type ExpertFinding='supports'|'does-not-support'|'inconclusive'|'not-assessable';
-export type BenchmarkDisposition='awaiting-experts'|'needs-adjudication'|'awaiting-adjudicator'|'ready-to-compare';
+export type BenchmarkDisposition='awaiting-experts'|'needs-adjudication'|'awaiting-claim-mapping'|'ready-to-compare';
 export interface ExpertExtraction {
  readonly caseId:string;readonly variantId:string;readonly pmid:string;
  readonly reviewerId:string;readonly submittedAt:string;
@@ -98,7 +98,7 @@ export function evaluateExpertBenchmark(input:{
  const selected=claimId?input.claims.filter(c=>c.id===claimId&&review.matchedScopeClaimIds.includes(c.id)):[];
  if(finding!==null&&!selected.length)issues.push('No exact approved, scope-compatible platform claim mapped for comparison');
  const disposition:BenchmarkDisposition=disagreements.length&&!adjudication?'needs-adjudication':
-  disagreements.length&&adjudication?'awaiting-adjudicator':
+  disagreements.length&&adjudication?'awaiting-claim-mapping':
   'ready-to-compare';
  // An independently verified adjudication-to-claim mapping is not yet provided.
  const comparison:ExpertBenchmark['comparison']=!selected.length?
