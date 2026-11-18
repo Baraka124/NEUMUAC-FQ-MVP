@@ -51,4 +51,42 @@ describe('14H200 expert registry authenticated HTTP boundary',()=>{
   await expect(createExpertRegistryService(config,session,wrong as unknown as typeof fetch)
    .list(caseId,variantId)).rejects.toMatchObject({code:'schema-mismatch'});
  });
+
+ it('rejects a forged reviewer inventory with no matching immutable audit event',async()=>{
+  const actor='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  const record={
+   caseId,variantId,pmid:'31697873',reviewerId:actor,
+   submittedAt:'2026-11-18T11:00:00Z',sourceLocator:'Table 2',
+   genotypeContext:'Phe508del/minimal-function',endpoint:'ppFEV1 change',
+   modelOrCohort:'Randomized clinical cohort',finding:'inconclusive',
+   claimId:null,methodNotes:'Independent blinded evidence extraction'
+  };
+  const transport=vi.fn().mockResolvedValue(new Response(JSON.stringify({
+   source:'nfq-authenticated-expert-registry-v1',caseId,variantId,
+   extracts:[record],adjudication:null,mapping:null,audit:[]
+  }),{status:200}));
+  const session:ReadSessionProvider={getAccessToken:async()=>jwt};
+  await expect(createExpertRegistryService(config,session,transport as unknown as typeof fetch)
+   .list(caseId,variantId)).rejects.toMatchObject({code:'schema-mismatch'});
+ });
+ it('rejects a mismatched PubMed identity despite an otherwise well-formed response',async()=>{
+  const actor='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  const record={
+   caseId,variantId,pmid:'33375403',reviewerId:actor,
+   submittedAt:'2026-11-18T11:00:00Z',sourceLocator:'Table 2',
+   genotypeContext:'Phe508del/minimal-function',endpoint:'ppFEV1 change',
+   modelOrCohort:'Randomized clinical cohort',finding:'inconclusive',
+   claimId:null,methodNotes:'Independent blinded evidence extraction'
+  };
+  const transport=vi.fn().mockResolvedValue(new Response(JSON.stringify({
+   source:'nfq-authenticated-expert-registry-v1',caseId,variantId,
+   extracts:[record],adjudication:null,mapping:null,audit:[{
+    eventId:'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+    action:'extraction-submitted',actorId:actor,at:'2026-11-18T11:00:00Z'
+   }]
+  }),{status:200}));
+  const session:ReadSessionProvider={getAccessToken:async()=>jwt};
+  await expect(createExpertRegistryService(config,session,transport as unknown as typeof fetch)
+   .list(caseId,variantId)).rejects.toMatchObject({code:'schema-mismatch'});
+ });
 });
