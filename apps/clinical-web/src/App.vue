@@ -298,13 +298,10 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
       <main id="main" tabindex="-1" :class="{'home-main':isHome}">
         <div v-if="!sourceConfigured" class="development-notice" :class="{ 'preview-notice': !sourceConfigured }" role="note">
           <span class="notice-symbol" aria-hidden="true">i</span>
-          <div>
-            <template v-if="!sourceConfigured">
-              <strong>Live CFTR research interface</strong>
-              <p>Variant search uses the live source when configured. Changes and approvals are reserved for authorized staff.</p>
-            </template>
-
-          </div>
+          <details class="nfq-source-info">
+            <summary><strong>Live CFTR research interface</strong><span class="nfq-source-more">Details</span></summary>
+            <p>Variant search uses the live source when configured. Changes and approvals are reserved for authorized staff.</p>
+          </details>
         </div>
         <RouterView />
       </main>
