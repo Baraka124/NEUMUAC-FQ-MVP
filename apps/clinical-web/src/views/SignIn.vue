@@ -15,25 +15,12 @@ import ContextHelp from '../components/ContextHelp.vue';
 
   <main id="main" tabindex="-1" class="nfq-entry-main nfq-signin-main">
    <section class="nfq-signin-stage" aria-labelledby="nfq-signin-title">
-    <!-- Atmospheric artwork only; the actual institutional identity remains the logo above. -->
-    <svg class="nfq-signin-art" aria-hidden="true" focusable="false" viewBox="0 0 1100 550" preserveAspectRatio="xMidYMid slice">
-     <defs>
-      <linearGradient id="nfq-signin-helix" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#68d9be" stop-opacity=".38"/><stop offset="1" stop-color="#93dfea" stop-opacity=".09"/></linearGradient>
-     </defs>
-     <g fill="none" stroke="url(#nfq-signin-helix)" stroke-linecap="round">
-      <g transform="translate(-65 -35) rotate(-15 170 260)">
-       <path d="M95 -60C350 10 -25 170 175 280S350 490 95 645" stroke-width="2.3"/>
-       <path d="M250 -60C-5 10 370 170 170 280S-5 490 250 645" stroke-width="2.3"/>
-       <path d="M134 38h76M93 112h158M106 189h136M134 267h76M95 343h160M112 419h124M148 497h51" stroke-width="1.1"/>
-      </g>
-      <g transform="translate(735 -70) rotate(20 195 270)">
-       <path d="M130 -80C380 10 15 170 205 285S370 510 135 640" stroke-width="2"/>
-       <path d="M285 -80C35 10 400 170 210 285S45 510 280 640" stroke-width="2"/>
-       <path d="M175 68h80M139 157h151M166 245h94M170 334h75M144 422h146M170 508h80" stroke-width="1.1"/>
-      </g>
-     </g>
-     <g fill="#8ee1c7" opacity=".18"><circle cx="85" cy="420" r="3"/><circle cx="305" cy="116" r="2"/><circle cx="955" cy="132" r="3"/><circle cx="1046" cy="444" r="2"/></g>
-    </svg>
+    <div class="nfq-signin-context">
+      <p class="nfq-signin-eyebrow">CFTR RESEARCH · ACCOUNT ACCESS</p>
+      <h2>Research access</h2>
+      <p>Public records remain accessible without signing in. Research accounts provide access to assigned capabilities and authorized workflows.</p>
+      <RouterLink to="/workspace" class="nfq-signin-context-link">Explore public research <span aria-hidden="true">→</span></RouterLink>
+    </div>
     <div class="nfq-login-card">
      <div class="nfq-login-card-heading">
       <div>
@@ -60,42 +47,245 @@ import ContextHelp from '../components/ContextHelp.vue';
 </template>
 
 <style scoped>
-/* The authentication card is intentionally small. The stage frames it, not the reverse. */
-.nfq-signin-institutional{background:#fafbf9;color:#173b2d;min-height:100dvh}
-.nfq-signin-masthead{min-height:80px;width:min(1180px,100%);padding-inline:clamp(18px,3vw,42px);border:0}
-.nfq-signin-masthead .nfq-entry-logo img{height:70px;width:190px;object-fit:contain;object-position:left center}
-.nfq-signin-header-link{display:inline-flex;gap:9px;align-items:center;min-height:44px;text-decoration:none;color:#39634b;font-size:12px;font-weight:650;white-space:nowrap}
-.nfq-signin-header-link:hover{text-decoration:underline;text-underline-offset:3px}
-.nfq-signin-header-link:focus-visible,.nfq-signin-public-link:focus-visible{outline:3px solid #25886a;outline-offset:3px}
-.nfq-signin-institutional .nfq-signin-main{width:min(880px,100%);padding:8px clamp(15px,3vw,42px) 15px;min-height:0}
-.nfq-signin-stage{position:relative;isolation:isolate;display:grid;place-items:center;overflow:hidden;min-height:0;padding:24px 18px;border-radius:17px;background:radial-gradient(ellipse 84% 110% at 50% 34%,#1e4a3c 0%,#123a2f 41%,#0b241e 100%);box-shadow:0 12px 35px -20px rgba(8,30,23,.3)}
-.nfq-signin-art{position:absolute;inset:0;width:100%;height:100%;opacity:.67;pointer-events:none;user-select:none}
-.nfq-login-card{position:relative;z-index:1;width:min(100%,390px);min-width:0;padding:clamp(21px,2.8vw,28px);border-radius:12px;border:1px solid rgba(255,255,255,.72);background:rgba(240,247,242,.93);box-shadow:0 16px 42px rgba(2,19,12,.26),inset 0 1px rgba(255,255,255,.9);-webkit-backdrop-filter:blur(15px);backdrop-filter:blur(15px)}
-.nfq-login-card-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
-.nfq-login-card-heading h1{font:500 clamp(28px,3.2vw,34px)/1.06 Georgia,"Times New Roman",serif;letter-spacing:-.045em;color:#102f25;margin:0}
-.nfq-login-card-heading p{font-size:11px;line-height:1.5;color:#5c7768;margin:6px 0 0}
-.nfq-signin-public-link{display:inline-flex;align-items:center;gap:7px;text-decoration:none;color:#245a43;font-size:12px;font-weight:610;margin-top:16px;min-height:35px}
-.nfq-signin-public-link:hover{text-decoration:underline;text-underline-offset:3px}
-.nfq-login-card :deep(.nfq-account-fields){gap:7px}
-.nfq-login-card :deep(.nfq-account-fields label){font-size:11px;font-weight:650;color:#355748}
-.nfq-login-card :deep(.nfq-account-fields input){min-height:43px;border-radius:7px;border:1px solid #bdcfc3;background:rgba(255,255,255,.84);padding:9px 12px;font-size:13px;color:#17392a}
-.nfq-login-card :deep(.nfq-account-fields input:focus-visible){outline:2px solid #357b5a;outline-offset:2px}
-.nfq-login-card :deep(.nfq-account-fields button[type="submit"]){min-height:44px;margin-top:9px;border-radius:7px;background:#14392e;border-color:#14392e;font-size:12px}
-.nfq-login-card :deep(.nfq-account-fields button[type="submit"]:hover){background:#0b281f}
-.nfq-login-card :deep(.nfq-account-unavailable){font-size:12px;line-height:1.55}
-.nfq-signin-institutional .nfq-signin-footer{width:min(1180px,100%);border-top:0;padding:8px clamp(18px,3vw,42px) 18px;font-size:11px}
-@media(max-width:540px){
- .nfq-signin-masthead{min-height:72px;gap:10px}
- .nfq-signin-masthead .nfq-entry-logo img{height:59px;width:155px}
- .nfq-signin-header-link{white-space:normal;max-width:110px;line-height:1.35;text-align:right;font-size:11px}
- .nfq-signin-stage{min-height:0;padding:18px 11px;border-radius:11px}
- .nfq-login-card{width:min(100%,390px);padding:22px 19px}
- .nfq-signin-institutional .nfq-signin-main{padding-top:4px;padding-bottom:8px}
+/* Dedicated authentication route uses the same institutional reading
+   language as the public gateway. No decorative helix, glass, or hero tile. */
+.nfq-signin-institutional{
+ min-height:100dvh;
+ display:flex;
+ flex-direction:column;
+ background:#fbfcfa;
+ color:#183631;
+ font-family:'IBM Plex Sans',Inter,'Segoe UI',system-ui,sans-serif;
+ -webkit-font-smoothing:antialiased;
 }
-/* The glass card establishes an overlay context; keep help within it on phones. */
+.nfq-signin-masthead{
+ width:min(1240px,100%);
+ min-height:104px;
+ margin-inline:auto;
+ padding-inline:clamp(22px,3.5vw,48px);
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:16px;
+ border-bottom:1px solid #dfe7e2;
+}
+.nfq-signin-masthead .nfq-entry-logo{
+ flex:0 0 auto;
+ display:flex;
+ align-items:center;
+ min-width:0;
+}
+.nfq-signin-masthead .nfq-entry-logo img{
+ width:175px;
+ height:83px;
+ max-width:100%;
+ object-fit:contain;
+ object-position:left center;
+}
+.nfq-signin-header-link{
+ display:inline-flex;
+ align-items:center;
+ gap:9px;
+ min-height:38px;
+ color:#2d594a;
+ font-size:12px;
+ font-weight:590;
+ text-decoration:none;
+ white-space:nowrap;
+}
+.nfq-signin-header-link:hover{text-decoration:underline;text-underline-offset:3px}
+.nfq-signin-institutional .nfq-signin-main{
+ flex:1;
+ display:flex;
+ flex-direction:column;
+ justify-content:center;
+ width:min(1240px,100%);
+ max-width:none;
+ min-height:0;
+ margin-inline:auto;
+ padding:clamp(26px,5vh,52px) clamp(22px,3.5vw,48px) 24px;
+}
+.nfq-signin-stage{
+ display:grid;
+ grid-template-columns:minmax(0,1.1fr) minmax(305px,.8fr);
+ align-items:start;
+ gap:clamp(32px,4.5vw,72px);
+ min-height:0;
+ padding:0;
+ margin:0;
+ border-radius:0;
+ background:transparent;
+ border:0;
+ box-shadow:none;
+ overflow:visible;
+}
+.nfq-signin-context{
+ min-width:0;
+ padding:6px 0 0;
+}
+.nfq-signin-eyebrow{
+ color:#416f60;
+ font-size:10px;
+ font-weight:650;
+ letter-spacing:.07em;
+ line-height:1.45;
+ margin:0;
+}
+.nfq-signin-context h2{
+ margin:20px 0 18px;
+ max-width:15ch;
+ color:#183631;
+ font:500 clamp(42px,4.2vw,60px)/1.07 'Iowan Old Style','Baskerville',Georgia,serif;
+ letter-spacing:-.053em;
+}
+.nfq-signin-context p:not(.nfq-signin-eyebrow){
+ max-width:490px;
+ margin:0;
+ color:#4d6960;
+ font-size:15px;
+ line-height:1.66;
+}
+.nfq-signin-context-link{
+ display:inline-flex;
+ align-items:center;
+ gap:14px;
+ min-height:38px;
+ margin-top:22px;
+ color:#2e6650;
+ text-decoration:none;
+ font-size:12px;
+ font-weight:600;
+}
+.nfq-signin-context-link:hover{text-decoration:underline;text-underline-offset:3px}
+.nfq-login-card{
+ position:relative;
+ z-index:1;
+ width:min(100%,390px);
+ min-width:0;
+ margin:0;
+ padding:6px 0 0 clamp(22px,2.6vw,34px);
+ border:0;
+ border-left:1px solid #dfe7e2;
+ border-radius:0;
+ background:transparent;
+ box-shadow:none;
+ -webkit-backdrop-filter:none;
+ backdrop-filter:none;
+}
+.nfq-login-card-heading{
+ display:flex;
+ align-items:flex-start;
+ justify-content:space-between;
+ gap:12px;
+ margin:0 0 22px;
+}
+.nfq-login-card-heading h1{
+ font:500 clamp(26px,2.6vw,33px)/1.16 'Iowan Old Style','Baskerville',Georgia,serif;
+ letter-spacing:-.042em;
+ margin:4px 0 0;
+ color:#183631;
+}
+.nfq-login-card-heading p{
+ color:#697e74;
+ font-size:11px;
+ line-height:1.45;
+ margin:6px 0 0;
+}
+.nfq-login-card :deep(.nfq-account-fields){gap:8px}
+.nfq-login-card :deep(.nfq-account-fields label){
+ font-size:11.5px;
+ font-weight:600;
+ color:#395a4c;
+}
+.nfq-login-card :deep(.nfq-account-fields input){
+ min-height:40px;
+ padding:8px 11px;
+ border:1px solid #bfcec5;
+ border-radius:5px;
+ background:#fff;
+ color:#19372d;
+ font-size:13px;
+ box-shadow:none;
+}
+.nfq-login-card :deep(.nfq-account-fields input:focus-visible){
+ outline:2px solid #397962;
+ outline-offset:2px;
+}
+.nfq-login-card :deep(.nfq-account-fields button[type="submit"]){
+ justify-self:start;
+ width:auto;
+ min-height:40px;
+ margin-top:7px;
+ padding:8px 19px;
+ border:1px solid #193e34;
+ border-radius:5px;
+ background:#193e34;
+ color:#fff;
+ font-size:12px;
+ box-shadow:none;
+}
+.nfq-login-card :deep(.nfq-account-fields button[type="submit"]:hover){background:#28574b}
+.nfq-login-card :deep(.nfq-account-unavailable){font-size:12px;line-height:1.55}
+.nfq-signin-public-link{
+ display:inline-flex;
+ align-items:center;
+ gap:7px;
+ min-height:31px;
+ margin:10px 20px 0 0;
+ color:#2c654f;
+ text-decoration:none;
+ font-size:11.5px;
+ font-weight:530;
+}
+.nfq-signin-public-link:hover{text-decoration:underline;text-underline-offset:3px}
+.nfq-signin-institutional .nfq-signin-footer{
+ width:min(1240px,100%);
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ gap:15px;
+ margin-inline:auto;
+ padding:14px clamp(22px,3.5vw,48px);
+ border-top:1px solid #dfe7e2;
+ color:#697e74;
+ font-size:10.5px;
+}
+.nfq-signin-footer a{color:#2c654f;text-decoration:none}
+.nfq-signin-footer a:hover{text-decoration:underline;text-underline-offset:3px}
+.nfq-signin-institutional :is(a,button,summary):focus-visible{
+ outline:2px solid #2b725f;
+ outline-offset:3px;
+}
+@media(max-width:850px){
+ .nfq-signin-stage{grid-template-columns:minmax(0,1fr) minmax(285px,.92fr);gap:28px}
+ .nfq-signin-context h2{font-size:clamp(38px,5vw,48px)}
+ .nfq-signin-context p:not(.nfq-signin-eyebrow){font-size:13px}
+}
+@media(max-width:760px){
+ .nfq-signin-masthead{min-height:92px}
+ .nfq-signin-masthead .nfq-entry-logo img{width:153px;height:72px}
+ .nfq-signin-institutional .nfq-signin-main{justify-content:flex-start;padding-block:23px}
+ .nfq-signin-stage{grid-template-columns:minmax(0,1fr);gap:0}
+ /* The approved logo and form title already orient mobile readers. Avoid
+    repeating a second tall editorial introduction above the form. */
+ .nfq-signin-context{display:none}
+ .nfq-login-card{padding:8px 0 0;border-left:0;max-width:390px;width:100%}
+}
+@media(max-width:420px){
+ .nfq-signin-masthead{min-height:82px}
+ .nfq-signin-masthead .nfq-entry-logo img{width:128px;height:61px}
+ .nfq-signin-header-link{font-size:11px;white-space:normal;max-width:132px;text-align:right}
+ .nfq-login-card-heading h1{font-size:28px}
+}
 @media(max-width:600px){
  .nfq-login-card :deep(.nfq-context-help){position:static}
- .nfq-login-card :deep(.nfq-context-help-panel){position:absolute;top:64px;left:12px;right:12px;width:auto;max-height:min(52vh,290px)}
+ .nfq-login-card :deep(.nfq-context-help-panel){
+  position:absolute;
+  top:60px;
+  left:4px;
+  right:4px;
+  width:auto;
+  max-height:min(52vh,290px);
+ }
 }
-@media(prefers-reduced-motion:reduce){.nfq-signin-stage *{scroll-behavior:auto}}
 </style>
