@@ -29,12 +29,20 @@ This is a product-specific acceptance standard for a CFTR research workbench, no
 - Tooltip/help information appears only when requested; nothing obscures the primary scientific task.
 - Disabled, loading, permission-denied and empty-data states are truthful and must not imply real research data when the backend is unavailable.
 
-### 4. Acceptance matrix
+### 4. Data is not a button
+
+- **Scientific observations and recorded classifications** are read-only text by default: clear label, exact value, appropriate weight, spacing and restrained semantic color. Do not wrap each value in a colored rectangle, pill or artificial action affordance.
+- **Actual operations** (inspect source, edit an authorized record, choose a filter, export, save) must be recognizable controls with real button or link semantics, accessible names, meaningful hover/focus/disabled states, and adequate hit targets.
+- **States and warnings** must remain readable and truthful. Use clear words, not color-only signaling; reserve filled badges or special visual emphasis for exceptional operational states, not every routine value.
+- **Subtype / ETI / Alyftrek dossier row** is the reference implementation of this separation: these are database-recorded annotations with separate meanings, not clickable eligibility claims or independent clinical validation.
+- Don't imitate interactivity by giving static text rounded borders, decorative underlines, shadows or pointer cursors.
+
+### 5. Acceptance matrix
 
 Before any future design sign-off, review every **actual** module and openable surface (not just the overview): workspace, variant discovery, variant dossier, genotype, evidence curation, coverage, geography, reports/audit, governance, research account, invitations and mobile navigation.
 
 For each applicable surface, inspect desktop 1366px, 1024px, 768px and mobile 390px/320px. Check overflow, focus, touch targets, search/filter layering, text truncation, browser zoom, midnight/light contrast, and error/empty states. An automated green CI establishes functional regression safety, **not** human optical quality.
 
-### 5. Change discipline
+### 6. Change discipline
 
 Keep E01–E03 as the frozen baseline. New refinements must edit an existing relevant component or final stylesheet instead of adding a new global override layer. Record specific defects and their measured fixes. Avoid infinite generic design phases.
