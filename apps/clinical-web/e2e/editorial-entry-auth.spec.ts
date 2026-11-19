@@ -53,6 +53,11 @@ test('dedicated sign-in shares the clean research entrance without artificial il
   await expect(card.getByRole('heading',{name:'Research sign-in'})).toBeVisible();
   await expect(page.locator('.nfq-signin-art')).toHaveCount(0);
   await expect(page.locator('.nfq-signin-masthead img')).toHaveCount(1);
+  const logo=await page.locator('.nfq-signin-masthead img').boundingBox();
+  expect(logo).not.toBeNull();
+  // The approved square artwork contains transparent margins. Preserve the
+  // *framed asset size* rather than shrinking it into an 83px-tall image.
+  expect(logo!.width).toBeGreaterThanOrEqual(width<=420?115:width<=760?145:165);
   await expect(page.getByRole('link',{name:'Reset password'})).toHaveAttribute('href','#/recover');
   await expect(page.getByRole('link',{name:/Continue without signing in/})).toHaveAttribute('href','#/variants');
   const presentation=await card.evaluate(el=>{
