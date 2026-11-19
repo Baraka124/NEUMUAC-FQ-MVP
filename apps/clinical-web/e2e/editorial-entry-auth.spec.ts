@@ -38,8 +38,8 @@ test('inline research sign-in is an integrated panel, not a tinted card',async({
   expect(computed.bg).toBe('rgba(0, 0, 0, 0)');
   expect(computed.shadow).toBe('none');
   expect(computed.width).toBeLessThanOrEqual(392);
-  if(width>760)expect(computed.left).toBeGreaterThan(0);
-  else expect(computed.top).toBeGreaterThan(0);
+  expect(computed.left).toBe(0);
+  expect(computed.top).toBe(0);
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
   await page.getByRole('button',{name:/Return to research tools/}).click();
   await expect(page.getByRole('navigation',{name:'Research tools'})).toBeVisible();

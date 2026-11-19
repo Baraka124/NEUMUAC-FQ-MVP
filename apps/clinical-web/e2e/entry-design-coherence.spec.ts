@@ -18,7 +18,7 @@ test('public landing and both sign-in states use one navy/cool-white entry palet
  });
  await page.goto('/#/');
  const publicTokens=await tokens();
- expect(publicTokens.background).toBe('rgb(251, 252, 253)');
+ expect(publicTokens.background).toBe('rgb(255, 255, 255)');
  expect(publicTokens.ink).toBe('#152b40');
  expect(publicTokens.action).toBe('#193b53');
  await page.getByRole('button',{name:'Sign in',exact:true}).click();
@@ -29,7 +29,7 @@ test('public landing and both sign-in states use one navy/cool-white entry palet
   borderLeft:getComputedStyle(el).borderLeftWidth
  }));
  expect(inline.bg).toBe('rgba(0, 0, 0, 0)');
- expect(parseFloat(inline.borderLeft)).toBeGreaterThan(0);
+ expect(parseFloat(inline.borderLeft)).toBe(0);
  await page.goto('/#/sign-in');
  expect(await tokens()).toEqual(publicTokens);
  await expect(page.locator('.nfq-login-card .nfq-access-panel')).toHaveCount(1);
@@ -173,4 +173,43 @@ test('optical reading alignment is consistent and mobile sign-in is not buried',
  expect(account!.y).toBeLessThan(270);
  await expect(page.getByRole('link',{name:/Explore public research/})).toBeVisible();
  await expect(page.getByRole('heading',{name:'Research sign-in'})).toBeVisible();
+});
+
+
+test('logo has generous optical space and no decorative rules dominate the entry',async({page})=>{
+ for(const width of [390,1366]){
+  await page.setViewportSize({width,height:900});
+  for(const route of ['/#/','/#/sign-in']){
+   await page.goto(route);
+   const layout=await page.locator('.nfq-entry-surface').evaluate(root=>{
+    const mast=root.querySelector<HTMLElement>('.nfq-portal-masthead,.nfq-signin-masthead')!;
+    const brand=mast.querySelector<HTMLElement>('.nfq-portal-brand,.nfq-entry-logo')!;
+    const img=brand.querySelector<HTMLImageElement>('img')!;
+    const main=root.querySelector<HTMLElement>('.nfq-portal-content,.nfq-signin-main')!;
+    const footer=root.querySelector<HTMLElement>('.nfq-portal-footer,.nfq-signin-footer')!;
+    const notice=root.querySelector<HTMLElement>('.nfq-portal-research-notice');
+    const b=mast.getBoundingClientRect(),l=brand.getBoundingClientRect(),image=img.getBoundingClientRect(),
+     m=main.getBoundingClientRect();
+    const n=notice?getComputedStyle(notice):null;
+    return {headerTop:parseFloat(getComputedStyle(mast).borderTopWidth),
+      headerBottom:parseFloat(getComputedStyle(mast).borderBottomWidth),
+      footerTop:parseFloat(getComputedStyle(footer).borderTopWidth),
+      noticeTop:n?parseFloat(n.borderTopWidth):0,
+      brandTop:l.top-b.top,brandBottom:b.bottom-l.bottom,
+      logoWidth:image.width,logoLeft:l.left,
+      contentLeft:m.left+parseFloat(getComputedStyle(main).paddingLeft),
+      canvas:getComputedStyle(root).backgroundColor,
+      mainBackground:getComputedStyle(main).backgroundColor};
+   });
+   expect(layout.headerTop).toBe(0);
+   expect(layout.headerBottom).toBe(0);
+   expect(layout.footerTop).toBe(0);
+   expect(layout.noticeTop).toBe(0);
+   expect(layout.brandTop).toBeGreaterThanOrEqual(0);
+   expect(layout.brandBottom).toBeGreaterThanOrEqual(0);
+   expect(Math.abs(layout.logoLeft-layout.contentLeft)).toBeLessThanOrEqual(3);
+   expect(layout.canvas).toBe('rgb(255, 255, 255)');
+   expect(layout.mainBackground).toBe('rgba(0, 0, 0, 0)');
+  }
+ }
 });

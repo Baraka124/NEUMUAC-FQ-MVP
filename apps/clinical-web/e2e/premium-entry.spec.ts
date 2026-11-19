@@ -43,6 +43,10 @@ test('14H150 original brand painting stays entirely within the masthead on deskt
   console.log('14H150 painted brand geometry',JSON.stringify({width,...bounds}));
   expect(bounds.painted.top).toBeGreaterThanOrEqual(bounds.header.top+4);
   expect(bounds.painted.bottom).toBeLessThanOrEqual(bounds.header.bottom-3);
+  // Transparent image edges are not the wordmark: ensure that the *painted*
+  // tagline itself is not clipped by its cropped brand anchor frame.
+  expect(bounds.painted.top).toBeGreaterThanOrEqual(bounds.brand.top+1);
+  expect(bounds.painted.bottom).toBeLessThanOrEqual(bounds.brand.bottom-1);
   expect(bounds.painted.left).toBeGreaterThanOrEqual(bounds.brand.left-1);
   expect(bounds.painted.right).toBeLessThanOrEqual(bounds.brand.right+1);
   expect(bounds.painted.right-bounds.painted.left).toBeGreaterThan(width<=420?72:width<=760?98:115);
