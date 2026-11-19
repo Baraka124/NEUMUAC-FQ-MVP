@@ -198,7 +198,8 @@ test('logo has generous optical space and no decorative rules dominate the entry
       brandTop:l.top-b.top,brandBottom:b.bottom-l.bottom,
       logoWidth:image.width,logoLeft:l.left,
       contentLeft:m.left+parseFloat(getComputedStyle(main).paddingLeft),
-      canvas:getComputedStyle(root).backgroundColor};
+      canvas:getComputedStyle(root).backgroundColor,
+      mainBackground:getComputedStyle(main).backgroundColor};
    });
    expect(layout.headerTop).toBe(0);
    expect(layout.headerBottom).toBe(0);
@@ -208,6 +209,7 @@ test('logo has generous optical space and no decorative rules dominate the entry
    expect(layout.brandBottom).toBeGreaterThanOrEqual(0);
    expect(Math.abs(layout.logoLeft-layout.contentLeft)).toBeLessThanOrEqual(3);
    expect(layout.canvas).toBe('rgb(255, 255, 255)');
+   expect(layout.mainBackground).toBe('rgba(0, 0, 0, 0)');
   }
  }
 });
