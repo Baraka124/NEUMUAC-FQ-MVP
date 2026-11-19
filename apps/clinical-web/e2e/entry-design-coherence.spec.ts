@@ -109,3 +109,48 @@ test('shared auth form controls are not tinted, oversized or falsely interactive
  expect(optics.buttonHeight).toBeLessThanOrEqual(44);
  expect(optics.labelColor).toBe('rgb(73, 93, 113)');
 });
+
+
+test('capture desktop and phone editorial entrance compositions for optical review',async({page},info)=>{
+ // Screenshots are CI-only, never exported by the production application.
+ // The unconfigured CI auth source is temporarily replaced by BLANK inert
+ // visual controls: no account, password or authenticated session is created.
+ async function addInertForm(){
+  await page.locator('.nfq-access-panel .nfq-account-form').evaluate(el=>{
+   const original=el.querySelector<HTMLElement>('.nfq-account-unavailable');
+   if(original)original.hidden=true;
+   const mock=document.createElement('form');
+   mock.className='nfq-account-fields';
+   mock.dataset.visualOnly='true';
+   mock.setAttribute('aria-hidden','true');
+   mock.addEventListener('submit',e=>e.preventDefault());
+   const emailLabel=document.createElement('label');emailLabel.textContent='Email address';
+   const email=document.createElement('input');email.type='email';email.autocomplete='off';
+   const passLabel=document.createElement('label');passLabel.textContent='Password';
+   const holder=document.createElement('div');holder.className='nfq-password-control';
+   const password=document.createElement('input');password.type='password';password.autocomplete='off';
+   const reveal=document.createElement('button');reveal.type='button';reveal.className='nfq-password-toggle';
+   reveal.setAttribute('aria-label','Show password');
+   reveal.textContent='◉';
+   holder.append(password,reveal);
+   const enter=document.createElement('button');enter.type='submit';enter.textContent='Sign in';
+   mock.append(emailLabel,email,passLabel,holder,enter);
+   el.append(mock);
+  });
+ }
+ const project=info.project.name.replace(/[^a-z0-9-]/gi,'-');
+ for(const width of [390,1366]){
+  await page.setViewportSize({width,height:900});
+  await page.goto('/#/');
+  await expect(page.getByRole('heading',{name:'CFTR variant research'})).toBeVisible();
+  await page.screenshot({path:info.outputPath(`entry-qa-${project}-${width}-public.png`),fullPage:true,animations:'disabled'});
+  await page.getByRole('button',{name:'Sign in',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'Research sign-in'})).toBeVisible();
+  await addInertForm();
+  await page.screenshot({path:info.outputPath(`entry-qa-${project}-${width}-inline-form-visual-fixture.png`),fullPage:true,animations:'disabled'});
+  await page.goto('/#/sign-in');
+  await expect(page.getByRole('heading',{name:'Research sign-in'})).toBeVisible();
+  await addInertForm();
+  await page.screenshot({path:info.outputPath(`entry-qa-${project}-${width}-dedicated-form-visual-fixture.png`),fullPage:true,animations:'disabled'});
+ }
+});
