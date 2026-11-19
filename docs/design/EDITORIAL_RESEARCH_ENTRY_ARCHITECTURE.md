@@ -10,6 +10,8 @@ neumuacFQ is not a dashboard of invented KPIs. It is a connected scientific inve
 
 - Preserve the existing **Search CFTR variants** form, original exact alias/HGVS semantics, bounded search control dimensions and linked route/query behavior.
 - Retain direct variant-record, Class I, and geography links.
+- Extend the real Ctrl+K workspace launcher: when an identifier does not match a known workspace, provide one honest **Search recorded variants** action routed to `/variants?q=...`. Enter and keyboard-arrow activation use the same route; results remain wholly source-dependent.
+- Keep original workspace discovery, focus handling and navigation. Describe the dual-purpose launcher to screen readers without breaking the existing accessible control name.
 - Add an integrated editorial pathway index (not a stack of large generic cards) linking to the existing genotype, evidence and research-coverage routes.
 - Prioritize readable headings, discreet topic labels, thin structural separators, responsive navigation and keyboard-focus affordances.
 - Show no fabricated counts, no fake researcher activity, no generated variant evidence and no new role or therapy claims.
