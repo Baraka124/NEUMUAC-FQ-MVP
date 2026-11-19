@@ -68,18 +68,25 @@ import ContextHelp from '../components/ContextHelp.vue';
  gap:16px;
  border-bottom:1px solid #dfe7e2;
 }
+/* The supplied square brand PNG contains generous transparent margins.
+   Match the public gateway's cropped *frame*, not a compressed logo asset. */
 .nfq-signin-masthead .nfq-entry-logo{
+ position:relative;
+ display:block;
  flex:0 0 auto;
- display:flex;
- align-items:center;
- min-width:0;
+ width:174px;
+ height:104px;
+ overflow:hidden;
 }
 .nfq-signin-masthead .nfq-entry-logo img{
- width:175px;
- height:83px;
- max-width:100%;
+ position:absolute;
+ display:block;
+ width:170px;
+ height:170px;
+ max-width:none;
  object-fit:contain;
- object-position:left center;
+ left:0;
+ top:-33px;
 }
 .nfq-signin-header-link{
  display:inline-flex;
@@ -250,7 +257,8 @@ import ContextHelp from '../components/ContextHelp.vue';
 }
 @media(max-width:760px){
  .nfq-signin-masthead{min-height:92px}
- .nfq-signin-masthead .nfq-entry-logo img{width:153px;height:72px}
+ .nfq-signin-masthead .nfq-entry-logo{width:151px;height:92px}
+ .nfq-signin-masthead .nfq-entry-logo img{width:148px;height:148px;top:-28px}
  .nfq-signin-institutional .nfq-signin-main{justify-content:flex-start;padding-block:23px}
  .nfq-signin-stage{grid-template-columns:minmax(0,1fr);gap:0}
  /* The approved logo and form title already orient mobile readers. Avoid
@@ -260,7 +268,8 @@ import ContextHelp from '../components/ContextHelp.vue';
 }
 @media(max-width:420px){
  .nfq-signin-masthead{min-height:82px}
- .nfq-signin-masthead .nfq-entry-logo img{width:128px;height:61px}
+ .nfq-signin-masthead .nfq-entry-logo{width:123px;height:82px}
+ .nfq-signin-masthead .nfq-entry-logo img{width:119px;height:119px;top:-21px}
  .nfq-signin-header-link{font-size:11px;white-space:normal;max-width:132px;text-align:right}
  .nfq-login-card-heading h1{font-size:28px}
 }
