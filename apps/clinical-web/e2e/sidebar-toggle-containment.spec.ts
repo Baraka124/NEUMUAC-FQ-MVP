@@ -42,6 +42,28 @@ test('sidebar toggle is contained, unobscured and usable in both rail states',as
    const icon=await mark.boundingBox(),nav=await firstLink.boundingBox();
    expect(icon).not.toBeNull();
    expect(nav).not.toBeNull();
+   // A non-overlapping bounding box alone is insufficient: earlier versions
+   // showed the actual logo and collapse button nearly touching/occluding
+   // each other in the narrow rail. The two elements now have a real layout gap.
+   const brand=await sidebar.locator('.nfq-sidebar-brand-row>.wordmark').boundingBox();
+   const control=await toggle.boundingBox();
+   expect(brand).not.toBeNull();
+   expect(control).not.toBeNull();
+   await expect(toggle).toHaveCSS('position','static');
+   if(collapsed){
+    expect(control!.y-(brand!.y+brand!.height)).toBeGreaterThanOrEqual(10);
+    expect(nav!.y-(control!.y+control!.height)).toBeGreaterThanOrEqual(8);
+    // The rail animates from its expanded width. Measure after the layout
+    // settles instead of sampling its intermediate width during transition.
+    await expect.poll(()=>page.evaluate(()=>{
+     const rail=document.querySelector<HTMLElement>('.app-frame .sidebar')!;
+     const button=rail.querySelector<HTMLElement>('.sidebar-toggle')!;
+     const r=rail.getBoundingClientRect(),b=button.getBoundingClientRect();
+     return Math.abs((b.left+b.right-r.left-r.right)/2);
+    }),{timeout:4500}).toBeLessThanOrEqual(3);
+   }else{
+    expect(control!.x-(brand!.x+brand!.width)).toBeGreaterThanOrEqual(6);
+   }
    // Actual brand artwork and navigation must not be covered by the toggle.
    const overlaps=(other:{x:number,y:number,width:number,height:number})=>
     rect.left<other.x+other.width&&rect.right>other.x&&
