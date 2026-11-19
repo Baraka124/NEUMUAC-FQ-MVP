@@ -81,6 +81,14 @@ jobs:
         run: npm run test:e2e:curation
       - name: Verify complete browser regression shard
         run: npm run test:e2e -- --shard=${{ matrix.shard }}/3
+      - name: Upload editorial entry screenshots for optical review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: entry-optical-review-${{ matrix.shard }}
+          path: apps/clinical-web/test-results/**/entry-qa-*.png
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Upload shard failure artifacts
         if: failure()
         uses: actions/upload-artifact@v4

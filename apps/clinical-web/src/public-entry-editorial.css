@@ -1,0 +1,626 @@
+/*
+ * neumuacFQ · Public entry editorial system.
+ * ONE authoritative source for public landing, inline and dedicated sign-in.
+ * Navy clinical ink, cold white paper and a restrained teal accent from the
+ * approved logo. No decorative cards, badges, green backgrounds or gradients.
+ * Scoped to external entry surfaces: never changes the clinical workspace.
+ */
+.nfq-entry-surface{
+ --entry-paper:#ffffff;
+ --entry-canvas:#fbfcfd;
+ --entry-ink:#152b40;
+ --entry-secondary:#495d71;
+ --entry-muted:#627487;
+ --entry-rule:#dfe6ec;
+ --entry-rule-strong:#c7d4df;
+ --entry-accent:#117c8d;
+ --entry-action:#193b53;
+ --entry-action-hover:#244d68;
+ --entry-focus:#197e94;
+ color:var(--entry-ink);
+ background:var(--entry-canvas);
+ font-family:'IBM Plex Sans',Inter,'Segoe UI',system-ui,sans-serif;
+ font-feature-settings:'kern' 1,'liga' 1;
+ font-kerning:normal;
+ -webkit-font-smoothing:antialiased;
+ text-rendering:optimizeLegibility;
+ min-height:100dvh;
+ display:flex;
+ flex-direction:column;
+}
+.nfq-entry-surface *,
+.nfq-entry-surface *::before,
+.nfq-entry-surface *::after{box-sizing:border-box}
+.nfq-entry-surface :is(a,button,input,summary):focus-visible{
+ outline:2px solid var(--entry-focus);
+ outline-offset:3px;
+}
+.nfq-entry-surface :is(button,input){font-family:inherit}
+.nfq-entry-surface button{cursor:pointer}
+.nfq-entry-surface :is(.nfq-portal-masthead,.nfq-portal-content,.nfq-portal-footer,.nfq-signin-masthead,.nfq-signin-main,.nfq-signin-footer){
+ width:min(1260px,100%);
+ margin-inline:auto;
+ padding-inline:clamp(20px,4vw,54px);
+}
+.nfq-entry-surface :is(.nfq-portal-masthead,.nfq-signin-masthead){
+ min-height:102px;
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:18px;
+ border-bottom:1px solid var(--entry-rule);
+}
+.nfq-entry-surface :is(.nfq-portal-brand,.nfq-entry-logo){
+ position:relative;
+ display:block;
+ width:174px;
+ height:100px;
+ flex:0 0 174px;
+ overflow:hidden;
+}
+.nfq-entry-surface :is(.nfq-portal-brand,.nfq-entry-logo) img{
+ position:absolute;
+ display:block;
+ left:0;
+ top:-33px;
+ width:170px;
+ height:170px;
+ max-width:none;
+ object-fit:contain;
+}
+.nfq-entry-surface :is(.nfq-portal-masthead-right){
+ display:flex;align-items:center;gap:23px;
+}
+.nfq-entry-surface :is(.nfq-portal-header-context){
+ color:var(--entry-muted);
+ font-size:10.5px;
+ letter-spacing:.075em;
+ font-weight:580;
+ white-space:nowrap;
+}
+.nfq-entry-surface :is(.nfq-portal-header-link,.nfq-signin-header-link){
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ gap:9px;
+ min-height:40px;
+ padding:5px 0;
+ border:0;
+ border-bottom:1px solid transparent;
+ border-radius:0;
+ color:var(--entry-ink);
+ background:transparent;
+ text-decoration:none;
+ font-size:12.5px;
+ line-height:1.4;
+ font-weight:610;
+ white-space:nowrap;
+ box-shadow:none;
+}
+.nfq-entry-surface :is(.nfq-portal-header-link,.nfq-signin-header-link):hover{
+ color:var(--entry-accent);
+ border-bottom-color:var(--entry-accent);
+}
+.nfq-entry-surface .nfq-portal-header-link span{color:var(--entry-accent);font-size:16px}
+.nfq-entry-surface .nfq-signin-header-link span{color:var(--entry-accent)}
+/* Entrance composition. It shares the typography and width with the sign-in
+ * route. The research directory occupies an actual reading column. */
+.nfq-entry-surface .nfq-portal-content{
+ flex:1;
+ display:flex;
+ flex-direction:column;
+ justify-content:flex-start;
+ padding-top:clamp(48px,8vh,86px);
+ padding-bottom:26px;
+}
+.nfq-entry-surface .nfq-portal-layout,
+.nfq-entry-surface .nfq-signin-stage{
+ display:grid;
+ grid-template-columns:minmax(0,1.16fr) minmax(345px,.85fr);
+ gap:clamp(46px,5vw,84px);
+ align-items:start;
+ min-width:0;
+}
+.nfq-entry-surface .nfq-portal-intro,
+.nfq-entry-surface .nfq-signin-context{
+ min-width:0;
+ padding-top:8px;
+}
+.nfq-entry-surface :is(.nfq-portal-kicker,.nfq-signin-eyebrow,.nfq-access-kicker){
+ display:block;
+ margin:0;
+ color:var(--entry-accent);
+ font-size:10.5px;
+ line-height:1.5;
+ font-weight:640;
+ letter-spacing:.08em;
+ text-transform:uppercase;
+}
+.nfq-entry-surface :is(.nfq-portal-intro h1,.nfq-signin-context h2){
+ max-width:18ch;
+ margin:22px 0 19px;
+ color:var(--entry-ink);
+ font-family:'Iowan Old Style','Baskerville','Palatino Linotype',Georgia,serif;
+ font-size:clamp(45px,4.4vw,63px);
+ line-height:1.08;
+ font-weight:500;
+ letter-spacing:-.055em;
+ text-wrap:balance;
+}
+.nfq-entry-surface :is(.nfq-portal-description,.nfq-signin-context>p:not(.nfq-signin-eyebrow)){
+ max-width:490px;
+ margin:0;
+ color:var(--entry-secondary);
+ font-size:15px;
+ line-height:1.68;
+ font-weight:430;
+}
+.nfq-entry-surface .nfq-portal-actions{display:flex;align-items:center;margin-top:27px}
+.nfq-entry-surface .nfq-portal-enter{
+ display:inline-flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:26px;
+ min-height:41px;
+ padding:9px 14px;
+ border:1px solid var(--entry-action);
+ border-radius:4px;
+ background:var(--entry-action);
+ color:#fff;
+ text-decoration:none;
+ font-size:12.5px;
+ line-height:1.45;
+ font-weight:620;
+ box-shadow:none;
+}
+.nfq-entry-surface .nfq-portal-enter:hover{
+ background:var(--entry-action-hover);
+ border-color:var(--entry-action-hover);
+}
+.nfq-entry-surface .nfq-portal-enter svg{width:16px;height:16px;flex:none}
+.nfq-entry-surface .nfq-portal-layout-auth .nfq-portal-enter{
+ background:transparent;
+ color:var(--entry-accent);
+ border-color:transparent;
+ border-bottom-color:var(--entry-rule-strong);
+ padding-inline:0;
+}
+.nfq-entry-surface .nfq-portal-layout-auth .nfq-portal-enter:hover{
+ color:var(--entry-ink);background:transparent;border-bottom-color:var(--entry-accent);
+}
+.nfq-entry-surface .nfq-portal-access-note{
+ margin:12px 0 0;
+ color:var(--entry-muted);
+ font-size:11.5px;
+ line-height:1.5;
+}
+/* One line divides separate reading areas. Rows themselves do not need
+ * five decorative borders, numbers or fake dashboard tiles. */
+.nfq-entry-surface :is(.nfq-portal-index,.nfq-portal-account,.nfq-login-card){
+ width:100%;
+ min-width:0;
+ padding:8px 0 0 clamp(23px,3.2vw,42px);
+ margin:0;
+ border:0;
+ border-left:1px solid var(--entry-rule);
+ border-radius:0;
+ background:transparent;
+ box-shadow:none;
+ backdrop-filter:none;
+ -webkit-backdrop-filter:none;
+}
+.nfq-entry-surface .nfq-portal-index-top{margin:0 0 21px}
+.nfq-entry-surface .nfq-portal-index-top h2{
+ margin:7px 0 0;
+ color:var(--entry-ink);
+ font-family:'Iowan Old Style','Baskerville',Georgia,serif;
+ font-size:clamp(27px,2.5vw,34px);
+ line-height:1.16;
+ font-weight:500;
+ letter-spacing:-.045em;
+}
+.nfq-entry-surface .nfq-portal-index-link{
+ display:grid;
+ grid-template-columns:minmax(0,1fr);
+ align-items:center;
+ gap:0;
+ min-height:61px;
+ padding:8px 0 9px;
+ margin:0;
+ border:0;
+ border-radius:0;
+ color:var(--entry-ink);
+ background:transparent;
+ text-decoration:none;
+ transition:color 125ms ease,transform 125ms ease;
+}
+.nfq-entry-surface .nfq-portal-index-link>span:first-child{min-width:0}
+.nfq-entry-surface .nfq-portal-index-link strong{
+ display:block;
+ font-size:13.5px;
+ line-height:1.35;
+ font-weight:630;
+ letter-spacing:-.008em;
+}
+.nfq-entry-surface .nfq-portal-index-link small{
+ display:block;
+ margin-top:3px;
+ color:var(--entry-muted);
+ font-size:11.7px;
+ line-height:1.44;
+ font-weight:430;
+}
+.nfq-entry-surface .nfq-portal-index-arrow{display:none}
+.nfq-entry-surface .nfq-portal-index-link:hover{color:var(--entry-accent);transform:translateX(3px)}
+.nfq-entry-surface .nfq-portal-index-link:hover strong{text-decoration:underline;text-underline-offset:3px}
+.nfq-entry-surface .nfq-portal-research-notice{
+ display:flex;
+ gap:11px;
+ align-items:flex-start;
+ max-width:840px;
+ margin-top:clamp(32px,5.5vh,55px);
+ padding:14px 0 0;
+ border-top:1px solid var(--entry-rule);
+ color:var(--entry-muted);
+}
+.nfq-entry-surface .nfq-portal-research-notice svg{flex:0 0 17px;margin-top:1px}
+.nfq-entry-surface .nfq-portal-research-notice p{
+ margin:0;
+ font-size:11px;
+ line-height:1.65;
+}
+.nfq-entry-surface :is(.nfq-portal-footer,.nfq-signin-footer){
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:14px 25px;
+ flex-wrap:wrap;
+ min-height:46px;
+ padding-block:13px;
+ border-top:1px solid var(--entry-rule);
+ color:var(--entry-muted);
+ font-size:10.5px;
+ line-height:1.45;
+ letter-spacing:0;
+}
+.nfq-entry-surface .nfq-signin-footer a{color:var(--entry-secondary);text-decoration:none}
+.nfq-entry-surface .nfq-signin-footer a:hover{color:var(--entry-accent);text-decoration:underline}
+/* Dedicated route is intentionally the same composition. No separate login
+ * background, tint, hero illustration, floating card or invented sign-in UI. */
+.nfq-entry-surface.nfq-signin-institutional .nfq-signin-main{
+ display:flex;
+ flex:1;
+ flex-direction:column;
+ align-items:stretch;
+ justify-content:flex-start;
+ min-height:0;
+ max-width:none;
+ padding-top:clamp(48px,8vh,86px);
+ padding-bottom:30px;
+}
+.nfq-entry-surface .nfq-signin-stage{
+ width:100%;
+ min-height:0;
+ margin:0;
+ padding:0;
+ border:0;
+ border-radius:0;
+ background:transparent;
+ box-shadow:none;
+ overflow:visible;
+}
+.nfq-entry-surface .nfq-signin-context h2{
+ margin-top:20px;
+ font-size:clamp(43px,3.8vw,56px);
+ max-width:20ch;
+}
+.nfq-entry-surface .nfq-signin-context>p:not(.nfq-signin-eyebrow){
+ max-width:460px;
+ font-size:14.5px;
+}
+.nfq-entry-surface .nfq-login-card{max-width:390px}
+.nfq-entry-surface .nfq-portal-account{max-width:390px}
+/* Single, shared ResearchAccessPanel. The exact same label, help, hierarchy,
+ * controls and state apply on both public and dedicated sign-in routes. */
+.nfq-entry-surface .nfq-access-panel{
+ width:100%;
+ max-width:350px;
+ min-width:0;
+ color:var(--entry-ink);
+}
+.nfq-entry-surface .nfq-access-heading{
+ display:flex;
+ justify-content:space-between;
+ align-items:flex-start;
+ gap:12px;
+ margin:0 0 20px;
+}
+.nfq-entry-surface .nfq-access-heading-copy{min-width:0}
+.nfq-entry-surface .nfq-access-kicker{
+ font-size:10.3px;
+ letter-spacing:.075em;
+ margin-bottom:9px;
+}
+.nfq-entry-surface .nfq-access-heading :is(h1,h2){
+ margin:0;
+ font-family:'Iowan Old Style','Baskerville',Georgia,serif;
+ color:var(--entry-ink);
+ font-size:clamp(28px,2.45vw,34px);
+ line-height:1.15;
+ font-weight:500;
+ letter-spacing:-.042em;
+ white-space:normal;
+}
+.nfq-entry-surface .nfq-access-caption{
+ margin:6px 0 0;
+ color:var(--entry-muted);
+ font-size:11.5px;
+ line-height:1.5;
+}
+.nfq-entry-surface .nfq-access-links{
+ display:flex;
+ flex-wrap:wrap;
+ align-items:center;
+ gap:6px 24px;
+ margin-top:16px;
+}
+.nfq-entry-surface .nfq-access-text-link{
+ display:inline-flex;
+ align-items:center;
+ min-height:33px;
+ padding:4px 0;
+ margin:0;
+ border:0;
+ border-radius:0;
+ background:transparent;
+ color:var(--entry-secondary);
+ font:inherit;
+ font-size:11.7px;
+ font-weight:530;
+ text-decoration:none;
+ white-space:normal;
+}
+.nfq-entry-surface .nfq-access-text-link:hover{color:var(--entry-accent);text-decoration:underline;text-underline-offset:3px}
+/* Real credential form: precise fields and exactly one clearly actionable
+ * filled control. No pale-blue autofill, oversized blocks or faux buttons. */
+.nfq-entry-surface .nfq-account-form{min-width:0;width:100%}
+.nfq-entry-surface .nfq-account-fields{
+ display:grid;
+ grid-template-columns:minmax(0,1fr);
+ gap:7px;
+ width:100%;
+ max-width:344px;
+ margin:0;
+}
+.nfq-entry-surface .nfq-account-fields label{
+ display:block;
+ margin:0;
+ color:var(--entry-secondary);
+ font-size:12px;
+ line-height:1.5;
+ font-weight:600;
+ letter-spacing:0;
+}
+.nfq-entry-surface .nfq-account-fields label:not(:first-child){margin-top:8px}
+.nfq-entry-surface .nfq-account-fields input{
+ display:block;
+ width:100%;
+ max-width:100%;
+ min-width:0;
+ height:41px;
+ min-height:41px;
+ padding:9px 11px;
+ border:1px solid var(--entry-rule-strong);
+ border-radius:4px;
+ background:var(--entry-paper);
+ color:var(--entry-ink);
+ font-family:inherit;
+ font-size:13px;
+ line-height:1.5;
+ font-weight:450;
+ box-shadow:none;
+ outline:none;
+ color-scheme:light;
+}
+.nfq-entry-surface .nfq-account-fields input:hover{border-color:#a5b8c8}
+.nfq-entry-surface .nfq-account-fields input:focus-visible{
+ outline:2px solid var(--entry-focus);
+ outline-offset:1px;
+ border-color:var(--entry-focus);
+}
+.nfq-entry-surface .nfq-account-fields input:-webkit-autofill,
+.nfq-entry-surface .nfq-account-fields input:-webkit-autofill:hover,
+.nfq-entry-surface .nfq-account-fields input:-webkit-autofill:focus{
+ -webkit-text-fill-color:var(--entry-ink)!important;
+ -webkit-box-shadow:0 0 0 1000px var(--entry-paper) inset!important;
+ box-shadow:0 0 0 1000px var(--entry-paper) inset!important;
+ caret-color:var(--entry-ink);
+ transition:background-color 5000s ease-in-out 0s;
+}
+.nfq-entry-surface .nfq-password-control{position:relative;min-width:0}
+.nfq-entry-surface .nfq-password-control input{padding-right:46px}
+.nfq-entry-surface .nfq-account-fields .nfq-password-toggle{
+ position:absolute;
+ right:1px;
+ top:50%;
+ transform:translateY(-50%);
+ display:grid;
+ place-items:center;
+ width:39px;
+ height:39px;
+ min-height:39px;
+ padding:0;
+ margin:0;
+ border:0;
+ border-radius:4px;
+ background:transparent;
+ color:var(--entry-secondary);
+ cursor:pointer;
+ box-shadow:none;
+}
+.nfq-entry-surface .nfq-account-fields .nfq-password-toggle svg{width:17px;height:17px}
+.nfq-entry-surface .nfq-account-fields .nfq-password-toggle:hover{background:#f0f5f8;color:var(--entry-accent)}
+.nfq-entry-surface .nfq-account-fields button[type="submit"]{
+ display:inline-flex;
+ justify-content:center;
+ align-items:center;
+ justify-self:start;
+ min-width:116px;
+ max-width:180px;
+ width:auto;
+ height:41px;
+ min-height:41px;
+ margin:10px 0 0;
+ padding:8px 20px;
+ border:1px solid var(--entry-action);
+ border-radius:4px;
+ background:var(--entry-action);
+ color:#fff;
+ font-family:inherit;
+ font-size:12.5px;
+ line-height:1.35;
+ font-weight:620;
+ box-shadow:none;
+ cursor:pointer;
+}
+.nfq-entry-surface .nfq-account-fields button[type="submit"]:hover:not(:disabled){
+ background:var(--entry-action-hover);
+ border-color:var(--entry-action-hover);
+}
+.nfq-entry-surface .nfq-account-fields button[type="submit"]:disabled{opacity:.58;cursor:wait}
+.nfq-entry-surface .nfq-account-fields p[role="alert"]{
+ margin:3px 0;
+ color:#9d4e49;
+ font-size:12px;
+ line-height:1.5;
+}
+.nfq-entry-surface .nfq-account-unavailable{
+ max-width:39ch;
+ margin:0;
+ color:var(--entry-secondary);
+ font-size:12px;
+ line-height:1.55;
+}
+/* Context help uses the very same clinical navy/slate palette and a quiet
+ * circular hit area; its original disclosure and Escape behavior stay intact. */
+.nfq-entry-surface .nfq-context-help{flex:none}
+.nfq-entry-surface .nfq-context-help summary{
+ width:30px;height:30px;
+ border:1px solid var(--entry-rule-strong);
+ background:transparent;
+ color:var(--entry-secondary);
+}
+.nfq-entry-surface .nfq-context-help summary:hover,
+.nfq-entry-surface .nfq-context-help[open] summary{
+ border-color:var(--entry-focus);
+ background:#f2f7f9;
+ color:var(--entry-focus);
+}
+.nfq-entry-surface .nfq-context-help-panel{
+ background:var(--entry-paper);
+ border-color:var(--entry-rule-strong);
+ color:var(--entry-secondary);
+ box-shadow:0 15px 32px -24px rgba(13,39,62,.24);
+}
+.nfq-entry-surface .nfq-context-help-title{color:var(--entry-ink)}
+@media(max-width:1000px){
+ .nfq-entry-surface .nfq-portal-layout{
+  grid-template-columns:minmax(0,1fr) minmax(300px,.92fr);
+  gap:30px;
+ }
+ .nfq-entry-surface .nfq-portal-header-context{display:none}
+ .nfq-entry-surface .nfq-portal-intro h1{font-size:clamp(41px,5.2vw,57px)}
+}
+@media(max-width:900px){
+ .nfq-entry-surface .nfq-signin-stage{display:block;max-width:440px}
+ .nfq-entry-surface .nfq-signin-context{display:none}
+ .nfq-entry-surface .nfq-login-card{
+  padding:0;
+  max-width:390px;
+  border:0;
+ }
+}
+@media(max-width:760px){
+ .nfq-entry-surface :is(.nfq-portal-masthead,.nfq-signin-masthead){min-height:86px}
+ .nfq-entry-surface :is(.nfq-portal-brand,.nfq-entry-logo){width:144px;height:86px;flex-basis:144px}
+ .nfq-entry-surface :is(.nfq-portal-brand,.nfq-entry-logo) img{width:141px;height:141px;top:-27px}
+ .nfq-entry-surface .nfq-portal-content{
+  justify-content:flex-start;
+  padding-top:28px;
+  padding-bottom:22px;
+ }
+ .nfq-entry-surface .nfq-portal-layout{display:block}
+ .nfq-entry-surface .nfq-portal-intro{padding:0}
+ .nfq-entry-surface .nfq-portal-intro h1{
+  max-width:18ch;
+  margin:14px 0 15px;
+  font-size:clamp(38px,7.2vw,53px);
+ }
+ .nfq-entry-surface .nfq-portal-description{font-size:14px}
+ .nfq-entry-surface .nfq-portal-actions{margin-top:19px}
+ .nfq-entry-surface :is(.nfq-portal-index,.nfq-portal-account){
+  margin-top:30px;
+  padding:22px 0 0;
+  border:0;
+  border-top:1px solid var(--entry-rule);
+ }
+ .nfq-entry-surface .nfq-portal-account{max-width:390px}
+ .nfq-entry-surface .nfq-portal-research-notice{margin-top:30px}
+ .nfq-entry-surface.nfq-signin-institutional .nfq-signin-main{
+  align-items:stretch;
+  padding-top:30px;
+  padding-bottom:18px;
+ }
+ .nfq-entry-surface .nfq-access-panel{max-width:350px}
+}
+/* A researcher opening Sign in on a phone should not have to pass a
+ * second public hero before reaching the existing real credential form.
+ * Keep the required public link present, but reduce competing introduction. */
+@media(max-width:760px){
+ .nfq-entry-surface .nfq-portal-layout-auth .nfq-portal-intro{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+ }
+ .nfq-entry-surface .nfq-portal-layout-auth .nfq-portal-intro .nfq-portal-kicker{
+  font-size:10px;
+ }
+ .nfq-entry-surface .nfq-portal-layout-auth .nfq-portal-intro h1{
+  font-size:28px;
+  line-height:1.15;
+  margin:9px 0 0;
+  letter-spacing:-.035em;
+ }
+ .nfq-entry-surface .nfq-portal-layout-auth .nfq-portal-description{
+  display:none;
+ }
+ .nfq-entry-surface .nfq-portal-layout-auth .nfq-portal-actions{
+  margin-top:4px;
+ }
+ .nfq-entry-surface .nfq-portal-layout-auth .nfq-portal-enter{
+  min-height:34px;
+  font-size:11.7px;
+ }
+ .nfq-entry-surface .nfq-portal-layout-auth .nfq-portal-access-note{
+  display:none;
+ }
+ .nfq-entry-surface .nfq-portal-layout-auth .nfq-portal-account{
+  margin-top:14px;
+  padding-top:16px;
+ }
+}
+@media(max-width:440px){
+ .nfq-entry-surface :is(.nfq-portal-masthead,.nfq-signin-masthead){min-height:79px}
+ .nfq-entry-surface :is(.nfq-portal-brand,.nfq-entry-logo){width:123px;height:79px;flex-basis:123px}
+ .nfq-entry-surface :is(.nfq-portal-brand,.nfq-entry-logo) img{width:120px;height:120px;top:-22px}
+ .nfq-entry-surface .nfq-portal-header-link{font-size:12px}
+ .nfq-entry-surface .nfq-portal-intro h1{font-size:40px}
+ .nfq-entry-surface .nfq-signin-header-link{white-space:normal;text-align:right;font-size:11.5px;max-width:135px}
+ .nfq-entry-surface .nfq-account-fields input{font-size:16px}
+ .nfq-entry-surface :is(.nfq-portal-footer,.nfq-signin-footer){display:grid;gap:5px}
+ .nfq-entry-surface .nfq-portal-index-link{min-height:56px}
+}
+@media(prefers-reduced-motion:reduce){
+ .nfq-entry-surface .nfq-portal-index-link{transition:none}
+ .nfq-entry-surface .nfq-portal-index-link:hover{transform:none}
+}

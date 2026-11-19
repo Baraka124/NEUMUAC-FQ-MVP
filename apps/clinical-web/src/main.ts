@@ -26,6 +26,7 @@ import './editorial-research-system.css';
 import './clinical-editorial-foundation.css';
 import './clinical-control-precision.css';
 import './clinical-editorial-integration.css';
+import './public-entry-editorial.css';
 import {authController} from './services/authSession';
 import {refreshResearcherRole} from './services/researchRole';
 import {refreshGuestDesignation} from './services/guestDesignation';
