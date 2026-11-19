@@ -97,12 +97,12 @@ import ContextHelp from '../components/ContextHelp.vue';
  flex:1;
  display:flex;
  flex-direction:column;
- justify-content:center;
+ justify-content:flex-start;
  width:min(1240px,100%);
  max-width:none;
  min-height:0;
  margin-inline:auto;
- padding:clamp(26px,5vh,52px) clamp(22px,3.5vw,48px) 24px;
+ padding:clamp(42px,8vh,80px) clamp(22px,3.5vw,48px) 24px;
 }
 .nfq-signin-stage{
  display:grid;
