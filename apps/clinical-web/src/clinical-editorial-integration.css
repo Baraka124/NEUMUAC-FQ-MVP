@@ -1,0 +1,202 @@
+/*
+ * E03 · Final clinical editorial integration
+ *
+ * Calm secondary surfaces, compact rows and professional contextual controls.
+ * Only existing Vue workspace chrome is styled. The original standalone HTML,
+ * evidence interpretation, research data, classification and response colors
+ * remain owned by their original styles.
+ */
+.app-frame{
+ --nfq-e03-shadow:0 12px 32px rgba(14,31,57,.10);
+ --nfq-e03-dialog-edge:#d9e2ed;
+ --nfq-e03-hairline:#e5eaf1;
+ --nfq-e03-subhead:#576b84;
+}
+.app-frame[data-nfq-theme="midnight"]{
+ --nfq-e03-shadow:0 18px 38px rgba(0,0,0,.30);
+ --nfq-e03-dialog-edge:#3b4d67;
+ --nfq-e03-hairline:#35445c;
+ --nfq-e03-subhead:#b1c3da;
+}
+/* Dialogs must read as a distinct instrument, not another webpage. */
+.app-frame .workspace-launcher{
+ border-radius:9px;
+ box-shadow:var(--nfq-e03-shadow);
+ overflow:hidden;
+}
+.app-frame .launcher-search{
+ display:flex;
+ align-items:center;
+ gap:8px;
+ min-width:0;
+}
+.app-frame .launcher-search input[type="search"]{
+ min-width:0;
+ width:100%;
+ max-width:none;
+}
+.app-frame .launcher-search button[aria-label="Close workspace switcher"]{
+ flex:none;
+ width:36px;
+ height:36px;
+ min-width:36px;
+ min-height:36px;
+ font-size:20px;
+ font-weight:400;
+ line-height:1;
+ border-radius:5px;
+}
+.app-frame .launcher-heading{
+ letter-spacing:.06em;
+ font-size:10px;
+ font-weight:650;
+}
+.app-frame .launcher-options{
+ min-width:0;
+}
+.app-frame .launcher-options button{
+ width:100%;
+ min-width:0;
+ gap:5px;
+}
+.app-frame .launcher-options button strong{
+ font-size:12.5px;
+ letter-spacing:-.01em;
+ font-weight:630;
+}
+.app-frame .launcher-options button span{
+ font-size:11.5px;
+ line-height:1.45;
+}
+.app-frame .launcher-footnote{
+ font-size:10.5px;
+ line-height:1.5;
+}
+.app-frame[data-nfq-theme="light"] .workspace-launcher{
+ border:1px solid var(--nfq-e03-dialog-edge);
+ background:#fff;
+}
+.app-frame[data-nfq-theme="midnight"] .workspace-launcher{
+ border:1px solid var(--nfq-e03-dialog-edge);
+}
+/* Openable scientific help should be optically quiet but discoverable. */
+.app-frame .nfq-context-help{
+ max-width:100%;
+}
+.app-frame .nfq-context-help summary{
+ border-radius:5px;
+ font-weight:590;
+}
+.app-frame .nfq-context-help-panel{
+ max-width:min(500px,calc(100vw - 32px));
+ border-radius:7px;
+ box-shadow:var(--nfq-e03-shadow);
+ overflow-wrap:anywhere;
+}
+.app-frame .nfq-context-help-panel :is(p,li,dd){
+ line-height:1.55;
+}
+/* Worklists: information first, fewer artificial card effects. */
+.app-frame .variant-page .record-list{
+ gap:5px;
+}
+.app-frame .variant-page .record-list button{
+ border-radius:5px;
+ box-shadow:none;
+}
+.app-frame .variant-page .record-list button .record-first strong{
+ letter-spacing:-.012em;
+}
+.app-frame .variant-page .record-list button :is(.record-subline,.record-bottom){
+ line-height:1.45;
+}
+.app-frame .evidence-page .evidence-row{
+ box-shadow:none;
+}
+.app-frame .evidence-page .evidence-row-disclosure{
+ border-radius:5px;
+}
+.app-frame .nfq-audit-page :is(.nfq-audit-picker,.nfq-audit-chronology,.nfq-audit-metrics){
+ box-shadow:none;
+ border-radius:7px;
+}
+.app-frame .nfq-audit-page .nfq-audit-event{
+ gap:11px;
+}
+.app-frame .nfq-audit-page .nfq-audit-event-meta{
+ gap:5px 12px;
+}
+.app-frame .nfq-audit-page .nfq-audit-event h3{
+ letter-spacing:-.012em;
+}
+/* Consistent secondary research headers while preserving clinical semantics. */
+.app-frame .page :is(.nfq-audit-head,.nfq-gov-header,.nfq-pair-heading,.nfq-evidence-heading){
+ gap:10px 18px;
+}
+.app-frame .page :is(.nfq-audit-head,.nfq-gov-header) p{
+ max-width:67ch;
+}
+.app-frame .genotype-page .genotype-locus :is(input,select){
+ max-width:min(100%,480px);
+}
+.app-frame .intelligence-page .nfq-coverage-groups{
+ gap:8px;
+}
+.app-frame .nfq-governance-page :is(.nfq-gov-identity,.nfq-gov-access,.nfq-gov-review){
+ box-shadow:none;
+}
+.app-frame .nfq-governance-page .nfq-gov-capability{
+ gap:10px 18px;
+}
+.app-frame .geo-observatory :is(.geo-about,.geo-region-insight){
+ box-shadow:none;
+}
+/* Assistive technologies and keyboard navigation remain visible in overlays. */
+.app-frame .workspace-launcher :is(input,button):focus-visible,
+.app-frame .nfq-context-help :is(summary,button,a):focus-visible,
+.app-frame .variant-page .record-list button:focus-visible{
+ outline:2px solid var(--nfq-ui-focus)!important;
+ outline-offset:2px!important;
+}
+/* Secondary panels must never grow outside the research viewport. */
+.app-frame .page :is(
+ .variant-filter-panel,.nfq-context-help-panel,
+ .nfq-audit-picker,.helios-panel,.genotype-comparison
+){
+ min-width:0;
+}
+@media(max-width:760px){
+ .app-frame .workspace-launcher{
+  max-width:calc(100vw - 24px);
+  border-radius:8px;
+ }
+ .app-frame .launcher-search button[aria-label="Close workspace switcher"]{
+  width:36px;
+  height:36px;
+  min-height:36px;
+  min-width:36px;
+ }
+ .app-frame .nfq-context-help-panel{
+  max-width:calc(100vw - 28px);
+ }
+ .app-frame .nfq-audit-page .nfq-audit-event{
+  gap:9px;
+ }
+ .app-frame .page :is(.nfq-audit-head,.nfq-gov-header,.nfq-pair-heading){
+  flex-wrap:wrap;
+ }
+}
+@media(max-width:400px){
+ .app-frame .launcher-options button{
+  padding-inline:12px;
+ }
+ .app-frame .nfq-governance-page .nfq-gov-capability-status{
+  min-width:0;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ .app-frame .workspace-launcher :is(input,button),
+ .app-frame .nfq-context-help :is(summary,button){
+  transition:none!important;
+ }
+}
