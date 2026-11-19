@@ -65,3 +65,26 @@ test('editorial switcher traps Tab, navigates options and restores trigger focus
  await expect(dialog).toHaveCount(0);
  await expect(trigger).toBeFocused();
 });
+
+
+test('research entry exposes real scientific pathways with no synthetic metrics',async({page})=>{
+ await page.goto('/#/workspace');
+ await expect(page.getByRole('heading',{name:'CFTR variant research',exact:true})).toBeVisible();
+ await expect(page.getByRole('searchbox',{name:'Search CFTR variants'})).toBeVisible();
+ const pathways=page.getByRole('navigation',{name:'Research pathways'});
+ await expect(pathways).toBeVisible();
+ await expect(pathways.getByRole('link',{name:/Compare two variants/})).toHaveAttribute('href','#/genotype');
+ await expect(pathways.getByRole('link',{name:/Trace the evidence/})).toHaveAttribute('href','#/evidence');
+ await expect(pathways.getByRole('link',{name:/Inspect knowledge gaps/})).toHaveAttribute('href','#/intelligence');
+ await expect(page.getByRole('link',{name:/Open Class I variant worklist/})).toHaveAttribute('href','#/variants?class=I');
+ for(const width of [320,390,768,1024,1366]){
+  await page.setViewportSize({width,height:850});
+  await expect(pathways).toBeVisible();
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+ await pathways.getByRole('link',{name:/Compare two variants/}).click();
+ await expect(page.getByRole('heading',{name:'Variant comparison'})).toBeVisible();
+ await page.goto('/#/workspace');
+ await pathways.getByRole('link',{name:/Trace the evidence/}).click();
+ await expect(page.getByRole('heading',{name:'Evidence & provenance'})).toBeVisible();
+});
