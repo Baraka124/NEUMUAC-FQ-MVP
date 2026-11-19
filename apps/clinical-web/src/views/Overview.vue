@@ -16,7 +16,7 @@ function openVariantSearch():void{
     <header class="research-home-intro nfq-workspace-intro">
       <div class="eyebrow">PUBLIC RESEARCH · READ ONLY</div>
       <h1>CFTR variant research</h1>
-      <p class="intro">Start with a recorded variant, then follow its evidence, genotype context and research coverage.</p>
+      <p class="intro">Search recorded CFTR variants, then explore their evidence and context.</p>
     </header>
 
     <div class="nfq-research-entry-grid">
@@ -40,7 +40,7 @@ function openVariantSearch():void{
         <RouterLink to="/variants">Explore variant records <span aria-hidden="true">→</span></RouterLink>
         <RouterLink to="/variants?class=I">Open Class I variant worklist <span aria-hidden="true">→</span></RouterLink>
         <RouterLink to="/geography">Explore geographic atlas <span aria-hidden="true">→</span></RouterLink>
-        <button class="nfq-home-pathways-entry" type="button" :aria-expanded="pathwaysExpanded" aria-controls="nfq-pathway-options" @click="pathwaysExpanded=!pathwaysExpanded">{{pathwaysExpanded?'Hide research pathways':'Explore research pathways'}} <span aria-hidden="true">→</span></button>
+        <button class="nfq-home-pathways-entry" type="button" :aria-label="pathwaysExpanded?'Hide research pathways':'Explore research pathways'" :aria-expanded="pathwaysExpanded" aria-controls="nfq-pathway-options" @click="pathwaysExpanded=!pathwaysExpanded">{{pathwaysExpanded?'Hide pathways':'Pathways'}} <span aria-hidden="true">→</span></button>
       </div>
     </section>
 
