@@ -200,3 +200,97 @@
   transition:none!important;
  }
 }
+
+/*
+ * Editorial v1 · optical audit.
+ * No further generic card/gradient layer: use typography, alignment and
+ * functional affordances in existing components. Preserve 14H137/14H153
+ * pixel contracts for original colors, filter transparency and launcher size.
+ */
+.app-frame{
+ --nfq-editorial-measure:68ch;
+ --nfq-editorial-rhythm:1.54;
+ --nfq-editorial-quiet:#64758a;
+}
+.app-frame[data-nfq-theme="midnight"]{
+ --nfq-editorial-quiet:#b4c5db;
+}
+/* Quiet, useful hierarchy: reduce artificial letter spacing on utility text. */
+.app-frame .workspace-frame :is(
+ .sidebar-caption,.launcher-heading,.nfq-gov-kicker,
+ .nfq-gov-label,.nfq-audit-eyebrow,.nfq-audit-label,
+ .section-label,.eyebrow
+){
+ letter-spacing:.035em!important;
+ font-weight:620!important;
+}
+.app-frame .workspace-frame :is(.page .intro,.nfq-gov-header p,.nfq-audit-head p){
+ max-width:var(--nfq-editorial-measure);
+ line-height:var(--nfq-editorial-rhythm);
+ text-wrap:pretty;
+}
+/* Consistent hierarchy on secondary screens, without adding redundant titles. */
+.app-frame .workspace-frame .page :is(
+ .nfq-pair-heading h1,.nfq-evidence-heading h1,
+ .nfq-audit-head h1,.nfq-gov-header h1,.nfq-coverage-heading h1
+){
+ font-weight:620!important;
+ text-rendering:optimizeLegibility;
+}
+.app-frame .workspace-frame .page :is(.section-head,.nfq-audit-picker-head,.nfq-gov-section-heading){
+ align-items:baseline;
+ column-gap:18px;
+}
+.app-frame .workspace-frame .page :is(.nfq-audit-event-meta time,.record-total,.nfq-coverage-results-count){
+ font-variant-numeric:tabular-nums;
+}
+/* Editorial navigation: accent reserved for action/selection, never decoration. */
+.app-frame .workspace-nav :is(a,.staff-access-link){
+ text-decoration:none;
+}
+.app-frame .workspace-frame .nfq-editorial-crumb-current{
+ font-weight:590;
+ letter-spacing:-.016em;
+}
+.app-frame .launcher-options{
+ overscroll-behavior:contain;
+ scrollbar-gutter:stable;
+}
+.app-frame .launcher-options button :is(strong,span){
+ overflow-wrap:anywhere;
+}
+.app-frame .workspace-launcher :is(button,input):focus-visible{
+ outline-offset:2px!important;
+}
+/* Dense research rows align as reading material, not padded marketing cards. */
+.app-frame .nfq-audit-page .nfq-audit-event{
+ align-items:start;
+}
+.app-frame .nfq-audit-page .nfq-audit-event p,
+.app-frame .nfq-governance-page .nfq-gov-capability-copy p{
+ max-width:var(--nfq-editorial-measure);
+ line-height:1.55;
+}
+.app-frame .evidence-page :is(.evidence-row,.evidence-row-disclosure),
+.app-frame .variant-page .record-list button{
+ transition:background-color 130ms ease,border-color 130ms ease;
+}
+.app-frame .nfq-context-help-panel{
+ line-height:1.55;
+}
+.app-frame .nfq-context-help-panel :is(h3,h4){
+ letter-spacing:-.018em;
+}
+/* Avoid unintended jumps in clinical work; preserve screen reader focus. */
+@media(prefers-reduced-motion:reduce){
+ .app-frame .evidence-page :is(.evidence-row,.evidence-row-disclosure),
+ .app-frame .variant-page .record-list button{
+  transition:none!important;
+ }
+}
+@media(max-width:760px){
+ .app-frame .workspace-frame .page :is(.nfq-audit-picker-head,.nfq-gov-section-heading){
+  align-items:start;
+ }
+ .app-frame .launcher-options{scrollbar-gutter:auto}
+}

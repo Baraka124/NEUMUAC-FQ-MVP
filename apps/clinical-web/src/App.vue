@@ -51,12 +51,42 @@ const mobileMenuOpen = ref(false);
 const launcherOpen=ref(false);
 const launcherQuery=ref('');
 const launcherInput=ref<HTMLInputElement|null>(null);
+const launcherTrigger=ref<HTMLButtonElement|null>(null);
+const launcherDialog=ref<HTMLElement|null>(null);
 const launcherResults=computed(()=>[...researchWorkspaces,...researchShortcuts.map(item=>item.id==='staff'?{...item,name:accountWorkspaceTitle.value,description:'Account, verified profile and permitted research operations'}:item)].filter(item=>{
  const q=launcherQuery.value.trim().toLocaleLowerCase();
  return !q||[item.name,item.description,...item.keywords].some(v=>v.toLocaleLowerCase().includes(q));
 }));
 function openLauncher(){mobileMenuOpen.value=false;launcherQuery.value='';launcherOpen.value=true;void nextTick(()=>launcherInput.value?.focus());}
-function closeLauncher(){launcherOpen.value=false;}
+function closeLauncher(){
+ if(!launcherOpen.value)return;
+ launcherOpen.value=false;
+ void nextTick(()=>launcherTrigger.value?.focus());
+}
+/** Focus stays inside the open workspace switcher, including Shift+Tab.
+ * Arrow keys move between actual options without inventing selection state. */
+function launcherKeyboard(e:KeyboardEvent){
+ const dialog=launcherDialog.value;
+ if(!dialog)return;
+ const controls=Array.from(dialog.querySelectorAll<HTMLElement>('input:not([disabled]),button:not([disabled])'))
+  .filter(el=>el.getClientRects().length>0);
+ if(!controls.length)return;
+ const active=document.activeElement;
+ const index=controls.findIndex(el=>el===active);
+ if(e.key==='Tab'){
+  if(e.shiftKey&&active===controls[0]){e.preventDefault();controls[controls.length-1]?.focus();}
+  else if(!e.shiftKey&&active===controls[controls.length-1]){e.preventDefault();controls[0]?.focus();}
+ }else if(e.key==='ArrowDown'&&active===launcherInput.value){
+  const firstOption=dialog.querySelector<HTMLButtonElement>('.launcher-options button');
+  if(firstOption){e.preventDefault();firstOption.focus();}
+ }else if(e.key==='ArrowDown'&&index>=0&&active instanceof HTMLButtonElement){
+  const next=controls.slice(index+1).find(el=>el.closest('.launcher-options'));
+  if(next){e.preventDefault();next.focus();}
+ }else if(e.key==='ArrowUp'&&active instanceof HTMLButtonElement&&active.closest('.launcher-options')){
+  const previous=controls.slice(0,index).reverse().find(el=>el.closest('.launcher-options'));
+  e.preventDefault();(previous??launcherInput.value)?.focus();
+ }
+}
 function keyboardShortcut(e:KeyboardEvent){
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();launcherOpen.value?closeLauncher():openLauncher();}
  if(e.key==='Escape'){closeLauncher();closeNavigation();}
@@ -197,7 +227,7 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
           <span class="nfq-editorial-crumb-current" aria-current="page">{{activeWorkspaceLabel}}</span>
         </div>
         <RouterLink class="nfq-phone-wordmark" to="/workspace" aria-label="neumuacFQ research overview"><strong>neumuac<span>FQ</span></strong></RouterLink>
-        <button type="button" class="workspace-launcher-trigger" @click="openLauncher" aria-label="Open workspace switcher"><svg class="nfq-phone-launcher-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><span>Switch workspace</span><kbd>Ctrl K</kbd></button>
+        <button type="button" class="workspace-launcher-trigger" ref="launcherTrigger" :aria-expanded="launcherOpen" aria-haspopup="dialog" @click="openLauncher" aria-label="Open workspace switcher"><svg class="nfq-phone-launcher-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><span>Switch workspace</span><kbd>Ctrl K</kbd></button>
         <div class="nfq-header-right">
           <button type="button" class="nfq-theme-switch" data-testid="nfq-research-theme-switch"
             :aria-label="researchTheme==='light'?'Switch to midnight theme':'Switch to light theme'"
@@ -245,7 +275,7 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
       </nav>
 
       <div v-if="launcherOpen" class="launcher-backdrop" @click.self="closeLauncher">
-        <section role="dialog" aria-modal="true" aria-label="Research workspace switcher" class="workspace-launcher" @keydown.esc.stop="closeLauncher">
+        <section role="dialog" aria-modal="true" aria-label="Research workspace switcher" class="workspace-launcher" ref="launcherDialog" @keydown="launcherKeyboard" @keydown.esc.stop="closeLauncher">
           <div class="launcher-search"><input ref="launcherInput" v-model="launcherQuery" type="search" aria-label="Find a research workspace" placeholder="Search workspaces and research shortcuts"/><button type="button" aria-label="Close workspace switcher" @click="closeLauncher">×</button></div>
           <p class="launcher-heading">WORKSPACES & RESEARCH SHORTCUTS</p>
           <div class="launcher-options"><button v-for="item in launcherResults" :key="item.id" type="button" @click="goToShortcut(item.path)"><strong>{{item.name}}</strong><span>{{item.description}}</span></button><p v-if="!launcherResults.length" role="status">No matching research workspace.</p></div>

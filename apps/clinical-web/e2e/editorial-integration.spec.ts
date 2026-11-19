@@ -40,3 +40,28 @@ test('original theme switching survives editorial layers',async({page})=>{
  await expect(frame).toHaveAttribute('data-nfq-theme','midnight');
  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
 });
+
+
+test('editorial switcher traps Tab, navigates options and restores trigger focus',async({page})=>{
+ test.skip(page.viewportSize()!.width<=760,'Mobile uses the dedicated workspace navigation');
+ await page.goto('/#/workspace');
+ const trigger=page.getByRole('button',{name:'Open workspace switcher'});
+ await trigger.click();
+ const dialog=page.getByRole('dialog',{name:'Research workspace switcher'});
+ const input=dialog.getByRole('searchbox',{name:'Find a research workspace'});
+ await expect(input).toBeFocused();
+ await input.press('Shift+Tab');
+ await expect(dialog.locator('.launcher-options button').last()).toBeFocused();
+ await page.keyboard.press('Tab');
+ await expect(input).toBeFocused();
+ await page.keyboard.press('ArrowDown');
+ const options=dialog.locator('.launcher-options button');
+ await expect(options.first()).toBeFocused();
+ await page.keyboard.press('ArrowDown');
+ await expect(options.nth(1)).toBeFocused();
+ await page.keyboard.press('ArrowUp');
+ await expect(options.first()).toBeFocused();
+ await page.keyboard.press('Escape');
+ await expect(dialog).toHaveCount(0);
+ await expect(trigger).toBeFocused();
+});
