@@ -154,3 +154,23 @@ test('capture desktop and phone editorial entrance compositions for optical revi
   await page.screenshot({path:info.outputPath(`entry-qa-${project}-${width}-dedicated-form-visual-fixture.png`),fullPage:true,animations:'disabled'});
  }
 });
+
+
+test('optical reading alignment is consistent and mobile sign-in is not buried',async({page})=>{
+ await page.setViewportSize({width:1366,height:900});
+ await page.goto('/#/');
+ const dir=await page.locator('.nfq-portal-index-top').boundingBox();
+ expect(dir).not.toBeNull();
+ await page.goto('/#/sign-in');
+ const access=await page.locator('.nfq-access-heading').boundingBox();
+ expect(access).not.toBeNull();
+ expect(Math.abs(dir!.y-access!.y)).toBeLessThanOrEqual(45);
+ await page.setViewportSize({width:390,height:900});
+ await page.goto('/#/');
+ await page.getByRole('button',{name:'Sign in',exact:true}).click();
+ const account=await page.locator('#nfq-portal-account').boundingBox();
+ expect(account).not.toBeNull();
+ expect(account!.y).toBeLessThan(270);
+ await expect(page.getByRole('link',{name:/Explore public research/})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Research sign-in'})).toBeVisible();
+});
