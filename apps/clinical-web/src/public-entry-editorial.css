@@ -109,8 +109,8 @@
  flex:1;
  display:flex;
  flex-direction:column;
- justify-content:center;
- padding-top:clamp(38px,6vh,72px);
+ justify-content:flex-start;
+ padding-top:clamp(48px,8vh,86px);
  padding-bottom:26px;
 }
 .nfq-entry-surface .nfq-portal-layout,
@@ -501,9 +501,28 @@
  font-size:12px;
  line-height:1.55;
 }
-/* The in-form context help remains interactive, while the descriptive copy
- * does not acquire button frames. Popover implementation stays unchanged. */
+/* Context help uses the very same clinical navy/slate palette and a quiet
+ * circular hit area; its original disclosure and Escape behavior stay intact. */
 .nfq-entry-surface .nfq-context-help{flex:none}
+.nfq-entry-surface .nfq-context-help summary{
+ width:30px;height:30px;
+ border:1px solid var(--entry-rule-strong);
+ background:transparent;
+ color:var(--entry-secondary);
+}
+.nfq-entry-surface .nfq-context-help summary:hover,
+.nfq-entry-surface .nfq-context-help[open] summary{
+ border-color:var(--entry-focus);
+ background:#f2f7f9;
+ color:var(--entry-focus);
+}
+.nfq-entry-surface .nfq-context-help-panel{
+ background:var(--entry-paper);
+ border-color:var(--entry-rule-strong);
+ color:var(--entry-secondary);
+ box-shadow:0 15px 32px -24px rgba(13,39,62,.24);
+}
+.nfq-entry-surface .nfq-context-help-title{color:var(--entry-ink)}
 @media(max-width:1000px){
  .nfq-entry-surface .nfq-portal-layout{
   grid-template-columns:minmax(0,1fr) minmax(300px,.92fr);
@@ -553,6 +572,42 @@
   padding-bottom:18px;
  }
  .nfq-entry-surface .nfq-access-panel{max-width:350px}
+}
+/* A researcher opening Sign in on a phone should not have to pass a
+ * second public hero before reaching the existing real credential form.
+ * Keep the required public link present, but reduce competing introduction. */
+@media(max-width:760px){
+ .nfq-entry-surface .nfq-portal-layout-auth .nfq-portal-intro{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+ }
+ .nfq-entry-surface .nfq-portal-layout-auth .nfq-portal-intro .nfq-portal-kicker{
+  font-size:10px;
+ }
+ .nfq-entry-surface .nfq-portal-layout-auth .nfq-portal-intro h1{
+  font-size:28px;
+  line-height:1.15;
+  margin:9px 0 0;
+  letter-spacing:-.035em;
+ }
+ .nfq-entry-surface .nfq-portal-layout-auth .nfq-portal-description{
+  display:none;
+ }
+ .nfq-entry-surface .nfq-portal-layout-auth .nfq-portal-actions{
+  margin-top:4px;
+ }
+ .nfq-entry-surface .nfq-portal-layout-auth .nfq-portal-enter{
+  min-height:34px;
+  font-size:11.7px;
+ }
+ .nfq-entry-surface .nfq-portal-layout-auth .nfq-portal-access-note{
+  display:none;
+ }
+ .nfq-entry-surface .nfq-portal-layout-auth .nfq-portal-account{
+  margin-top:14px;
+  padding-top:16px;
+ }
 }
 @media(max-width:440px){
  .nfq-entry-surface :is(.nfq-portal-masthead,.nfq-signin-masthead){min-height:79px}
