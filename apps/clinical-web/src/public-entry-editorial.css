@@ -54,18 +54,18 @@
 .nfq-entry-surface :is(.nfq-portal-brand,.nfq-entry-logo){
  position:relative;
  display:block;
- width:154px;
- height:88px;
- flex:0 0 154px;
+ width:174px;
+ height:100px;
+ flex:0 0 174px;
  overflow:hidden;
 }
 .nfq-entry-surface :is(.nfq-portal-brand,.nfq-entry-logo) img{
  position:absolute;
  display:block;
  left:0;
- top:-22px;
- width:148px;
- height:148px;
+ top:-25px;
+ width:170px;
+ height:170px;
  max-width:none;
  object-fit:contain;
 }
@@ -140,7 +140,7 @@
  margin:20px 0 24px;
  color:var(--entry-ink);
  font-family:'Iowan Old Style','Baskerville','Palatino Linotype',Georgia,serif;
- font-size:clamp(49px,4.65vw,67px);
+ font-size:clamp(47px,4.35vw,61px);
  line-height:1.08;
  font-weight:500;
  letter-spacing:-.055em;
