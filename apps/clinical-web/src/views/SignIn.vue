@@ -19,7 +19,6 @@ import ContextHelp from '../components/ContextHelp.vue';
       <p class="nfq-signin-eyebrow">CFTR RESEARCH · ACCOUNT ACCESS</p>
       <h2>Research access</h2>
       <p>Public records remain accessible without signing in. Research accounts provide access to assigned capabilities and authorized workflows.</p>
-      <RouterLink to="/workspace" class="nfq-signin-context-link">Explore public research <span aria-hidden="true">→</span></RouterLink>
     </div>
     <div class="nfq-login-card">
      <div class="nfq-login-card-heading">
@@ -145,18 +144,6 @@ import ContextHelp from '../components/ContextHelp.vue';
  font-size:15px;
  line-height:1.66;
 }
-.nfq-signin-context-link{
- display:inline-flex;
- align-items:center;
- gap:14px;
- min-height:38px;
- margin-top:22px;
- color:#2e6650;
- text-decoration:none;
- font-size:12px;
- font-weight:600;
-}
-.nfq-signin-context-link:hover{text-decoration:underline;text-underline-offset:3px}
 .nfq-login-card{
  position:relative;
  z-index:1;
