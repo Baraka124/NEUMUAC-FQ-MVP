@@ -24,22 +24,22 @@
 }
 .app-frame .variant-page .nfq-dossier-classification-strip .nfq-recorded-fact>strong{
  display:inline;align-items:baseline;
- padding:0 0 1px;border:0;border-bottom:1px solid #bed0e0;border-radius:0;
+ padding:0;border:0;border-radius:0;
  background:transparent;color:#324c6d;
  font-size:12px;font-weight:620;line-height:1.45;
  letter-spacing:0;box-shadow:none;overflow-wrap:normal;
 }
 .app-frame .variant-page .nfq-dossier-classification-strip .nfq-recorded-fact[data-response="responsive"]>strong{
- background:transparent;color:#236b4d;border-bottom-color:#a9cdb9;
+ background:transparent;color:#236b4d;
 }
 .app-frame .variant-page .nfq-dossier-classification-strip .nfq-recorded-fact[data-response="non_responsive"]>strong{
- background:transparent;color:#9c5148;border-bottom-color:#d7b2aa;
+ background:transparent;color:#9c5148;
 }
 .app-frame .variant-page .nfq-dossier-classification-strip .nfq-recorded-fact[data-response="unknown"]>strong{
- background:transparent;color:#516a85;border-bottom-color:#b4c6d7;
+ background:transparent;color:#516a85;
 }
 /* Original Midnight hues. Important status text stays legible but calm,
- * with text and one semantic hairline — no status pills or faux buttons. */
+ * as colored text only — no status pills, false link underlines or faux buttons. */
 .app-frame[data-nfq-theme="midnight"] .variant-page .discovery-exact-chip{
  background:transparent!important;color:#9fd4b6!important;
  border-color:rgba(117,191,148,.42)!important;box-shadow:none!important;
@@ -49,22 +49,19 @@
 }
 .app-frame[data-nfq-theme="midnight"] .variant-page .nfq-dossier-classification-strip .nfq-recorded-fact>strong{
  background:transparent!important;
- border:0!important;border-bottom:1px solid rgba(134,166,213,.55)!important;
+ border:0!important;
  color:#d6e6fc!important;
 }
 .app-frame[data-nfq-theme="midnight"] .variant-page .nfq-dossier-classification-strip .nfq-recorded-fact[data-response="responsive"]>strong{
  background:transparent!important;
- border-bottom-color:rgba(117,203,154,.65)!important;
  color:#aff0ca!important;
 }
 .app-frame[data-nfq-theme="midnight"] .variant-page .nfq-dossier-classification-strip .nfq-recorded-fact[data-response="non_responsive"]>strong{
  background:transparent!important;
- border-bottom-color:rgba(226,151,141,.62)!important;
  color:#f1c5bd!important;
 }
 .app-frame[data-nfq-theme="midnight"] .variant-page .nfq-dossier-classification-strip .nfq-recorded-fact[data-response="unknown"]>strong{
  background:transparent!important;
- border-bottom-color:rgba(135,170,216,.55)!important;
  color:#c1d3eb!important;
 }
 @media(max-width:420px){
