@@ -5,6 +5,7 @@ import {expect,test} from '@playwright/test';
  * authentication remains the existing controller's responsibility.
  */
 test('public landing and both sign-in states use one navy/cool-white entry palette',async({page})=>{
+ await page.setViewportSize({width:1366,height:900});
  const tokens=async()=>page.locator('.nfq-entry-surface').evaluate(el=>{
   const css=getComputedStyle(el);
   return {
