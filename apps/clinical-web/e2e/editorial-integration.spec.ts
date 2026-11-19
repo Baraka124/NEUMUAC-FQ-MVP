@@ -133,3 +133,22 @@ test('Ctrl-K search hands scientific identifiers to the real variant index witho
  await expect(second).toHaveCount(0);
  await expect.poll(()=>page.evaluate(()=>new URLSearchParams(location.hash.split('?')[1]??'').get('q'))).toBe('1716G/A');
 });
+
+
+test('unconfigured source notice is compact and details remain accessible on demand',async({page})=>{
+ await page.setViewportSize({width:320,height:900});
+ await page.goto('/#/workspace');
+ const notice=page.locator('.development-notice');
+ await expect(notice.getByText('Live CFTR research interface')).toBeVisible();
+ const details=notice.locator('details.nfq-source-info');
+ await expect(details).toHaveJSProperty('open',false);
+ await expect(notice.getByText(/Variant search uses the live source/)).toBeHidden();
+ const height=await notice.evaluate(el=>el.getBoundingClientRect().height);
+ expect(height).toBeLessThanOrEqual(65);
+ await details.locator('summary').click();
+ await expect(details).toHaveJSProperty('open',true);
+ await expect(notice.getByText(/Variant search uses the live source/)).toBeVisible();
+ await details.locator('summary').click();
+ await expect(details).toHaveJSProperty('open',false);
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
