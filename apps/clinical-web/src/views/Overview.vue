@@ -3,6 +3,7 @@ import {ref} from 'vue';
 import {RouterLink,useRouter} from 'vue-router';
 
 const query=ref('');
+const pathwaysExpanded=ref(false);
 const router=useRouter();
 function openVariantSearch():void{
   const q=query.value.trim();
@@ -44,10 +45,16 @@ function openVariantSearch():void{
 
     <aside class="nfq-research-pathways" aria-labelledby="nfq-pathways-heading">
       <header class="nfq-pathways-heading">
-        <span class="section-label">RESEARCH PATHWAYS</span>
-        <h2 id="nfq-pathways-heading">Beyond the variant</h2>
+        <div>
+          <span class="section-label">RESEARCH PATHWAYS</span>
+          <h2 id="nfq-pathways-heading">Beyond the variant</h2>
+        </div>
+        <button class="nfq-pathway-toggle" type="button" :aria-expanded="pathwaysExpanded" aria-controls="nfq-pathway-options" @click="pathwaysExpanded=!pathwaysExpanded">
+          {{pathwaysExpanded?'Hide pathways':'Explore pathways'}}
+          <svg aria-hidden="true" viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7"><path :d="pathwaysExpanded?'m5 12 5-5 5 5':'m5 8 5 5 5-5'"/></svg>
+        </button>
       </header>
-      <nav class="nfq-pathway-list" aria-label="Research pathways">
+      <nav id="nfq-pathway-options" class="nfq-pathway-list" :class="{'nfq-pathways-expanded':pathwaysExpanded}" aria-label="Research pathways">
         <RouterLink to="/genotype" class="nfq-pathway" data-testid="nfq-pathway-genotype">
           <span class="nfq-pathway-topic">GENOTYPE</span>
           <strong>Compare two variants</strong>
@@ -188,6 +195,7 @@ function openVariantSearch():void{
  font-weight:600;
  letter-spacing:-.035em;
 }
+.nfq-pathway-toggle{display:none}
 .nfq-pathway-list{
  display:grid;
  grid-template-columns:minmax(0,1fr);
@@ -253,6 +261,44 @@ function openVariantSearch():void{
 }
 @media(max-width:850px){
  .nfq-pathway-list{grid-template-columns:minmax(0,1fr);gap:0}
+}
+
+@media(max-width:760px){
+ .nfq-pathways-heading{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px 12px;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid var(--ed-line,#e2e7ee);
+  padding:0 0 11px;
+ }
+ .nfq-pathways-heading h2{
+  font-size:18px;
+ }
+ .nfq-pathways-heading .section-label{
+  margin-bottom:4px;
+ }
+ .nfq-pathway-toggle{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  min-height:38px;
+  border:1px solid var(--ed-line-strong,#cad5e3);
+  border-radius:5px;
+  background:transparent;
+  color:var(--ed-accent,#2b66bb);
+  font:inherit;
+  font-size:11.5px;
+  font-weight:600;
+  padding:7px 9px;
+  cursor:pointer;
+ }
+ .nfq-pathway-toggle:focus-visible{
+  outline:2px solid var(--ed-accent,#2b66bb);
+  outline-offset:2px;
+ }
+ .nfq-pathway-list:not(.nfq-pathways-expanded){display:none}
 }
 @media(max-width:650px){
  .nfq-research-entry-grid{row-gap:21px}
