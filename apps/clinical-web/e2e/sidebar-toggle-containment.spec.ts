@@ -53,8 +53,14 @@ test('sidebar toggle is contained, unobscured and usable in both rail states',as
    if(collapsed){
     expect(control!.y-(brand!.y+brand!.height)).toBeGreaterThanOrEqual(10);
     expect(nav!.y-(control!.y+control!.height)).toBeGreaterThanOrEqual(8);
-    const centerX=control!.x+control!.width/2;
-    expect(Math.abs(centerX-(rect.sideLeft+rect.sideRight)/2)).toBeLessThanOrEqual(3);
+    // The rail animates from its expanded width. Measure after the layout
+    // settles instead of sampling its intermediate width during transition.
+    await expect.poll(()=>page.evaluate(()=>{
+     const rail=document.querySelector<HTMLElement>('.app-frame .sidebar')!;
+     const button=rail.querySelector<HTMLElement>('.sidebar-toggle')!;
+     const r=rail.getBoundingClientRect(),b=button.getBoundingClientRect();
+     return Math.abs((b.left+b.right-r.left-r.right)/2);
+    }),{timeout:4500}).toBeLessThanOrEqual(3);
    }else{
     expect(control!.x-(brand!.x+brand!.width)).toBeGreaterThanOrEqual(6);
    }
