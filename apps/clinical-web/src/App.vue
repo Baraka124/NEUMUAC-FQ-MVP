@@ -57,6 +57,19 @@ const launcherResults=computed(()=>[...researchWorkspaces,...researchShortcuts.m
  const q=launcherQuery.value.trim().toLocaleLowerCase();
  return !q||[item.name,item.description,...item.keywords].some(v=>v.toLocaleLowerCase().includes(q));
 }));
+// A typed identifier offers only a real search route, never an invented CFTR record.
+const launcherVariantQuery=computed(()=>launcherQuery.value.trim());
+function searchLauncherVariants():void{
+ const q=launcherVariantQuery.value;
+ if(!q)return;
+ closeLauncher();
+ void router.push({path:'/variants',query:{q}});
+}
+function activateLauncherPrimary():void{
+ const first=launcherResults.value[0];
+ if(first){goToShortcut(first.path);return;}
+ if(launcherVariantQuery.value)searchLauncherVariants();
+}
 function openLauncher(){mobileMenuOpen.value=false;launcherQuery.value='';launcherOpen.value=true;void nextTick(()=>launcherInput.value?.focus());}
 function closeLauncher(){
  if(!launcherOpen.value)return;
@@ -276,22 +289,19 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
 
       <div v-if="launcherOpen" class="launcher-backdrop" @click.self="closeLauncher">
         <section role="dialog" aria-modal="true" aria-label="Research workspace switcher" class="workspace-launcher" ref="launcherDialog" @keydown="launcherKeyboard" @keydown.esc.stop="closeLauncher">
-          <div class="launcher-search"><input ref="launcherInput" v-model="launcherQuery" type="search" aria-label="Find a research workspace" placeholder="Search workspaces and research shortcuts"/><button type="button" aria-label="Close workspace switcher" @click="closeLauncher">×</button></div>
+          <div class="launcher-search"><input ref="launcherInput" v-model="launcherQuery" type="search" aria-label="Find a research workspace" aria-description="Type a workspace name or a CFTR identifier to search the recorded variant source" placeholder="Find a workspace or CFTR identifier" @keydown.enter.prevent="activateLauncherPrimary"/><button type="button" aria-label="Close workspace switcher" @click="closeLauncher">×</button></div>
           <p class="launcher-heading">WORKSPACES & RESEARCH SHORTCUTS</p>
-          <div class="launcher-options"><button v-for="item in launcherResults" :key="item.id" type="button" @click="goToShortcut(item.path)"><strong>{{item.name}}</strong><span>{{item.description}}</span></button><p v-if="!launcherResults.length" role="status">No matching research workspace.</p></div>
+          <div class="launcher-options"><button v-for="item in launcherResults" :key="item.id" type="button" @click="goToShortcut(item.path)"><strong>{{item.name}}</strong><span>{{item.description}}</span></button><button v-if="!launcherResults.length&&launcherVariantQuery" type="button" class="nfq-launcher-variant-query" :aria-label="'Search recorded CFTR variants for '+launcherVariantQuery" @click="searchLauncherVariants"><strong>Search recorded variants</strong><span>Search the recorded source for “{{launcherVariantQuery}}”</span></button><p v-if="!launcherResults.length&&!launcherVariantQuery" role="status">No matching research workspace.</p></div>
           <p class="launcher-footnote">Only currently available workspaces are listed. Editing and review tools remain subject to separate authorization.</p>
         </section>
       </div>
       <main id="main" tabindex="-1" :class="{'home-main':isHome}">
         <div v-if="!sourceConfigured" class="development-notice" :class="{ 'preview-notice': !sourceConfigured }" role="note">
           <span class="notice-symbol" aria-hidden="true">i</span>
-          <div>
-            <template v-if="!sourceConfigured">
-              <strong>Live CFTR research interface</strong>
-              <p>Variant search uses the live source when configured. Changes and approvals are reserved for authorized staff.</p>
-            </template>
-
-          </div>
+          <details class="nfq-source-info">
+            <summary><strong>Live CFTR research interface</strong><span class="nfq-source-more">Details</span></summary>
+            <p>Variant search uses the live source when configured. Changes and approvals are reserved for authorized staff.</p>
+          </details>
         </div>
         <RouterView />
       </main>

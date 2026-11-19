@@ -65,3 +65,90 @@ test('editorial switcher traps Tab, navigates options and restores trigger focus
  await expect(dialog).toHaveCount(0);
  await expect(trigger).toBeFocused();
 });
+
+
+test('research entry exposes real scientific pathways with no synthetic metrics',async({page})=>{
+ await page.goto('/#/workspace');
+ await expect(page.getByRole('heading',{name:'CFTR variant research',exact:true})).toBeVisible();
+ await expect(page.getByRole('searchbox',{name:'Search CFTR variants'})).toBeVisible();
+ const pathways=page.getByRole('navigation',{name:'Research pathways'});
+ const startMobile=page.viewportSize()!.width<=1000;
+ if(startMobile){
+  await expect(pathways).toBeHidden();
+  await page.getByRole('button',{name:'Explore research pathways'}).click();
+ }
+ await expect(pathways).toBeVisible();
+ await expect(pathways.getByRole('link',{name:/Compare two variants/})).toHaveAttribute('href','#/genotype');
+ await expect(pathways.getByRole('link',{name:/Trace the evidence/})).toHaveAttribute('href','#/evidence');
+ await expect(pathways.getByRole('link',{name:/Inspect knowledge gaps/})).toHaveAttribute('href','#/intelligence');
+ await expect(page.getByRole('link',{name:/Open Class I variant worklist/})).toHaveAttribute('href','#/variants?class=I');
+ if(startMobile)await page.getByRole('button',{name:'Hide research pathways'}).click();
+ for(const width of [320,390,768,1024,1366]){
+  await page.setViewportSize({width,height:850});
+  if(width<=1000){
+   await expect(pathways).toBeHidden();
+   const toggle=page.getByRole('button',{name:'Explore research pathways'});
+   await expect(toggle).toHaveAttribute('aria-expanded','false');
+   await toggle.click();
+   await expect(pathways).toBeVisible();
+   await expect(page.getByRole('button',{name:'Hide research pathways'})).toHaveAttribute('aria-expanded','true');
+   await page.getByRole('button',{name:'Hide research pathways'}).click();
+   await expect(pathways).toBeHidden();
+   await expect(page.getByRole('button',{name:'Explore research pathways'})).toHaveAttribute('aria-expanded','false');
+  }else{
+   await expect(pathways).toBeVisible();
+  }
+  await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+ }
+ await pathways.getByRole('link',{name:/Compare two variants/}).click();
+ await expect(page.getByRole('heading',{name:'Variant comparison'})).toBeVisible();
+ await page.goto('/#/workspace');
+ await pathways.getByRole('link',{name:/Trace the evidence/}).click();
+ await expect(page.getByRole('heading',{name:'Evidence & provenance'})).toBeVisible();
+});
+
+
+test('Ctrl-K search hands scientific identifiers to the real variant index without fabricated records',async({page})=>{
+ test.skip(page.viewportSize()!.width<=760,'Desktop launcher has a dedicated trigger; mobile navigation is separate');
+ await page.goto('/#/workspace');
+ await page.getByRole('button',{name:'Open workspace switcher'}).click();
+ const dialog=page.getByRole('dialog',{name:'Research workspace switcher'});
+ const input=dialog.getByRole('searchbox',{name:'Find a research workspace'});
+ await input.fill('c.1584G>A');
+ await expect(dialog.getByRole('button',{name:/Search recorded CFTR variants for c\.1584G>A/})).toBeVisible();
+ await input.press('Enter');
+ await expect(dialog).toHaveCount(0);
+ await expect(page.getByRole('heading',{name:'Variants',exact:true})).toBeVisible();
+ await expect.poll(()=>page.evaluate(()=>new URLSearchParams(location.hash.split('?')[1]??'').get('q'))).toBe('c.1584G>A');
+
+ await page.goto('/#/workspace');
+ await page.getByRole('button',{name:'Open workspace switcher'}).click();
+ const second=page.getByRole('dialog',{name:'Research workspace switcher'});
+ const field=second.getByRole('searchbox',{name:'Find a research workspace'});
+ await field.fill('1716G/A');
+ await field.press('ArrowDown');
+ const action=second.getByRole('button',{name:/Search recorded CFTR variants for 1716G\/A/});
+ await expect(action).toBeFocused();
+ await page.keyboard.press('Enter');
+ await expect(second).toHaveCount(0);
+ await expect.poll(()=>page.evaluate(()=>new URLSearchParams(location.hash.split('?')[1]??'').get('q'))).toBe('1716G/A');
+});
+
+
+test('unconfigured source notice is compact and details remain accessible on demand',async({page})=>{
+ await page.setViewportSize({width:320,height:900});
+ await page.goto('/#/workspace');
+ const notice=page.locator('.development-notice');
+ await expect(notice.getByText('Live CFTR research interface')).toBeVisible();
+ const details=notice.locator('details.nfq-source-info');
+ await expect(details).toHaveJSProperty('open',false);
+ await expect(notice.getByText(/Variant search uses the live source/)).toBeHidden();
+ const height=await notice.evaluate(el=>el.getBoundingClientRect().height);
+ expect(height).toBeLessThanOrEqual(65);
+ await details.locator('summary').click();
+ await expect(details).toHaveJSProperty('open',true);
+ await expect(notice.getByText(/Variant search uses the live source/)).toBeVisible();
+ await details.locator('summary').click();
+ await expect(details).toHaveJSProperty('open',false);
+ await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
+});
