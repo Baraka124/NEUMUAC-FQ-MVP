@@ -294,3 +294,48 @@
  }
  .app-frame .launcher-options{scrollbar-gutter:auto}
 }
+
+/* Editorial shell defect: the historical negative right offset pushed the
+ * sidebar control beneath the clipped rail/header. Keep it entirely inside
+ * the sticky sidebar, with a quiet, high-contrast instrument treatment. */
+@media(min-width:761px){
+ .app-frame .sidebar>.sidebar-toggle{
+  top:24px!important;
+  right:10px!important;
+  left:auto!important;
+  width:28px!important;
+  height:28px!important;
+  min-width:28px!important;
+  min-height:28px!important;
+  padding:0!important;
+  display:grid;
+  place-items:center;
+  border:1px solid #47617e!important;
+  border-radius:5px!important;
+  background:#1b2b43!important;
+  color:#d6e5f7!important;
+  box-shadow:none!important;
+  transform:none!important;
+  z-index:2;
+ }
+ .app-frame .sidebar>.sidebar-toggle:hover{
+  border-color:#7898c0!important;
+  background:#243a59!important;
+  color:#fff!important;
+ }
+ .app-frame .sidebar>.sidebar-toggle:focus-visible{
+  outline:2px solid #a9c7ff!important;
+  outline-offset:2px!important;
+ }
+ .app-frame .sidebar>.sidebar-toggle svg{width:15px;height:15px;flex:none}
+ /* The narrow rail stacks brand, toggle, then workspace links. Neither the
+    logo nor the first navigation item sits underneath the toggle's hit area. */
+ .app-frame.sidebar-collapsed .sidebar>.sidebar-toggle{
+  top:73px!important;
+  right:20px!important;
+ }
+ .app-frame.sidebar-collapsed .sidebar .wordmark{
+  padding-bottom:0!important;
+  margin-bottom:44px!important;
+ }
+}
