@@ -39,17 +39,130 @@ async function submit():Promise<void>{
 </template>
 
 <style scoped>
-.nfq-account-fields{display:grid;gap:9px;margin:0}
-.nfq-account-fields label{font-size:12px;color:#385869;font-weight:680}
-.nfq-account-fields input{min-height:45px;width:100%;padding:11px 13px;border:1px solid #cbdad7;border-radius:6px;background:#fff;color:#153b44;font:inherit;font-size:14px}
-.nfq-account-fields input:focus-visible{outline:3px solid #008f90;outline-offset:2px}
+/* A field is a field, not a dashboard tile; the single real submit action
+   retains a measured solid treatment. Auth logic and feedback are unchanged. */
+.nfq-account-fields{
+ display:grid;
+ grid-template-columns:minmax(0,1fr);
+ gap:8px;
+ margin:0;
+ min-width:0;
+}
+.nfq-account-fields label{
+ display:block;
+ color:#395a4c;
+ font-size:11.5px;
+ line-height:1.4;
+ font-weight:620;
+ letter-spacing:0;
+}
+.nfq-account-fields label:not(:first-child){margin-top:5px}
+.nfq-account-fields input{
+ display:block;
+ width:100%;
+ min-width:0;
+ min-height:40px;
+ padding:8px 11px;
+ border:1px solid #bfcec5;
+ border-radius:5px;
+ background:#fff;
+ color:#19372d;
+ font:inherit;
+ font-size:13px;
+ font-weight:450;
+ line-height:1.5;
+ box-shadow:none;
+ outline:none;
+}
+.nfq-account-fields input:hover{border-color:#9db8a9}
+.nfq-account-fields input:focus-visible{
+ border-color:#397962;
+ outline:2px solid #397962;
+ outline-offset:1px;
+}
+/* Chrome/Edge credentials are often autofilled. Their default saturated
+   blue field backgrounds clash with the otherwise neutral clinical form. */
+.nfq-account-fields input:-webkit-autofill,
+.nfq-account-fields input:-webkit-autofill:hover,
+.nfq-account-fields input:-webkit-autofill:focus{
+ -webkit-text-fill-color:#19372d;
+ -webkit-box-shadow:0 0 0 1000px #fff inset;
+ box-shadow:0 0 0 1000px #fff inset;
+ caret-color:#19372d;
+}
 .nfq-password-control{position:relative;min-width:0}
-.nfq-password-control input{padding-right:56px}
-.nfq-account-fields .nfq-password-toggle{position:absolute;top:50%;right:2px;transform:translateY(-50%);display:grid;place-items:center;width:44px;height:44px;min-height:44px;padding:0;margin:0;border:0;border-radius:6px;background:transparent;color:#416d60;cursor:pointer}
-.nfq-account-fields .nfq-password-toggle:hover{background:#edf5ef;color:#244e3b}
-.nfq-account-fields .nfq-password-toggle:focus-visible{outline:3px solid #26866a;outline-offset:1px}
-.nfq-account-fields button{min-height:47px;border:1px solid #12354c;border-radius:6px;padding:10px 18px;background:#12354c;color:#fff;font-size:13px;font-weight:710;cursor:pointer;margin-top:8px}
-.nfq-account-fields button:hover{background:#1e5065}
-.nfq-account-fields button:disabled{opacity:.65;cursor:wait}
-.nfq-account-unavailable{color:#596e73;font-size:13px;line-height:1.6;margin:0}
+.nfq-password-control input{padding-right:48px}
+.nfq-account-fields .nfq-password-toggle{
+ position:absolute;
+ top:50%;
+ right:2px;
+ transform:translateY(-50%);
+ display:grid;
+ place-items:center;
+ width:40px;
+ height:40px;
+ min-width:40px;
+ min-height:40px;
+ padding:0;
+ margin:0;
+ border:0;
+ border-radius:4px;
+ background:transparent;
+ color:#47695d;
+ box-shadow:none;
+ cursor:pointer;
+}
+.nfq-account-fields .nfq-password-toggle:hover{background:#f2f6f3;color:#244e3b}
+.nfq-account-fields .nfq-password-toggle:focus-visible{
+ outline:2px solid #397962;
+ outline-offset:1px;
+}
+.nfq-account-fields .nfq-password-toggle svg{width:17px;height:17px}
+.nfq-account-fields button[type="submit"]{
+ justify-self:start;
+ width:auto;
+ min-width:110px;
+ min-height:40px;
+ margin:8px 0 0;
+ padding:8px 19px;
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ border:1px solid #193e34;
+ border-radius:5px;
+ background:#193e34;
+ color:#fff;
+ font-size:12px;
+ font-weight:620;
+ line-height:1.4;
+ letter-spacing:0;
+ box-shadow:none;
+ cursor:pointer;
+}
+.nfq-account-fields button[type="submit"]:hover:not(:disabled){
+ background:#28574b;
+ border-color:#28574b;
+}
+.nfq-account-fields button[type="submit"]:focus-visible{
+ outline:2px solid #397962;
+ outline-offset:2px;
+}
+.nfq-account-fields button[type="submit"]:disabled{opacity:.6;cursor:wait}
+.nfq-account-fields p[role="alert"]{
+ margin:2px 0;
+ font-size:12px;
+ line-height:1.55;
+ color:#955149;
+}
+.nfq-account-unavailable{
+ margin:0;
+ max-width:39ch;
+ font-size:12px;
+ line-height:1.55;
+ color:#586f65;
+}
+@media(max-width:480px){
+ /* Avoid mobile browser zoom on focused sign-in fields. */
+ .nfq-account-fields input{font-size:16px}
+}
 </style>
