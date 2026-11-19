@@ -213,7 +213,7 @@ function openVariantSearch():void{
  font-weight:630;
  line-height:1.25;
  letter-spacing:.045em;
- color:var(--ed-muted,#687b92);
+ color:var(--ed-secondary,#465973);
 }
 .nfq-pathway strong{
  grid-column:1;
