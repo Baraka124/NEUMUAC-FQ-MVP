@@ -295,48 +295,90 @@
  .app-frame .launcher-options{scrollbar-gutter:auto}
 }
 
-/* Editorial shell defect: the historical negative right offset pushed the
- * sidebar control beneath the clipped rail/header. Keep it entirely inside
- * the sticky sidebar, with a quiet, high-contrast instrument treatment. */
+/* Sidebar brand and collapse/expand control are genuine layout siblings.
+ * The former absolute-positioned tab overlapped the branded mark in compact
+ * mode. No top/right magic offsets, no detached button, no extra panel.
+ */
 @media(min-width:761px){
- .app-frame .sidebar>.sidebar-toggle{
-  top:24px!important;
-  right:10px!important;
-  left:auto!important;
+ .app-frame:not(.sidebar-collapsed) .sidebar-scroll{
+  padding-inline:10px;
+ }
+ .app-frame .sidebar .nfq-sidebar-brand-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  min-width:0;
+  padding:4px 0 13px;
+  margin:0 0 13px;
+  border-bottom:1px solid #2b3850;
+ }
+ .app-frame .sidebar .nfq-sidebar-brand-row>.wordmark{
+  flex:1 1 auto;
+  min-width:0;
+  min-height:36px!important;
+  height:auto!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  justify-content:flex-start;
+  gap:8px!important;
+ }
+ .app-frame .sidebar .nfq-sidebar-brand-row>.wordmark .wordmark-text{
+  min-width:0;
+ }
+ .app-frame .sidebar .nfq-sidebar-brand-row>.sidebar-toggle{
+  position:static!important;
+  top:auto!important;right:auto!important;
+  bottom:auto!important;left:auto!important;
+  flex:0 0 28px;
+  display:grid!important;
+  place-items:center;
   width:28px!important;
   height:28px!important;
   min-width:28px!important;
   min-height:28px!important;
   padding:0!important;
-  display:grid;
-  place-items:center;
-  border:1px solid #47617e!important;
+  margin:0!important;
+  border:1px solid #455771!important;
   border-radius:5px!important;
-  background:#1b2b43!important;
-  color:#d6e5f7!important;
+  background:transparent!important;
+  color:#c5d7ed!important;
   box-shadow:none!important;
   transform:none!important;
-  z-index:2;
+  z-index:auto;
  }
- .app-frame .sidebar>.sidebar-toggle:hover{
-  border-color:#7898c0!important;
-  background:#243a59!important;
+ .app-frame .sidebar .nfq-sidebar-brand-row>.sidebar-toggle:hover{
+  background:#1b2b43!important;
   color:#fff!important;
+  border-color:#7898c0!important;
  }
- .app-frame .sidebar>.sidebar-toggle:focus-visible{
+ .app-frame .sidebar .nfq-sidebar-brand-row>.sidebar-toggle:focus-visible{
   outline:2px solid #a9c7ff!important;
   outline-offset:2px!important;
  }
- .app-frame .sidebar>.sidebar-toggle svg{width:15px;height:15px;flex:none}
- /* The narrow rail stacks brand, toggle, then workspace links. Neither the
-    logo nor the first navigation item sits underneath the toggle's hit area. */
- .app-frame.sidebar-collapsed .sidebar>.sidebar-toggle{
-  top:73px!important;
-  right:20px!important;
+ .app-frame .sidebar .nfq-sidebar-brand-row>.sidebar-toggle svg{
+  width:15px;height:15px;flex:none;
  }
- .app-frame.sidebar-collapsed .sidebar .wordmark{
-  padding-bottom:0!important;
-  margin-bottom:44px!important;
+ .app-frame.sidebar-collapsed .sidebar .nfq-sidebar-brand-row{
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:12px;
+  padding:5px 0 12px;
+  margin:0 0 13px;
+ }
+ .app-frame.sidebar-collapsed .sidebar .nfq-sidebar-brand-row>.wordmark{
+  flex:0 0 auto;
+  width:100%;
+  height:36px!important;
+  min-height:36px!important;
+  margin:0!important;
+  padding:0!important;
+  justify-content:center;
+ }
+ .app-frame.sidebar-collapsed .sidebar .nfq-sidebar-brand-row>.sidebar-toggle{
+  align-self:center;
  }
 }
 
