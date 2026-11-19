@@ -160,6 +160,12 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
     <a class="skip-link" href="#main">Skip to main content</a>
 
     <aside class="sidebar" aria-label="Application navigation">
+      <div class="sidebar-scroll">
+      <div class="nfq-sidebar-brand-row">
+      <RouterLink class="wordmark" to="/workspace" aria-label="NeumuacFQ overview" title="NeumuacFQ overview">
+        <span class="wordmark-icon" aria-hidden="true"><img src="/brand/neumuacfq-icon.png" alt="" @error="($event.target as HTMLImageElement).style.display='none'"/></span>
+        <span v-if="!sidebarCollapsed" class="wordmark-text"><strong>neumuacFQ</strong><small>CFTR variant research</small></span>
+      </RouterLink>
       <button class="sidebar-toggle" type="button" aria-controls="primary-workspace-nav"
         :aria-expanded="!sidebarCollapsed"
         :aria-label="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
@@ -171,11 +177,7 @@ function closeNavigation(): void { mobileMenuOpen.value = false; }
           <path v-else d="m15 5-7 7 7 7"/>
         </svg>
       </button>
-      <div class="sidebar-scroll">
-      <RouterLink class="wordmark" to="/workspace" aria-label="NeumuacFQ overview" title="NeumuacFQ overview">
-        <span class="wordmark-icon" aria-hidden="true"><img src="/brand/neumuacfq-icon.png" alt="" @error="($event.target as HTMLImageElement).style.display='none'"/></span>
-        <span v-if="!sidebarCollapsed" class="wordmark-text"><strong>neumuacFQ</strong><small>CFTR variant research</small></span>
-      </RouterLink>
+      </div>
 
       <div v-if="!sidebarCollapsed" class="sidebar-caption">RESEARCH WORKSPACES</div>
       <nav id="primary-workspace-nav" class="workspace-nav" aria-label="Workspaces">
