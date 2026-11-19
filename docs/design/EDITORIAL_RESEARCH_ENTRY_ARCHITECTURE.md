@@ -16,7 +16,7 @@ neumuacFQ is not a dashboard of invented KPIs. It is a connected scientific inve
 - Prioritize readable headings, discreet topic labels, thin structural separators, responsive navigation and keyboard-focus affordances.
 - Show no fabricated counts, no fake researcher activity, no generated variant evidence and no new role or therapy claims.
 - Respect daylight/midnight via existing authored variables; no separate palette or duplicate global override stylesheet.
-- Keep dense desktop composition and a single column for small screens.
+- Keep dense desktop composition and a single column for small screens. On phones, the three research pathways are presented through a compact accessible disclosure to protect the main search and the viewport-anchored footer; larger screens reveal them immediately.
 
 ## Validation
 
