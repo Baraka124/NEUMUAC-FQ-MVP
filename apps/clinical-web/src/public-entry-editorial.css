@@ -7,7 +7,7 @@
  */
 .nfq-entry-surface{
  --entry-paper:#ffffff;
- --entry-canvas:#fbfcfd;
+ --entry-canvas:#ffffff;
  --entry-ink:#152b40;
  --entry-secondary:#495d71;
  --entry-muted:#627487;
@@ -38,33 +38,34 @@
 .nfq-entry-surface :is(button,input){font-family:inherit}
 .nfq-entry-surface button{cursor:pointer}
 .nfq-entry-surface :is(.nfq-portal-masthead,.nfq-portal-content,.nfq-portal-footer,.nfq-signin-masthead,.nfq-signin-main,.nfq-signin-footer){
- width:min(1260px,100%);
+ width:min(1180px,100%);
  margin-inline:auto;
  padding-inline:clamp(20px,4vw,54px);
 }
 .nfq-entry-surface :is(.nfq-portal-masthead,.nfq-signin-masthead){
- min-height:102px;
+ min-height:116px;
  display:flex;
  align-items:center;
  justify-content:space-between;
  gap:18px;
- border-bottom:1px solid var(--entry-rule);
+ border-bottom:0;
+ padding-block:8px;
 }
 .nfq-entry-surface :is(.nfq-portal-brand,.nfq-entry-logo){
  position:relative;
  display:block;
- width:174px;
- height:100px;
- flex:0 0 174px;
+ width:154px;
+ height:88px;
+ flex:0 0 154px;
  overflow:hidden;
 }
 .nfq-entry-surface :is(.nfq-portal-brand,.nfq-entry-logo) img{
  position:absolute;
  display:block;
  left:0;
- top:-33px;
- width:170px;
- height:170px;
+ top:-22px;
+ width:148px;
+ height:148px;
  max-width:none;
  object-fit:contain;
 }
@@ -86,7 +87,6 @@
  min-height:40px;
  padding:5px 0;
  border:0;
- border-bottom:1px solid transparent;
  border-radius:0;
  color:var(--entry-ink);
  background:transparent;
@@ -99,7 +99,6 @@
 }
 .nfq-entry-surface :is(.nfq-portal-header-link,.nfq-signin-header-link):hover{
  color:var(--entry-accent);
- border-bottom-color:var(--entry-accent);
 }
 .nfq-entry-surface .nfq-portal-header-link span{color:var(--entry-accent);font-size:16px}
 .nfq-entry-surface .nfq-signin-header-link span{color:var(--entry-accent)}
@@ -116,8 +115,8 @@
 .nfq-entry-surface .nfq-portal-layout,
 .nfq-entry-surface .nfq-signin-stage{
  display:grid;
- grid-template-columns:minmax(0,1.16fr) minmax(345px,.85fr);
- gap:clamp(46px,5vw,84px);
+ grid-template-columns:minmax(0,1.1fr) minmax(325px,.86fr);
+ gap:clamp(50px,6vw,100px);
  align-items:start;
  min-width:0;
 }
@@ -137,11 +136,11 @@
  text-transform:uppercase;
 }
 .nfq-entry-surface :is(.nfq-portal-intro h1,.nfq-signin-context h2){
- max-width:18ch;
- margin:22px 0 19px;
+ max-width:13ch;
+ margin:20px 0 24px;
  color:var(--entry-ink);
  font-family:'Iowan Old Style','Baskerville','Palatino Linotype',Georgia,serif;
- font-size:clamp(45px,4.4vw,63px);
+ font-size:clamp(49px,4.65vw,67px);
  line-height:1.08;
  font-weight:500;
  letter-spacing:-.055em;
@@ -182,11 +181,10 @@
  background:transparent;
  color:var(--entry-accent);
  border-color:transparent;
- border-bottom-color:var(--entry-rule-strong);
  padding-inline:0;
 }
 .nfq-entry-surface .nfq-portal-layout-auth .nfq-portal-enter:hover{
- color:var(--entry-ink);background:transparent;border-bottom-color:var(--entry-accent);
+ color:var(--entry-ink);background:transparent;
 }
 .nfq-entry-surface .nfq-portal-access-note{
  margin:12px 0 0;
@@ -194,15 +192,14 @@
  font-size:11.5px;
  line-height:1.5;
 }
-/* One line divides separate reading areas. Rows themselves do not need
- * five decorative borders, numbers or fake dashboard tiles. */
+/* Two reading columns are separated by *space*, never decorative rules,
+ * inset panels, rankings or repeated button borders. */
 .nfq-entry-surface :is(.nfq-portal-index,.nfq-portal-account,.nfq-login-card){
  width:100%;
  min-width:0;
- padding:8px 0 0 clamp(23px,3.2vw,42px);
+ padding:8px 0 0;
  margin:0;
  border:0;
- border-left:1px solid var(--entry-rule);
  border-radius:0;
  background:transparent;
  box-shadow:none;
@@ -224,8 +221,8 @@
  grid-template-columns:minmax(0,1fr);
  align-items:center;
  gap:0;
- min-height:61px;
- padding:8px 0 9px;
+ min-height:67px;
+ padding:10px 0 12px;
  margin:0;
  border:0;
  border-radius:0;
@@ -237,7 +234,7 @@
 .nfq-entry-surface .nfq-portal-index-link>span:first-child{min-width:0}
 .nfq-entry-surface .nfq-portal-index-link strong{
  display:block;
- font-size:13.5px;
+ font-size:14px;
  line-height:1.35;
  font-weight:630;
  letter-spacing:-.008em;
@@ -246,8 +243,8 @@
  display:block;
  margin-top:3px;
  color:var(--entry-muted);
- font-size:11.7px;
- line-height:1.44;
+ font-size:12px;
+ line-height:1.48;
  font-weight:430;
 }
 .nfq-entry-surface .nfq-portal-index-arrow{display:none}
@@ -258,9 +255,9 @@
  gap:11px;
  align-items:flex-start;
  max-width:840px;
- margin-top:clamp(32px,5.5vh,55px);
- padding:14px 0 0;
- border-top:1px solid var(--entry-rule);
+ margin-top:clamp(38px,6vh,64px);
+ padding:0;
+ border:0;
  color:var(--entry-muted);
 }
 .nfq-entry-surface .nfq-portal-research-notice svg{flex:0 0 17px;margin-top:1px}
@@ -275,9 +272,9 @@
  justify-content:space-between;
  gap:14px 25px;
  flex-wrap:wrap;
- min-height:46px;
- padding-block:13px;
- border-top:1px solid var(--entry-rule);
+ min-height:42px;
+ padding-block:14px;
+ border:0;
  color:var(--entry-muted);
  font-size:10.5px;
  line-height:1.45;
@@ -541,9 +538,9 @@
  }
 }
 @media(max-width:760px){
- .nfq-entry-surface :is(.nfq-portal-masthead,.nfq-signin-masthead){min-height:86px}
- .nfq-entry-surface :is(.nfq-portal-brand,.nfq-entry-logo){width:144px;height:86px;flex-basis:144px}
- .nfq-entry-surface :is(.nfq-portal-brand,.nfq-entry-logo) img{width:141px;height:141px;top:-27px}
+ .nfq-entry-surface :is(.nfq-portal-masthead,.nfq-signin-masthead){min-height:95px}
+ .nfq-entry-surface :is(.nfq-portal-brand,.nfq-entry-logo){width:134px;height:79px;flex-basis:134px}
+ .nfq-entry-surface :is(.nfq-portal-brand,.nfq-entry-logo) img{width:131px;height:131px;top:-19px}
  .nfq-entry-surface .nfq-portal-content{
   justify-content:flex-start;
   padding-top:28px;
@@ -560,9 +557,8 @@
  .nfq-entry-surface .nfq-portal-actions{margin-top:19px}
  .nfq-entry-surface :is(.nfq-portal-index,.nfq-portal-account){
   margin-top:30px;
-  padding:22px 0 0;
+  padding:0;
   border:0;
-  border-top:1px solid var(--entry-rule);
  }
  .nfq-entry-surface .nfq-portal-account{max-width:390px}
  .nfq-entry-surface .nfq-portal-research-notice{margin-top:30px}
@@ -610,9 +606,9 @@
  }
 }
 @media(max-width:440px){
- .nfq-entry-surface :is(.nfq-portal-masthead,.nfq-signin-masthead){min-height:79px}
- .nfq-entry-surface :is(.nfq-portal-brand,.nfq-entry-logo){width:123px;height:79px;flex-basis:123px}
- .nfq-entry-surface :is(.nfq-portal-brand,.nfq-entry-logo) img{width:120px;height:120px;top:-22px}
+ .nfq-entry-surface :is(.nfq-portal-masthead,.nfq-signin-masthead){min-height:85px}
+ .nfq-entry-surface :is(.nfq-portal-brand,.nfq-entry-logo){width:125px;height:75px;flex-basis:125px}
+ .nfq-entry-surface :is(.nfq-portal-brand,.nfq-entry-logo) img{width:122px;height:122px;top:-17px}
  .nfq-entry-surface .nfq-portal-header-link{font-size:12px}
  .nfq-entry-surface .nfq-portal-intro h1{font-size:40px}
  .nfq-entry-surface .nfq-signin-header-link{white-space:normal;text-align:right;font-size:11.5px;max-width:135px}
