@@ -294,3 +294,19 @@
  }
  .app-frame .launcher-options{scrollbar-gutter:auto}
 }
+
+/* The global launcher can hand an unmatched CFTR identifier to the real
+   variant-search route. A calm text action, never a simulated result. */
+.app-frame .launcher-options button.nfq-launcher-variant-query{
+ margin-top:5px;
+ border-top:1px solid var(--ed-line);
+ padding-top:13px;
+ border-radius:5px;
+}
+.app-frame .launcher-options button.nfq-launcher-variant-query strong{
+ color:var(--ed-accent);
+}
+.app-frame .launcher-options button.nfq-launcher-variant-query span{
+ color:var(--ed-secondary);
+ overflow-wrap:anywhere;
+}
