@@ -40,10 +40,11 @@ function openVariantSearch():void{
         <RouterLink to="/variants">Explore variant records <span aria-hidden="true">→</span></RouterLink>
         <RouterLink to="/variants?class=I">Open Class I variant worklist <span aria-hidden="true">→</span></RouterLink>
         <RouterLink to="/geography">Explore geographic atlas <span aria-hidden="true">→</span></RouterLink>
+        <button class="nfq-home-pathways-entry" type="button" :aria-expanded="pathwaysExpanded" aria-controls="nfq-pathway-options" @click="pathwaysExpanded=!pathwaysExpanded">{{pathwaysExpanded?'Hide research pathways':'Explore research pathways'}} <span aria-hidden="true">→</span></button>
       </div>
     </section>
 
-    <aside class="nfq-research-pathways" aria-labelledby="nfq-pathways-heading">
+    <aside class="nfq-research-pathways" :class="{'nfq-mobile-pathways-open':pathwaysExpanded}" aria-labelledby="nfq-pathways-heading">
       <header class="nfq-pathways-heading">
         <div>
           <span class="section-label">RESEARCH PATHWAYS</span>
@@ -261,6 +262,29 @@ function openVariantSearch():void{
 }
 @media(max-width:850px){
  .nfq-pathway-list{grid-template-columns:minmax(0,1fr);gap:0}
+}
+
+
+.nfq-home-pathways-entry{display:none}
+@media(max-width:1000px){
+ .nfq-research-pathways:not(.nfq-mobile-pathways-open){display:none}
+ .nfq-home-pathways-entry{
+  display:inline-flex;
+  gap:5px;
+  align-items:center;
+  padding:0;
+  min-height:32px;
+  border:0;
+  background:transparent;
+  color:var(--ed-accent,#2b66bb);
+  font:inherit;
+  font-size:12px;
+  font-weight:590;
+  cursor:pointer;
+  text-align:left;
+ }
+ .nfq-home-pathways-entry:focus-visible{outline:2px solid var(--ed-accent,#2b66bb);outline-offset:3px}
+ .nfq-research-pathways.nfq-mobile-pathways-open{display:block;max-width:780px}
 }
 
 @media(max-width:760px){
