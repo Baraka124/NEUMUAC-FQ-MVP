@@ -63,7 +63,7 @@
  position:absolute;
  display:block;
  left:0;
- top:-28px;
+ top:-34px;
  width:170px;
  height:170px;
  max-width:none;
@@ -550,7 +550,7 @@
 @media(max-width:760px){
  .nfq-entry-surface :is(.nfq-portal-masthead,.nfq-signin-masthead){min-height:95px}
  .nfq-entry-surface :is(.nfq-portal-brand,.nfq-entry-logo){width:134px;height:79px;flex-basis:134px}
- .nfq-entry-surface :is(.nfq-portal-brand,.nfq-entry-logo) img{width:131px;height:131px;top:-19px}
+ .nfq-entry-surface :is(.nfq-portal-brand,.nfq-entry-logo) img{width:131px;height:131px;top:-24px}
  .nfq-entry-surface .nfq-portal-content{
   justify-content:flex-start;
   padding-top:28px;
@@ -618,7 +618,7 @@
 @media(max-width:440px){
  .nfq-entry-surface :is(.nfq-portal-masthead,.nfq-signin-masthead){min-height:85px}
  .nfq-entry-surface :is(.nfq-portal-brand,.nfq-entry-logo){width:125px;height:75px;flex-basis:125px}
- .nfq-entry-surface :is(.nfq-portal-brand,.nfq-entry-logo) img{width:122px;height:122px;top:-17px}
+ .nfq-entry-surface :is(.nfq-portal-brand,.nfq-entry-logo) img{width:122px;height:122px;top:-21px}
  .nfq-entry-surface .nfq-portal-header-link{font-size:12px}
  .nfq-entry-surface .nfq-portal-intro h1{font-size:40px}
  .nfq-entry-surface .nfq-signin-header-link{white-space:normal;text-align:right;font-size:11.5px;max-width:135px}
