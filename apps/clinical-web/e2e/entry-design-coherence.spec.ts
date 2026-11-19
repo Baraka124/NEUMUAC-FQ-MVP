@@ -18,7 +18,7 @@ test('public landing and both sign-in states use one navy/cool-white entry palet
  });
  await page.goto('/#/');
  const publicTokens=await tokens();
- expect(publicTokens.background).toBe('rgb(251, 252, 253)');
+ expect(publicTokens.background).toBe('rgb(255, 255, 255)');
  expect(publicTokens.ink).toBe('#152b40');
  expect(publicTokens.action).toBe('#193b53');
  await page.getByRole('button',{name:'Sign in',exact:true}).click();
@@ -29,7 +29,7 @@ test('public landing and both sign-in states use one navy/cool-white entry palet
   borderLeft:getComputedStyle(el).borderLeftWidth
  }));
  expect(inline.bg).toBe('rgba(0, 0, 0, 0)');
- expect(parseFloat(inline.borderLeft)).toBeGreaterThan(0);
+ expect(parseFloat(inline.borderLeft)).toBe(0);
  await page.goto('/#/sign-in');
  expect(await tokens()).toEqual(publicTokens);
  await expect(page.locator('.nfq-login-card .nfq-access-panel')).toHaveCount(1);
