@@ -72,10 +72,10 @@ test('research entry exposes real scientific pathways with no synthetic metrics'
  await expect(page.getByRole('heading',{name:'CFTR variant research',exact:true})).toBeVisible();
  await expect(page.getByRole('searchbox',{name:'Search CFTR variants'})).toBeVisible();
  const pathways=page.getByRole('navigation',{name:'Research pathways'});
- const startMobile=page.viewportSize()!.width<=760;
+ const startMobile=page.viewportSize()!.width<=1000;
  if(startMobile){
   await expect(pathways).toBeHidden();
-  await page.getByRole('button',{name:'Explore pathways'}).click();
+  await page.getByRole('button',{name:'Explore research pathways'}).click();
  }
  await expect(pathways).toBeVisible();
  await expect(pathways.getByRole('link',{name:/Compare two variants/})).toHaveAttribute('href','#/genotype');
@@ -85,15 +85,16 @@ test('research entry exposes real scientific pathways with no synthetic metrics'
  if(startMobile)await page.getByRole('button',{name:'Hide pathways'}).click();
  for(const width of [320,390,768,1024,1366]){
   await page.setViewportSize({width,height:850});
-  if(width<=760){
+  if(width<=1000){
    await expect(pathways).toBeHidden();
-   const toggle=page.getByRole('button',{name:'Explore pathways'});
+   const toggle=page.getByRole('button',{name:'Explore research pathways'});
    await expect(toggle).toHaveAttribute('aria-expanded','false');
    await toggle.click();
    await expect(pathways).toBeVisible();
    await expect(page.getByRole('button',{name:'Hide pathways'})).toHaveAttribute('aria-expanded','true');
    await page.getByRole('button',{name:'Hide pathways'}).click();
    await expect(pathways).toBeHidden();
+   await expect(page.getByRole('button',{name:'Explore research pathways'})).toHaveAttribute('aria-expanded','false');
   }else{
    await expect(pathways).toBeVisible();
   }
