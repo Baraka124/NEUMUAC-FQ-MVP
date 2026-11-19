@@ -100,6 +100,16 @@
 .nfq-entry-surface :is(.nfq-portal-header-link,.nfq-signin-header-link):hover{
  color:var(--entry-accent);
 }
+/* The original portal main had a pale full-width block behind otherwise
+ * borderless content. The entrance must be one continuous paper surface,
+ * not a giant invisible card beneath the header. */
+.nfq-entry-surface :is(.nfq-portal-content,.nfq-signin-main,.nfq-signin-stage){
+ background:transparent;
+ background-image:none;
+ border:0;
+ border-radius:0;
+ box-shadow:none;
+}
 .nfq-entry-surface .nfq-portal-header-link span{color:var(--entry-accent);font-size:16px}
 .nfq-entry-surface .nfq-signin-header-link span{color:var(--entry-accent)}
 /* Entrance composition. It shares the typography and width with the sign-in
