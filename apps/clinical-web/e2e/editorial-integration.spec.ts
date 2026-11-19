@@ -51,7 +51,7 @@ test('editorial switcher traps Tab, navigates options and restores trigger focus
  const input=dialog.getByRole('searchbox',{name:'Find a research workspace'});
  await expect(input).toBeFocused();
  await input.press('Shift+Tab');
- await expect(dialog.getByRole('button',{name:'Close workspace switcher'})).toBeFocused();
+ await expect(dialog.locator('.launcher-options button').last()).toBeFocused();
  await page.keyboard.press('Tab');
  await expect(input).toBeFocused();
  await page.keyboard.press('ArrowDown');
