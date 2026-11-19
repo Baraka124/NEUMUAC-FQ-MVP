@@ -82,7 +82,7 @@ test('research entry exposes real scientific pathways with no synthetic metrics'
  await expect(pathways.getByRole('link',{name:/Trace the evidence/})).toHaveAttribute('href','#/evidence');
  await expect(pathways.getByRole('link',{name:/Inspect knowledge gaps/})).toHaveAttribute('href','#/intelligence');
  await expect(page.getByRole('link',{name:/Open Class I variant worklist/})).toHaveAttribute('href','#/variants?class=I');
- if(startMobile)await page.getByRole('button',{name:'Hide pathways'}).click();
+ if(startMobile)await page.getByRole('button',{name:'Hide research pathways'}).click();
  for(const width of [320,390,768,1024,1366]){
   await page.setViewportSize({width,height:850});
   if(width<=1000){
@@ -91,8 +91,8 @@ test('research entry exposes real scientific pathways with no synthetic metrics'
    await expect(toggle).toHaveAttribute('aria-expanded','false');
    await toggle.click();
    await expect(pathways).toBeVisible();
-   await expect(page.getByRole('button',{name:'Hide pathways'})).toHaveAttribute('aria-expanded','true');
-   await page.getByRole('button',{name:'Hide pathways'}).click();
+   await expect(page.getByRole('button',{name:'Hide research pathways'})).toHaveAttribute('aria-expanded','true');
+   await page.getByRole('button',{name:'Hide research pathways'}).click();
    await expect(pathways).toBeHidden();
    await expect(page.getByRole('button',{name:'Explore research pathways'})).toHaveAttribute('aria-expanded','false');
   }else{
