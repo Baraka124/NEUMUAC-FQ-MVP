@@ -79,7 +79,18 @@ test('research entry exposes real scientific pathways with no synthetic metrics'
  await expect(page.getByRole('link',{name:/Open Class I variant worklist/})).toHaveAttribute('href','#/variants?class=I');
  for(const width of [320,390,768,1024,1366]){
   await page.setViewportSize({width,height:850});
-  await expect(pathways).toBeVisible();
+  if(width<=760){
+   await expect(pathways).toBeHidden();
+   const toggle=page.getByRole('button',{name:'Explore pathways'});
+   await expect(toggle).toHaveAttribute('aria-expanded','false');
+   await toggle.click();
+   await expect(pathways).toBeVisible();
+   await expect(page.getByRole('button',{name:'Hide pathways'})).toHaveAttribute('aria-expanded','true');
+   await page.getByRole('button',{name:'Hide pathways'}).click();
+   await expect(pathways).toBeHidden();
+  }else{
+   await expect(pathways).toBeVisible();
+  }
   await expect.poll(()=>page.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBe(0);
  }
  await pathways.getByRole('link',{name:/Compare two variants/}).click();
