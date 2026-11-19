@@ -88,3 +88,30 @@ test('research entry exposes real scientific pathways with no synthetic metrics'
  await pathways.getByRole('link',{name:/Trace the evidence/}).click();
  await expect(page.getByRole('heading',{name:'Evidence & provenance'})).toBeVisible();
 });
+
+
+test('Ctrl-K search hands scientific identifiers to the real variant index without fabricated records',async({page})=>{
+ test.skip(page.viewportSize()!.width<=760,'Desktop launcher has a dedicated trigger; mobile navigation is separate');
+ await page.goto('/#/workspace');
+ await page.getByRole('button',{name:'Open workspace switcher'}).click();
+ const dialog=page.getByRole('dialog',{name:'Research workspace switcher'});
+ const input=dialog.getByRole('searchbox',{name:'Find a research workspace'});
+ await input.fill('c.1584G>A');
+ await expect(dialog.getByRole('button',{name:/Search recorded CFTR variants for c\.1584G>A/})).toBeVisible();
+ await input.press('Enter');
+ await expect(dialog).toHaveCount(0);
+ await expect(page.getByRole('heading',{name:'Variants',exact:true})).toBeVisible();
+ await expect.poll(()=>page.evaluate(()=>new URLSearchParams(location.hash.split('?')[1]??'').get('q'))).toBe('c.1584G>A');
+
+ await page.goto('/#/workspace');
+ await page.getByRole('button',{name:'Open workspace switcher'}).click();
+ const second=page.getByRole('dialog',{name:'Research workspace switcher'});
+ const field=second.getByRole('searchbox',{name:'Find a research workspace'});
+ await field.fill('1716G/A');
+ await field.press('ArrowDown');
+ const action=second.getByRole('button',{name:/Search recorded CFTR variants for 1716G\/A/});
+ await expect(action).toBeFocused();
+ await page.keyboard.press('Enter');
+ await expect(second).toHaveCount(0);
+ await expect.poll(()=>page.evaluate(()=>new URLSearchParams(location.hash.split('?')[1]??'').get('q'))).toBe('1716G/A');
+});
