@@ -12,7 +12,6 @@ const loginOpen=ref(false);
         <img src="/brand/neumuacfq-logo.png" alt="neumuacFQ · CFTR evidence, connected." />
       </RouterLink>
       <div class="nfq-portal-masthead-right">
-        <span class="nfq-portal-header-context">CFTR RESEARCH · PUBLIC ACCESS</span>
         <button type="button" class="nfq-portal-header-link" :aria-expanded="loginOpen" aria-controls="nfq-portal-account" @click="loginOpen=!loginOpen">{{loginOpen?'Research tools':'Sign in'}} <span aria-hidden="true">→</span></button>
       </div>
     </header>
