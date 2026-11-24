@@ -42,7 +42,7 @@ try{
 // The atlas itself has no variant-geographic source. The optional GET below
 // retrieves only a verified display name, never location or distribution.
 watch(variantId,id=>{
- pending?.abort();pending=null;variantName.value='';variantAliases.value=[];
+ pending?.abort();pending=null;variantName.value='';variantAliases.value=[];publication.value=null;
  if(!id||!source)return;
  const controller=new AbortController();pending=controller;
  void source.get(id,controller.signal).then(record=>{
@@ -81,7 +81,7 @@ onUnmounted(()=>pending?.abort());
    <aside class="geo-integrated-inspector" aria-label="Evidence inspector">
   <PopulationEvidence v-if="variantId&&worldMode&&evidenceLayer==='population'" :aliases="variantAliases"/>
   <p v-if="worldMode&&!variantId&&evidenceLayer==='population'" class="geo-evidence-note">Open the atlas from a variant dossier to retrieve population allele observations.</p>
-  <PublicationGeography v-if="worldMode&&evidenceLayer==='publication'" @resolved="publication=$event"/>
+  <PublicationGeography v-if="worldMode&&evidenceLayer==='publication'" :key="variantId??'unscoped'" @resolved="publication=$event"/>
    </aside>
   </div>
   <GeographicObservatory v-else :variant-id="variantId" :initial-region-code="regionCode" @region-selected="onRegionSelected"/>
