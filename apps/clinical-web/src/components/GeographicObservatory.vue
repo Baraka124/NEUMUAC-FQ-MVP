@@ -47,6 +47,21 @@ const selected=ref<string|null>(null);
 const selectedActivity=computed(()=>recordedActivity.value.find(item=>item.regionCode===selected.value)||null);
 const detailPanel=ref<HTMLElement|null>(null);
 const mapSvg=ref<SVGSVGElement|null>(null);
+const zoom=ref(1),centerX=ref(345),centerY=ref(262.5);
+const mapViewBox=computed(()=>[centerX.value-345/zoom.value,centerY.value-262.5/zoom.value,690/zoom.value,525/zoom.value].join(' '));
+function constrainMap(){
+ const halfW=345/zoom.value,halfH=262.5/zoom.value;
+ centerX.value=Math.max(halfW,Math.min(690-halfW,centerX.value));
+ centerY.value=Math.max(halfH,Math.min(525-halfH,centerY.value));
+}
+function changeZoom(delta:number){zoom.value=Math.max(1,Math.min(3,zoom.value+delta));constrainMap();}
+function panMap(dx:number,dy:number){centerX.value+=dx/zoom.value;centerY.value+=dy/zoom.value;constrainMap();}
+function resetMap(){zoom.value=1;centerX.value=345;centerY.value=262.5;}
+function revealMapRegion(code:string){
+ const path=[...(mapSvg.value?.querySelectorAll<SVGPathElement>('path.geo-region')??[])].find(p=>p.dataset.regionCode===code);
+ if(!path||zoom.value===1)return;
+ const bounds=path.getBBox();centerX.value=bounds.x+bounds.width/2;centerY.value=bounds.y+bounds.height/2;constrainMap();
+}
 const previewCode=ref<string|null>(null);
 const keyboardRegion=ref(SPAIN_REGIONS[0]?.code??'');
 watch(()=>props.initialRegionCode,code=>{
@@ -68,7 +83,8 @@ function choose(code:string){
 function chooseFromPicker(code:string){
  const region=canonicalGeographicRegionCode(code);
  selected.value=region;
- if(region)keyboardRegion.value=region;
+ if(region){keyboardRegion.value=region;revealMapRegion(region);}
+ else resetMap();
  emit('regionSelected',region);
 }
 function clearSelection(){selected.value=null;emit('regionSelected',null);}
@@ -94,6 +110,7 @@ function onMapKeydown(event:KeyboardEvent,code:string){
  event.preventDefault();
  const nextRegion=SPAIN_REGIONS[target];
  keyboardRegion.value=nextRegion.code;
+ revealMapRegion(nextRegion.code);
  void nextTick(()=>{
   const paths=mapSvg.value?.querySelectorAll<SVGPathElement>('path.geo-region');
   [...(paths??[])].find(path=>path.dataset.regionCode===nextRegion.code)?.focus();
@@ -123,8 +140,18 @@ function openSelectedDetail(){
     </div>
     <div v-if="selectedRegion" class="geo-current-selection"><span role="status">{{selectedRegion.name}} selected</span><button class="geo-selected-detail-link" type="button" @click="openSelectedDetail">View region details <span aria-hidden="true">→</span></button></div>
     <div class="geo-map-inner">
+     <div class="geo-viewport-controls" role="group" aria-label="Map navigation">
+      <button type="button" aria-label="Zoom out" :disabled="zoom===1" @click="changeZoom(-.5)">−</button>
+      <span aria-live="polite" class="geo-zoom-value">{{Math.round(zoom*100)}}%</span>
+      <button type="button" aria-label="Zoom in" :disabled="zoom===3" @click="changeZoom(.5)">+</button>
+      <button type="button" aria-label="Pan west" :disabled="zoom===1" @click="panMap(-100,0)">←</button>
+      <button type="button" aria-label="Pan north" :disabled="zoom===1" @click="panMap(0,-100)">↑</button>
+      <button type="button" aria-label="Pan south" :disabled="zoom===1" @click="panMap(0,100)">↓</button>
+      <button type="button" aria-label="Pan east" :disabled="zoom===1" @click="panMap(100,0)">→</button>
+      <button type="button" :disabled="zoom===1" @click="resetMap">Fit map</button>
+     </div>
      <span id="geo-map-keyboard-hint" class="geo-screen-reader-only">Use arrow keys to explore regions, Home or End to jump, Enter or Space to select, and Escape to clear the selected region.</span>
-     <svg ref="mapSvg" viewBox="0 0 690 525" role="group" aria-describedby="geo-map-keyboard-hint" aria-label="Selectable map of Spain, its autonomous communities and cities. Administrative boundaries only, without individual searches or activity statistics." preserveAspectRatio="xMidYMid meet">
+     <svg ref="mapSvg" :viewBox="mapViewBox" role="group" aria-describedby="geo-map-keyboard-hint" aria-label="Selectable map of Spain, its autonomous communities and cities. Administrative boundaries only, without individual searches or activity statistics." preserveAspectRatio="xMidYMid meet">
       <title>Spain · autonomous communities and cities</title>
       <rect x="0" y="0" width="690" height="525" fill="#f9fbf9"/>
       <g fill="#e7eee8" stroke="#abc0ae" stroke-width="1.05" stroke-linejoin="round">
@@ -392,4 +419,27 @@ function openSelectedDetail(){
 :global(.app-frame[data-nfq-theme="midnight"]) .geo-source-provenance dt{color:#a0badb}
 :global(.app-frame[data-nfq-theme="midnight"]) .geo-source-provenance dd,
 :global(.app-frame[data-nfq-theme="midnight"]) .geo-source-provenance p{color:#bcd2ed}
+/* GEO02: a map-first, neutral editorial stage with bounded navigation. */
+.geo-map-inner{position:relative;padding:0; background:#f9fbfc}
+.geo-map-inner svg{max-height:620px}
+.geo-viewport-controls{display:flex;align-items:center;flex-wrap:wrap;gap:3px;padding:5px 16px 7px;color:#344e69;background:#fff}
+.geo-viewport-controls button{min-width:34px;min-height:36px;padding:4px 9px;border:1px solid #d7e0e9;border-radius:4px;background:transparent;color:inherit;font:inherit;cursor:pointer}
+.geo-viewport-controls button:disabled{opacity:.42;cursor:default}
+.geo-viewport-controls button:focus-visible{outline:2px solid #2867b3;outline-offset:2px}
+.geo-zoom-value{font-size:11px;min-width:42px;text-align:center;font-variant-numeric:tabular-nums}
+.geo-map-surface,.geo-region-insight{border-color:#dce4ec}
+.geo-map-foot,.geo-about{border-color:#e4ebf1;color:#526b83}
+.geo-map-inner svg>rect:first-of-type{fill:#f6f8fb}
+.geo-map-inner svg>g{fill:#e1e7ee;stroke:#9baec1}
+.geo-region:hover,.geo-region:focus-visible{fill:#c2d0df;stroke:#486b91}
+.geo-region-selected{fill:#a7bbd1;stroke:#294f79}
+.geo-inset-outline{stroke:#a9b7c7}
+.geo-map-label{fill:#4f6984}
+.geo-legend-swatch{background:#e1e7ee;border-color:#9baec1}
+.geo-region-picker,.geo-map-heading div span,.geo-current-selection,.geo-insight-intro,.geo-kicker{color:#536e88}
+.geo-region-picker select,.geo-clear-selection{border-color:#d5dfe9;color:#315678}
+.geo-about summary,.geo-selected-detail-link{color:#315b86}
+:global(.app-frame[data-nfq-theme="midnight"]) .geo-viewport-controls{background:#172b40;color:#c4d8ee}
+:global(.app-frame[data-nfq-theme="midnight"]) .geo-viewport-controls button{border-color:#405975}
+@container(max-width:585px){.geo-viewport-controls{padding:4px 10px;gap:4px}.geo-viewport-controls button{min-height:44px;min-width:40px}.geo-map-inner svg{max-height:none}}
 </style>
