@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {computed,onUnmounted,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
+import WorldGeography from '../components/WorldGeography.vue';
 import GeographicObservatory from '../components/GeographicObservatory.vue';
 import {canonicalGeographyVariantId,geographyVariantEmptyState} from '../domain/variantGeographyContext';
 import {canonicalGeographicRegionCode} from '../domain/geographicResearchProvenance';
@@ -9,6 +10,7 @@ import {createReadOnlyRepository,readConfigFromEnvironment,variantDisplayName,ty
 
 const route=useRoute();
 const router=useRouter();
+const worldMode=ref(false);
 const regionCode=computed(()=>canonicalGeographicRegionCode(route.query.region));
 function onRegionSelected(code:string|null):void{
  const selected=canonicalGeographicRegionCode(code);
@@ -48,7 +50,8 @@ onUnmounted(()=>pending?.abort());
   <header class="geo-page-title">
    <div class="geo-page-title-main">
     <h1>Geographic atlas</h1>
-    <span>Spain · Regional boundaries</span>
+    <span>{{worldMode?'World · Reference boundaries':'Spain · Regional boundaries'}}</span>
+    <button type="button" class="geo-scope-switch" @click="worldMode=!worldMode">{{worldMode?'Spain atlas':'World atlas'}}</button>
    </div>
    <div v-if="variantId" class="geo-page-variant-context" role="note" data-testid="geo-variant-context">
     <div class="geo-page-variant-identity">
@@ -58,7 +61,8 @@ onUnmounted(()=>pending?.abort());
     <RouterLink :to="'/variants/'+variantId" data-testid="geo-variant-return">Return to variant</RouterLink>
    </div>
   </header>
-  <GeographicObservatory :variant-id="variantId" :initial-region-code="regionCode" @region-selected="onRegionSelected"/>
+  <WorldGeography v-if="worldMode" @open-spain="worldMode=false"/>
+  <GeographicObservatory v-else :variant-id="variantId" :initial-region-code="regionCode" @region-selected="onRegionSelected"/>
  </div>
 </template>
 <style scoped>
@@ -102,4 +106,6 @@ onUnmounted(()=>pending?.abort());
  .public-geography-page .geo-page-title h1{font-size:26px}
  .geo-page-variant-context{justify-content:flex-start;gap:4px 11px}
 }
+.geo-scope-switch{border:1px solid #d7e0e9;border-radius:4px;background:transparent;color:inherit;min-height:34px;padding:4px 10px;font:inherit;font-size:12px;cursor:pointer}
+.geo-scope-switch:focus-visible{outline:2px solid #2867b3;outline-offset:2px}
 </style>
