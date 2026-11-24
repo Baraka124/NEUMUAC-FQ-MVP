@@ -14,8 +14,9 @@ const recordedActivity=ref<readonly RegionalResearchActivity[]>([]);
 const activityState=ref<'restricted'|'checking'|'available'|'empty'|'unavailable'>('restricted');
 const activityCodes=computed(()=>new Set(recordedActivity.value.map(item=>item.regionCode)));
 const observedRange=computed(()=>observedWindowLabel(displayedGeographicObservationWindow(recordedActivity.value)));
+const refreshRevision=ref(0);
 let geoAbort:AbortController|null=null;
-watch([()=>researcherRole.phase,()=>authController?.state.phase,()=>props.variantId],()=>{
+watch([()=>researcherRole.phase,()=>authController?.state.phase,()=>props.variantId,refreshRevision],()=>{
  geoAbort?.abort();geoAbort=null;recordedActivity.value=[];
  if(authController?.state.phase==='checking'||researcherRole.phase==='checking'){
   activityState.value='checking';return;
@@ -145,7 +146,7 @@ function openSelectedDetail(){
 
     <footer class="geo-map-foot">
      <span class="geo-legend"><span class="geo-legend-swatch" aria-hidden="true"></span>Regional boundaries</span>
-     <span v-if="recordedActivity.length" class="geo-activity-map-legend">Blue · historical research searches</span>
+     <span v-if="recordedActivity.length" class="geo-activity-map-legend">Blue · published historical search aggregate (presence, not intensity)</span>
      <span>Individual search locations are never shown</span>
     </footer>
    </section>
@@ -153,20 +154,20 @@ function openSelectedDetail(){
    <aside id="geo-region-detail" ref="detailPanel" tabindex="-1" class="geo-region-insight" aria-label="Selected geographic detail">
     <p class="geo-kicker">REGION</p>
     <div class="geo-insight-heading"><h3 aria-live="polite">{{selectedRegion?.name||'Choose a region'}}</h3><button v-if="selectedRegion" class="geo-clear-selection" type="button" @click="clearSelection">Clear selection</button></div>
-    <p class="geo-insight-intro">{{selectedRegion?'Administrative boundary selected.':'Select a region on the map or by name.'}}</p>
+    <p class="geo-insight-intro">{{selectedRegion?'Administrative region selected.':'Select a region on the map or by name.'}}</p>
     <section class="geo-research-activity" aria-label="Geographic research search activity" data-testid="geo-research-activity">
      <div class="geo-research-title"><strong>Research search activity</strong><span v-if="activityState==='available'">Historical · aggregate</span></div>
      <p v-if="activityState==='checking'" role="status" class="geo-research-muted">Checking research activity…</p>
      <p v-else-if="activityState==='restricted'" class="geo-research-muted">Available to verified research members only. <RouterLink v-if="authController?.state.phase!=='signed-in'" to="/sign-in">Sign in</RouterLink></p>
-     <p v-else-if="activityState==='unavailable'" role="status" class="geo-research-muted">Research activity cannot be verified from the source right now.</p>
-     <p v-else-if="activityState==='empty'" class="geo-research-muted">{{props.variantId?'No publishable aggregate for this variant.':'No region currently meets the publication thresholds.'}}</p>
+     <p v-else-if="activityState==='unavailable'" role="status" class="geo-research-muted">Research activity cannot be verified from the source right now. <button type="button" class="geo-clear-selection" @click="refreshRevision++">Retry source</button></p>
+     <p v-else-if="activityState==='empty'" class="geo-research-muted">{{props.variantId?'No publishable aggregate for this variant.':'No publishable regional aggregates were returned.'}}</p>
      <template v-else-if="activityState==='available'">
       <div v-if="selectedRegion&&selectedActivity" class="geo-research-selected" data-testid="geo-research-selected">
        <strong class="geo-research-number">{{activityTotal(selectedActivity.searchEvents)}}</strong>
        <span>recorded search events · {{activityTotal(selectedActivity.distinctSessions)}} distinct sessions</span>
        <small>{{shortDate(selectedActivity.firstObservedAt)}} – {{shortDate(selectedActivity.lastObservedAt)}}</small>
       </div>
-      <p v-else-if="selectedRegion" class="geo-research-muted">This region does not meet the minimum aggregate thresholds{{props.variantId?' for this variant':''}}. This does not mean no searches occurred.</p>
+      <p v-else-if="selectedRegion" class="geo-research-muted">No publishable aggregate was returned for this region{{props.variantId?' for this variant':''}}. This does not mean no searches occurred.</p>
       <div v-else class="geo-research-rows" data-testid="geo-research-rows">
        <div v-for="entry in recordedActivity" :key="entry.regionCode" class="geo-research-row">
         <span>{{regionByCode(entry.regionCode)}}</span>
