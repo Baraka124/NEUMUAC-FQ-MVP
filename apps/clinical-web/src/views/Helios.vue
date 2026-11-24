@@ -55,7 +55,7 @@ async function loadQueue(offset=0):Promise<void>{
 }
 onMounted(()=>{if(queueSource)void loadQueue();});
 onUnmounted(()=>{++requestVersion;activeRequest?.abort();});
-watch(()=>authController?.state.phase,()=>{
+watch([()=>authController?.state.phase,()=>authController?.state.userId],()=>{
  if(!queueSource)return;
  ++requestVersion;activeRequest?.abort();queuePage.value=null;
  selectedReviewId.value=null;queueOffset.value=0;
