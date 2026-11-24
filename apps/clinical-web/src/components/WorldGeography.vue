@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import {computed,ref} from 'vue';
+import {boundaryCountryLabel} from '../domain/worldCountryIdentity';
 import {WORLD_ATLAS_BOUNDARIES,WORLD_ATLAS_SOURCE} from '../domain/worldAtlasBoundaries';
 const props=defineProps<{affiliationCounts?:Readonly<Record<string,number>>;publicationMode?:boolean}>();
-const names=new Intl.DisplayNames(['en'],{type:'region'});
-const label=(id:string)=>/^\d{1,3}$/.test(id)&&Number(id)>0?names.of(id.padStart(3,'0'))||id:'Unassigned boundary';
+const label=boundaryCountryLabel;
 const options=computed(()=>[...new Set(WORLD_ATLAS_BOUNDARIES.map(x=>x.id))].map(id=>({id,name:label(id)})).sort((a,b)=>a.name.localeCompare(b.name)));
 const count=(id:string)=>props.affiliationCounts?.[id]??0;
 const emit=defineEmits<{openSpain:[]}>();
