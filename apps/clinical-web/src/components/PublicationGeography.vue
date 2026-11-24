@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {computed,ref,onUnmounted,watch} from 'vue';
 import {canonicalPublicationDoi,lookupPublicationGeography,type PublicationGeography} from '../domain/publicationGeography';
+const emit=defineEmits<{resolved:[value:PublicationGeography|null]}>();
 const input=ref(''),state=ref<'idle'|'loading'|'available'|'error'>('idle'),result=ref<PublicationGeography|null>(null);
 const valid=computed(()=>canonicalPublicationDoi(input.value));
 const countryNames=new Intl.DisplayNames(['en'],{type:'region'});
@@ -9,9 +10,10 @@ const groups=computed(()=>{
  for(const i of result.value?.institutions??[]){const list=map.get(i.countryCode)??[];list.push(i.name);map.set(i.countryCode,list);}
  return [...map].map(([code,names])=>({code,name:countryNames.of(code)||code,names}));
 });
+watch(result,value=>emit('resolved',value));
 let request:AbortController|null=null;
 watch(input,()=>{request?.abort();result.value=null;state.value='idle';});
-onUnmounted(()=>request?.abort());
+onUnmounted(()=>{request?.abort();emit('resolved',null);});
 async function retrieve(){
  if(!valid.value)return;
  request?.abort();const controller=new AbortController();request=controller;state.value='loading';result.value=null;
