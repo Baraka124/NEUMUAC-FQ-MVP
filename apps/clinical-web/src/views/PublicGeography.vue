@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import {computed,onUnmounted,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
+import type {PublicationGeography as PublicationResult} from '../domain/publicationGeography';
+import {WORLD_ATLAS_BOUNDARIES} from '../domain/worldAtlasBoundaries';
 import PublicationGeography from '../components/PublicationGeography.vue';
 import PopulationEvidence from '../components/PopulationEvidence.vue';
 import WorldGeography from '../components/WorldGeography.vue';
@@ -14,6 +16,25 @@ const route=useRoute();
 const router=useRouter();
 const worldMode=ref(false);
 const evidenceLayer=ref<'population'|'publication'>('population');
+const publication=ref<PublicationResult|null>(null);
+const regionNames=new Intl.DisplayNames(['en'],{type:'region',fallback:'none'});
+const affiliationCounts=computed(()=>{
+ const counts:Record<string,number>={};
+ const byName=new Map<string,Set<string>>();
+ for(const boundary of WORLD_ATLAS_BOUNDARIES){
+  if(!/^\d{1,3}$/.test(boundary.id)||Number(boundary.id)<=0)continue;
+  const name=regionNames.of(boundary.id.padStart(3,'0'));
+  if(!name)continue;
+  const ids=byName.get(name)??new Set<string>();ids.add(boundary.id);byName.set(name,ids);
+ }
+ for(const institution of publication.value?.institutions??[]){
+  const name=regionNames.of(institution.countryCode);
+  const ids=name?byName.get(name):undefined;
+  if(ids?.size!==1)continue;
+  const id=[...ids][0];counts[id]=(counts[id]??0)+1;
+ }
+ return counts;
+});
 const regionCode=computed(()=>canonicalGeographicRegionCode(route.query.region));
 function onRegionSelected(code:string|null):void{
  const selected=canonicalGeographicRegionCode(code);
@@ -66,16 +87,20 @@ onUnmounted(()=>pending?.abort());
     <RouterLink :to="'/variants/'+variantId" data-testid="geo-variant-return">Return to variant</RouterLink>
    </div>
   </header>
-  <WorldGeography v-if="worldMode" @open-spain="worldMode=false"/>
-  <GeographicObservatory v-else :variant-id="variantId" :initial-region-code="regionCode" @region-selected="onRegionSelected"/>
   <nav v-if="worldMode" class="geo-evidence-nav" aria-label="International evidence layers">
    <button type="button" :aria-pressed="evidenceLayer==='population'" @click="evidenceLayer='population'">Population genetics</button>
    <button type="button" :aria-pressed="evidenceLayer==='publication'" @click="evidenceLayer='publication'">Publication affiliations</button>
    <button type="button" @click="worldMode=false">Regional search activity · Spain</button>
   </nav>
+  <div v-if="worldMode" class="geo-integrated-layout">
+   <WorldGeography :publication-mode="evidenceLayer==='publication'" :affiliation-counts="affiliationCounts" @open-spain="worldMode=false"/>
+   <aside class="geo-integrated-inspector" aria-label="Evidence inspector">
   <PopulationEvidence v-if="variantId&&worldMode&&evidenceLayer==='population'" :aliases="variantAliases"/>
   <p v-if="worldMode&&!variantId&&evidenceLayer==='population'" class="geo-evidence-note">Open the atlas from a variant dossier to retrieve population allele observations.</p>
-  <PublicationGeography v-if="worldMode&&evidenceLayer==='publication'"/>
+  <PublicationGeography v-if="worldMode&&evidenceLayer==='publication'" @resolved="publication=$event"/>
+   </aside>
+  </div>
+  <GeographicObservatory v-else :variant-id="variantId" :initial-region-code="regionCode" @region-selected="onRegionSelected"/>
  </div>
 </template>
 <style scoped>
@@ -122,4 +147,5 @@ onUnmounted(()=>pending?.abort());
 .geo-scope-switch{border:1px solid #d7e0e9;border-radius:4px;background:transparent;color:inherit;min-height:34px;padding:4px 10px;font:inherit;font-size:12px;cursor:pointer}
 .geo-scope-switch:focus-visible{outline:2px solid #2867b3;outline-offset:2px}
 .geo-evidence-nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.geo-evidence-nav button{min-height:40px;padding:6px 12px;background:transparent;border:1px solid #cdd9e5;color:inherit;border-radius:4px;font:inherit;font-size:12px;cursor:pointer}.geo-evidence-nav button[aria-pressed=true]{border-color:#527da5;font-weight:650}.geo-evidence-note{font-size:12px;line-height:1.55}
+.geo-integrated-layout{display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,1fr);align-items:start;gap:14px;margin-top:12px}.geo-integrated-inspector{min-width:0}.geo-integrated-inspector :deep(.pop-register),.geo-integrated-inspector :deep(.publication-geography){margin:0}.geo-evidence-nav{margin-top:4px}@media(max-width:1000px){.geo-integrated-layout{grid-template-columns:minmax(0,1fr)}}
 </style>
