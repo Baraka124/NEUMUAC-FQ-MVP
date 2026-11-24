@@ -2,6 +2,7 @@
 import {computed,onUnmounted,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
 import type {PublicationGeography as PublicationResult} from '../domain/publicationGeography';
+import {affiliationBoundaryCounts} from '../domain/worldCountryIdentity';
 import {WORLD_ATLAS_BOUNDARIES} from '../domain/worldAtlasBoundaries';
 import PublicationGeography from '../components/PublicationGeography.vue';
 import PopulationEvidence from '../components/PopulationEvidence.vue';
@@ -17,24 +18,7 @@ const router=useRouter();
 const worldMode=ref(false);
 const evidenceLayer=ref<'population'|'publication'>('population');
 const publication=ref<PublicationResult|null>(null);
-const regionNames=new Intl.DisplayNames(['en'],{type:'region',fallback:'none'});
-const affiliationCounts=computed(()=>{
- const counts:Record<string,number>={};
- const byName=new Map<string,Set<string>>();
- for(const boundary of WORLD_ATLAS_BOUNDARIES){
-  if(!/^\d{1,3}$/.test(boundary.id)||Number(boundary.id)<=0)continue;
-  const name=regionNames.of(boundary.id.padStart(3,'0'));
-  if(!name)continue;
-  const ids=byName.get(name)??new Set<string>();ids.add(boundary.id);byName.set(name,ids);
- }
- for(const institution of publication.value?.institutions??[]){
-  const name=regionNames.of(institution.countryCode);
-  const ids=name?byName.get(name):undefined;
-  if(ids?.size!==1)continue;
-  const id=[...ids][0];counts[id]=(counts[id]??0)+1;
- }
- return counts;
-});
+const affiliationCounts=computed(()=>affiliationBoundaryCounts(publication.value?.institutions??[],WORLD_ATLAS_BOUNDARIES));
 const regionCode=computed(()=>canonicalGeographicRegionCode(route.query.region));
 function onRegionSelected(code:string|null):void{
  const selected=canonicalGeographicRegionCode(code);
