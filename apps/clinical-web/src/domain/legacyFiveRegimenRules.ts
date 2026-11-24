@@ -61,7 +61,7 @@ export function compareLegacyFiveRegimens(first:NamedVariant,second:NamedVariant
   const e=entry(v,'ALYFTREK');
   return e?.response==='responsive'&&e.evidenceTier==='clinical_trial';
  });
- const classKnown=pair.some(v=>Boolean(v.profile.functionalClass));
+ const knownNonClassI=pair.some(v=>['II','III','IV','V','VI'].includes(v.profile.functionalClass??''));
  const bothClassI=pair.every(v=>v.profile.functionalClass==='I');
  const bothF508=pair.every(hasExactF508delName);
  const f508Iva=(hasExactF508delName(first)&&ivaMatch(second))||(hasExactF508delName(second)&&ivaMatch(first));
@@ -73,11 +73,10 @@ export function compareLegacyFiveRegimens(first:NamedVariant,second:NamedVariant
    result('ETI','needs-evidence',etiRecorded?'Recorded ETI response lacks a qualifying source tier; check the original label list.':'Original named-label matching and evidence remain to be verified.','missing-evidence'),
   alyTrial?
    result('ALYFTREK','match','A recorded Alyftrek response has a clinical-trial tier.','variant-tier'):
-   !classKnown?
-   result('ALYFTREK','needs-evidence','Functional class information is missing.','missing-evidence'):
-   !bothClassI?
+   knownNonClassI?
    result('ALYFTREK','match','The original broad non-Class-I rule matches this pair; confirm current regulatory criteria.','legacy-class-rule'):
-   result('ALYFTREK','not-matched','Both records are Class I without a recorded trial-tier exception.','legacy-class-rule'),
+   bothClassI?result('ALYFTREK','not-matched','Both records are Class I without a recorded trial-tier exception.','legacy-class-rule'):
+   result('ALYFTREK','needs-evidence','No known non-Class-I record or qualifying trial-tier exception; class information is incomplete.','missing-evidence'),
   ivaMatch(first)||ivaMatch(second)?
    result('IVACAFTOR','match','At least one recorded name matches the original ivacaftor variant list.','legacy-name-list'):
    result('IVACAFTOR','not-matched','No exact match in the original ivacaftor name list.','legacy-name-list'),
