@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {computed,onUnmounted,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
+import PopulationEvidence from '../components/PopulationEvidence.vue';
 import WorldGeography from '../components/WorldGeography.vue';
 import GeographicObservatory from '../components/GeographicObservatory.vue';
 import {canonicalGeographyVariantId,geographyVariantEmptyState} from '../domain/variantGeographyContext';
@@ -22,6 +23,7 @@ function onRegionSelected(code:string|null):void{
 }
 const variantId=computed(()=>canonicalGeographyVariantId(route.query.variant));
 const variantName=ref('');
+const variantAliases=ref<readonly string[]>([]);
 const emptyState=computed(()=>geographyVariantEmptyState(variantId.value));
 const variantLabel=computed(()=>variantName.value||('Variant #'+variantId.value));
 let source:RealVariantSource|null=null;
@@ -33,12 +35,13 @@ try{
 // The atlas itself has no variant-geographic source. The optional GET below
 // retrieves only a verified display name, never location or distribution.
 watch(variantId,id=>{
- pending?.abort();pending=null;variantName.value='';
+ pending?.abort();pending=null;variantName.value='';variantAliases.value=[];
  if(!id||!source)return;
  const controller=new AbortController();pending=controller;
  void source.get(id,controller.signal).then(record=>{
-  if(!controller.signal.aborted&&variantId.value===id&&record?.id===id)
-   variantName.value=variantDisplayName(record);
+  if(!controller.signal.aborted&&variantId.value===id&&record?.id===id){
+   variantName.value=variantDisplayName(record);variantAliases.value=record.aliases;
+  }
  }).catch(()=>{
   // Keep the safe, source-ID-only label if the current dossier is inaccessible.
  }).finally(()=>{if(pending===controller)pending=null;});
@@ -63,6 +66,7 @@ onUnmounted(()=>pending?.abort());
   </header>
   <WorldGeography v-if="worldMode" @open-spain="worldMode=false"/>
   <GeographicObservatory v-else :variant-id="variantId" :initial-region-code="regionCode" @region-selected="onRegionSelected"/>
+  <PopulationEvidence v-if="variantId&&worldMode" :aliases="variantAliases"/>
  </div>
 </template>
 <style scoped>
