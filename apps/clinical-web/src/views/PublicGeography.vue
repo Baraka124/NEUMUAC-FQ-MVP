@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {computed,onUnmounted,ref,watch} from 'vue';
 import {useRoute,useRouter} from 'vue-router';
+import PublicationGeography from '../components/PublicationGeography.vue';
 import PopulationEvidence from '../components/PopulationEvidence.vue';
 import WorldGeography from '../components/WorldGeography.vue';
 import GeographicObservatory from '../components/GeographicObservatory.vue';
@@ -12,6 +13,7 @@ import {createReadOnlyRepository,readConfigFromEnvironment,variantDisplayName,ty
 const route=useRoute();
 const router=useRouter();
 const worldMode=ref(false);
+const evidenceLayer=ref<'population'|'publication'>('population');
 const regionCode=computed(()=>canonicalGeographicRegionCode(route.query.region));
 function onRegionSelected(code:string|null):void{
  const selected=canonicalGeographicRegionCode(code);
@@ -66,7 +68,14 @@ onUnmounted(()=>pending?.abort());
   </header>
   <WorldGeography v-if="worldMode" @open-spain="worldMode=false"/>
   <GeographicObservatory v-else :variant-id="variantId" :initial-region-code="regionCode" @region-selected="onRegionSelected"/>
-  <PopulationEvidence v-if="variantId&&worldMode" :aliases="variantAliases"/>
+  <nav v-if="worldMode" class="geo-evidence-nav" aria-label="International evidence layers">
+   <button type="button" :aria-pressed="evidenceLayer==='population'" @click="evidenceLayer='population'">Population genetics</button>
+   <button type="button" :aria-pressed="evidenceLayer==='publication'" @click="evidenceLayer='publication'">Publication affiliations</button>
+   <button type="button" @click="worldMode=false">Regional search activity · Spain</button>
+  </nav>
+  <PopulationEvidence v-if="variantId&&worldMode&&evidenceLayer==='population'" :aliases="variantAliases"/>
+  <p v-if="worldMode&&!variantId&&evidenceLayer==='population'" class="geo-evidence-note">Open the atlas from a variant dossier to retrieve population allele observations.</p>
+  <PublicationGeography v-if="worldMode&&evidenceLayer==='publication'"/>
  </div>
 </template>
 <style scoped>
@@ -112,4 +121,5 @@ onUnmounted(()=>pending?.abort());
 }
 .geo-scope-switch{border:1px solid #d7e0e9;border-radius:4px;background:transparent;color:inherit;min-height:34px;padding:4px 10px;font:inherit;font-size:12px;cursor:pointer}
 .geo-scope-switch:focus-visible{outline:2px solid #2867b3;outline-offset:2px}
+.geo-evidence-nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.geo-evidence-nav button{min-height:40px;padding:6px 12px;background:transparent;border:1px solid #cdd9e5;color:inherit;border-radius:4px;font:inherit;font-size:12px;cursor:pointer}.geo-evidence-nav button[aria-pressed=true]{border-color:#527da5;font-weight:650}.geo-evidence-note{font-size:12px;line-height:1.55}
 </style>
