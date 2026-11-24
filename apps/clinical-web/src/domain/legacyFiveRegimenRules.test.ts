@@ -138,3 +138,16 @@ describe('14H135 full original IVACAFTOR_VARIANTS and strict paired-regimen matr
   expect(result(v('304','unlisted Class II','II',null,'unknown','unknown','class_rule'),b,'ETI')?.outcome).toBe('needs-evidence');
  });
 });
+
+describe('F04 missing functional class guard',()=>{
+ it('does not treat an unknown class paired with Class I as a known non-Class-I match',()=>{
+  const a=v('901','G542X','I','true','unknown','unknown');
+  const b=v('902','Unclassified','','unknown','unknown','unknown');
+  expect(result(a,b,'ALYFTREK')?.outcome).toBe('needs-evidence');
+ });
+ it('retains the historical non-Class-I rule for a known Class II record',()=>{
+  const a=v('903','F508del','II',null,'unknown','unknown');
+  const b=v('904','Unclassified','',null,'unknown','unknown');
+  expect(result(a,b,'ALYFTREK')?.outcome).toBe('match');
+ });
+});
