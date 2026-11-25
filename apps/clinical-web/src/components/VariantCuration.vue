@@ -50,6 +50,7 @@ const fields:readonly {value:VariantCurationField;label:string}[]=[
  {value:'alt_names',label:'Recorded aliases'}
 ];
 let generation=0;
+let operationEpoch=0;
 let queueAbort:AbortController|null=null;
 async function refreshQueue(){
  queueAbort?.abort();const epoch=++generation;
@@ -64,42 +65,47 @@ async function refreshQueue(){
   if(epoch===generation&&!abort.signal.aborted)queueNotice.value='Curation queue unavailable. No editing permissions were changed.';
  }finally{if(epoch===generation)loading.value=false;}
 }
-watch([()=>props.variant.id,canSubmit,expanded],()=>{
+watch([()=>props.variant.id,()=>authController?.state.userId,canSubmit,expanded],()=>{
+ ++operationEpoch;proposedValue.value='';rationale.value='';sourceReference.value='';
  ++generation;queueAbort?.abort();queue.value=[];proposalStatus.value='';busy.value=false;
  reviewNotes.value={};confirmedProposal.value=null;
  if(expanded.value&&canSubmit.value)void refreshQueue();
 },{immediate:true});
 watch(field,()=>{proposedValue.value='';proposalStatus.value='';});
-onUnmounted(()=>{++generation;queueAbort?.abort();});
+onUnmounted(()=>{++operationEpoch;++generation;queueAbort?.abort();});
 async function submit(){
  if(!client||!canSubmit.value||busy.value)return;
  busy.value=true;proposalStatus.value='';
+ const epoch=++operationEpoch;
  try{
   const id=await client.submit({
    variantId:props.variant.id,field:field.value,proposedValue:proposedValue.value,
    rationale:rationale.value,sourceReference:sourceReference.value
   });
+  if(epoch!==operationEpoch)return;
   proposalStatus.value='Correction #'+id+' submitted. The published variant is unchanged until independent review.';
   proposedValue.value='';rationale.value='';sourceReference.value='';
   await refreshQueue();
  }catch{
-  proposalStatus.value='Submission was not confirmed. Check the pending queue before attempting again.';
- }finally{busy.value=false;}
+  if(epoch===operationEpoch)proposalStatus.value='Submission was not confirmed. Check the pending queue before attempting again.';
+ }finally{if(epoch===operationEpoch)busy.value=false;}
 }
 async function decide(proposal:VariantCurationProposal,decision:VariantCurationDecision){
  if(!client||!canReview.value||busy.value||confirmedProposal.value!==proposal.id)return;
  busy.value=true;proposalStatus.value='';
+ const epoch=++operationEpoch;
  try{
   await client.decide(proposal,decision,reviewNotes.value[proposal.id]??'');
+  if(epoch!==operationEpoch)return;
   proposalStatus.value=decision==='approved'
    ?'Approved correction published with an audit entry. Reloading the current variant.'
    :'Correction rejected and review recorded. Published variant unchanged.';
   confirmedProposal.value=null;reviewNotes.value={};
   await refreshQueue();
-  if(decision==='approved')emit('published');
+  if(epoch===operationEpoch&&decision==='approved')emit('published');
  }catch{
-  proposalStatus.value='Review result not confirmed. Reload the queue and check for a conflicting update.';
- }finally{busy.value=false;}
+  if(epoch===operationEpoch)proposalStatus.value='Review result not confirmed. Reload the queue and check for a conflicting update.';
+ }finally{if(epoch===operationEpoch)busy.value=false;}
 }
 </script>
 

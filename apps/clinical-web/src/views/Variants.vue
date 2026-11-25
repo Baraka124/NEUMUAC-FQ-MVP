@@ -216,19 +216,35 @@ function downloadConflictReviewPacket():void{
 
 const briefBusy=ref(false);
 const briefStatus=ref('');
+const printableBrief=ref('');
 let briefAbort:AbortController|null=null;
-watch(selected,()=>{briefAbort?.abort();briefBusy.value=false;briefStatus.value='';});
-async function exportResearchBrief(mode:'copy'|'download'):Promise<void>{
+watch(selected,()=>{briefAbort?.abort();briefBusy.value=false;briefStatus.value='';printableBrief.value='';});
+function printResearchDossier(){
+ if(!printableBrief.value)return;
+ const frame=document.createElement('iframe');frame.title='Printable research dossier';frame.style.cssText='position:fixed;width:1px;height:1px;opacity:0;pointer-events:none';
+ document.body.appendChild(frame);
+ const doc=frame.contentDocument,win=frame.contentWindow;
+ if(!doc||!win){frame.remove();return;}
+ const style=doc.createElement('style');style.textContent='@page{margin:18mm}body{font:11pt Arial,sans-serif;color:#20354d}h1{font: bold 18pt Arial;margin-bottom:18pt}pre{font:10pt/1.55 Arial,sans-serif;white-space:pre-wrap;overflow-wrap:anywhere}';doc.head.appendChild(style);
+ const title=doc.createElement('h1');title.textContent='neumuacFQ | Research dossier';doc.body.appendChild(title);
+ const body=doc.createElement('pre');body.textContent=printableBrief.value;doc.body.appendChild(body);
+ win.addEventListener('afterprint',()=>frame.remove(),{once:true});
+ try{win.focus();win.print();}catch{frame.remove();briefStatus.value='Print preview could not be opened.';}
+}
+async function exportResearchBrief(mode:'copy'|'download'|'print'):Promise<void>{
  if(!selected.value||!config||briefBusy.value)return;
  const id=selected.value.id,controller=new AbortController();
  briefAbort?.abort();briefAbort=controller;
  briefBusy.value=true;briefStatus.value='';
  try{
-  const contents=mode==='copy'
+  const contents=mode!=='download'
    ?await createVariantResearchBrief(config,id,fetch,controller.signal)
    :await createVariantResearchBriefMarkdown(config,id,fetch,controller.signal);
   if(controller.signal.aborted||selected.value?.id!==id)return;
-  if(mode==='copy'){
+  if(mode==='print'){
+   printableBrief.value=contents;
+   briefStatus.value='Printable research dossier prepared. Review it before printing.';
+  }else if(mode==='copy'){
    await navigator.clipboard.writeText(contents);
    if(!controller.signal.aborted&&selected.value?.id===id)briefStatus.value='Research brief copied with current recorded fields and references.';
   }else{
@@ -835,13 +851,18 @@ function select(id:string):void{
       <div class="variant-export-actions" role="group" aria-label="Research brief actions">
        <button type="button" :disabled="briefBusy" @click="exportResearchBrief('copy')">{{briefBusy?'Preparing brief…':'Copy research brief'}}</button>
        <button type="button" :disabled="briefBusy" @click="exportResearchBrief('download')">Download .md</button>
+       <button type="button" :disabled="briefBusy" @click="exportResearchBrief('print')">Prepare printable dossier</button>
        <ContextHelp label="About the research brief" title="Research brief and provenance">
         <p>The brief is generated on request from the current live variant record, recorded scientific metadata and complete accessible reference links.</p>
         <p>It includes recorded source identifiers, citation details and database labels. Neither the source labels nor the scientific interpretation have been independently verified.</p>
-        <p>Markdown is a portable text format, not a PDF, clinical report, patient record or treatment recommendation. If any required read fails, no brief is produced.</p>
+        <p>The printable research dossier can be saved as PDF through the browser. It is not a clinical report, patient record or treatment recommendation. If any required read fails, no brief is produced.</p>
        </ContextHelp>
        <p role="status" v-if="briefStatus" class="nfq-brief-status">{{briefStatus}}</p>
       </div>
+      <section v-if="printableBrief" class="nfq-print-preview" aria-label="Printable research dossier">
+       <div class="nfq-print-actions"><button type="button" @click="printResearchDossier">Print / Save PDF</button><button type="button" @click="printableBrief=''">Close preview</button></div>
+       <pre>{{printableBrief}}</pre>
+      </section>
      </div>
      </template>
      <template v-else>
@@ -1090,6 +1111,7 @@ function select(id:string):void{
  }
 }
 
+.nfq-print-preview{margin-top:12px;padding:14px;border:1px solid #aebdce;border-radius:4px}.nfq-print-preview pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;font-size:12px;line-height:1.6}.nfq-print-actions{display:flex;gap:8px;flex-wrap:wrap}
 </style>
 
 <style scoped>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SourceEvidenceReconciliation from "./SourceEvidenceReconciliation.vue";
 import {computed,ref,watch,onUnmounted,nextTick} from 'vue';
 import type {CuratedSourceClaim} from '../services/curatedSourceClaims';
 import type {LiveEvidenceReference} from '../services/liveEvidence';
@@ -242,6 +243,7 @@ onUnmounted(()=>request?.abort());
       </ul>
      </div>
     </section>
+    <SourceEvidenceReconciliation :active="active&&loading==='ready'" :variant-id="variantId" :claims="claims" :references="references" />
     <div class="nfq-one-variant-operations">
      <button type="button" :disabled="busy" @click="refresh">Refresh register</button>
      <button type="button" :disabled="busy||!approvedSources.length"
